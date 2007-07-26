@@ -1,0 +1,127 @@
+!|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+ module glc_FinalMod
+
+!BOP
+! !MODULE: glc_FinalMod
+! !DESCRIPTION:
+!  This module contains the glc finalization method that shuts down glc
+!  gracefully (we hope).  It exits the message environment and checks 
+!  for successful execution.
+!
+! !USERDOC:
+!
+! !REFDOC:
+!
+! !REVISION HISTORY:
+!  SVN:$Id: POP_FinalMod.F90 808 2006-04-28 17:06:38Z njn01 $
+!  WHL, May 2007: Adapted from POP_FinalMod.F90 in POP 2.0
+!
+! !USES:
+
+   use glc_KindsMod
+   use glc_ErrorMod
+   use glc_IOUnitsMod, only: glc_stdout
+   use glc_communicate, only: exit_message_environment
+   use glc_timers, only: glc_timer_print_all
+   use glc_xdisplay, only: lxdisplay, clear_display
+   !use POP_CommMod
+   !use esmf_mod
+
+   implicit none
+   private
+   save
+
+! !PUBLIC MEMBER FUNCTIONS:
+
+   public :: glc_final
+
+!EOP
+!BOC
+!-----------------------------------------------------------------------
+!
+!     module variables
+!
+!-----------------------------------------------------------------------
+
+!EOC
+!***********************************************************************
+
+ contains
+
+!***********************************************************************
+!BOP
+! !IROUTINE: glc_final
+! !INTERFACE:
+
+ subroutine glc_final(ErrorCode)
+
+! !DESCRIPTION:
+!  This routine shuts down glc by exiting all relevent environments.
+!
+! !USERDOC:
+!
+! !REFDOC:
+!
+! !REVISION HISTORY:
+!  same as module
+
+! !INPUT/OUTPUT PARAMETERS:
+
+   integer (glc_i4), intent(inout) :: &
+      ErrorCode              ! On input, error code from Init,Run method
+                             ! On output, status of this routine
+
+!EOP
+!BOC
+!-----------------------------------------------------------------------
+!
+!  local variables
+!
+!-----------------------------------------------------------------------
+
+!-----------------------------------------------------------------------
+!
+!  call Error Logging to print any error messages.
+!
+!-----------------------------------------------------------------------
+
+   call glc_ErrorPrint(ErrorCode)
+
+!-----------------------------------------------------------------------
+!
+!  clear any open displays and print all timers with statistics
+!
+!-----------------------------------------------------------------------
+
+   call glc_timer_print_all(stats=.true.)
+   if (lxdisplay) call clear_display
+
+!-----------------------------------------------------------------------
+!
+!  write final message to glc output log
+!
+!-----------------------------------------------------------------------
+    write(glc_stdout,*) '==================='
+    write(glc_stdout,*) 'completed glc_final'
+    write(glc_stdout,*) '==================='
+
+!-----------------------------------------------------------------------
+!
+!  exit the communication environment
+!
+!-----------------------------------------------------------------------
+
+   !call glc_CommExitEnvironment(ErrorCode)
+   call exit_message_environment(ErrorCode)
+
+!-----------------------------------------------------------------------
+!EOC
+
+ end subroutine glc_final
+
+!***********************************************************************
+
+ end module glc_FinalMod
+
+!|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||

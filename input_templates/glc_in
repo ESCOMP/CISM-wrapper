@@ -1,0 +1,6 @@
+
+&files_nml
+  climatefile = '/homebv/lipscomb/six_comp/data/glint_example.LY.config'
+  paramfile   = '/homebv/lipscomb/six_comp/data/ice.config'
+/
+

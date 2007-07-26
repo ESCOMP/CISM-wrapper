@@ -1,0 +1,23 @@
+This directory contains the CCSM3 ice sheet model.  It is under
+construction by Bill Lipscomb (LANL) and Jon Wolfe (NCAR).
+
+The heart of the model is the GLIMMER code.  GLIMMER is an ice
+sheet model originally developed by Tony Payne and colleagues
+at the University of Bristol.  GLIMMER version 1.0.0 was released
+in February 2007 and is the starting point for the CCSM ice sheet
+model.  Here is the link to the GLIMMER developers' page:
+http://forge.nesc.ac.uk/projects/glimmer/.
+
+Files with the prefixes "glimmer", "glint", and "glide" are part of 
+the GLIMMER release.  GLINT is the interface between the ice sheet
+and climate models.  GLIDE is the dynamical core.
+
+Files with the prefix "glc" have been added to enable GLIMMER to
+run in the CCSM framework.  These are mainly drivers (e.g., glc.F90,
+glc_RunMod.F90), communication routines (e.g., glc_boundary.F90),
+and utilities (e.g., glc_kinds_mod.F90, glc_timers.F90).
+
+Files with the prefix "glissade" are part of an alternate dynamical
+core under development at LANL.
+
+For more information, contact Bill Lipscomb, lipscomb@lanl.gov.
