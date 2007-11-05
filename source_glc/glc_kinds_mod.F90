@@ -25,6 +25,12 @@
       implicit none
       save
 
+      integer, parameter :: i4        = selected_int_kind(6), &
+                            i8        = selected_int_kind(13), &
+                            r4        = selected_real_kind(6), &
+                            r8        = selected_real_kind(13), &
+                            r16       = selected_real_kind(20)
+
       integer, parameter :: char_len  = 80, &
                             char_len_long  = 256, &
                             int_kind  = kind(1), &
@@ -32,13 +38,6 @@
                             real_kind = selected_real_kind(6), &
                             dbl_kind  = selected_real_kind(13), &
                             quad_kind = selected_real_kind(20)
-
-      ! additional definitions for modules imported from POP
-      integer, parameter :: i4        = selected_int_kind(6), &
-                            i8        = selected_int_kind(13), &
-                            r4        = selected_real_kind(6), &
-                            r8        = selected_real_kind(13), &
-                            r16       = selected_real_kind(20)
 
 !=======================================================================
 

@@ -5,13 +5,13 @@
 !
 ! !DESCRIPTION:
 !
-! Defines the global domain size and number of categories and layers.
-! Code originally based on domain_size.F in POP
+! Defines the global domain size for the glc component
+! Might be better to read in nx_global and ny_global, allocate arrays dynamically
 !
 ! !REVISION HISTORY:
 !  SVN:$Id: ice_domain_size.F90 66 2007-05-02 16:52:51Z dbailey $
 !
-! authors Elizabeth C. Hunke and William H. Lipscomb, LANL
+! author William H. Lipscomb, LANL
 !
 ! !INTERFACE:
 !
@@ -27,21 +27,24 @@
       implicit none
       save
 
-      integer (kind=int_kind), parameter :: &
+!lipscomb - These are hardwired for now.
+!lipscomb - Would it be better to read them in at runtime?
+      integer (i4), parameter :: &
 !!!        nx_global = NXGLOB    , & ! i-axis size
 !!!        ny_global = NYGLOB    , & ! j-axis size
-!lipscomb - hardwired for Greenland for now
-        nx_global =  76       , & ! i-axis size
-        ny_global = 141       , & ! j-axis size
-        nilyr     =  10       , & ! number of ice layers
-        ntrcr     =   2           ! number of tracers
-                                  ! 1 = surface temperature
-                                  ! 2 = ice age?
+        nx_global = 96     , & ! i-axis size, T31
+        ny_global = 48         ! j-axis size, T31
+!!!        nx_global = 128     , & ! i-axis size, T42
+!!!        ny_global = 64          ! j-axis size, T42
+!!!        nx_global = 144     , & ! i-axis size, FV1.9x2.5
+!!!        ny_global = 96          ! j-axis size, FV1.9x2.5
+!!!        nx_global = 288     , & ! i-axis size, FV1x1.25
+!!!        ny_global = 180         ! j-axis size, FV1x1.25
 
       integer (kind=int_kind), parameter :: &
 !!!        block_size_x = BLCKX  , & ! size of block in first horiz dimension
 !!!        block_size_y = BLCKY      ! size of block in second horiz dimension
-!lipscomb - hardwired for now
+!lipscomb - hardwired for now; should be defined at runtime?
         block_size_x = nx_global  , & ! size of block in first horiz dimension
         block_size_y = ny_global      ! size of block in second horiz dimension
 

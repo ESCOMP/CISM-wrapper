@@ -22,21 +22,22 @@
    use MPH_module, only : MPH_get_argument
 #endif
 
-
    use glc_InitMod, only: glc_initialize
    use glc_RunMod, only: glc_run
    use glc_FinalMod, only: glc_final
-   use glc_kinds_mod, only: int_kind, i4, r8
+   use glc_kinds_mod
    use glc_communicate, only: my_task, master_task
    use glc_exit_mod
    use glc_domain, only: distrb_info
    use glc_timers, only: glc_timer_print_all, get_glc_timer, glc_timer_start, glc_timer_stop
-   use glc_Kindsmod
    use glc_ErrorMod   
    use glc_time_management, only: init_time_flag, check_time_flag, sigAbort,    &
        nsteps_run, stdout, sigExit, exit_glc, set_time_flag
-   use glc_forcing_coupled, only: lcoupled
+   use glc_coupled, only: recv_from_coupler, send_to_coupler, lcoupled
    use glc_output, only: output_driver  
+
+!lipscomb - debug
+   use shr_sys_mod
 
    implicit none
 
@@ -48,7 +49,7 @@
 !
 !-----------------------------------------------------------------------
 
-   integer (int_kind) :: &
+   integer (i4) :: &
       timer_total,       &! timer number for total time
       timer_step,        &! timer number for step
       timer_out,         &! timer number for output driver
@@ -62,11 +63,9 @@
 #ifdef SINGLE_EXEC
    integer (int_kind) :: &
       nThreads
+
    write (*,*) 'whl - Starting glc'
    call MPH_get_argument("THREADS", nThreads, "glc")
-#ifdef _OPENMP
-   call OMP_SET_NUM_THREADS(nThreads)
-#endif
 #endif
 
 !-----------------------------------------------------------------------
@@ -77,6 +76,8 @@
 
    errorCode = glc_Success
 
+!lipscomb - debug
+   write(stdout,*) 'Initialize glc'
    call glc_initialize(errorCode)
 
    fstop_now = init_time_flag('stop_now')
@@ -87,12 +88,11 @@
 !
 !-----------------------------------------------------------------------
 
-   call get_glc_timer(timer_step,'STEP',1,distrb_info%nprocs)
-   call get_glc_timer(timer_out,'OUTPUT',1,distrb_info%nprocs)
+!lipscomb - Add other timers?
 
-   call get_glc_timer(timer_total,'TOTAL',1,distrb_info%nprocs)
+   call get_glc_timer(timer_total,'STEP'  , 1, distrb_info%nprocs)
+   call get_glc_timer(timer_total,'TOTAL' , 1, distrb_info%nprocs)
    call glc_timer_start(timer_total)
-
 
 !-----------------------------------------------------------------------
 !
@@ -100,13 +100,33 @@
 !
 !-----------------------------------------------------------------------
 
+   write(stdout,*) 'Begin main glc loop'
+
    advance: do while (.not. check_time_flag(fstop_now))
 
+!lipscomb - timers around cpl calls?
+
+!lipscomb - debug
+    write(6,*) 'Recv from coupler'
+    call shr_sys_flush(6)
+
+      if (lcoupled) call recv_from_coupler
+
       call glc_timer_start(timer_step)
+
+!lipscomb - debug
+    write(6,*) 'Run glc'
+    call shr_sys_flush(6)
 
       call glc_run
 
       call glc_timer_stop(timer_step)
+
+!lipscomb - debug
+    write(6,*) 'Send to coupler'
+    call shr_sys_flush(6)
+
+      if (lcoupled) call send_to_coupler
 
       if (lcoupled .and. check_time_flag(fstop_now)) exit advance
 

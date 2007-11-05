@@ -791,7 +791,7 @@ contains
     if (associated(ups%gboxn)) deallocate(ups%gboxn)
 
     allocate(ups%gboxx(lgrid%size%pt(1),lgrid%size%pt(2)))
-    allocate(ups%gboxy(lgrid%size%pt(1),lgrid%size%pt(2)))     
+    allocate(ups%gboxy(lgrid%size%pt(1),lgrid%size%pt(2)))
     allocate(ups%gboxn(ggrid%nx,ggrid%ny))
 
     gnx=ggrid%nx ; gny=ggrid%ny

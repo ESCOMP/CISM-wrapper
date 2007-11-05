@@ -172,7 +172,7 @@
       ltripole_grid = .false.
    endif
 
-   if (nx_global < 1 .or. ny_global < 1 .or. nilyr < 1) then
+   if (nx_global < 1 .or. ny_global < 1) then
       !***
       !*** domain size zero or negative
       !***
@@ -217,7 +217,6 @@
      write(nu_diag,'(/,a18,/)')'Domain Information'
      write(nu_diag,'(a26,i6)') '  Horizontal domain: nx = ',nx_global
      write(nu_diag,'(a26,i6)') '                     ny = ',ny_global
-     write(nu_diag,'(a26,i6)') '  No. of ice layers: ni = ',nilyr
      write(nu_diag,'(a26,i6)') '  Block size:  nx_block = ',nx_block
      write(nu_diag,'(a26,i6)') '               ny_block = ',ny_block
      write(nu_diag,'(a29,i6)') '  Processors: ', nprocs

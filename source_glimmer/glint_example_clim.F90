@@ -202,7 +202,7 @@ contains
 
     ! Fix up a few things
 
-    params%surftemp_clim=params%surftemp_clim-273.15       ! Convert temps to degreesC
+    params%surftemp_clim=params%surftemp_clim-273.15       ! Convert temps to degrees C
 
   end subroutine glex_clim_init
 
@@ -306,6 +306,7 @@ contains
     call read_ncdf_getbound(ncid,varid,'bounds_lon',lonb_present,lonbound)
     call read_ncdf_getbound(ncid,varid,'bounds_lat',latb_present,latbound)
 
+ 
     ! Construct global grid ----------------------------
 
     call read_ncdf_common4(grid,lonb_present,latb_present,dim1,dim2,lonbound,latbound)

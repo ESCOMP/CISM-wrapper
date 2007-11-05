@@ -105,6 +105,10 @@ contains
     ! fill dimension variables
     call glide_nc_fillall(instance%model)
  
+!lipscomb - debug
+    write (6,*) 'Read config'
+    call shr_sys_flush(6)
+
     ! read glint configuration
 
     call glint_i_readconfig(instance,config)    
@@ -114,6 +118,10 @@ contains
 
     call CheckSections(config)
 
+!lipscomb - debug
+    write (6,*) 'New grid'
+    call shr_sys_flush(6)
+
     ! New grid and downscaling
 
     instance%lgrid = coordsystem_new(0.d0, 0.d0, &
@@ -122,14 +130,41 @@ contains
          get_ewn(instance%model), &
          get_nsn(instance%model))
 
+!lipscomb - debug
+    write (6,*) 'New downscale'
+    call shr_sys_flush(6)
+
     call new_downscale(instance%downs,instance%model%projection,grid,instance%lgrid)    ! Initialise the downscaling
 
+!lipscomb - debug
+    write (6,*) 'glint_i_allocate'
+    call shr_sys_flush(6)
+
     call glint_i_allocate(instance,grid%nx,grid%ny,grid_orog%nx,grid_orog%ny)           ! Allocate arrays appropriately
+
+!lipscomb - debug
+    write (6,*) 'glint_i_readdata'
+    call shr_sys_flush(6)
+
     call glint_i_readdata(instance)
+
+!lipscomb - debug
+    write (6,*) 'New upscale, ups'
+    call shr_sys_flush(6)
+
     call new_upscale(instance%ups,grid,instance%model%projection, &
          instance%out_mask,instance%lgrid) ! Initialise upscaling parameters
+
+!lipscomb - debug
+    write (6,*) 'New upscale, ups_orog'
+    call shr_sys_flush(6)
+
     call new_upscale(instance%ups_orog,grid_orog,instance%model%projection, &
          instance%out_mask,instance%lgrid) ! Initialise upscaling parameters
+
+!lipscomb - debug
+    write (6,*) 'Calc coverage'
+    call shr_sys_flush(6)
 
     call calc_coverage(instance%lgrid, &                         ! Calculate coverage map
                        instance%ups,  &             
@@ -142,6 +177,10 @@ contains
                        grid_orog,     &
                        instance%out_mask, &
                        instance%frac_cov_orog)
+
+!lipscomb - debug
+    write (6,*) 'Init mbal accum'
+    call shr_sys_flush(6)
 
     ! initialise the mass-balance accumulation
 

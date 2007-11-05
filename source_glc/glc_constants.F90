@@ -23,10 +23,29 @@
   module glc_constants
 
   use glc_kinds_mod
+  use shr_const_mod
 
   implicit none
 
   include 'netcdf.inc'
+
+
+   !-----------------------------------------------------------------
+   ! test point for debugging
+   !-----------------------------------------------------------------
+
+   integer(i4), parameter ::  &
+      itest = 85, jtest = 43  ! in Greenland (T31)
+
+   !-----------------------------------------------------------------
+   ! physical constants
+   !-----------------------------------------------------------------
+
+!lipscomb - Add an ifdef here for uncoupled runs?
+   real(r8) :: radius = SHR_CONST_REARTH  ,&! radius of earth (m)
+                                            ! = 6.37122e6
+               tkfrz  = SHR_CONST_TKFRZ     ! freezing temp of water (K)
+                                            ! = 273.15
 
    !-----------------------------------------------------------------
    ! numbers
@@ -53,7 +72,10 @@
       eps    = 1.0e-10_r8  ,&
       eps2   = 1.0e-20_r8  ,&
       bignum = 1.0e+30_r8  ,&
-      pi     = 3.14159265358979_r8
+      pi     = 3.14159265358979_r8,&
+      pi2 = c2*pi          ,&
+      pih = p5*pi          ,&
+      radian = 180.0_r8/pi
 
    real (r4), parameter, public ::       &
       undefined_nf_r4  = NF_FILL_FLOAT,  &

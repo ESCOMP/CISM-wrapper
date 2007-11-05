@@ -137,8 +137,10 @@ module glint_main
 !lipscomb - diagnostic points 
   integer, parameter, private :: idiag = 18, jdiag = 50 
 
-  private glint_allocate_arrays
-  private glint_readconfig,calc_bounds,check_init_args
+!lipscomb - make several subroutines accessible by glint_glc
+!  private glint_allocate_arrays
+!  private glint_readconfig,calc_bounds,check_init_args
+  private calc_bounds
 
   !MAKE_RESTART
 #ifdef RESTARTS
@@ -419,18 +421,18 @@ contains
 
   !================================================================================
 
-  subroutine glint(params,         time,     &
-                   temp,           precip,   &
-                   orog,                     &
-                   zonwind_in,     merwind_in,  &
-                   humid_in,       lwdown_in,   &
-                   swdown_in,      airpress_in, &
-                   output_flag,               &
-                   orog_out,       albedo,   &
-                   ice_frac,       veg_frac, &
-                   snowice_frac,   snowveg_frac,   &
-                   snow_depth,               &
-                   water_in,       water_out,&
+  subroutine glint(params,         time,            &
+                   temp,           precip,          &
+                   orog,                            &
+                   zonwind_in,     merwind_in,      &
+                   humid_in,       lwdown_in,       &
+                   swdown_in,      airpress_in,     &
+                   output_flag,                     &
+                   orog_out,       albedo,          &
+                   ice_frac,       veg_frac,        &
+                   snowice_frac,   snowveg_frac,    &
+                   snow_depth,                      &
+                   water_in,       water_out,       &
                    total_water_in, total_water_out, &
                    ice_volume,     ice_tstep)
 
@@ -456,9 +458,9 @@ contains
 
     implicit none
 
-!lipscomb - On some compilers the code crashes if optional input arguments
+!lipscomb - Some compilers will not work if optional input arguments
 !            (zonwind, etc.) are not present, because these arguments are
-!            included in calls to check_input_fields and accumulate-averages. 
+!            included in calls to check_input_fields and accumulate_averages. 
 !           For now, fix this by renaming the input arguments as zonwind_in, etc.
 !            and by defining zonwind, etc. below.
 !           A better solution may be added later.
@@ -470,7 +472,7 @@ contains
     real(rk),dimension(:,:),         intent(in)    :: temp            !*FD Surface temperature field (celsius)
     real(rk),dimension(:,:),         intent(in)    :: precip          !*FD Precipitation rate        (mm/s)
     real(rk),dimension(:,:),         intent(in)    :: orog            !*FD The large-scale orography (m)
-!lipscomb - rename optional input arguments
+!lipscomb - renamed optional input arguments
 !!    real(rk),dimension(:,:),optional,intent(in)    :: zonwind         !*FD Zonal wind component (m/s) 
 !!    real(rk),dimension(:,:),optional,intent(in)    :: merwind         !*FD Meridional wind component (m/s) 
 !!    real(rk),dimension(:,:),optional,intent(in)    :: humid           !*FD Surface humidity (%)
@@ -502,10 +504,12 @@ contains
     ! Internal variables -----------------------------------------------------
 
     integer :: i
-    real(rk),dimension(:,:),allocatable :: albedo_temp,if_temp,vf_temp,sif_temp,svf_temp,sd_temp,wout_temp,orog_out_temp,win_temp
+    real(rk),dimension(:,:),allocatable :: albedo_temp,if_temp,vf_temp,sif_temp,svf_temp, &
+                                           sd_temp,wout_temp,orog_out_temp,win_temp
     real(rk) :: twin_temp,twout_temp,icevol_temp
     type(output_flags) :: out_f
     logical :: icets
+
     character(250) :: message
 
 !lipscomb - These are either set to the input values or defined locally to default values
@@ -799,7 +803,7 @@ contains
 
   end subroutine glint
 
-  !===================================================================
+  !================================================================================
 
   subroutine end_glint(params)
 
@@ -1039,9 +1043,9 @@ contains
     real(rk),dimension(size(global,1),size(global,2)) :: splice_field
 
     where (coverage==0.0)
-       splice_field=global
+       splice_field = global
     elsewhere
-       splice_field=(global*(1-coverage/normalise))+(local*coverage/normalise)
+       splice_field = global*(1._rk - coverage/normalise) + local*coverage/normalise
     end where
 
   end function splice_field

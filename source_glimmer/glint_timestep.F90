@@ -52,6 +52,9 @@ module glint_timestep
   private
   public glint_i_tstep
 
+!lipscomb - make this accessible from glc_glint (move later?)
+  public glint_remove_bath
+
 contains
 
   subroutine glint_i_tstep(time,instance,g_temp,g_temp_range, &

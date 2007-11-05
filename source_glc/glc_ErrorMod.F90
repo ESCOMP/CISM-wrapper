@@ -30,11 +30,11 @@
 !
 ! !USES:
 
-   use glc_KindsMod
+   use glc_kinds_mod
    !use glc_CommMod
    use glc_communicate
    use glc_constants
-   use glc_IOUnitsMod
+   use glc_io_types
 
    implicit none
    private
@@ -42,7 +42,7 @@
 
 ! !DEFINED PARAMETERS:
 
-   integer (glc_i4), parameter, public :: &
+   integer (i4), parameter, public :: &
       glc_Success =  0,           & ! standard glc error flags
       glc_Fail    = -1
 
@@ -59,14 +59,14 @@
 !
 !-----------------------------------------------------------------------
 
-   integer (glc_i4), parameter :: &
+   integer (i4), parameter :: &
       glc_ErrorLogDepth = 20   ! Max depth of call tree to properly
                                ! size the error log array
 
-   integer (glc_i4) ::         &
+   integer (i4) ::         &
       glc_ErrorMsgCount =  0   ! tracks current number of log messages
 
-   character (glc_CharLength), dimension(glc_ErrorLogDepth) :: &
+   character (char_len), dimension(glc_ErrorLogDepth) :: &
       glc_ErrorLog             ! list of error messages to be output
 
 !EOC
@@ -94,7 +94,7 @@
 
 ! !OUTPUT PARAMETERS:
 
-   integer (glc_i4), intent(out) :: &
+   integer (i4), intent(out) :: &
       ErrorCode              ! Error code to set to fail
 
 ! !INPUT PARAMETERS:
@@ -149,10 +149,10 @@
 
 ! !INPUT PARAMETERS:
 
-   integer (glc_i4), intent(in) :: &
+   integer (i4), intent(in) :: &
       ErrorCode              ! input error code to check success/fail
 
-   integer (glc_i4), intent(in), optional :: &
+   integer (i4), intent(in), optional :: &
       PrintTask              ! Task from which to print error log
 
 !EOP
@@ -163,7 +163,7 @@
 !
 !-----------------------------------------------------------------------
 
-   integer (glc_i4) :: n
+   integer (i4) :: n
 
 !-----------------------------------------------------------------------
 !
@@ -176,63 +176,63 @@
       if (my_Task == PrintTask) then
       !if (glc_myTask == PrintTask) then
 
-         write(glc_stdout,blank_fmt)
-         write(glc_stdout,'(a34)') '----------------------------------'
+         write(stdout,blank_fmt)
+         write(stdout,'(a34)') '----------------------------------'
 
          if (glc_ErrorMsgCount == 0) then ! no errors
 
-            write(glc_stdout,'(a34)') &
+            write(stdout,'(a34)') &
                                 'Successful completion of glc model'
 
          else
 
-            write(glc_stdout,'(a14)') 'glc Exiting...'
+            write(stdout,'(a14)') 'glc Exiting...'
             do n=1,min(glc_ErrorMsgCount,glc_ErrorLogDepth)
-               write(glc_stderr,'(a)') trim(glc_ErrorLog(n))
-               if (glc_stdout /= glc_stderr) then
-                  write(glc_stdout,'(a)') trim(glc_ErrorLog(n))
+               write(stderr,'(a)') trim(glc_ErrorLog(n))
+               if (stdout /= stderr) then
+                  write(stdout,'(a)') trim(glc_ErrorLog(n))
                endif
             end do
             if (glc_ErrorMsgCount > glc_ErrorLogDepth) then
-               write(glc_stderr,'(a)') 'Too many error messages'
-               if (glc_stdout /= glc_stderr) then
-                  write(glc_stdout,'(a)') 'Too many error messages'
+               write(stderr,'(a)') 'Too many error messages'
+               if (stdout /= stderr) then
+                  write(stdout,'(a)') 'Too many error messages'
                endif
             endif
 
          endif
 
-         write(glc_stdout,'(a34)') '----------------------------------'
+         write(stdout,'(a34)') '----------------------------------'
 
       endif
 
    else
 
-      write(glc_stdout,'(a34)') '----------------------------------'
+      write(stdout,'(a34)') '----------------------------------'
 
       if (glc_ErrorMsgCount == 0) then ! no errors
 
-         write(glc_stdout,'(a34)') 'Successful completion of glc model'
+         write(stdout,'(a34)') 'Successful completion of glc model'
 
       else
 
-         write(glc_stdout,'(a14)') 'glc Exiting...'
+         write(stdout,'(a14)') 'glc Exiting...'
          do n=1,min(glc_ErrorMsgCount,glc_ErrorLogDepth)
-            write(glc_stderr,'(a)') trim(glc_ErrorLog(n))
-            if (glc_stdout /= glc_stderr) then
-               write(glc_stdout,'(a)') trim(glc_ErrorLog(n))
+            write(stderr,'(a)') trim(glc_ErrorLog(n))
+            if (stdout /= stderr) then
+               write(stdout,'(a)') trim(glc_ErrorLog(n))
             endif
          end do
          if (glc_ErrorMsgCount > glc_ErrorLogDepth) then
-            write(glc_stderr,'(a)') 'Too many error messages'
-            if (glc_stdout /= glc_stderr) then
-               write(glc_stdout,'(a)') 'Too many error messages'
+            write(stderr,'(a)') 'Too many error messages'
+            if (stdout /= stderr) then
+               write(stdout,'(a)') 'Too many error messages'
             endif
          endif
 
       endif
 
-      write(glc_stdout,'(a34)') '----------------------------------'
+      write(stdout,'(a34)') '----------------------------------'
 
    endif
 

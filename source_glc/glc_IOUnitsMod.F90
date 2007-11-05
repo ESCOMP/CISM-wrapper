@@ -30,7 +30,7 @@
 
 ! !USES:
 
-   use glc_KindsMod
+   use glc_kinds_mod
 
    implicit none
    private
@@ -44,7 +44,7 @@
 
 ! !PUBLIC DATA MEMBERS:
 
-   integer (glc_i4), parameter, public :: &
+   integer (i4), parameter, public :: &
       glc_stdin  =  5,  &! reserved unit for standard input
       glc_stdout =  6,  &! reserved unit for standard output
       glc_stderr =  6    ! reserved unit for standard error
@@ -65,14 +65,14 @@
 !
 !-----------------------------------------------------------------------
 
-   integer (glc_i4), parameter :: &
+   integer (i4), parameter :: &
       glc_IOUnitsMinUnits = 11,   & ! do not use unit numbers below this
       glc_IOUnitsMaxUnits = 99      ! maximum number of open units
 
-   logical (glc_Logical) :: &
+   logical :: &
       glc_IOUnitsInitialized = .false.
 
-   logical (glc_Logical), dimension(glc_IOUnitsMaxUnits) :: &
+   logical, dimension(glc_IOUnitsMaxUnits) :: &
       glc_IOUnitsInUse       ! flag=.true. if unit currently open
 
 !EOC
@@ -99,7 +99,7 @@ contains
 
 ! !OUTPUT PARAMETERS:
 
-   integer (glc_i4), intent(out) :: &
+   integer (i4), intent(out) :: &
       iunit                     ! next free i/o unit
 
 !EOP
@@ -110,9 +110,9 @@ contains
 !
 !-----------------------------------------------------------------------
 
-   integer (glc_i4) :: n  ! dummy loop index
+   integer (i4) :: n  ! dummy loop index
 
-   logical (glc_Logical) :: alreadyInUse
+   logical  :: alreadyInUse
 
 !-----------------------------------------------------------------------
 !
@@ -174,7 +174,7 @@ contains
 
 ! !INPUT PARAMETER:
 
-   integer (glc_i4), intent(in) :: &
+   integer (i4), intent(in) :: &
       iunit                    ! i/o unit to be released
 
 !EOP
@@ -220,7 +220,7 @@ contains
 
 ! !INPUT PARAMETER:
 
-   integer (glc_i4), intent(in) :: &
+   integer (i4), intent(in) :: &
       iunit                    ! i/o unit to be released
 
 !EOP
@@ -231,7 +231,7 @@ contains
 !
 !-----------------------------------------------------------------------
 
-   logical (glc_Logical) :: alreadyInUse
+   logical :: alreadyInUse
 
 !-----------------------------------------------------------------------
 !

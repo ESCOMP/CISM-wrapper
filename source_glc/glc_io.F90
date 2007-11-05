@@ -16,7 +16,6 @@
 ! !USES:
 
    use glc_kinds_mod
-   use glc_blocks
    use glc_communicate
    use glc_broadcast
    use glc_exit_mod

@@ -18,11 +18,7 @@
    use glc_kinds_mod
    use glc_constants
    use glc_communicate, only: my_task, master_task
-   use glc_blocks
-   use glc_domain_size
-   use glc_domain
    use glc_broadcast
-!!   use grid
    use glc_io
    use glc_io_tools
    use glc_io_types, only: stdout
@@ -504,7 +500,7 @@
 
 !-----------------------------------------------------------------------
 !
-!  set initial values  for namelist inputs
+!  set initial values for namelist inputs
 !
 !-----------------------------------------------------------------------
 
@@ -519,7 +515,7 @@
    allow_leapyear   = .false.
    stop_option      = 'unknown_stop_option'
    stop_count       = -1
-   dt_option        = 'auto_dt'
+   dt_option        = 'steps_per_day'
    dt_count         =  1
 
    dt_tol     = 1.0e-6
@@ -633,13 +629,6 @@
 
    select case (dt_option)
  
-!lipscomb - change this if using auto_dt option
-   case('auto_dt')   
-      !*** scale tracer timestep  dt = 1 hr at dx = 2 degrees
-      dtt = seconds_in_hour*(180.0_r8/float(nx_global))
-      steps_per_day  = seconds_in_day/dtt
-      steps_per_year = steps_per_day*days_in_norm_year
-
    case('steps_per_year')
       steps_per_year = dt_count
       steps_per_day  = steps_per_year/days_in_norm_year
