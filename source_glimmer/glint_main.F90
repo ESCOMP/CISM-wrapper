@@ -137,7 +137,7 @@ module glint_main
 !lipscomb - diagnostic points 
   integer, parameter, private :: idiag = 18, jdiag = 50 
 
-!lipscomb - make several subroutines accessible by glint_glc
+!lipscomb - Some of these subroutines need to be accessible by glint_glc
 !  private glint_allocate_arrays
 !  private glint_readconfig,calc_bounds,check_init_args
   private calc_bounds
@@ -523,10 +523,6 @@ contains
     integer :: nx, ny
     real(rk) :: timeyr   ! time in years 
 
-!lipscomb - debug
-    integer :: j, ii, jj
-    real(rk) :: lat, lon 
-
     nx = size(temp,1)
     ny = size(temp,2)
 
@@ -680,9 +676,9 @@ contains
 
        params%g_temp_range=(params%g_max_temp-params%g_min_temp)/2.0
 
-       print*, 'Take an ice timestep, time =', time/(24.0_dp*365._dp) 
+!lipscomb - debug
+       write(6,*) 'Take an ice timestep, time (yr) =', time/(24.0_dp*365._dp) 
        call shr_sys_flush(6)
-
 
        ! Do a timestep for each instance
 
@@ -798,7 +794,7 @@ contains
 
     endif    ! tstep_mbal
 
-!lipscomb - deallocate these too, fow now
+!lipscomb - deallocate these too, for now
     deallocate (zonwind, merwind, humid, lwdown, swdown, airpress)
 
   end subroutine glint

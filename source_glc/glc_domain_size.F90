@@ -10,8 +10,7 @@
 !
 ! !REVISION HISTORY:
 !  SVN:$Id: ice_domain_size.F90 66 2007-05-02 16:52:51Z dbailey $
-!
-! author William H. Lipscomb, LANL
+!  Adapted by William Lipscomb from ice_domain_size.F90 in CICE
 !
 ! !INTERFACE:
 !

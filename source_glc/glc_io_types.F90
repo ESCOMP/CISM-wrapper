@@ -14,7 +14,7 @@
 !
 ! !REVISION HISTORY:
 !  SVN:$Id: io_types.F90 923 2006-05-10 22:25:10Z njn01 $
-!  WHL, May 2007: Adapted from io_types.F90 in POP 2.0
+!  Adapted by William Lipscomb from io_types.F90 in POP
 
 ! !USES:
 

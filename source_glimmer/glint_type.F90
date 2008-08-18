@@ -303,8 +303,8 @@ contains
 
     if (mbal_time_temp>0.0) then
        instance%mbal_accum_time = mbal_time_temp * years2hours
-    else
-       instance%mbal_accum_time = -1
+    else     ! default to max(ice tstep, mass balance tstep)
+       instance%mbal_accum_time = -1   
     end if
 
   end subroutine glint_i_readconfig

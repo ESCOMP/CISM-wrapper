@@ -15,7 +15,7 @@
 !
 ! !REVISION HISTORY:
 !  SVN:$Id: POP_FinalMod.F90 808 2006-04-28 17:06:38Z njn01 $
-!  WHL, May 2007: Adapted from POP_FinalMod.F90 in POP 2.0
+!  Adapted by William Lipscomb from POP_FinalMod.F90
 !
 ! !USES:
 
@@ -23,7 +23,7 @@
    use glc_ErrorMod
    use glc_communicate, only: exit_message_environment
    use glc_timers, only: glc_timer_print_all
-   use glc_xdisplay, only: lxdisplay, clear_display
+!!   use glc_xdisplay, only: lxdisplay, clear_display
    use glc_io_types, only: stdout
    !use POP_CommMod
    !use esmf_mod
@@ -95,7 +95,7 @@
 !-----------------------------------------------------------------------
 
    call glc_timer_print_all(stats=.true.)
-   if (lxdisplay) call clear_display
+!!   if (lxdisplay) call clear_display
 
 !-----------------------------------------------------------------------
 !

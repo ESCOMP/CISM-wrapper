@@ -1,9 +1,8 @@
 !|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-
- module glc_coupled
-
 !BOP
 !MODULE: glc_coupled
+
+ module glc_coupled
 
 ! !DESCRIPTION:
 !  This module contains the routines necessary for coupling glc to
@@ -18,7 +17,7 @@
 !
 ! !REVISION HISTORY:
 !  SVN:$Id: forcing_coupled.F90 901 2006-05-08 20:47:20Z njn01 $
-!  WHL, Aug 2007: Adapted from forcing_coupled.F90 in POP 2.0
+!  Adapted by William Lipscomb from forcing_coupled.F90 in POP
 
 ! !USES:
  
@@ -29,15 +28,15 @@
    use glc_exit_mod
    use glc_timers
    use glc_global_grid, only: glc_grid, region_mask
-   use glc_global_fields, only: nec                          ! no. elev classes
-   use glc_global_fields, only: tsfc, topo, qice                    ! from coupler
+   use glc_global_fields, only: glc_nec                ! no. of elev classes
+   use glc_global_fields, only: tsfc, topo, qice       ! from coupler
    use glc_global_fields, only: gfrac, gthck, gtopo, ghflx, groff   ! to coupler
 
    !*** ccsm
    use cpl_contract_mod
    use cpl_interface_mod
    use cpl_fields_mod
-   use glc_registry
+!!   use glc_registry
    use shr_sys_mod
       
    implicit none
@@ -51,10 +50,6 @@
 !
 !-----------------------------------------------------------------------
 
-!lipscomb - just for now
-   logical (log_kind), parameter ::   &
-      l_coupglc = .true.    ! true for coupling to CCSM
-
    logical (log_kind) ::   &
       lcoupled,            &! flag for coupled forcing
       ldiag_cpl = .false.
@@ -63,16 +58,17 @@
       coupled_freq_iopt,   &! coupler frequency option
       coupled_freq          ! frequency of coupling
 
-!lipscomb - comment out the ifdef for now
+!lipscomb - to do - May want to uncomment the ifdef here and below
 !!!#if COUPGLC
 
-   integer (int_kind) ::   &
-      timer_send_to_cpl,   &
-      timer_recv_from_cpl, &
-      timer_recv_to_send,  &
-      timer_send_to_recv 
+!lipscomb - these are declared in glc_timers
+!   integer (int_kind) ::   &
+!      timer_send_to_cpl,   &
+!      timer_recv_from_cpl, &
+!      timer_recv_to_send,  &
+!      timer_send_to_recv 
  
-!lipscomb - are all these diagnostics needed?
+!lipscomb - to do - Are all these diagnostics needed?
    integer (int_kind), private ::   &
       cpl_stop_now,        &! flag id for stop_now flag
       cpl_ts,              &! flag id for coupled_ts flag
@@ -109,7 +105,7 @@
 !     o  cpl_fields_ibuf_gsize   -- nx_global*ny_global
 !     o  cpl_fields_ibuf_gisize  -- nx_global
 !     o  cpl_fields_ibuf_gjsize  -- ny_global
-!lipscomb - Should we assume lsize = gsize?  Do we pass this info?
+!lipscomb - to do - Should we assume lsize = gsize?  Do we pass this info?
 !!!!     o  cpl_fields_ibuf_lsize   -- (iphys_e-iphys_b+1)*(jphys_e-jphys_b+1)
 !!!!     o  cpl_fields_ibuf_lisize  -- (iphys_e-iphys_b+1)
 !!!!     o  cpl_fields_ibuf_ljsize  -- (jphys_e-jphys_b+1)
@@ -122,20 +118,21 @@
 !
 !    real send buffer indices (sbuf in subroutine init_coupled):
 !
+!lipscomb - TLON and TLAT are assumed to be in degrees
 !lipscomb - modify if TLON and TLAT are in radians
-!     o  cpl_fields_grid_lon   -- radian*TLON(i,j)
-!     o  cpl_fields_grid_lat   -- radian*TLAT(i,j)
+!     o  cpl_fields_grid_lon   -- TLON(i,j) / radian
+!     o  cpl_fields_grid_lat   -- TLAT(i,j) / radian
 !     o  cpl_fields_grid_area  -- TAREA(i,j)/(radius*radius)
 !     o  cpl_fields_grid_mask  -- float(REGION_MASK(i,j))
 !     o  cpl_fields_grid_index -- (j_global(j)-1)*(nx_global)+i_global(i)
 !
 !    real send buffer indices (sbuf in subroutine send_to_coupler):
 !
-!      o  index_gg2c_Sg_gfrac     -- glacier ice fraction [0,1]
-!      o  index_gg2c_Sg_gthck     -- ice thickness (m)
-!      o  index_gg2c_Sg_gtopo     -- surface elevation (m)
-!      o  index_gg2c_Flgg_ghflx   -- heat flux at surface, positive down (W/m^2)
-!      o  index_gg2c_Flgg_groff   -- glacier runoff (kg/m^2/s = mm H2O/s)
+!      o  index_gg2c_Sg_frac     -- glacier ice fraction [0,1]
+!      o  index_gg2c_Sg_thck     -- ice thickness (m)
+!      o  index_gg2c_Sg_topo     -- surface elevation (m)
+!      o  index_gg2c_Flgg_hflx   -- heat flux at surface, positive down (W/m^2)
+!      o  index_gg2c_Flgg_roff   -- glacier runoff (kg/m^2/s = mm H2O/s)
 !         if CLM compute sfc mass balance, runoff includes calving and basal melt 
 !
 !    cpl6 --> glc  
@@ -163,18 +160,20 @@
 !-----------------------------------------------------------------------
 
    ! g2c states and fluxes
-   integer(kind=int_kind) :: index_gg2c_Sg_gfrac    ! glacier ice fraction [0,1]
-   integer(kind=int_kind) :: index_gg2c_Sg_gthck    ! ice thickness (m)
-   integer(kind=int_kind) :: index_gg2c_Sg_gtopo    ! surface elevation (m)
-   integer(kind=int_kind) :: index_gg2c_Flgg_ghflx  ! heat flux (W/m^2, positive down)
-   integer(kind=int_kind) :: index_gg2c_Flgg_groff  ! runoff (kg/m^2/s = mm H2O/s)
+   integer(kind=int_kind), dimension(glc_nec) ::   &
+         index_gg2c_Sg_frac,   & ! glacier ice fraction [0,1]
+         index_gg2c_Sg_thck,   & ! ice thickness (m)
+         index_gg2c_Sg_topo,   & ! surface elevation (m)
+         index_gg2c_Flgg_hflx, & ! heat flux (W/m^2, positive down)
+         index_gg2c_Flgg_roff    ! runoff/calving flux (kg/m^2/s = mm H2O/s)
  
    ! c2g states and fluxes
-   integer(kind=int_kind) :: index_c2gg_Sl_tsfc     ! surface temperature (Kelvin)
-   integer(kind=int_kind) :: index_c2gg_Sl_topo     ! surface elevation (m)
-   integer(kind=int_kind) :: index_c2gg_Flgl_qice   ! flux of new glacier ice (kg/m^2/s)
+   integer(kind=int_kind), dimension(glc_nec) ::   &
+         index_c2gg_Sl_tsfc, & ! surface temperature (Kelvin)
+         index_c2gg_Sl_topo, & ! surface elevation (m)
+         index_c2gg_Flgl_qice  ! flux of new glacier ice (kg/m^2/s)
 
-!lipscomb - commented out the ifdef for now
+!lipscomb - to do - uncomment the ifdef?
 !!!#endif
 
 !EOC
@@ -209,7 +208,6 @@
    character (char_len) ::  &
       coupled_freq_opt
 
-!lipscomb - Do we keep all these options?
    namelist /coupled_nml/ coupled_freq_opt, coupled_freq
 
    integer (i4) ::   &
@@ -226,13 +224,29 @@
       area                  ! grid cell area (m^2)
 
    integer (i4) ::  &
-      i,j,g                 ! indices
+      i,j,g,n,jj            ! indices
 
+!lipscomb - to do - Should this string array be defined elsewhere (e.g., in cpl_fields_mod)?
+ 
+    character(len=2), dimension(10) :: nstr 
+ 
+    nstr(1) = '1' 
+    nstr(2) = '2' 
+    nstr(3) = '3'
+    nstr(4) = '4'
+    nstr(5) = '5'
+    nstr(6) = '6'
+    nstr(7) = '7'
+    nstr(8) = '8' 
+    nstr(9) = '9'
+    nstr(10)= '10'
 
-!lipscomb - debug
-      write(6,*) 'Beginning init_coupled'
-      call shr_sys_flush(6)
+    if (verbose) then
+       write(6,*) 'Beginning init_coupled'
+       call flushm(stdout)
+    endif
 
+!lipscomb - Most of the following code is from POP
 !-----------------------------------------------------------------------
 !
 !  read coupled_nml namelist to start coupling and determine
@@ -243,7 +257,7 @@
       lcoupled          = .false.
       coupled_freq_opt  = 'never'
       coupled_freq_iopt = freq_opt_never
-      coupled_freq      = 100000
+      coupled_freq      = 999999
       
       if (my_task == master_task) then
          open (nml_in, file=nml_filename, status='old',iostat=nml_error)
@@ -274,8 +288,6 @@
           write(stdout, coupled_nml)
           write(stdout,blank_fmt)
       endif
-
-!lipscomb - Coupling should normally be as infrequent as possible, i.e. once per day.
 
       if (my_task == master_task) then
         select case (coupled_freq_opt)
@@ -318,8 +330,8 @@
             lcoupled = .true.
             coupled_freq_iopt = freq_opt_nstep
             ncouple_per_day = nsteps_per_day/coupled_freq
-          else
-            coupled_freq_iopt = -1000
+          else 
+           coupled_freq_iopt = -1000
           endif
 
         case ('never')
@@ -348,9 +360,9 @@
 !     register lcoupled if running with the flux coupler
 !
 !-----------------------------------------------------------------------
-
-      if (lcoupled) call register_string('lcoupled')
-      call register_string('init_coupled')
+!lipscomb - commented out for now
+!!      if (lcoupled) call register_string('lcoupled')
+!!      call register_string('init_coupled')
 
 !lipscomb - commented out the ifdef for now
 !!!#ifdef COUPGLC
@@ -368,6 +380,7 @@
 !
 !-----------------------------------------------------------------------
 
+!lipscomb - Some of these are not currently used
       cpl_stop_now      = init_time_flag('stop_now',default=.false.)
       cpl_ts            = init_time_flag('coupled_ts',                  &
                                          freq_opt = coupled_freq_iopt,  &
@@ -381,6 +394,7 @@
 !-----------------------------------------------------------------------
 !
 !   initialize grid info
+!
 !-----------------------------------------------------------------------
 
       nxg  =  glc_grid%nx
@@ -423,11 +437,10 @@
       do j = 1, nyg
       do i = 1, nxg
          g = (j-1)*nxg + i   ! global index (W to E, S to N)
-         sbuf(g,cpl_fields_grid_lon  ) = radian*lon(i)
-         sbuf(g,cpl_fields_grid_lat  ) = radian*lat(j)
+         sbuf(g,cpl_fields_grid_lon  ) = lon(i) / radian     ! lat and lon are in degrees
+         sbuf(g,cpl_fields_grid_lat  ) = lat(j) / radian     ! radian = 180/pi
          sbuf(g,cpl_fields_grid_area ) = area(i,j)/(radius*radius)
          sbuf(g,cpl_fields_grid_mask ) = float(region_mask(i,j))
-!lipscomb - This is trivial, yes?
          sbuf(g,cpl_fields_grid_index) = g
       enddo
       enddo
@@ -436,16 +449,18 @@
 !  initialize the contracts
 !-----------------------------------------------------------------------
 
-!lipscomb - debug
-     write(6,*) 'Init glc contractS'
-     call shr_sys_flush(6)
+      if (verbose) then
+         write(6,*) 'Init glc contractS'
+         call flushm(stdout)
+      endif
 
       call cpl_interface_contractInit(contractS, cpl_fields_glcname,  &
          cpl_fields_cplname, cpl_fields_gg2c_fields, isbuf, sbuf)
 
-!lipscomb - debug
-     write(6,*) 'Init glc contractR'
-     call shr_sys_flush(6)
+      if (verbose) then
+        write(6,*) 'Init glc contractR'
+        call flushm(stdout)
+      endif
 
       call cpl_interface_contractInit(contractR, cpl_fields_glcname,  &
          cpl_fields_cplname, cpl_fields_c2gg_fields, isbuf, sbuf)
@@ -455,28 +470,50 @@
 
       deallocate(sbuf)
 
-!lipscomb - debug
-     write(6,*) 'Determine send and receive indices'
-     call shr_sys_flush(6)
+      do n = 1, glc_nec
 
-      !--- Determine send indices 
-      index_gg2c_Sg_gfrac    = cpl_interface_contractIndex(contractS,'Sg_gfrac') 
-      index_gg2c_Sg_gthck    = cpl_interface_contractIndex(contractS,'Sg_gthck') 
-      index_gg2c_Sg_gtopo    = cpl_interface_contractIndex(contractS,'Sg_gtopo') 
-      index_gg2c_Flgg_ghflx  = cpl_interface_contractIndex(contractS,'Flgg_ghflx') 
-      index_gg2c_Flgg_groff  = cpl_interface_contractIndex(contractS,'Flgg_groff') 
- 
-      !--- Determine receive indices
-      index_c2gg_Sl_tsfc   = cpl_interface_contractIndex(contractR,'Sl_tsfc') 
-      index_c2gg_Sl_topo   = cpl_interface_contractIndex(contractR,'Sl_topo') 
-      index_c2gg_Flgl_qice = cpl_interface_contractIndex(contractR,'Flgl_qice') 
- 
-!lipscomb - debug
-     write(6,*) 'Receive initial message from coupler'
-     call shr_sys_flush(6)
+        !--- Determine send indices 
+        index_gg2c_Sg_frac(n)   = cpl_interface_contractIndex(contractS,'Sg_frac'//trim(nstr(n)))
+        index_gg2c_Sg_thck(n)   = cpl_interface_contractIndex(contractS,'Sg_thck'//trim(nstr(n))) 
+        index_gg2c_Sg_topo(n)   = cpl_interface_contractIndex(contractS,'Sg_topo'//trim(nstr(n))) 
+        index_gg2c_Flgg_hflx(n) = cpl_interface_contractIndex(contractS,'Flgg_hflx'//trim(nstr(n))) 
+        index_gg2c_Flgg_roff(n) = cpl_interface_contractIndex(contractS,'Flgg_roff'//trim(nstr(n))) 
+        !--- Determine receive indices
+        index_c2gg_Sl_tsfc(n)   = cpl_interface_contractIndex(contractR,'Sl_tsfc'//trim(nstr(n))) 
+        index_c2gg_Sl_topo(n)   = cpl_interface_contractIndex(contractR,'Sl_topo'//trim(nstr(n))) 
+        index_c2gg_Flgl_qice(n) = cpl_interface_contractIndex(contractR,'Flgl_qice'//trim(nstr(n)))
+      enddo   ! glc_nec
+
+      if (verbose) then
+         write(6,*) 'Recv initial message from coupler'
+         write(6,*) 'Call cpl_interface_ibufRecv'
+         call flushm(stdout)
+      endif
+
+!lipscomb - to do - Removed sbuf from infobuf receive.  Should it be put back?
 
       !--- receive initial message from coupler
       call cpl_interface_ibufRecv(cpl_fields_cplname,irbuf)
+!!!      call cpl_interface_ibufRecv(cpl_fields_cplname,irbuf,sbuf)
+
+      do n = 1, glc_nec
+         do j = 1, nyg           ! S to N
+            jj = nyg - j + 1     ! latitude index on glint grid (N to S)
+            do i = 1, nxg
+               g = (j-1)*nxg + i   ! global index (W to E, S to N)
+
+               if (verbose .and. i==itest .and. j==jtest) then
+                  write(6,*) ' '
+                  write(6,*) 'i, j, jj, g, n =', i, j, jj, g, n
+                  write(6,*) 'lat, lon =', glc_grid%lats(j), glc_grid%lons(i) 
+                  write(6,*) 'sbuf_tsfc =', sbuf(g,index_c2gg_Sl_tsfc(n))
+                  write(6,*) 'sbuf_topo =', sbuf(g,index_c2gg_Sl_topo(n))
+                  write(6,*) 'sbuf_qice =', sbuf(g,index_c2gg_Flgl_qice(n))
+               endif
+
+            enddo   ! i
+         enddo      ! j
+      enddo         ! glc_nec
 
 !-----------------------------------------------------------------------
 !
@@ -484,33 +521,17 @@
 !
 !-----------------------------------------------------------------------
 
-!lipscomb - debug
-     write(6,*) 'Send initial message to coupler'
-     call shr_sys_flush(6)
+      if (verbose) then
+         write(6,*) 'Send initial message to coupler'
+         call flushm(stdout)
+      endif
 
-!lipscomb - Is this send needed?
       call send_to_coupler
-
-!-----------------------------------------------------------------------
-!
-!  initialize timers for coupled model
-!
-!-----------------------------------------------------------------------
-
-!lipscomb - commented out for now      
-!!!      call get_glc_timer (timer_send_to_cpl)
-!!!      call get_glc_timer (timer_recv_from_cpl)
-!!!      call get_glc_timer (timer_recv_to_send)
-!!!      call get_glc_timer (timer_send_to_recv)
 
       call flushm (stdout)
 
 !lipscomb - commented out the ifdef for now
 !!!#endif
-
-!lipscomb - debug
-      write(6,*) 'Leaving init_coupled'
-      call shr_sys_flush(6)
 
 !-----------------------------------------------------------------------
 !EOC
@@ -564,11 +585,6 @@
    nyg = glc_grid%ny
    area => glc_grid%box_areas
 
-!lipscomb - debug
-   write(6,*) 'In recv_from_coupler'
-   write(6,*) 'nxg, nyg =', nxg, nyg
-   call shr_sys_flush(6)
-
 !-----------------------------------------------------------------------
 !
 !  receive message from coupler
@@ -579,16 +595,17 @@
    numg = nxg*nyg
    allocate(sbuf(numg, nrecv))
 
-!lipscomb - debug
-   write(6,*) 'cpl_interface_contractRecv'
-   call shr_sys_flush(6)
+   if (verbose) then
+      write(6,*) 'Recv message from coupler'
+      call flushm(stdout)
+   endif
 
    call cpl_interface_contractRecv(cpl_fields_cplname,contractR,irbuf,sbuf)
 
 !-----------------------------------------------------------------------
 !
 !  check all coupler flags and respond appropriately
-!lipscomb - This code is from POP.  Use for glc also?
+!lipscomb - to do - The following code is from POP.  Are these calls needed for glc?
 !
 !-----------------------------------------------------------------------
 
@@ -624,7 +641,7 @@
   
    if (irbuf(cpl_fields_ibuf_histeod) == 1) then
      call set_time_flag(cpl_write_history,.true.)
-     call int_to_char (4,iyear   , cyear )
+     call int_to_char (4,iyear   ,cyear  )
      call int_to_char (2,imonth  ,cmonth )
      call int_to_char (2,iday    ,cday   )
      call int_to_char (2,ihour   ,chour  )
@@ -665,26 +682,41 @@
      endif
    endif
 
+
+   if (verbose) then
+      write(6,*) 'Unpack the recv buffer'
+      call flushm(stdout)
+   endif
+
 !-----------------------------------------------------------------------
 !
 !  unpack and distribute recv buffer
 !  Note: The recv fields (tsfc, topo, qice) are located on the global
-!        clm/glc grid.
+!         CLM grid, which is indexed S to N.
 !
 !-----------------------------------------------------------------------
 
-!lipscomb - modify for elevation classes and ice sheet mask
+      do n = 1, glc_nec
+         do j = 1, nyg           ! S to N
+            jj = nyg - j + 1     ! reverse j index for glint grid (N to S)
+            do i = 1, nxg
+               g = (j-1)*nxg + i   ! global index (W to E, S to N)
+               tsfc(i,jj,n) = sbuf(g,index_c2gg_Sl_tsfc(n))
+               topo(i,jj,n) = sbuf(g,index_c2gg_Sl_topo(n))
+               qice(i,jj,n) = sbuf(g,index_c2gg_Flgl_qice(n))
 
-      n = 1                   ! elevation class; only one for now
-      do j = 1, nyg           ! S to N
-         jj = nyg - j + 1     ! reversed j index for glint grid (N to S)
-         do i = 1, nxg
-            g = (j-1)*nxg + i   ! global index (W to E, S to N)
-            tsfc(i,jj,n) = sbuf(g,index_c2gg_Sl_tsfc)
-            topo(i,jj,n) = sbuf(g,index_c2gg_Sl_topo)
-            qice(i,jj,n) = sbuf(g,index_c2gg_Flgl_qice)
-         enddo
-      enddo
+               if (verbose .and. i==itest .and. j==jtest) then
+                  write(6,*) ' '
+                  write(6,*) 'i, j, jj, g, n =', i, j, jj, g, n
+                  write(6,*) 'lat, lon =', glc_grid%lats(j), glc_grid%lons(i) 
+                  write(6,*) 'sbuf_tsfc =', sbuf(g,index_c2gg_Sl_tsfc(n))
+                  write(6,*) 'sbuf_topo =', sbuf(g,index_c2gg_Sl_topo(n))
+                  write(6,*) 'sbuf_qice =', sbuf(g,index_c2gg_Flgl_qice(n))
+               endif
+
+            enddo   ! i
+         enddo      ! j
+      enddo         ! glc_nec
 
       ! unit conversions
       tsfc(:,:,:) = tsfc(:,:,:) - tkfrz    ! Kelvin to Celsius
@@ -704,19 +736,19 @@
          call int_to_char (2,ihour   ,chour  )
          call int_to_char (2,iminute ,cminute)
          call int_to_char (2,isecond ,csecond)
-         write(stdout,*)' Global averages of fluxes received from cpl',  &
+         write(stdout,*)' Global sums of fluxes received from cpl',  &
                          ' at ', cyear,'/',cmonth ,'/',cday,             &
                             ' ', chour,':',cminute,':',csecond
          call shr_sys_flush(stdout)
       endif
  
-      do k = 1,nrecv
+      do k = 1, nrecv
 
          gsum = c0
          do j = 1, nyg
          do i = 1, nxg
             g = (j-1)*nxg + i   ! global index (W to E, S to N)
-            gsum = gsum + sbuf(g,k)*area(i,j)     !lipscomb - multiply by a mask?
+            gsum = gsum + sbuf(g,k)*area(i,j)     !lipscomb - to do - multiply by a mask?
          enddo
          enddo
 
@@ -732,11 +764,8 @@
 
    deallocate(sbuf)
 
-1100  format ('comm_diag ', a3, 1x, a4, 1x, a8, 1x, es26.19:, 1x, a6)
-
-!lipscomb - debug
-   write(6,*) 'Done in recv_from_coupler'
-   call shr_sys_flush(6)
+!!!1100  format ('comm_diag ', a3, 1x, a4, 1x, a9, 1x, es26.19:, 1x, a6)
+1100  format ('comm_diag ', a3, 1x, a4, 1x, a11, 1x, es26.19)
 
 !-----------------------------------------------------------------------
 !EOC
@@ -777,12 +806,14 @@
 
    real (r8) :: gsum    ! global sum (on single processor)
 
-   real(r8), dimension(:,:), allocatable ::    &
+   real(r8), dimension(:,:), pointer ::    &
       area                 ! grid cell area (m^2)
 
-!lipscomb - debug
-    write(6,*) 'In send_to_coupler'
-    call shr_sys_flush(6)
+
+   if (verbose) then
+     write(6,*) 'Prepare message for coupler'
+     call flushm(stdout)
+   endif
 
 !-----------------------------------------------------------------------
 !
@@ -792,17 +823,7 @@
 
       nxg = glc_grid%nx
       nyg = glc_grid%ny
-
-!lipscomb - debug
-    write(6,*) 'allocate'
-    call shr_sys_flush(6)
-
-      allocate (area(nxg,nyg))
-      area(:,:) = glc_grid%box_areas(:,:)
-
-!lipscomb - debug
-    write(6,*) 'Init buffers'
-    call shr_sys_flush(6)
+      area => glc_grid%box_areas
 
 !-----------------------------------------------------------------------
 !
@@ -830,25 +851,42 @@
 !
 !-----------------------------------------------------------------------
 
-!lipscomb - debug
-    write(6,*) 'Pack send buffer'
-    call shr_sys_flush(6)
+!lipscomb - to do - Pass realistic values of ghflx and groff.
+!                   Currently, the ghflx and groff buffers are all zeroes.
+!                   Make sure ghflx has the correct sign.
 
-!lipscomb - Modify for elevation classes and ice sheet mask.
-!           Switch sign of ghflx?
+!lipscomb - to do - Multiply by an ice sheet mask?
 
-      n = 1                 ! assume one elev class for now
-      do j = 1, nyg         ! S to N
-         jj = nyg - j + 1   ! reverse for glint grid (N to S)
-         do i = 1, nxg
-            g = (j-1)*nxg + i   ! global index
-            sbuf(g,index_gg2c_Sg_gfrac)   = gfrac(i,jj,n)
-            sbuf(g,index_gg2c_Sg_gthck)   = gthck(i,jj,n)
-            sbuf(g,index_gg2c_Sg_gtopo)   = gtopo(i,jj,n)
-            sbuf(g,index_gg2c_Flgg_ghflx) = ghflx(i,jj,n)
-            sbuf(g,index_gg2c_Flgg_groff) = groff(i,jj)
+      do n = 1, glc_nec       
+         do j = 1, nyg         ! S to N
+            jj = nyg - j + 1   ! reverse for glint grid (N to S)
+            do i = 1, nxg
+               g = (j-1)*nxg + i   ! global index
+               sbuf(g,index_gg2c_Sg_frac(n))   = gfrac(i,jj,n)
+               sbuf(g,index_gg2c_Sg_thck(n))   = gthck(i,jj,n)
+               sbuf(g,index_gg2c_Sg_topo(n))   = gtopo(i,jj,n)
+               sbuf(g,index_gg2c_Flgg_hflx(n)) = ghflx(i,jj,n)
+               sbuf(g,index_gg2c_Flgg_roff(n)) = groff(i,jj,n)
+            enddo
          enddo
       enddo
+
+      if (verbose) then
+         write(6,*) ' '
+         write(6,*) 'Fields in buffer:'
+         i = itest
+         j = jtest
+         g = (j-1)*nxg + i   ! global index
+         do n = 1, glc_nec
+             write(6,*) ' '
+             write(6,*) 'i, j, n, g =', i, j, n, g
+             write(6,*) 'gfrac(n) =', sbuf(g, index_gg2c_Sg_frac(n))
+             write(6,*) 'gthck(n) =', sbuf(g, index_gg2c_Sg_thck(n))
+             write(6,*) 'gtopo(n) =', sbuf(g, index_gg2c_Sg_topo(n))
+!!             write(6,*) 'ghflx(n) =', sbuf(g, index_gg2c_Flgg_hflx(n))
+!!             write(6,*) 'groff(n) =', sbuf(g, index_gg2c_Flgg_roff(n))
+         enddo
+      endif   ! verbose
 
 !-----------------------------------------------------------------------
 !
@@ -856,16 +894,13 @@
 !
 !-----------------------------------------------------------------------
 
-!lipscomb - debug
-    write(6,*) 'Send fields'
-    call shr_sys_flush(6)
+      if (verbose) then
+         write(6,*) 'Send message to coupler'
+         call flushm(stdout)
+      endif
 
       call cpl_interface_contractSend(cpl_fields_cplname,contractS,isbuf,sbuf)
 
-!lipscomb - debug
-    write(6,*) 'Fields have been sent'
-    call shr_sys_flush(6)
- 
 !-----------------------------------------------------------------------
 !
 !     diagnostics
@@ -892,28 +927,25 @@
            gsum = c0
            do j = 1, nyg
            do i = 1, nxg
-              g = (j-1)*nxg
-              gsum = gsum + sbuf(g,k)*area(i,j)     !lipscomb - multiply by a mask?
+              g = (j-1)*nxg + i
+              gsum = gsum + sbuf(g,k)*area(i,j)
            enddo
            enddo
 
            if (my_task == master_task) then
-              call cpl_fields_getField(label,k,cpl_fields_o2c_fields)
-              write(stdout,1100)'ocn','send', label ,gsum
+              call cpl_fields_getField(label,k,cpl_fields_gg2c_fields)
+              write(stdout,1100) 'glc','send', label, gsum
            endif
+
         enddo  ! k
 
         if (my_task == master_task) call shr_sys_flush(stdout)
 
       endif   ! ldiag_cpl
 
-1100  format ('comm_diag ', a3, 1x, a4, 1x, a8, 1x, es26.19:, 1x, a6)
+1100  format ('comm_diag ', a3, 1x, a4, 1x, a11, 1x, es26.19:, 1x, a6)
 
       deallocate(sbuf)
-
-!lipscomb - debug
-    write(6,*) 'Done in send_to_coupler'
-    call shr_sys_flush(6)
 
 !-----------------------------------------------------------------------
 !EOC

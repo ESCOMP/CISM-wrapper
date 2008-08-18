@@ -1,51 +1,68 @@
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
-! +                                                           + 
-! +  glc_constants.F90                                        + 
-! +                                                           + 
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+!=======================================================================
+!BOP
 !
-! This module contains constants used by glc and glissade modules.
+! !MODULE: glc_constants - constants used by glc modules
+!
+  module glc_constants
+
+! !DESCRIPTION:
+!
+! This module contains constants used by glc modules.
 !
 ! Note that many of the required parameters are contained
 ! in glimmer_physcon and glimmer_params.  The ones defined here
-! are mostly some standard constants used in the POP and CICE
-! models developed at Los Alamos National Lab.
+! are mostly some standard constants used in POP and CICE.
 !
-! Author: William Lipscomb
-!         Los Alamos National Laboratory
-!         Group T-3, MS B216
-!         Los Alamos, NM 87545
-!         USA
-!         <lipscomb@lanl.gov>
-!
-! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+! !REVISION HISTORY:
+!  Author: William Lipscomb, LANL
 
-  module glc_constants
+! !USES:
 
   use glc_kinds_mod
   use shr_const_mod
+
+!EOP
+!=======================================================================
 
   implicit none
 
   include 'netcdf.inc'
 
-
    !-----------------------------------------------------------------
    ! test point for debugging
    !-----------------------------------------------------------------
 
+!lipscomb - debug
+  integer(i4), parameter ::  gtest = 1864   ! test grid cell, global index
    integer(i4), parameter ::  &
-      itest = 85, jtest = 43  ! in Greenland (T31)
+      itest = 84, jtest = 42,  &      ! in Greenland (T31)
+                 jjtest = 49 - jtest  ! reversed for N to S indexing (T31)
+
+   integer(i4), parameter ::  &
+      itest_local = 24, jtest_local = 45  ! Greenland local grid
+
+!lipscomb - for debugging
+   logical :: verbose = .true.   ! if true, write diagnostics useful for debugging
+!!   logical :: verbose = .false.   ! if true, write diagnostics useful for debugging
 
    !-----------------------------------------------------------------
    ! physical constants
    !-----------------------------------------------------------------
 
-!lipscomb - Add an ifdef here for uncoupled runs?
+!lipscomb - Add an ifdef here?
    real(r8) :: radius = SHR_CONST_REARTH  ,&! radius of earth (m)
                                             ! = 6.37122e6
                tkfrz  = SHR_CONST_TKFRZ     ! freezing temp of water (K)
                                             ! = 273.15
+   !-----------------------------------------------------------------
+   ! parameters for downscaling
+   !-----------------------------------------------------------------
+!lipscomb - This should be consistent with the value in CLM (in clm_atmlnd.F90)
+!lipscomb - to do - Make this a shared constant?
+
+   real(r8), parameter :: lapse = 0.0065_r8   ! atm lapse rate, deg/km
+
+!lipscomb - The remaining constants are from POP
 
    !-----------------------------------------------------------------
    ! numbers
@@ -73,8 +90,8 @@
       eps2   = 1.0e-20_r8  ,&
       bignum = 1.0e+30_r8  ,&
       pi     = 3.14159265358979_r8,&
-      pi2 = c2*pi          ,&
-      pih = p5*pi          ,&
+      pi2    = c2*pi       ,&
+      pih    = p5*pi       ,&
       radian = 180.0_r8/pi
 
    real (r4), parameter, public ::       &
@@ -124,10 +141,11 @@
    character (5), parameter, public :: &
       blank_fmt = "(' ')"
 
-!  !PUBLIC DATA MEMBERS:
-
    character (char_len), public ::  &
       char_blank          ! empty character string
+
+!EOP
+!
 
 !------------------------------------------------------------------------
 

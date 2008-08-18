@@ -15,7 +15,7 @@
 !  SVN:$Id: ice_domain.F90 66 2007-05-02 16:52:51Z dbailey $
 !
 ! author: Phil Jones, LANL
-!         Adapted from POP by William H. Lipscomb, LANL
+!         Adapted from POP/CICE by William Lipscomb, LANL
 !
 ! !USES:
 !

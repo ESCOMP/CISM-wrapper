@@ -111,6 +111,15 @@ contains
     ! Also check we have a valid value of which
 
     select case(which)
+
+!lipscomb - added case(0): receive surface mass balance from coupler
+!lipscomb - Assume accumulation time of one year unless otherwise specified
+!lipscomb - to do - Allow this to be specified in namelist?
+    case(0) 
+       params%tstep=years2hours   ! mbal tstep = 1 year
+!lipscomb - for debugging, set mbal tstep = 5 days
+!!       params%tstep=120.0   ! 5 days
+!!       write(6,*) 'WARNING: Setting mbal timestep =', params%tstep  
     case(1)
        allocate(params%annual_pdd)
        call glimmer_pdd_init(params%annual_pdd,config)

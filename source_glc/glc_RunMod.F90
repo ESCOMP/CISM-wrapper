@@ -12,23 +12,24 @@
 !
 ! !REVISION HISTORY:
 !  SVN:$Id: step_mod.F90 2019 2006-09-29 22:00:15Z njn01 $
-!  WHL, May 2007: Adapted from step_mod.F90 in POP 2.0 and from 
-!                 glint_example.F90 in GLIMMER
+!  Adapted by William Lipscomb from step_mod.F90 in POP 2.0 and from 
+!   glint_example.F90 in GLIMMER
 !
 ! !USES:
 
-!lipscomb - These are from POP.  Not sure which are needed.
+!lipscomb - These are from POP.
+!lipscomb - to do - Some of these use statements may not be needed.
    use glc_kinds_mod
-   use glc_timers, only: get_glc_timer, glc_timer_start, glc_timer_stop
-   use glc_time_management, only:                                           &
-       time_to_do, freq_opt_nstep, time_manager, check_time_flag,  &
+   use glc_timers
+   use glc_time_management, only:  thour, tday,                      &
+       time_to_do, freq_opt_nstep, time_manager, check_time_flag,    &
        init_time_flag, check_time_flag_freq, check_time_flag_freq_opt, eod
    use shr_sys_mod
    use glc_communicate, only: my_task, master_task
    use glc_io_types, only: stdout
    use glc_coupled, only: lcoupled
 
-!lipscomb - debug
+!lipscomb - added this one
    use glc_time_management, only: set_time_flag  ! to signal end of run
 
    implicit none
@@ -44,6 +45,10 @@
 !   module variables
 !
 !----------------------------------------------------------------------
+
+   integer (i4) ::   &
+      cpl_stop_now      ,&! flag id for stop_now flag
+      tavg_flag           ! flag to access tavg frequencies
 
 !EOP
 !BOC
@@ -68,11 +73,14 @@
 ! !USES:
 
    use glint_main
-   use glc_global_fields   !lipscomb - add list of vars
+   use glc_global_fields   !lipscomb - to do - specify what fields are used
    use glc_glint, only: glc_glint_driver
    use glimmer_log
    use glint_global_interp
    use glint_example_clim
+
+!lipscomb - debug
+   use glc_constants, only: verbose, itest, jjtest
 
 !EOP
 !BOC
@@ -82,17 +90,13 @@
 !
 !-----------------------------------------------------------------------
 
-!lipscomb - from POP - not sure which are needed
-   integer (i4) ::   &
-      cpl_stop_now      ,&! flag id for stop_now flag
-      tavg_flag           ! flag to access tavg frequencies
+!lipscomb - These variables are from POP.
 
    logical, save ::    &
       first_call = .true.,        &! flag for initializing timers
       first_global_budget = .true.
 
-
-!lipscomb - from GLIMMER.
+!lipscomb - The rest are from GLIMMER.
  
   character(fname_length) ::  & 
      paramfile   ,&! Name of the top-level configuration file
@@ -120,19 +124,29 @@
   integer (i4) ::  & 
      i,j            ! Array index counters 
 
+!lipscomb-debug
+   integer :: ig, jg, n
+
 !-----------------------------------------------------------------------
 !
-!  if this is the first call to glc_run, start some timers
+!  if this is the first call to glc_run, start some timers 
+!lipscomb - to do - timers to be added? 
 !
 !-----------------------------------------------------------------------
 
-!lipscomb - uncomment later?
-!!   if (first_call) then
+!lipscomb - debug
+     if (verbose) then
+        write(6,*) ' ' 
+        write(6,*) 'In glc_run, first_call =', first_call
+        call shr_sys_flush(6)
+     endif
+
+   if (first_call) then
       ! this line should set cpl_stop_now = 1 (flag id index)
       cpl_stop_now  = init_time_flag('stop_now',default=.false.)
-!!      tavg_flag     = init_time_flag('tavg')      
-!!      first_call = .false.
-!!   endif
+      tavg_flag     = init_time_flag('tavg')      
+      first_call = .false.
+   endif
 
 !-----------------------------------------------------------------------
 !
@@ -140,44 +154,82 @@
 !-----------------------------------------------------------------------
 
 !lipscomb - debug
-!!    write (6,*) 'Run glint, time(days) =', time/24.0
-!!    call shr_sys_flush(6)
+    if (verbose) then
+       write (6,*) 'Run glint, time(days) =', tday
+       call shr_sys_flush(6)
+    endif
 
+!lipscomb - This is from GLIMMER.  I think it is not needed here.
 
-!lipscomb - This is done at initialization.  Not sure it is needed here.
-    call get_grid_dims(climate%all_grid,nx,ny) ! Normal global grid
-    nxo=200 ; nyo=100                          ! Example grid used for orographic output
+!!!    call get_grid_dims(climate%all_grid,nx,ny) ! Normal global grid
+!!!    nxo=200 ; nyo=100                          ! Example grid used for orographic output
 
 !!!   call example_climate (climate,  &
 !!!                         precip,   &
 !!!                         temp,     &
-!!!                         real(time,r8))
+!!!                         thour))
 
 !-----------------------------------------------------------------------
 !
 !  Take one GLINT time step 
-!  Note: For SEB scheme, tsfc = ground surface temperature (Celsius)
+!  Note: For SMB scheme, tsfc = ground surface temperature (Celsius)
 !                        qice = flux of new glacier ice (kg/m^2s)
 !
 !        For PDD scheme, tsfc = 2m reference temperature (Celsius)
 !                        qice = precipitation (kg/m^2/s)
 !-----------------------------------------------------------------------
 
+!lipscomb - Modify for restarts?  Do not call unless coupler fluxes from CLM are real.
 !lipscomb - return ice_tstep?
-      if (l_glcseb) then
+     if (glc_smb) then
 
-         call glc_glint_driver (ice_sheet,         time,    &
-                                tsfc,              qice,    &
-                                topo,                       &
-                                gfrac,             gthck,   &
-                                gtopo,             ghflx,   &
-                                groff,             l_ice_tstep)
+!lipscomb - debug
+         if (verbose) then
+            write(6,*) 'Surface mass balance is passed in'
+            write(6,*) 'Call glc_glint_driver'
+            call shr_sys_flush(6)
+         endif
 
-      else  
+         call glc_glint_driver (ice_sheet,       nint(thour),   &
+                                tsfc,            qice,    &
+                                topo,                     &
+                                gfrac,           gthck,   &
+                                gtopo,           ghflx,   &
+                                groff,           l_ice_tstep)
 
-!lipscomb - need to return gtopo; not sure about gthck and ghflx 
+!lipscomb - debug
+
+         if (verbose) then
+            write(6,*) ' '
+            write(6,*) 'Global fields from GLINT:'
+            do n = 1, glc_nec
+               ig = itest
+               jg = jjtest   ! N to S global indexing as in GLINT
+               write(6,*) ' '
+               write(6,*) 'i, j, n =', ig, jg, n
+               write(6,*) 'gfrac(n) =', gfrac(ig,jg,n)
+               write(6,*) 'gthck(n) =', gthck(ig,jg,n)
+               write(6,*) 'gtopo(n) =', gtopo(ig,jg,n)
+               write(6,*) 'ghflx(n) =', ghflx(ig,jg,n)
+               write(6,*) 'groff(n) =', groff(ig,jg,n)
+            enddo
+         endif
+
+     else    ! use PDD scheme in GLIMMER
+
+!lipscomb - to do - Need to test this option
+
+!lipscomb - debug
+       if (verbose) then 
+          write(6,*) 'Using positive-degree-day scheme'
+          write(6,*) 'Call glint driver'
+          write(6,*) 'This has not been tested!'
+          call shr_sys_flush(6)
+       endif
+
+!lipscomb - to do - need to return gtopo; not sure about gthck and ghflx 
          call glint (ice_sheet,                  &
-                     time,                       &
+                     nint(thour),                &
                      temp,                       &
                      precip,                     &
                      orog,                       &
@@ -189,15 +241,13 @@
                      total_water_out = twout,    &
                      ice_volume      = ice_vol)
 
-     endif   ! l_glcseb
+     endif   ! glc_smb
 
-     if (time > climate%total_years*climate%hours_in_year) then
+     if (thour > climate%total_years*climate%hours_in_year) then
         call set_time_flag(cpl_stop_now,.true.)
         write(6,*) 'Last time step; model should quit now'
         call shr_sys_flush(6)
      endif
-
-     time = time + climate%climate_tstep   !lipscomb - just for now
 
 !-----------------------------------------------------------------------
 !
@@ -213,9 +263,15 @@
 !  time-dependent logical switches to determine program flow.
 !
 !-----------------------------------------------------------------------
-!lipscomb - uncomment later
-!!   call time_manager (lcoupled)
 
+   call time_manager (lcoupled)
+
+!lipscomb - debug
+   if (verbose) then
+      write(6,*) 'Called time manager, end of glc_run'
+      write(6,*) 'New thour =', thour
+      call shr_sys_flush(6)
+   endif
 
 !-----------------------------------------------------------------------
 !EOC

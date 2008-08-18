@@ -98,6 +98,12 @@ contains
     instance%glide_time=instance%model%numerics%tstart
     idts=instance%ice_tstep
 
+!lipscomb - debug
+    write (6,*) 'ice_tstep (hr) =', idts
+    write (6,*) 'glide_time =', instance%glide_time
+    call shr_sys_flush(6)
+
+
     ! create glint variables
     call glint_io_createall(instance%model)
     call glint_mbal_io_createall(instance%model)
@@ -105,10 +111,6 @@ contains
     ! fill dimension variables
     call glide_nc_fillall(instance%model)
  
-!lipscomb - debug
-    write (6,*) 'Read config'
-    call shr_sys_flush(6)
-
     ! read glint configuration
 
     call glint_i_readconfig(instance,config)    
@@ -118,10 +120,6 @@ contains
 
     call CheckSections(config)
 
-!lipscomb - debug
-    write (6,*) 'New grid'
-    call shr_sys_flush(6)
-
     ! New grid and downscaling
 
     instance%lgrid = coordsystem_new(0.d0, 0.d0, &
@@ -130,41 +128,17 @@ contains
          get_ewn(instance%model), &
          get_nsn(instance%model))
 
-!lipscomb - debug
-    write (6,*) 'New downscale'
-    call shr_sys_flush(6)
-
     call new_downscale(instance%downs,instance%model%projection,grid,instance%lgrid)    ! Initialise the downscaling
-
-!lipscomb - debug
-    write (6,*) 'glint_i_allocate'
-    call shr_sys_flush(6)
 
     call glint_i_allocate(instance,grid%nx,grid%ny,grid_orog%nx,grid_orog%ny)           ! Allocate arrays appropriately
 
-!lipscomb - debug
-    write (6,*) 'glint_i_readdata'
-    call shr_sys_flush(6)
-
     call glint_i_readdata(instance)
-
-!lipscomb - debug
-    write (6,*) 'New upscale, ups'
-    call shr_sys_flush(6)
 
     call new_upscale(instance%ups,grid,instance%model%projection, &
          instance%out_mask,instance%lgrid) ! Initialise upscaling parameters
 
-!lipscomb - debug
-    write (6,*) 'New upscale, ups_orog'
-    call shr_sys_flush(6)
-
     call new_upscale(instance%ups_orog,grid_orog,instance%model%projection, &
          instance%out_mask,instance%lgrid) ! Initialise upscaling parameters
-
-!lipscomb - debug
-    write (6,*) 'Calc coverage'
-    call shr_sys_flush(6)
 
     call calc_coverage(instance%lgrid, &                         ! Calculate coverage map
                        instance%ups,  &             
@@ -178,10 +152,6 @@ contains
                        instance%out_mask, &
                        instance%frac_cov_orog)
 
-!lipscomb - debug
-    write (6,*) 'Init mbal accum'
-    call shr_sys_flush(6)
-
     ! initialise the mass-balance accumulation
 
     call glint_mbc_init(instance%mbal_accum, &
@@ -191,15 +161,26 @@ contains
          instance%lgrid%size%pt(1), &
          instance%lgrid%size%pt(2), &
          instance%lgrid%delta%pt(1))
+
     instance%mbal_tstep=instance%mbal_accum%mbal%tstep
     mbts=instance%mbal_tstep
 
     instance%next_time = force_start-force_dt+instance%mbal_tstep
 
+!lipscomb - debug
+    write (6,*) 'Called glint_mbc_init'
+    write (6,*) 'mbal tstep =', mbts
+    write (6,*) 'next_time =', instance%next_time
+    write (6,*) 'start_time =', instance%mbal_accum%start_time
+    call shr_sys_flush(6)
+
     ! Mass-balance accumulation length
 
     if (instance%mbal_accum_time==-1) then
        instance%mbal_accum_time = max(instance%ice_tstep,instance%mbal_tstep)
+!lipscomb - for debugging - set mbal_accum_time = mbal_tstep
+!!       instance%mbal_accum_time = instance%mbal_tstep
+!!       write(6,*) 'WARNING: Seting mbal_accum_time =', instance%mbal_accum_time
     end if
 
     if (instance%mbal_accum_time<instance%mbal_tstep) then
@@ -254,7 +235,7 @@ contains
     end if
 
 !lipscomb - debug
-    write (6,*) 'Done initializing'
+    write (6,*) 'Done initializing glint'
     call shr_sys_flush(6)
 
   end subroutine glint_i_initialise

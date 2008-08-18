@@ -5,13 +5,10 @@
 !
 ! !DESCRIPTION:
 !
-! Defines variable precision for all common data types \\
-! Code originally based on kinds_mod.F in POP
+! Defines variable precision for all common data types
 !
 ! !REVISION HISTORY:
-!  SVN:$Id: ice_kinds_mod.F90 37 2006-11-29 18:06:44Z eclare $
-!
-! author: Elizabeth C. Hunke and William H. Lipscomb, LANL
+!  Adapted by William Lipscomb from ice_kinds_mod.F90 in CICE
 !
 ! !INTERFACE:
 !

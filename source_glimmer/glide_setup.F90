@@ -405,14 +405,13 @@ contains
     upn=model%general%upn
 
 !lipscomb - On bluevista, the inquire statement is ignored if model%funits%sigfile
-!           contains all blanks.  In this case, we had better set 'there' to .false.
-!           Comment out the inquire for now.
+!            contains all blanks.  In this case, 'there' needs to be false if there
+!            is no sigma file.
+!           Comment out the inquire and set 'there' = false for now.
 !
 !!!    inquire (exist=there,file=model%funits%sigfile)
-
     there = .false.
 
-!lipscomb
   
     if (there) then
        call write_log('Reading sigma file: '//model%funits%sigfile)
@@ -579,26 +578,10 @@ contains
          'const if T>0', &
          '~basal water', &
          '~basal melt '/)
-!lipscomb - Remapping gives two additional evolution options (3 and 4)
-!lipscomb - Other glissade options still to be added.  Clean up later.
-!!    character(len=*), dimension(0:2), parameter :: evolution = (/ &
-!!         'pseudo-diffusion', &
-!!         'ADI scheme      ', &
-!!         'diffusion       ' /)
-    character(len=*), dimension(0:12), parameter :: evolution = (/ &
-         'pseudo-diffusion               ', &
-         'ADI scheme                     ', &
-         'diffusion                      ', &
-         'remap thickness                ', &
-         'remap thickness and temperature', &
-         'unknown evolution scheme 5     ', &
-         'unknown evolution scheme 6     ', &
-         'unknown evolution scheme 7     ', &
-         'unknown evolution scheme 8     ', &
-         'unknown evolution scheme 9     ', &
-         'glissade pseudo-diffusion      ', &
-         'glissade ADI scheme            ', &
-         'glissade diffusion             ' /)
+    character(len=*), dimension(0:2), parameter :: evolution = (/ &
+         'pseudo-diffusion', &
+         'ADI scheme      ', &
+         'diffusion       ' /)
     character(len=*), dimension(0:1), parameter :: vertical_integration = (/ &
          'standard     ', &
          'obey upper BC' /)

@@ -10,7 +10,8 @@
 ! !REVISION HISTORY:
 !  SVN:$Id: ice_fileunits.F90 58 2007-03-29 15:56:53Z eclare $
 !
-! author: Elizabeth C. Hunke and William H. Lipscomb, LANL
+! author: Elizabeth C. Hunke, LANL
+!         Adapted by William Lipscomb from ice_fileunits.F90 in CICE
 !
 ! !INTERFACE:
 !

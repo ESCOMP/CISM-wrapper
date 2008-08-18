@@ -1,36 +1,46 @@
-
-module glc_glint
-
-!lipscomb - new module
-! This module contains glint subroutines that have been modified for the
-! case that the surface mass balance is computed externally and passed 
-! from glc to glint.        
-! 
-! This module downscales input fields from the global grid (with multiple
-! elevation classes) to the local ice sheet grid, and also upscales output
-! fields from the local grid to the global grid.
+!=======================================================================
+!BOP
 !
+! !MODULE: glc_glint - drivers for upscaling, downscaling, calling GLIMMER routines
+!
+   module glc_glint
+
+! !DESCRIPTION:
+!
+! This module contains driver routines that call various GLIMMER subroutines.
+! Several GLINT subroutines from the GLIMMER release have been modified so that the
+! surface mass balance can be computed externally in CLM and passed to GLIMMER via GLC.
+!
+! Input fields from CLM (on the global grid, with multiple elevation classes per gridcell)
+! are downscaled to the local ice sheet grid.  In turn, output fields are upscaled from
+! the local grid to the global grid.
+!
+! GLINT code can be somewhat opaque.  At some point it would be nice to have a 
+! cleaner interface with the ice sheet dynamics.
+!
+! !REVISION HISTORY:
+!  Author: William Lipscomb, LANL
+!
+! !USES:
+!
+  use glc_constants
+  use glc_global_fields
+  use glc_exit_mod
+  use glc_io_types, only: stdout
+
+!lipscomb - to do - Might be better to pass glint_params explicitly?
+  use glint_main, only: glint_params, splice_field, check_mbts
+
   use glimmer_global
   use glint_type
   use glint_global_grid
   use glint_constants
-
-  use glc_constants
-
-!lipscomb - do we have to use nec?
-  use glc_global_fields
-
-!lipscomb - Might be better to pass parameters explicitly?
-  use glint_main, only: glint_params, splice_field, check_mbts
-
-!lipscomb - for diagnostics
   use glide_diagnostics
  
-!lipscomb - debug
-  use shr_sys_mod, only: shr_sys_flush
-  use glc_exit_mod
+!EOP
+!=======================================================================
 
-!lipscomb - Should these be pointers?  Corresponding glint arrays are pointers.
+!lipscomb - to do - Should these be pointers?
   real(r8), dimension(:,:,:), allocatable ::  &
      tsfc_av     ,&! averaging array for tsfc
      topo_av     ,&! averaging array for topo
@@ -40,9 +50,7 @@ module glc_glint
      gfrac_temp    ,&! gfrac for a single instance
      gthck_temp    ,&! gthck for a single instance
      gtopo_temp    ,&! gtopo for a single instance
-     ghflx_temp      ! ghflx for a single instance
-
-  real(r8), dimension(:,:), allocatable ::   &
+     ghflx_temp    ,&! ghflx for a single instance
      groff_temp      ! groff for a single instance
 
   private
@@ -73,9 +81,10 @@ module glc_glint
                                   start_time)
  
     ! Initialize the model
-    ! This subroutine is based on subroutine initialise_glint in GLIMMER.
-    ! It is designed for use with the glc wrapper which passes an
-    !  externally computed mass balance to GLINT.
+    ! This subroutine is based on subroutine initialise_glint.
+    ! It has been adapted for use with the GLC code, assuming that the
+    !  surface mass balance is computed externally for multiple elevation
+    !  classes and passed to GLIMMER.
  
     use glimmer_config
     use glint_initialise
@@ -85,13 +94,13 @@ module glc_glint
     use glint_main, only: check_init_args, glint_readconfig, glint_allocate_arrays
 
     implicit none
- 
+
     ! Subroutine argument declarations --------------------------------------------------------
  
-    type(glint_params),              intent(inout) :: params      !*FD parameters to be set
-    type(global_grid),               intent(in)    :: glint_grid  !*FD global grid
-    integer,                         intent(in)    :: time_step   !*FD Timestep of calling model (hours)
-    character(*),dimension(:),       intent(in)    :: paramfile   !*FD array of configuration file names.
+    type(glint_params),        intent(inout) :: params      !*FD parameters to be set
+    type(global_grid),         intent(in)    :: glint_grid  !*FD global grid
+    integer,                   intent(in)    :: time_step   !*FD Timestep of calling model (hours)
+    character(*),dimension(:), intent(in)    :: paramfile   !*FD array of configuration file names.
     real(rk),dimension(:,:),optional,intent(out)   :: orog        !*FD Initial global orography
 !    real(rk),dimension(:,:),optional,intent(out)   :: albedo      !*FD Initial albedo
 !    real(rk),dimension(:,:),optional,intent(out)   :: ice_frac    !*FD Initial ice fraction 
@@ -129,14 +138,16 @@ module glc_glint
     integer :: i, n
 
     integer,dimension(:),allocatable :: mbts,idts ! Array of mass-balance and ice dynamics timesteps
- 
-    integer(i4) :: nx, ny  ! global grid dimensions
+
+    integer(i4) :: nxg, nyg  ! global grid dimensions
+    integer(i4) :: nxl, nyl  ! local grid dimensions
 
     real(r8) :: timeyr   ! time in years
 
-!lipscomb - debug
-    write(6,*) 'In glc_glint_initialize'
-    call shr_sys_flush(6)
+    if (verbose) then
+       write(6,*) 'Starting glc_glint_initialize'
+       call flushm(stdout)
+    endif
 
     ! Initialise start time and calling model time-step --------------------------------
     ! We ignore t=0 by default 
@@ -156,41 +167,38 @@ module glc_glint
        call glint_set_year_length(daysinyear)
     end if
  
-!lipscomb - debug
-    write(6,*) 'time_step (hr)  =', params%time_step
-    write(6,*) 'start_time (hr) =', params%start_time
-    write(6,*) 'Initialize params%g_grid'
-    call shr_sys_flush(6)
+    if (verbose) then
+       write(6,*) 'time_step (hr)  =', params%time_step
+       write(6,*) 'start_time (hr) =', params%start_time
+       write(6,*) 'Initialize global grid'
+       call flushm(stdout)
+    endif
 
-!lipscomb - Not sure if we need to define params%g_grid, but do this to be safe
     ! Initialise main global grid -----------------------------------------------------
  
-   nx = glint_grid%nx
-   ny = glint_grid%ny
+    nxg = glint_grid%nx
+    nyg = glint_grid%ny
 
-!lipscomb - debug
-    write(6,*) 'nx, ny =', nx, ny
-    call shr_sys_flush(6)
+    params%g_grid%nx = nxg
+    params%g_grid%ny = nyg
 
-   params%g_grid%nx = nx
-   params%g_grid%ny = ny 
+    allocate(params%g_grid%lats(nyg))
+    allocate(params%g_grid%lons(nxg))
+    allocate(params%g_grid%lat_bound(nyg+1))
+    allocate(params%g_grid%lon_bound(nxg+1))
+    allocate(params%g_grid%box_areas(nxg,nyg))
 
-   allocate(params%g_grid%lats(ny))
-   allocate(params%g_grid%lons(nx))
-   allocate(params%g_grid%lat_bound(ny+1))
-   allocate(params%g_grid%lon_bound(nx+1))
-   allocate(params%g_grid%box_areas(nx,ny))
-
-   params%g_grid%lons       (:) = glint_grid%lons(:)
-   params%g_grid%lats       (:) = glint_grid%lats(:)
-   params%g_grid%lon_bound  (:) = glint_grid%lon_bound(:)
-   params%g_grid%lat_bound  (:) = glint_grid%lat_bound(:)
-   params%g_grid%box_areas(:,:) = glint_grid%box_areas(:,:)
+    params%g_grid%lons       (:) = glint_grid%lons(:)
+    params%g_grid%lats       (:) = glint_grid%lats(:)
+    params%g_grid%lon_bound  (:) = glint_grid%lon_bound(:)
+    params%g_grid%lat_bound  (:) = glint_grid%lat_bound(:)
+    params%g_grid%box_areas(:,:) = glint_grid%box_areas(:,:)
 
     ! Initialise orography grid ------------------------------------
  
-!lipscomb - Will not use orography grid; use elevation classes instead
-!lipscomb - Still need to define params%g_grid_orog?
+!lipscomb - Fine orography grid is not used; use elevation classes instead
+!lipscomb - to do - Do we need to define params%g_grid_orog?
+
 !    call check_init_args(orog_lats, orog_lons,    &
 !                         orog_latb, orog_lonb)
  
@@ -202,16 +210,12 @@ module glc_glint
        call copy_global_grid(params%g_grid,  &
                              params%g_grid_orog)
 !    end if
- 
-!lipscomb - debug
-    write(6,*) 'Allocate arrays'
-    call shr_sys_flush(6)
 
     ! Allocate and initialize arrays
  
-    allocate(tsfc_av(nx,ny,nec))
-    allocate(qice_av(nx,ny,nec))
-    allocate(topo_av(nx,ny,nec))
+    allocate(tsfc_av(nxg,nyg,glc_nec))
+    allocate(qice_av(nxg,nyg,glc_nec))
+    allocate(topo_av(nxg,nyg,glc_nec))
 
     tsfc_av(:,:,:) = c0
     qice_av(:,:,:) = c0
@@ -219,33 +223,21 @@ module glc_glint
 
     call glint_allocate_arrays(params)
 
-!lipscomb - debug
-    write(6,*) 'Initialize maps'
-    call shr_sys_flush(6)
-
     ! ---------------------------------------------------------------
     ! Zero coverage maps and normalisation fields for main grid and
     ! orography grid
     ! ---------------------------------------------------------------
  
     params%total_coverage = c0
-    params%total_cov_orog = c0
- 
-!lipscomb - debug
-    write(6,*) 'cov_norm'
-    call shr_sys_flush(6)
-    params%cov_normalise = c0
-    params%cov_norm_orog = c0
+    params%total_cov_orog = c0 
+    params%cov_normalise  = c0
+    params%cov_norm_orog  = c0
  
     ! ---------------------------------------------------------------
     ! Determine how many instances there are, according to what
     ! configuration files we've been provided with
     ! ---------------------------------------------------------------
  
-!lipscomb - debug
-    write(6,*) 'Determine no. of instances'
-    call shr_sys_flush(6)
-
     if (size(paramfile)==1) then
 
        ! Load the configuration file into the linked list
@@ -263,9 +255,11 @@ module glc_glint
     allocate(params%instances(params%ninstances))
     allocate(mbts(params%ninstances),idts(params%ninstances))
  
-!lipscomb - debug
-    write(6,*) 'Read config files'
-    call shr_sys_flush(6)
+    if (verbose) then
+       write(6,*) 'Number of instances =', params%ninstances
+       write(6,*) 'Read config files and initialize each instance'
+       call flushm(stdout)
+    endif
 
     ! ---------------------------------------------------------------
     ! Read config files, and initialise instances accordingly
@@ -283,12 +277,12 @@ module glc_glint
           end if
        end if
 
-!lipscomb - debug
-    write(6,*) 'Call glint_i_initialise, instance =', i
-    call shr_sys_flush(6)
+       if (verbose) then
+          write(6,*) 'Initialize instance =', i
+          call flushm(stdout)
+       endif 
 
-!lipscomb - any changes here?
-! note - upscale and downscale params computed here
+! note - upscale and downscale parameters are computed here
        call glint_i_initialise (instance_config,       &
                                 params%instances(i),   &
                                 params%g_grid,         &
@@ -306,17 +300,16 @@ module glc_glint
        where (params%total_coverage > c0) params%cov_normalise = params%cov_normalise + c1
        where (params%total_cov_orog > c0) params%cov_norm_orog = params%cov_norm_orog + c1
  
-!lipscomb - initial ice sheet diagnostics 
-       timeyr = c0
-       print*, 'Write diagnostics, time (yr)=', timeyr
-       call glide_write_diag(params%instances(i)%model, timeyr, itest, jtest)
- 
-    end do
- 
-!lipscomb - debug
-    write(6,*) 'check mbts'
-    call shr_sys_flush(6)
+       ! initial ice sheet diagnostics 
 
+       timeyr = c0
+       if (verbose) then
+          write(6,*) 'Write diagnostics, time (yr)=', timeyr
+          call glide_write_diag(params%instances(i)%model, timeyr, itest, jtest)
+       endif
+
+    end do  ! ninstances
+ 
     ! Check that all mass-balance time-steps are the same length and 
     ! assign that value to the top-level variable
  
@@ -325,12 +318,22 @@ module glc_glint
        ice_dt = check_mbts(idts)
     end if
  
+!lipscomb - debug
+    if (verbose) then
+       write(6,*) 'tstep_mbal =', params%tstep_mbal
+       write(6,*) 'start_time =', params%start_time
+       write(6,*) 'time_step =',  params%time_step
+       write(6,*) 'ice_dt =', ice_dt
+       call flushm(stdout)
+    endif
+
     ! Check that time steps divide into one another appropriately.
  
     if (.not. (mod(params%tstep_mbal,params%time_step)==0)) then
-       print*,params%tstep_mbal,params%time_step
-       call write_log('The mass-balance timestep must be an integer multiple of the forcing time-step', &
+       call write_log  &
+          ('The mass-balance timestep must be an integer multiple of the forcing time-step', &
             GM_FATAL,__FILE__,__LINE__)
+       call flushm(stdout)
     end if
  
     ! Check we don't have coverage greater than one at any point.
@@ -341,37 +344,42 @@ module glc_glint
  
     ! Zero optional outputs, if present
  
-!lipscomb - not sure if orog should be passed out
+!lipscomb - to do - Not sure if orog field is needed
     if (present(orog)) orog = c0
 
-!lipscomb - set other fields to zero?
+!lipscomb - to do - Set any other fields to zero?
  
     ! Allocate arrays
  
-    allocate(orog_temp(nx,ny))
+    allocate(orog_temp(nxg,nyg))
 
 !lipscomb - added these fields
-    allocate(gfrac_temp(nx,ny,nec))
-    allocate(gthck_temp(nx,ny,nec))
-    allocate(gtopo_temp(nx,ny,nec))
-    allocate(ghflx_temp(nx,ny,nec))
-    allocate(groff_temp(nx,ny))
+    allocate(gfrac_temp(nxg,nyg,glc_nec))
+    allocate(gthck_temp(nxg,nyg,glc_nec))
+    allocate(gtopo_temp(nxg,nyg,glc_nec))
+    allocate(ghflx_temp(nxg,nyg,glc_nec))
+    allocate(groff_temp(nxg,nyg,glc_nec))
 
-!lipscomb - debug
-    write(6,*) 'Get initial fields and splice'
-    call shr_sys_flush(6)
+    if (verbose) then
+       write(6,*) 'Upscale initial ice sheet fields'
+       call flushm(stdout)
+    endif
 
     ! Get initial fields from instances, splice together and return
  
     do i = 1, params%ninstances
 
-!lipscomb - add groff to output?
+       nxl = params%instances(i)%lgrid%size%pt(1)
+       nyl = params%instances(i)%lgrid%size%pt(2)
 
-       call get_glc_upscaled_fields(params%instances(i),             &
-                                    gfrac_temp,       gthck_temp,   &
-                                    gtopo_temp,       ghflx_temp)
+       call get_glc_upscaled_fields(params%instances(i), glc_nec,      &
+                                    nxl,                 nyl,          &
+                                    nxg,                 nyg,          &
+                                    gfrac_temp,          gthck_temp,   &
+                                    gtopo_temp,          ghflx_temp,   &
+                                    groff_temp)
 
-       do n = 1, nec
+       do n = 1, glc_nec
 
           gfrac(:,:,n) = splice_field(gfrac(:,:,n),                      &
                                       gfrac_temp(:,:,n),                 &
@@ -393,7 +401,13 @@ module glc_glint
                                       params%instances(i)%frac_coverage, &
                                       params%cov_normalise)
  
-       enddo   ! nec
+
+          groff(:,:,n) = splice_field(groff(:,:,n),                      &
+                                      groff_temp(:,:,n),                 &
+                                      params%instances(i)%frac_coverage, &
+                                      params%cov_normalise)
+
+       enddo   ! glc_nec
 
     end do   ! ninstances
  
@@ -403,11 +417,12 @@ module glc_glint
     deallocate(gthck_temp)
     deallocate(gtopo_temp)
     deallocate(ghflx_temp)
-!lipscomb - runoff?
+    deallocate(groff_temp)
  
-!lipscomb - debug
-    write(6,*) 'Leaving glc_glint_initialize'
-    call shr_sys_flush(6)
+    if (verbose) then
+       write(6,*) 'Done in glc_glint_initialize'
+       call flushm(stdout)
+    endif
 
   end subroutine glc_glint_initialize
  
@@ -421,12 +436,12 @@ module glc_glint
                               groff,          l_ice_tstep)
  
     ! This subroutine is based on subroutine glint.
-    ! It is designed for coupling to an external surface mass balance model
-    ! (e.g., the glacier surface mass balance model in the land component of CCSM).
+    ! The code has been modified to allow for computing the surface mass balance externally
+    ! (e.g., in the land component of CCSM).
     !           
     ! This subroutine does spatial and temporal averaging of input fields
-    ! and calls the ice sheet dynamics model when required.
-    ! Input fields should be taken as means over the period since the last call.
+    !  and calls the ice sheet dynamics model when required.
+    ! Input fields are means over the period since the last call.
     !
  
     use glimmer_utils
@@ -436,7 +451,7 @@ module glc_glint
 
     implicit none
  
-    ! Subroutine argument declarations -------------------------------------------------------------
+    ! Subroutine argument declarations ----------------------------------------
  
     type(glint_params),       intent(inout) :: params   ! parameters for this run
     integer,                  intent(in)    :: time     ! Current model time (hours)
@@ -448,10 +463,10 @@ module glc_glint
     real(r8),dimension(:,:,:),intent(inout) :: gthck    ! ice thickness (m)
     real(r8),dimension(:,:,:),intent(inout) :: gtopo    ! surface elevation (m)
     real(r8),dimension(:,:,:),intent(inout) :: ghflx    ! heat flux (W/m^2, positive down)
-    real(r8),dimension(:,:),  intent(inout) :: groff    ! runoff (kg/m^2/s = mm H2O/s)
+    real(r8),dimension(:,:,:),intent(inout) :: groff    ! runoff (kg/m^2/s = mm H2O/s)
 
-    logical, optional, intent(out) :: l_ice_tstep       ! Set when an ice timestep has been done, and
-                                                        ! output fields have been updated
+    logical, optional, intent(out) :: l_ice_tstep    ! Set when an ice timestep has been done, and
+                                                     ! output fields have been updated
  
     ! Internal variables -----------------------------------------------------
  
@@ -460,19 +475,28 @@ module glc_glint
     character(250) :: message
  
     integer ::    &
-        nx, ny,     &! global grid dimensions
-        nec          ! no. of elevation classes
+        nxl, nyl,     &! local grid dimensions
+        nxg, nyg,     &! global grid dimensions
+        nec            ! no. of elevation classes
 
     real(rk) :: timeyr   ! time in years 
  
-!lipscomb - debug
-    integer :: j, ii, jj
+    integer :: j, ii, jj, ig, jg
     real(rk) :: lat, lon 
- 
-    nx  = size(qice,1)
-    ny  = size(qice,2)
+
+    nxg = size(qice,1)
+    nyg = size(qice,2)
     nec = size(qice,3)
- 
+  
+    if (verbose) then
+       write (6,*) 'In glc_glint_driver, current time (hr) =', time
+       write (6,*) 'av_start_time =', params%av_start_time
+       write (6,*) 'next_av_start =', params%next_av_start
+       write (6,*) 'new_av =', params%new_av
+       write (6,*) 'tstep_mbal =', params%tstep_mbal
+       call flushm(stdout)
+    endif
+
     ! Check we're expecting a call now ---------------------------------------
  
     if (params%new_av) then
@@ -484,7 +508,7 @@ module glc_glint
           call write_log(message,GM_FATAL,__FILE__,__LINE__)
        end if
     else
-       if (mod(time-params%av_start_time,params%time_step) /= 0) then
+       if (mod(time-params%av_start_time, params%time_step) /= 0) then
           write(message,*) 'Unexpected calling of GLINT at time ',time
           call write_log(message,GM_FATAL,__FILE__,__LINE__)
        end if
@@ -495,7 +519,7 @@ module glc_glint
     l_ice_tstep = .false.
 
     ! accumulate sums
-!lipscomb - is it necessary to average topo? 
+!lipscomb - to do - probably not necessary to average topo 
 
     tsfc_av(:,:,:) = tsfc_av(:,:,:) + tsfc(:,:,:) 
     qice_av(:,:,:) = qice_av(:,:,:) + qice(:,:,:) 
@@ -517,7 +541,7 @@ module glc_glint
        call write_log(message,GM_FATAL,__FILE__,__LINE__)
  
     else if (time - params%av_start_time + params%time_step == params%tstep_mbal) then
- 
+
        ! Calculate averages by dividing by number of steps elapsed
        ! since last model timestep.
  
@@ -525,16 +549,33 @@ module glc_glint
         qice_av(:,:,:) = qice_av(:,:,:) / real(params%av_steps,r8)
         topo_av(:,:,:) = topo_av(:,:,:) / real(params%av_steps,r8)
  
+        if (verbose) then
+           write(6,*) 'Take an ice timestep, time (hr) =', time
+           i = itest
+           j = jjtest
+           do n = 1, glc_nec
+              write (6,*) ' '
+              write (6,*) 'n =', n
+              write (6,*) 'tsfc_av (Celsius) =', tsfc_av(i,j,n)
+              write (6,*) 'topo_av (m) =', topo_av(i,j,n)
+              write (6,*) 'qice_av (kg m-2 s-1) =', qice_av(i,j,n)
+           enddo
+        endif
+
        ! Calculate total ice accumulated or ablated - multiply by time since last model timestep
-!lipscomb - This assumes time is in hours
-       qice_av(:,:,:) = qice_av(:,:,:) * params%tstep_mbal * hours2seconds
+       ! Divide by 1000 to convert from mm to m
+       ! Note that tstep_mbal is measured in hours
+
+        qice_av(:,:,:) = qice_av(:,:,:) * params%tstep_mbal * hours2seconds / 1000._r8
   
-!lipscomb - diagnostic print
-       print*, 'Take an ice timestep, time (yr) =', time/(24.0_r8*365._r8) 
-       call shr_sys_flush(6)
- 
-       ! Do a timestep for each instance
- 
+       ! Take a timestep for each instance
+
+       allocate(gfrac_temp(nxg,nyg,nec))
+       allocate(gthck_temp(nxg,nyg,nec))
+       allocate(gtopo_temp(nxg,nyg,nec))
+       allocate(ghflx_temp(nxg,nyg,nec))
+       allocate(groff_temp(nxg,nyg,nec))
+
        do i=1,params%ninstances
 
           call glc_glint_ice_tstep(time,         params%instances(i),  &
@@ -544,6 +585,39 @@ module glc_glint
                                    gtopo_temp,   ghflx_temp,           &
                                    groff_temp,   l_ice_tstep)
                                   
+          if (verbose) then
+             write(6,*) 'Finished ice timestep'
+             write(6,*) 'Upscale fields to global grid'
+          endif
+
+          ! Upscale the output to elevation classes on the global grid
+ 
+          nxl = params%instances(i)%lgrid%size%pt(1)
+          nyl = params%instances(i)%lgrid%size%pt(2)
+
+          call get_glc_upscaled_fields(params%instances(i), glc_nec,      &
+                                       nxl,                 nyl,          &
+                                       nxg,                 nyg,          &
+                                       gfrac_temp,          gthck_temp,   &
+                                       gtopo_temp,          ghflx_temp,   &
+                                       groff_temp)
+
+          if (verbose) then
+             ig = itest
+             jg = jjtest
+             write(6,*) ' '
+             write(6,*) 'After upscaling:'
+             do n = 1, nec
+               write(6,*) ' '
+               write(6,*) 'n =', n
+               write(6,*) 'gfrac(n) =', gfrac(ig,jg,n)
+               write(6,*) 'gthck(n) =', gthck(ig,jg,n)
+               write(6,*) 'gtopo(n) =', gtopo(ig,jg,n)
+!!               write(6,*) 'ghflx(n) =', ghflx(ig,jg,n)
+!!               write(6,*) 'groff(n) =', groff(ig,jg,n)
+             enddo
+          endif
+
           ! Add this contribution to the global output
 
           do n = 1, nec
@@ -553,24 +627,29 @@ module glc_glint
                                          params%instances(i)%frac_coverage, &
                                          params%cov_normalise)
 
-             gthck(:,:,n) = splice_field(gthck(:,:,n),               &
+             gthck(:,:,n) = splice_field(gthck(:,:,n),                      &
                                          gthck_temp(:,:,n),                 &
                                          params%instances(i)%frac_coverage, &
                                          params%cov_normalise)
 
-             gtopo(:,:,n) = splice_field(gtopo(:,:,n),               &
+             gtopo(:,:,n) = splice_field(gtopo(:,:,n),                      &
                                          gtopo_temp(:,:,n),                 &
                                          params%instances(i)%frac_coverage, &
                                          params%cov_normalise)
 
-             ghflx(:,:,n) = splice_field(ghflx(:,:,n),               &
+             ghflx(:,:,n) = splice_field(ghflx(:,:,n),                      &
                                          ghflx_temp(:,:,n),                 &
                                          params%instances(i)%frac_coverage, &
                                          params%cov_normalise)
- 
+
+             groff(:,:,n) = splice_field(groff(:,:,n),                      &
+                                         groff_temp(:,:,n),                 &
+                                         params%instances(i)%frac_coverage, &
+                                         params%cov_normalise)
+
           enddo   ! nec
 
-!lipscomb - add runoff?
+!lipscomb - to do - Not yet computing runoff
  
 !          if (present(water_out)) water_out = splice_field(water_out, &
 !               wout_temp, params%instances(i)%frac_coverage, params%cov_normalise)
@@ -581,16 +660,27 @@ module glc_glint
 !          if (present(total_water_out)) total_water_out = total_water_out + twout_temp
 !          if (present(ice_volume))      ice_volume      = ice_volume      + icevol_temp
  
-!lipscomb - ice sheet diagnostics 
           if (mod(params%instances(i)%model%numerics%timecounter,  &
                   params%instances(i)%model%numerics%ndiag) == 0)  then
-             timeyr = real(time,r8)/8760.0_r8 
-             print*, 'Write diagnostics, time (yr)=', timeyr 
-             call glide_write_diag(params%instances(i)%model, timeyr, itest, jtest)
+             if (verbose) then
+                timeyr = real(time,r8)/8760.0_r8 
+                write(6,*) 'Write diagnostics, time (yr)=', timeyr 
+                call glide_write_diag(params%instances(i)%model, timeyr, itest, jtest)
+             endif
           endif 
  
-       enddo   ! instances
+       enddo   ! ninstances
  
+       ! Deallocate
+ 
+       deallocate(gfrac_temp)
+       deallocate(gthck_temp)
+       deallocate(gtopo_temp)
+       deallocate(ghflx_temp)
+       deallocate(groff_temp)
+
+!lipscomb - to do - Not yet computing runoff
+
        ! Scale output water fluxes to be in mm/s
  
 !       if (present(water_out)) water_out=water_out/ &
@@ -609,7 +699,12 @@ module glc_glint
        topo_av(:,:,:) = c0
 
     endif    ! tstep_mbal
- 
+
+    if (verbose) then
+       write (6,*) 'Done in glc_glint_driver'
+       call flushm(stdout)
+    endif
+
    end subroutine glc_glint_driver
 
 !================================================================================
@@ -623,11 +718,13 @@ module glc_glint
  
     ! Performs time-step of an ice model instance, given the surface mass balance
     !  as computed externally in multiple elevation classes.
-    ! Based on GLIMMER subroutine glint_i_tstep.
+    ! 
+    ! This subroutine is based on GLIMMER subroutine glint_i_tstep.  Code has been
+    !  modified to do appropriate downscaling of input fields from coupler.
     ! 
     ! Input quantities here are accumulated/average totals since the last call.
 
-!lipscomb - are all of these needed?
+!lipscomb - to do - Not sure all of these needed
     use glide
     use glide_setup
     use glide_io
@@ -649,14 +746,14 @@ module glc_glint
     integer,                intent(in)   :: time          ! Current time in hours
     type(glint_instance), intent(inout)  :: instance      ! Model instance
     real(r8),dimension(:,:,:),intent(in) :: tsfc_g        ! Surface temperature (C)
-    real(r8),dimension(:,:,:),intent(in) :: qice_g        ! Depth of new ice (kg/m^2)
+    real(r8),dimension(:,:,:),intent(in) :: qice_g        ! Depth of new ice (m)
     real(r8),dimension(:,:,:),intent(in) :: topo_g        ! Surface elevation (m)
 
     real(r8),dimension(:,:,:),intent(out) :: gfrac        ! ice fractional area [0,1]
     real(r8),dimension(:,:,:),intent(out) :: gthck        ! ice thickness (m)
     real(r8),dimension(:,:,:),intent(out) :: gtopo        ! surface elevation (m)
     real(r8),dimension(:,:,:),intent(out) :: ghflx        ! heat flux (W/m^2, positive down)
-    real(r8),dimension(:,:),  intent(out) :: groff        ! runoff (kg/m^2/s = mm H2O/s)
+    real(r8),dimension(:,:,:),intent(out) :: groff        ! runoff (kg/m^2/s = mm H2O/s)
 
     logical, optional,       intent(out)  :: l_ice_tstep  ! true if we have done an ice time step
  
@@ -664,13 +761,13 @@ module glc_glint
     ! Internal variables
     ! ------------------------------------------------------------------------  
 
-!lipscomb - keep all of these?
+!lipscomb - to do - not sure all of these are needed
     real(r8),dimension(:,:),pointer :: upscale_temp => null() ! temporary array for upscaling
     real(r8),dimension(:,:),pointer :: routing_temp => null() ! temporary array for flow routing
     real(r8),dimension(:,:),pointer :: accum_temp   => null() ! temporary array for accumulation
     real(r8),dimension(:,:),pointer :: ablat_temp   => null() ! temporary array for ablation
     integer, dimension(:,:),pointer :: fudge_mask   => null() ! temporary array for fudging
-!lipscomb - why sp?
+!lipscomb - to do - why single precision?
     real(sp),dimension(:,:),pointer :: thck_temp    => null() ! temporary array for volume calcs
     real(sp),dimension(:,:),pointer :: calve_temp   => null() ! temporary array for calving flux
 
@@ -678,19 +775,27 @@ module glc_glint
 
     real(r8) :: start_volume, end_volume, flux_fudge, ice_vol
     real(r8) :: t_win, t_wout
-    real(r8),dimension(:,:),allocatable ::  &
-       g_water_in    ,&! input water flux (mm)
-       g_water_out     ! output water flux (mm)
+
+!lipscomb - Comment out for now
+!!    real(r8),dimension(:,:),allocatable ::  &
+!!       g_water_in    ,&! input water flux (mm)
+!!       g_water_out     ! output water flux (mm)
 
     integer :: i
     integer :: nec   ! no. of elevation classes
   
-!lipscomb - debug
-    integer :: j, ii, jj, nx, ny, itest, jtest 
+    integer :: j, ii, jj, nx, ny, il, jl
     real(r8) :: lat, lon 
  
     ! Check whether we're doing anything this time.
- 
+
+    if (verbose) then
+       write(6,*) ' '
+       write(6,*) 'In glc_glint_ice_tstep, time =', time
+       write(6,*) 'next_time =', instance%next_time
+       call flushm(stdout)
+    endif
+
     if (time /= instance%next_time) then
        return
     else
@@ -705,9 +810,9 @@ module glc_glint
     gthck(:,:,:) = c0
     gtopo(:,:,:) = c0
     ghflx(:,:,:) = c0
-    groff(:,:)   = c0
+    groff(:,:,:) = c0
 
-   ! Assume we always need this, as it's too complicated to work out when we do and don't
+   ! Assume we always need this, as it's too complicated to work out when we do and do not
  
     call coordsystem_allocate(instance%lgrid,thck_temp)
     call coordsystem_allocate(instance%lgrid,calve_temp)
@@ -715,8 +820,14 @@ module glc_glint
     l_ice_tstep = .false.
  
     ! Downscale input fields on global glc grid
-!lipscomb - new subroutine; downscale mass balance to local grid 
-!lipscomb - This subroutine computes instance%acab and instance%artm.
+    ! This subroutine computes instance%acab and instance%artm, the key inputs to GLIDE.
+
+!lipscomb - This is a new subroutine adapted to CLM input.
+
+    if (verbose) then
+       write(6,*) 'Downscale input fields to local grid'
+       call flushm(stdout)
+    endif
 
     call glc_glint_downscaling (instance,      nec,      &
                                 tsfc_g,        qice_g,   &
@@ -730,42 +841,93 @@ module glc_glint
  
     call glide_get_usurf (instance%model, instance%local_orog)
 
-!lipscomb - Is this needed?
+!lipscomb - to do - Is this needed?
     call glint_remove_bath(instance%local_orog,1,1)
 
-!lipscomb - deleted lapse rate adjustment and precip processing
+!lipscomb - Deleted lapse rate adjustment and precip processing from GLINT code
  
     ! Get ice thickness 
     ! Note: thck_temp is single-precision
 
     call glide_get_thk (instance%model, thck_temp)
- 
+
     ! Do accumulation --------------------------------------------------------
 
-!lipscomb - deleted call to glint_accumulate (we have acab already)
-!           Just make sure mbal_accum (type glint_mbc) is set correctly
-!           Includes prcp, ablt, acab, artm
- 
+!    call glint_accumulate(instance%mbal_accum,  time,               &
+!                          instance%artm,        instance%arng,                &
+!                          instance%prcp,                            &
+!                          instance%snowd,       instance%siced,    &
+!                          instance%xwind,       instance%ywind,    &
+!                          instance%local_orog,real(thck_temp,rk),  &
+!                          instance%humid,       instance%swdown,   &
+!                          instance%lwdown,      instance%airpress)
+
+!lipscomb - Commented out call to glint_accumulate, since we have acab already.
+!           Still have to initialize mbal_accum (type glint_mbc); this is done
+!            in glc_glint_get_mbal and in the following code.
+!lipscomb - to do - Move this code elsewhere?
+
+    if (instance%mbal_accum%new_accum) then
+
+       instance%mbal_accum%new_accum=.false.
+       instance%mbal_accum%av_count =0
+
+!lipscomb - important to initialize start_time correctly
+       instance%mbal_accum%start_time = time
+
+       ! Initialise some quantities that will not be used
+
+!!       instance%mbal_accum%snowd=snowd
+!!       instance%mbal_accum%siced=siced
+       instance%mbal_accum%snowd=c0
+       instance%mbal_accum%siced=c0
+
+       instance%mbal_accum%prcp_save=c0
+       instance%mbal_accum%ablt_save=c0
+       instance%mbal_accum%acab_save=c0
+       instance%mbal_accum%artm_save=c0
+
+    end if
+
+    instance%mbal_accum%av_count = instance%mbal_accum%av_count+1
+
     ! Initialise water budget quantities to zero. These will be over-ridden if
     ! there is an ice-model time-step
  
-!lipscomb - compute these?
+!lipscomb - to do - compute these?
     t_win   = c0
     t_wout  = c0
 
 !lipscomb - g_water_in and out are subroutine arguments in GLINT
-    allocate(g_water_in(nx,ny))
-    allocate(g_water_out(nx,ny))
-    g_water_in (:,:) = c0
-    g_water_out(:,:) = c0
+!lipscomb - Comment out for now
+!!    allocate(g_water_in(nx,ny))
+!!    allocate(g_water_out(nx,ny))
+!!    g_water_in (:,:) = c0
+!!    g_water_out(:,:) = c0
  
+!lipscomb - debug
+    if (verbose) then
+       write(6,*) ' '
+       write(6,*) 'Check for ice dynamics timestep'
+       write(6,*) 'time =', time
+       write(6,*) 'start_time =', instance%mbal_accum%start_time
+       write(6,*) 'mbal_step =', instance%mbal_tstep
+       write(6,*) 'mbal_accum_time =', instance%mbal_accum_time
+       call flushm(stdout)
+    endif
+
     ! ------------------------------------------------------------------------  
     ! ICE TIMESTEP begins HERE ***********************************************
     ! ------------------------------------------------------------------------  
  
     if (time - instance%mbal_accum%start_time + instance%mbal_tstep   &
             == instance%mbal_accum_time) then
- 
+
+       if (verbose) then
+          write(6,*) 'Taking an ice dynamics step'
+          call flushm(stdout)
+       endif
+  
        if (instance%mbal_accum_time < instance%ice_tstep) then 
           instance%next_time = instance%next_time + instance%ice_tstep - instance%mbal_tstep
        end if
@@ -782,16 +944,23 @@ module glc_glint
  
        ! Calculate the initial ice volume (scaled and converted to water equiv)
 
+!lipscomb - to do - Is this needed?  See call to glide_get_thck above.
        call glide_get_thk(instance%model, thck_temp)
        thck_temp = thck_temp * rhoi/rhow
        start_volume = sum(thck_temp)
  
        ! ---------------------------------------------------------------------
-       ! do the different parts of the glint timestep
+       ! do the different parts of the glide timestep
        ! ---------------------------------------------------------------------
  
        do i = 1, instance%n_icetstep
- 
+
+!lipscomb - debug
+          if (verbose) then
+             write (6,*) 'GLIDE timestep, iteration i =', i
+             call flushm(stdout)
+          endif
+
           ! Calculate the initial ice volume (scaled and converted to water equiv)
           call glide_get_thk (instance%model, thck_temp)
           thck_temp = thck_temp*real(rhoi/rhow)
@@ -801,39 +970,83 @@ module glc_glint
                                instance%local_orog)
           call glint_remove_bath(instance%local_orog,1,1)
  
-!lipscomb - New get_mbal subroutine
-!lipscomb - This subroutine simply writes instance%mbal_accum%artm into instance%atrm, etc.
-!lipscomb - Note: instance%acab has units of m/yr
+!lipscomb - The following is a new subroutine for coupled runs.
+!         - The new version simply writes instance%mbal_accum%artm into instance%atrm, etc.
+!         - Note: instance%acab has units of m/yr
+
+!lipscomb - Removed artm and acab from argument list, since these are received from coupler
+
+!lipscomb - to do - Get rid of this subroutine?
 
           ! Get the mass-balance, as m water/year 
           call glc_glint_get_mbal(instance%mbal_accum,   &
-                                  instance%artm,     instance%acab,         &
+!                                  instance%artm,     instance%acab,         &
                                   instance%prcp,     instance%ablt,         &
                                   instance%snowd,    instance%siced,        &
                                   instance%mbal_accum_time)
- 
+  
           ! Mask out non-accumulation in ice-free areas
  
           where(thck_temp<=0.0 .and. instance%acab<0.0)
              instance%acab = 0.0
 !             instance%ablt = instance%prcp
           end where
- 
+
+!lipscomb - debug
+          if (verbose) then 
+             il = itest_local
+             jl = jtest_local
+             write (6,*) ' '
+             write (6,*) 'GLIDE input for test point: i, j =', il, jl
+             write (6,*) 'acab, artm =', instance%acab(il,jl), instance%artm(il,jl)
+             call flushm(stdout)
+          endif
+
           ! Put climate inputs in the appropriate places, with conversion of units
+
+          ! Input acab is in m/yr
+          ! This value is mulitplied by tim0/(scyr*thk0) and written to data%climate%acab
           call glide_set_acab(instance%model,   &
                               instance%acab*real(rhow/rhoi))
+
+          ! Input artm is in deg C
+          ! This value is written to data%climate%artm (no unit conversion necessary)
           call glide_set_artm(instance%model,   &
                               instance%artm)
  
           ! Adjust glint acab and ablt for output 
+!lipscomb - Note that acab can have either sign, and ablt = 0 at this point
           where (instance%acab < -thck_temp .and. thck_temp > 0.0)
              instance%acab = -thck_temp
 !             instance%ablt =  thck_temp
           end where
  
+          if (verbose) then
+             il = itest_local
+             jl = jtest_local
+             write (6,*) 'After conversion of units: acab, artm =', &
+                   instance%model%climate%acab(il,jl), instance%model%climate%artm(il,jl)
+             write (6,*) 'Initial thickness =', instance%model%geometry%thck(il,jl)
+             write (6,*) 'call glide_tstep_p1'
+             call flushm(stdout)
+          endif
+
           instance%glide_time = instance%glide_time + instance%model%numerics%tinc
           call glide_tstep_p1(instance%model, instance%glide_time)
+
+          if (verbose) then
+              write (6,*) 'call glide_tstep_p2'
+              call flushm(stdout)
+          endif
+
           call glide_tstep_p2(instance%model)
+
+          if (verbose) then
+              write (6,*) 'New thickness =', instance%model%geometry%thck(il,jl)
+              write (6,*) 'call glide_tstep_p3'
+              call flushm(stdout)
+          endif
+
           call glide_tstep_p3(instance%model)
  
           ! Add the calved ice to the ablation field
@@ -841,15 +1054,16 @@ module glc_glint
           call glide_get_calving(instance%model, calve_temp)
           calve_temp = calve_temp * real(rhoi/rhow)
  
-!lipscomb - Calving needs to be added to runoff (groff)
-!lipscomb - Also add basal melting, bmlt?
+!lipscomb - to do - Calving needs to be added to the runoff field (groff)
+!                   Also add basal melting, bmlt?
+
           instance%ablt = instance%ablt + calve_temp/instance%model%numerics%tinc
           instance%acab = instance%acab - calve_temp/instance%model%numerics%tinc
  
           ! Accumulate for water-budgeting
-!lipscomb - what to do here?
-!           for now, put all of acab (i.e., qice) in accum, with calving in ablat
-!           Note: This is used to compute fudge factor below.
+!lipscomb - to do - Not sure what to do here
+!           For now, put all of acab (i.e., qice) in accum, with calving in ablat
+!           Note: This is used to compute a fudge factor below.
 
 !          accum_temp = accum_temp + instance%prcp * instance%model%numerics%tinc
           accum_temp = accum_temp + instance%acab * instance%model%numerics%tinc
@@ -862,7 +1076,7 @@ module glc_glint
  
        end do   ! n_icetstep
  
-!lipscomb - not sure whether fudge factor is needed
+!lipscomb - to do - not sure whether the fudge factor is needed
        ! Calculate flux fudge factor --------------------------------------------
  
        call coordsystem_allocate(instance%lgrid,fudge_mask)
@@ -889,7 +1103,9 @@ module glc_glint
        fudge_mask => null()
  
        ! Upscale water flux fields ----------------------------------------------
-!lipscomb - Do we need to scale water input?
+
+!lipscomb - to do - Do we need to upscale the water input?
+
        ! First water input (i.e. mass balance + ablation)
  
        call coordsystem_allocate(instance%lgrid, upscale_temp)
@@ -900,10 +1116,11 @@ module glc_glint
           upscale_temp = c0
        endwhere
  
-       call mean_to_global(instance%ups,   &
-                           upscale_temp,   &
-                           g_water_in,     &
-                           instance%out_mask)
+!lipscomb - Comment out for now
+!       call mean_to_global(instance%ups,   &
+!                           upscale_temp,   &
+!                           g_water_in,     &
+!                           instance%out_mask)
 
        deallocate(upscale_temp)
        upscale_temp => null()
@@ -921,38 +1138,39 @@ module glc_glint
  
        call glide_get_usurf(instance%model,instance%local_orog)
 
-       call flow_router(instance%local_orog, &
-                        upscale_temp, &
-                        routing_temp, &
-                        instance%out_mask, &
-                        instance%lgrid%delta%pt(1), &
-                        instance%lgrid%delta%pt(2))
+!lipscomb - Flow routing is not needed for coupled runs.
+!           Initialize routing_temp and comment out this call.
+       routing_temp(:,:) = c0
+
+!lipscomb - Comment out for now
+!       call flow_router(instance%local_orog, &
+!                        upscale_temp, &
+!                        routing_temp, &
+!                        instance%out_mask, &
+!                        instance%lgrid%delta%pt(1), &
+!                        instance%lgrid%delta%pt(2))
  
-       call mean_to_global(instance%ups,   &
-                           routing_temp,   &
-                           g_water_out,    &
-                           instance%out_mask)
+!       call mean_to_global(instance%ups,   &
+!                           routing_temp,   &
+!                           g_water_out,    &
+!                           instance%out_mask)
 
        deallocate(upscale_temp,routing_temp)
        upscale_temp => null()
        routing_temp => null()
  
        ! Sum water fluxes and convert if necessary ------------------------------
- 
-       t_win  = sum(accum_temp)*instance%lgrid%delta%pt(1)* &
-                                instance%lgrid%delta%pt(2)
+
+!lipscomb - Comment out for now 
+!       t_win  = sum(accum_temp)*instance%lgrid%delta%pt(1)* &
+!                                instance%lgrid%delta%pt(2)
 
  
-       t_wout = sum(ablat_temp)*instance%lgrid%delta%pt(1)* &
-                                instance%lgrid%delta%pt(2)
+!       t_wout = sum(ablat_temp)*instance%lgrid%delta%pt(1)* &
+!                                instance%lgrid%delta%pt(2)
  
     end if   ! do timestep
  
-    ! ------------------------------------------------------------------------ 
-    ! Upscale output from local domain to global domain with elevation classes
-    ! ------------------------------------------------------------------------ 
- 
-
     ! Calculate ice volume ---------------------------------------------------
  
     call glide_get_thk(instance%model, thck_temp)
@@ -988,111 +1206,165 @@ module glc_glint
                                     topo_g)
  
     use glint_interp
+    use glimmer_paramets, only: thk0
  
-    !*FD Downscale relevant fields
- 
+    ! Downscale fields from the global grid (with multiple elevation classes)
+    !  to the local grid.
+
     type(glint_instance) :: instance
     integer(i4), intent(in) :: nec                       ! number of elevation classes
     real(r8),dimension(:,:,:),intent(in) :: tsfc_g       ! Surface temperature (C)
-    real(r8),dimension(:,:,:),intent(in) :: qice_g       ! Depth of new ice (kg/m^2)
+    real(r8),dimension(:,:,:),intent(in) :: qice_g       ! Depth of new ice (m)
     real(r8),dimension(:,:,:),intent(in) :: topo_g       ! Surface elevation (m)
 
-!lipscomb - is this needed?
+!lipscomb - to do - Is this needed?
 !!!    logical, optional,       intent(in)  :: orogflag     ! Set if we have new global orog
-
 
     integer(i4) ::    &
        i, j, n,       &
        nxl, nyl
   
-!lipscomb - Might want to find a less memory-intensive way to do this
+!lipscomb - to do - Might want to find a less memory-intensive way to do downscaling
 
     real(r8), dimension(:,:,:), allocatable ::   &
        tsfc_l,    &! interpolation of global sfc temperature to local grid
        qice_l,    &! interpolation of global mass balance to local grid
-       topo_l    ! interpolation of global topography in each elev class to local grid
+       topo_l      ! interpolation of global topography in each elev class to local grid
 
     real(r8) :: fact
+
+    if (verbose) then
+       i = itest
+       j = jjtest
+       write (6,*) ' ' 
+       write (6,*) 'In glc_glint_downscaling: i, j =', i, j
+       do n = 1, glc_nec
+          write (6,*) ' '
+          write (6,*) 'n =', n
+          write (6,*) 'tsfc_g =', tsfc_g(i,j,n)
+          write (6,*) 'topo_g =', topo_g(i,j,n)
+          write (6,*) 'qice_g =', qice_g(i,j,n)
+       enddo
+       call flushm(stdout)
+    endif
 
     nxl = instance%lgrid%size%pt(1)
     nyl = instance%lgrid%size%pt(2)
 
     allocate(tsfc_l(nxl,nyl,nec))
-    allocate(qice_l(nxl,nyl,nec))
     allocate(topo_l(nxl,nyl,nec))
+    allocate(qice_l(nxl,nyl,nec))
+
+    if (verbose) then
+       write (6,*) 'Interp to local grid'
+    endif
 
 !   Downscale global fields for each elevation class to local grid
 
     do n = 1, nec
-       call interp_to_local(instance%lgrid, topo_g(:,:,n), instance%downs, localdp=topo_l(:,:,n))
        call interp_to_local(instance%lgrid, tsfc_g(:,:,n), instance%downs, localdp=tsfc_l(:,:,n))
+       call interp_to_local(instance%lgrid, topo_g(:,:,n), instance%downs, localdp=topo_l(:,:,n))
        call interp_to_local(instance%lgrid, qice_g(:,:,n), instance%downs, localdp=qice_l(:,:,n))
     enddo
 
+!lipscomb - debug
+    if (verbose) then
+       i = itest_local
+       j = jtest_local
+       write (6,*) ' ' 
+       write (6,*) 'Interpolated to local cells: i, j =', i, j
+       do n = 1, glc_nec
+          write (6,*) ' '
+          write (6,*) 'n =', n
+          write (6,*) 'tsfc_l =', tsfc_l(i,j,n)
+          write (6,*) 'topo_l =', topo_l(i,j,n)
+          write (6,*) 'qice_l =', qice_l(i,j,n)
+       enddo
+       call flushm(stdout)
+    endif
+
 !   Interpolate tsfc and qice to local topography using values in the neighboring 
-!   elevation classes.
+!    elevation classes.
+!   If the local topography is outside the bounds of the global elevations classes,
+!    extrapolate the temperature using the prescribed lapse rate.
 
-    do n = 1, nec
+    do j = 1, nxl
+    do i = 1, nyl
 
-   !lipscomb - lapse rate adjustment for tsfc?
+       usrf = instance%model%geometry%usrf(i,j) * thk0   ! actual sfc elevation (m)
 
-       do j = 1, nxl
-       do i = 1, nyl
-          usrf = instance%model%geometry%usrf(i,j)
-          if (n==1 .and. usrf < topo_l(i,j,n)) then   ! use values for n = 1
-             instance%acab(i,j) = qice_l(i,j,n)
-             instance%artm(i,j) = tsfc_l(i,j,n)
-          elseif (n==nec .and. usrf >= topo_l(i,j,n)) then    ! use values for n = nec
-             instance%acab(i,j) = qice_l(i,j,n)
-             instance%artm(i,j) = tsfc_l(i,j,n)   !lipscomb - lapse rate adjustment?
-          else   ! linear interpolation between neighboring classes
-             fact = (topo_l(i,j,n) - usrf) / (topo_l(i,j,n) - topo_l(i,j,n-1))
-             instance%acab(i,j) = fact*qice_l(i,j,n-1) + (c1-fact)*qice_l(i,j,n)
-             instance%artm(i,j) = fact*tsfc_l(i,j,n-1) + (c1-fact)*tsfc_l(i,j,n)
+       if (usrf < topo_l(i,j,1)) then
+          instance%acab(i,j) = qice_l(i,j,1)
+          instance%artm(i,j) = tsfc_l(i,j,1) + lapse*(topo_l(i,j,1)-usrf)
+       elseif (usrf > topo_l(i,j,nec)) then
+          instance%acab(i,j) = qice_l(i,j,nec)
+          instance%artm(i,j) = tsfc_l(i,j,nec) - lapse*(usrf-topo_l(i,j,nec))
+       else
+          do n = 2, nec
+             if (usrf > topo_l(i,j,n-1) .and. usrf < topo_l(i,j,n)) then
+                fact = (topo_l(i,j,n) - usrf) / (topo_l(i,j,n) - topo_l(i,j,n-1)) 
+                instance%acab(i,j) = fact*qice_l(i,j,n-1) + (c1-fact)*qice_l(i,j,n)
+                instance%artm(i,j) = fact*tsfc_l(i,j,n-1) + (c1-fact)*tsfc_l(i,j,n)
+                exit
+             endif
+          enddo
+       endif   ! usrf
+
+       if (verbose) then
+          if (i==itest_local .and. j==jtest_local) then
+             write (6,*) ' '
+             write (6,*) 'Interpolated values, i, j =', i, j
+             write (6,*) 'usrf =', usrf
+             write (6,*) 'acab =', instance%acab(i,j)
+             write (6,*) 'artm =', instance%artm(i,j)
           endif
-       enddo
-       enddo
+       endif
 
-    enddo    ! nec
+    enddo  ! i
+    enddo  ! j
 
+!lipscomb - commented out
 !!!    if (orogflag) &
 !!!       call interp_to_local(instance%lgrid, topo_g, instance%downs, localdp=instance%global_orog)
  
   end subroutine glc_glint_downscaling
 
 !================================================================================
+!lipscomb - Removed artm and acab from argument list.  Use values from coupler instead.
 
   subroutine glc_glint_get_mbal(params,           &
-                                artm,    acab,    &
+!                                artm,    acab,    &
                                 prcp,    ablt,    &
                                 snowd,   siced,   &
                                 dt)
  
-!lipscomb - GLINT routine computes prcp, ablt, snowd and siced.
+!lipscomb - The corresponding GLINT routine computes prcp, ablt, snowd and siced.
 !           Here I just set these to 0.0.
 
     use glint_constants, only: hours2years
  
     type(glint_mbc)  :: params
-    real(sp),dimension(:,:),intent(out)   :: artm   !*FD Mean air temperature (degC)
-    real(sp),dimension(:,:),intent(out)   :: acab   !*FD Mass-balance
+!    real(sp),dimension(:,:),intent(out)   :: artm   !*FD Mean air temperature (degC)
+!    real(sp),dimension(:,:),intent(out)   :: acab   !*FD Mass-balance
     real(sp),dimension(:,:),intent(out)   :: prcp   !*FD Precipitation (m)
     real(sp),dimension(:,:),intent(out)   :: ablt   !*FD Ablation
     real(sp),dimension(:,:),intent(inout) :: snowd  !*FD Snow depth (m)
     real(sp),dimension(:,:),intent(inout) :: siced  !*FD Superimposed ice depth (m)
     integer,                intent(in)    :: dt     !*FD accumulation time in hours
  
-!lipscomb - Save artm_save?
+!lipscomb - to do - Is this needed?
     if (.not.params%new_accum) then
        params%artm_save = params%artm_save/real(params%av_count)
     end if
  
     params%new_accum=.true.
  
-    artm=params%artm_save
-    acab=params%acab_save / real(dt*hours2years,sp)
+!lipscomb - Commented out because we use values from CLM
+!    artm=params%artm_save
+!    acab=params%acab_save / real(dt*hours2years,sp)
 
-!lipscomb - just set the following to zero, since they are computed in CLM, not GLINT
+!lipscomb - Just set the following to zero, since they are computed in CLM
+!           and not needed by GLIMMER.
 !    prcp=params%prcp_save / real(dt*hours2years,sp)
 !    ablt=params%ablt_save / real(dt*hours2years,sp)
 !    snowd=params%snowd
@@ -1101,6 +1373,7 @@ module glc_glint
 !    where (snowd<0.0) snowd=0.0
 !    where (siced<0.0) siced=0.0
 
+     ! single precision
      prcp  = 0.0
      ablt  = 0.0
      snowd = 0.0
@@ -1110,43 +1383,77 @@ module glc_glint
   
 !================================================================================
 
-  subroutine get_glc_upscaled_fields(instance,              &
+  subroutine get_glc_upscaled_fields(instance,    nec,      &
+                                     nxl,         nyl,        &
+                                     nxg,         nyg,        &
                                      gfrac,       gthck,    &
-                                     gtopo,       ghflx)
+                                     gtopo,       ghflx,    &
+                                     groff)
 
     ! Upscales and returns fields required by glc for passing to coupler
     !
-    ! This subroutine replaces the original get_i_upscaled_fields in glint_type.F90.
+    ! This subroutine replaces get_i_upscaled_fields in glint_type.F90.
  
     use glimmer_paramets
- 
-    ! Arguments -------------------------------------------------------------------------------------
+
+    ! Arguments ----------------------------------------------------------------------------
  
     type(glint_instance),     intent(in)  :: instance      ! the model instance
-    real(r8),dimension(:,:,:),intent(out) :: gfrac         ! ice-covered fraction [0,1]
-    real(r8),dimension(:,:,:),intent(out) :: gthck         ! ice thickness (m)
-    real(r8),dimension(:,:,:),intent(out) :: gtopo         ! surface elevation (m)
-    real(r8),dimension(:,:,:),intent(out) :: ghflx         ! heat flux (m)
+    integer,                  intent(in)  :: nec           ! number of elevation classes
+    integer(i4),              intent(in)  :: nxl,nyl       ! local grid dimensions 
+    integer(i4),              intent(in)  :: nxg,nyg       ! global grid dimensions 
+
+    real(r8),dimension(nxg,nyg,nec),intent(out) :: gfrac   ! ice-covered fraction [0,1]
+    real(r8),dimension(nxg,nyg,nec),intent(out) :: gthck   ! ice thickness (m)
+    real(r8),dimension(nxg,nyg,nec),intent(out) :: gtopo   ! surface elevation (m)
+    real(r8),dimension(nxg,nyg,nec),intent(out) :: ghflx   ! heat flux (m)
+    real(r8),dimension(nxg,nyg,nec),intent(out) :: groff   ! runoff/calving flux (kg/m^2/s)
  
-    ! Internal variables ----------------------------------------------------------------------------
+    ! Internal variables ----------------------------------------------------------------------
  
-    real(r8),dimension(:,:),pointer :: temp => null()
-    real(r8),dimension(:,:),pointer :: ltopo_temp => null()
+    real(r8),dimension(nxl,nyl) :: temp
+    real(r8),dimension(nxl,nyl) :: ltopo_temp
+
+    integer :: i, j            ! indices
  
-    call coordsystem_allocate(instance%lgrid,temp)
-    call coordsystem_allocate(instance%lgrid,ltopo_temp)
+    integer :: il, jl, ig, jg
 
     ltopo_temp(:,:) = thk0 * instance%model%geometry%usrf(:,:)
+    
+    if (verbose) then
+       ig = itest
+       jg = jjtest
+       il = itest_local
+       jl = jtest_local
+       write(6,*) 'In get_gcl_upscaled_fields'
+       write(6,*) 'il, jl =', il, jl
+       write(6,*) 'ig, jg =', ig, jg
+       write(6,*) 'nxl, nyl =', nxl,nyl
+       write(6,*) 'nxg, nyg =', nxg,nyg
+       call flushm(stdout)
+    endif
 
     ! ice fraction
 
-    where (instance%model%geometry%thck > c0)
-       temp = c1
-    elsewhere
-       temp = c0
-    endwhere
+    do j = 1, nyl
+    do i = 1, nxl
+       if (ltopo_temp(i,j) > c0) then
+          temp(i,j) = c1
+       else
+          temp(i,j) = c0
+       endif
+    enddo
+    enddo
+
+    if (verbose) then
+       write(6,*) 'local ifrac =', temp(il, jl)
+       write(6,*) 'local topo =', ltopo_temp(il,jl)
+       write(6,*) 'local mask =', instance%out_mask(il,jl)
+    endif
 
     call mean_to_global_mec(instance%ups,                       &
+                            nxl,                nyl,            &
+                            nxg,                nyg,            &
                             nec,                hec_max,        &
                             temp,               gfrac,          &
                             ltopo_temp,         instance%out_mask)
@@ -1156,41 +1463,90 @@ module glc_glint
     temp(:,:) = thk0 * instance%model%geometry%thck(:,:)
 
     call mean_to_global_mec(instance%ups,                   &
-                            nec,                 hec_max,   &
-                            temp,                gthck,     &
-                            ltopo_temp,          instance%out_mask)
+                            nxl,                nyl,        &
+                            nxg,                nyg,        &
+                            nec,                hec_max,    &
+                            temp,               gthck,      &
+                            ltopo_temp,         instance%out_mask)
+
+
+!lipscomb - debug
+    write(6,*) ' '
+    write(6,*) 'local topo =', ltopo_temp(il,jl)
 
     ! surface elevation
 
     call mean_to_global_mec(instance%ups,                   &
+                            nxl,                 nyl,       &
+                            nxg,                 nyg,       &
                             nec,                 hec_max,   &
                             ltopo_temp,          gtopo,     &
                             ltopo_temp,          instance%out_mask)
 
+
     ! heat flux
 
-!lipscomb - fill in heat flux here
+!lipscomb - to do - Copy runoff into temp array
     temp(:,:) = c0
 
     call mean_to_global_mec(instance%ups,                   &
+                            nxl,                 nyl,       &
+                            nxg,                 nyg,       &
                             nec,                 hec_max,   &
                             temp,                ghflx,     &
                             ltopo_temp,          instance%out_mask)
  
-!lipscomb - Get runoff here?
+!lipscomb - to do - Copy runoff into temp array
+    temp(:,:) = c0
 
+    call mean_to_global_mec(instance%ups,                   &
+                            nxl,                 nyl,       &
+                            nxg,                 nyg,       &
+                            nec,                 hec_max,   &
+                            temp,                groff,     &
+                            ltopo_temp,          instance%out_mask)
 
-    deallocate(temp)
-    temp => null()
+    if (verbose) then
 
-    deallocate(ltopo_temp)
-    ltopo_temp => null()
- 
+       write(6,*) ' '
+       write(6,*) 'global ifrac:'
+       do n = 1, nec
+          write(6,*) n, gfrac(ig, jg, n)
+       enddo
+
+       write(6,*) ' '
+       write(6,*) 'global gtopo:'
+       do n = 1, nec
+          write(6,*) n, gtopo(ig, jg, n)
+       enddo
+
+       write(6,*) ' '
+       write(6,*) 'global gthck:'
+       do n = 1, nec
+          write(6,*) n, gthck(ig, jg, n)
+       enddo
+
+!       write(6,*) ' '
+!       write(6,*) 'global ghflx:'
+!       do n = 1, nec
+!          write(6,*) n, ghflx(ig, jg, n)
+!       enddo
+
+!       write(6,*) ' '
+!       write(6,*) 'global groff:'
+!       do n = 1, nec
+!          write(6,*) n, groff(ig, jg, n)
+!       enddo
+
+    endif    ! verbose
+
   end subroutine get_glc_upscaled_fields
  
 !================================================================================
 
   subroutine mean_to_global_mec(ups,                &
+                                nxl,      nyl,      &
+                                nxg,      nyg,      &
                                 nec,      hec_max,  &
                                 local,    global,   &
                                 ltopo,    mask)
@@ -1199,45 +1555,41 @@ module glc_glint
     ! by areal averaging.
     !
     ! This subroutine is adapted from subroutine mean_to_global in GLIMMER.
-    ! The only difference is that local topography is upscaled to multiple
-    !  elevation classes in each global grid cell.
+    ! The difference is that local topography is upscaled to multiple elevation classes
+    !  in each global grid cell.
     !
     ! Note: This method is not the inverse of the interp_to_local routine.
+    ! Also note that each local grid cell is assumed to have the same area.
+    ! It would be nice to have a more sophisticated routine.
  
     ! Arguments
  
     type(upscale),            intent(in)    :: ups     ! upscaling indexing data
+    integer(i4),              intent(in)    :: nxl,nyl ! local grid dimensions 
+    integer(i4),              intent(in)    :: nxg,nyg ! global grid dimensions 
     integer(i4),              intent(in)    :: nec     ! number of elevation classes 
     real(r8),dimension(0:nec),intent(in)    :: hec_max ! max elevation in each class 
-    real(r8),dimension(:,:),  intent(in)    :: local   ! data on local grid
-    real(r8),dimension(:,:,:),intent(out)   :: global  ! data on global grid
-    real(r8),dimension(:,:),  intent(in)    :: ltopo   ! surface elevation on local grid (m)
-    integer(i4),dimension(:,:),intent(in),optional :: mask ! mask for upscaling
+    real(r8),dimension(nxl,nyl),  intent(in)      :: local   ! data on local grid
+    real(r8),dimension(nxg,nyg,nec),intent(out)   :: global  ! data on global grid
+    real(r8),dimension(nxl,nyl),  intent(in)      :: ltopo   ! surface elevation on local grid (m)
+    integer(i4),dimension(nxl,nyl),intent(in),optional :: mask ! mask for upscaling
  
     ! Internal variables
  
     integer(i4) ::  &
        i, j, n,    &! indices
-       nxl, nyl     ! local dimensions
+       ig, jg       ! indices
 
-    real(r8), dimension(:,:), allocatable ::  &
-        tempmask      ! temporary mask
-
-    integer(i4), dimension(:,:), allocatable ::  &
+    integer(i4), dimension(nxl,nyl) ::  &
+        tempmask,    &! temporary mask
         gboxec        ! elevation class associated with local topography
 
-!lipscomb - debug
+    integer(i4), dimension(nxg,nyg,nec) ::  &
+        gnumloc       ! no. of local cells within each global cell in each elevation class
+
+    integer :: il, jl
     real(r8) :: lsum, gsum
  
-    ! Beginning of code
- 
-    nxl = size(local,1)
-    nyl = size(local,2)
-
-!lipscomb - Rewrite to avoid allocating and deallocating each time?
-    allocate(tempmask(nxl,nyl))
-    allocate(gboxec(nxl,nyl))
-
     if (present(mask)) then
        tempmask(:,:) = mask(:,:)
     else
@@ -1245,13 +1597,21 @@ module glc_glint
     endif
  
     ! Compute global elevation class for each local grid cell
+    ! Also compute number of local cells within each global cell in each elevation class
 
     gboxec(:,:) = 0
+    gnumloc(:,:,:) = 0
+
     do n = 1, nec
        do j = 1, nyl
        do i = 1, nxl
           if (ltopo(i,j) >= hec_max(n-1) .and. ltopo(i,j) < hec_max(n)) then
              gboxec(i,j) = n
+             if (tempmask(i,j)==1) then
+                ig = ups%gboxx(i,j)
+                jg = ups%gboxy(i,j)
+                gnumloc(ig,jg,n) = gnumloc(ig,jg,n) + 1
+             endif
           endif
        enddo
        enddo
@@ -1261,24 +1621,41 @@ module glc_glint
 
     do j = 1, nyl
     do i = 1, nxl
-       nxg = ups%gboxx(i,j)
-       nyg = ups%gboxy(i,j)
-       n = gboxec(i,j)       
+       ig = ups%gboxx(i,j)
+       jg = ups%gboxy(i,j)
+       n = gboxec(i,j)
 !lipscomb - bug check
        if (n==0) then
           print*, 'Bug, local topography out of bounds'
           print*, 'i, j, topo:', i, j, ltopo(i,j)
+          print*, 'hec_max(0) =', hec_max(0)
           call exit_glc(sigAbort, 'Local topography out of bounds')
        endif
-       global(nxg,nyg,n) = global(nxg,nyg,n) + local(i,j)*tempmask(i,j)
+
+!lipscomb - debug
+       if (verbose .and. i==itest_local .and. j==jtest_local) then
+          write(6,*) ' '
+          write(6,*) 'il, jl =', i, j
+          write(6,*) 'ig, jg, n =', ig, jg, n
+          write(6,*) 'Old global val =', global(ig,jg,n)
+          write(6,*) 'local, mask =', local(i,j), tempmask(i,j)
+       endif
+
+       global(ig,jg,n) = global(ig,jg,n) + local(i,j)*tempmask(i,j)
+
+!lipscomb - debug
+       if (verbose .and. i==itest_local .and. j==jtest_local) then
+          write(6,*) 'New global val =', global(ig,jg,n)
+       endif
+
     enddo
     enddo
  
     do n = 1, nec
-       do j = 1, nyl
-       do i = 1, nxl
-          if (ups%gboxn(i,j) /= 0) then
-             global(i,j,n) = global(i,j,n) / ups%gboxn(i,j)
+       do j = 1, nyg
+       do i = 1, nxg
+          if (gnumloc(i,j,n) /= 0) then
+             global(i,j,n) = global(i,j,n) / gnumloc(i,j,n)
           else
              global(i,j,n) = c0
           endif
@@ -1286,19 +1663,30 @@ module glc_glint
        enddo
     enddo
 
-!lipscomb - debug - conservation check
+    ! conservation check
 
-    lsum = sum(local)
-    gsum = sum(global)
+    lsum = c0
+    do j = 1, nyl
+    do i = 1, nxl
+       lsum = lsum + local(i,j)*tempmask(i,j)
+    enddo
+    enddo
 
-    if (gsum > c1 .and. abs(gsum-lsum)/gsum > eps) then
-       print*, 'mean_to_global, local and global sums disagree'
-       print*, 'lsum, gsum =', lsum, gsum
+    gsum = c0
+    do n = 1, nec
+    do j = 1, nyg
+    do i = 1, nxg
+       gsum = gsum + global(i,j,n)*gnumloc(i,j,n)
+    enddo
+    enddo
+    enddo
+
+!lipscomb - to do - Use a less arbitrary error threshold
+    if (abs(gsum-lsum) > 1.0) then 
+       write(6,*) 'local and global sums disagree'
+       write (6,*) 'lsum, gsum =', lsum, gsum 
        call exit_glc(sigAbort, 'Upscaling conservation error')
     endif
- 
-    deallocate(tempmask)
-    deallocate(gboxec)
 
   end subroutine mean_to_global_mec
   

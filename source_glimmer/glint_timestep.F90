@@ -52,7 +52,7 @@ module glint_timestep
   private
   public glint_i_tstep
 
-!lipscomb - make this accessible from glc_glint (move later?)
+!lipscomb - declared as public to make this accessible from glc_glint (move later?)
   public glint_remove_bath
 
 contains
@@ -126,10 +126,6 @@ contains
     real(sp),dimension(:,:),pointer :: calve_temp   => null() ! temporary array for calving flux
     real(rk) :: start_volume,end_volume,flux_fudge
     integer :: i
-
-!lipscomb - debug
-    integer :: j, ii, jj, nx, ny, itest, jtest 
-    real(rk) :: lat, lon 
 
     ! Check whether we're doing anything this time.
 

@@ -11,7 +11,7 @@
 !
 ! !REVISION HISTORY:
 !  SVN:$Id: time_management.F90 923 2006-05-10 22:25:10Z njn01 $
-!  WHL, May 2007: Adapted from time_management.F90 in POP 2.0
+!  Adapted by William Lipscomb from time_management.F90 in POP
 !
 ! !USES:
 
@@ -19,11 +19,11 @@
    use glc_constants
    use glc_communicate, only: my_task, master_task
    use glc_broadcast
-   use glc_io
-   use glc_io_tools
-   use glc_io_types, only: stdout
+!!   use glc_io
+!!   use glc_io_tools
+   use glc_io_types, only: stdout, nml_in, nml_filename
    use glc_exit_mod
-   use glc_registry
+!!   use glc_registry
    use shr_sys_mod
 
    implicit none
@@ -459,7 +459,7 @@
 !-----------------------------------------------------------------------
 
    integer (int_kind) :: &
-      k,                 &! vertical level index
+!!      k,                 &! vertical level index
       nu,                &! i/o unit number
       nm                  ! month index
 
@@ -652,7 +652,16 @@
    case default
       call exit_glc(sigAbort,'unknown dt_option')
    end select
- 
+
+!lipscomb - debug
+  if (verbose) then
+     write(6,*) 'dt_option =', trim(dt_option)
+     write(6,*) 'dt_count =', dt_count
+     write(6,*) 'seconds_in_day =', seconds_in_day
+     write(6,*) 'dtt =', dtt
+     call shr_sys_flush(6)
+  endif
+
 !-----------------------------------------------------------------------
 !
 !  modify dtt value, if using avgfit option
@@ -699,7 +708,7 @@
 !!      nsteps_per_interval = steps_per_day
 !!   endif
 
-!!   dtt_input = dtt
+   dtt_input = dtt
 !!   dtp       = dtt
 !!   dtu       = dtt
 
@@ -798,7 +807,8 @@
 !  Register init_time1
 !
 !-----------------------------------------------------------------------
-   call register_string('init_time1')
+!lipscomb - Commented out for now
+!!   call register_string('init_time1')
 
    call flushm (stdout)
 !EOC
@@ -852,11 +862,11 @@
 !   and init_ts have been registered
 !
 !-----------------------------------------------------------------------
-   call register_string   ('init_time2')
-   call registry_err_check('init_time1', .true., &
-                            caller='init_time2' )
-   call registry_err_check('init_ts', .true., &
-                            caller= 'init_time2' )
+!!   call register_string   ('init_time2')
+!!   call registry_err_check('init_time1', .true., &
+!!                            caller='init_time2' )
+!!   call registry_err_check('init_ts', .true., &
+!!                            caller= 'init_time2' )
 
 !-----------------------------------------------------------------------
 !
@@ -1294,6 +1304,7 @@
 
 !EOP
 !BOC
+
 !-----------------------------------------------------------------------
 !
 !  save previous values of tsecond, isec, imin, ihour, etc
@@ -1356,6 +1367,13 @@
 !!   else
       stepsize =    dtt
 !!   endif
+
+   if (verbose) then   
+      write (6,*) 'New nsteps_run =', nsteps_run
+      write (6,*) 'New nsteps_total =', nsteps_total
+      write (6,*) 'stepsize =', stepsize
+      call shr_sys_flush(6)
+   endif
 
 !-----------------------------------------------------------------------
 !
@@ -2041,8 +2059,9 @@
 !
 !-----------------------------------------------------------------------
 
-   if (flag_id < 1 .or. flag_id > num_time_flags) &
+   if (flag_id < 1 .or. flag_id > num_time_flags) then
       call exit_glc(sigAbort,'check_time_flag: invalid flag_id')
+   endif
 
    check_time_flag = time_flags(flag_id)%value
 
@@ -4298,15 +4317,15 @@
       cmonth0,        &!
       cday0            !
  
-   character (3) ::   &
-      mix_step
+!!   character (3) ::   &
+!!      mix_step
 
    character (4) ::   &
       cyear0,         &!
       cyear_end_run    !
 
-   character (char_len) :: &
-      mix_steps
+!!   character (char_len) :: &
+!!      mix_steps
  
    character (*), parameter :: &! output formats
       out_fmt1 = "('       date(month-day-year):',2x,2(a2,'-'),a4)", &
@@ -4314,10 +4333,11 @@
       out_fmt3 = "('This run will terminate ',/,a)",                 &
       out_fmt4 = "(a, :i7, a,a)",                                    &
       out_fmt5 = "('                   ',a8,2x,f16.3)",              &
-      out_fmt6 = "('Averaging time steps every ',i6,' steps',a)",    &
-      out_fmt7 =                                                     &
-"('Averaging time steps at the 2nd and ',i5,a2,' step of every day or coupled interval ')",&
-      out_fmt8 = "('Surface ',a10,' time step = ',1pe12.6, ' seconds')",&
+!!      out_fmt6 = "('Averaging time steps every ',i6,' steps',a)",    &
+!!      out_fmt7 =                                                     &
+!!"('Averaging time steps at the 2nd and ',i5,a2,' step of every day or coupled interval ')",&
+!!      out_fmt8 = "('Surface ',a10,' time step = ',1pe12.6, ' seconds')",&
+      out_fmt8 = "('GLC time step = ',1pe12.6, ' seconds')",&
       out_fmt9 = "('There are ', i3, a6,' steps each day')"
 
 !-----------------------------------------------------------------------
@@ -4433,14 +4453,14 @@
 !
 !-----------------------------------------------------------------------
 
-!!      write (stdout,blank_fmt)
-!!      if (dt_option == 'auto_dt') then
-!!         write (stdout,'(a45)') &
-!!            'Automatic time step option (auto_dt)  enabled'
-!!      else
-!!         write (stdout,'(a45)') &
-!!            'Automatic time step option (auto_dt) disabled'
-!!      endif
+      write (stdout,blank_fmt)
+      if (dt_option == 'auto_dt') then
+         write (stdout,'(a45)') &
+            'Automatic time step option (auto_dt)  enabled'
+      else
+         write (stdout,'(a45)') &
+            'Automatic time step option (auto_dt) disabled'
+      endif
 
       write (stdout,blank_fmt)
       write (stdout,'(a11,1pe12.6)') 'dt_count = ',dt_count
@@ -4534,7 +4554,8 @@
 !!            'Matsuno time steps every ',time_mix_freq,' steps'
 !!      end select
 
-!!      write (stdout,blank_fmt)
+      write (stdout,blank_fmt)
+      write (stdout,out_fmt8) dtt
 !!      write (stdout,out_fmt8) 'tracer    ',dtt
 !!      write (stdout,out_fmt8) 'momentum  ',dtu
 !!      write (stdout,out_fmt8) 'barotropic',dtp

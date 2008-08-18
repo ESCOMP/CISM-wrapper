@@ -13,7 +13,7 @@
 !  SVN:$Id: ice_distribution.F90 54 2007-02-26 21:19:41Z eclare $
 !
 ! author: Phil Jones, LANL
-!         Adapted from POP by William Lipscomb, LANL
+!         Adapted from POP/CICE by William Lipscomb, LANL
 !
 ! !USES:
 

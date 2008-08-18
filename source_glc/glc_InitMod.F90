@@ -15,14 +15,18 @@
 !
 ! !REVISION HISTORY:
 !  SVN:$Id: POP_InitMod.F90 808 2006-04-28 17:06:38Z njn01 $
-!  WHL, May 2007: Adapted from POP_InitMod.F90 in POP 2.0
+!  Adapted by William Lipscomb from POP_InitMod.F90
 
 ! !USES:
 
    use glc_kinds_mod
    use glc_ErrorMod
-   use glc_io_types, only : nml_in, nml_filename, init_io
+   use glc_communicate, only: my_task, master_task
+   use glc_io_types, only : nml_in, nml_filename, init_io, stdout
    use shr_msg_mod,  only : shr_msg_chdir, shr_msg_dirio
+
+!lipscomb - debug
+   use glc_constants, only: verbose
 
    implicit none
    private
@@ -68,7 +72,7 @@
    use glint_example_clim
    use glc_global_fields, only: glc_allocate_global, climate, ice_sheet,   &
                                 ice_frac, orog_out, temp, precip, orog,    &
-                                tsfc, topo, qice, nec
+                                tsfc, topo, qice, glc_nec
    use glc_global_fields, only: albedo, lats_orog, lons_orog ! to be removed?
    use glc_global_fields, only: time, coverage, cov_orog  ! to be removed?
    use glc_global_grid,   only: init_glc_grid, glc_grid, glint_grid
@@ -76,14 +80,15 @@
    use glc_constants
    use glc_communicate, only: init_communicate
    use glc_coupled, only: init_coupled
-
-!lipscomb - new subroutine 
+   use glc_time_management, only: init_time1, init_time2, dtt, ihour
+   use glc_timers
    use glc_glint, only: glc_glint_initialize
 
-!lipscomb - just for now
-   use glc_coupled, only: l_coupglc
+!lipscomb - not sure we need init_global_reductions
+   use glc_global_reductions, only: init_global_reductions
 
 !lipscomb - debug
+   use glc_global_grid, only: region_mask
    use shr_sys_mod, only: shr_sys_flush
 
 ! !INPUT/OUTPUT PARAMETERS:
@@ -115,8 +120,13 @@
   integer (i4) :: &
       nml_error      ! namelist i/o error flag
 
+  logical, parameter :: coupglc = .true.   ! temporary, in place of ifdef
+
   namelist /files_nml/  climatefile, paramfile
  
+!lipscomb - Many of the calls in this routine are from POP.
+!lipscomb - Some are commented out but may be added later.
+
 !-----------------------------------------------------------------------
 !  initialize return flag
 !-----------------------------------------------------------------------
@@ -133,12 +143,9 @@
 !  initialize message-passing or other communication protocol
 !-----------------------------------------------------------------------
 
-!lipscomb - debug
-   write(6,*) 'Init communication'
-
    call init_communicate
 
-!--------------------------------------------------------------------
+!-----------------------------------------------------------------------
 ! CCSM-specific stuff to redirect stdin,stdout
 !--------------------------------------------------------------------
 
@@ -146,22 +153,151 @@
    !when parallel, this is usually done only for master_task
 
 !-----------------------------------------------------------------------
-! Initialize GLINT
+!
+!  initialize constants and i/o stuff
+!
 !-----------------------------------------------------------------------
 
-!lipscomb - Need another way of getting climatefile and paramfile 
+!lipscomb - to do - Include this call later?
+!!   call init_io
  
-!jw     ! These are the default inputs
-!jw     Print*,'Enter name of climate configuration file:'
-!jw     read*,climatefile
-!jw     Print*,'Enter name of ice model configuration file:'
-!jw     read*,paramfile
+!-----------------------------------------------------------------------
+!
+!  write version information to output log after output redirection
+!
+!-----------------------------------------------------------------------
+
+!lipscomb - to do - Write version info 
+!!   if (my_task == master_task) then
+!!      write(stdout,blank_fmt)
+!!      write(stdout,ndelim_fmt)
+!!      write(stdout,blank_fmt)
+!!      write(stdout,'(a)') ' GLC version xxx '
+!!      write(stdout,blank_fmt)
+!!      call shr_sys_flush(stdout)
+!!   endif
+ 
+!lipscomb - to do - Init_constants if necessary
+!!   call init_constants
+
+!-----------------------------------------------------------------------
+!
+!  initialize domain and grid
+!
+!-----------------------------------------------------------------------
+ 
+!lipscomb - to do - Initialize domain and grid.
+!                   Currently the grid is based on GLIMMER/GLINT code
+!!   call init_domain_blocks
+!!   call init_grid1
+!!   call init_domain_distribution(KMT_G)
+!!   call init_grid2
+ 
+!-----------------------------------------------------------------------
+!
+!  initialize timers and additional communication routines
+!
+!-----------------------------------------------------------------------
+ 
+   call init_glc_timers
+
+!lipscomb - Is this needed?
+   call init_global_reductions(.false.)  ! set ltripole_grid
+
+!-----------------------------------------------------------------------
+!
+!  compute time step and initialize time-related quantities
+!
+!-----------------------------------------------------------------------
+ 
+   call init_time1
+ 
+!-----------------------------------------------------------------------
+!
+!  set initial temperature and salinity profiles (includes read of
+!  restart file)
+!
+!-----------------------------------------------------------------------
+ 
+!lipscomb - to do - Replace with read of restart file?
+!!   call init_ts
+ 
+!-----------------------------------------------------------------------
+!
+!  finish computing time-related quantities after restart info
+!  available
+!
+!-----------------------------------------------------------------------
+ 
+   call init_time2
+ 
+!-----------------------------------------------------------------------
+!
+!  initialize diagnostics
+!
+!-----------------------------------------------------------------------
+
+!lipscomb - to do - Initialize diagnostics
+!!   call init_diagnostics
+ 
+!-----------------------------------------------------------------------
+!
+!  initialize output; subroutine init_output calls 
+!       o init_restart
+!       o init_history
+!       o init_movie
+!       o init_tavg
+!
+!-----------------------------------------------------------------------
+ 
+!lipscomb - to do - Initialize output
+!!   call init_output
+
+!-----------------------------------------------------------------------
+!
+!  initialize global budget diagnostics
+!
+!-----------------------------------------------------------------------
+
+!lipscomb - to do - Initialize budget diagnostics
+!!   call init_budget_diagnostics
+ 
+!-----------------------------------------------------------------------
+!
+!  write model information into log file
+!
+!-----------------------------------------------------------------------
+
+!lipscomb - to do - Document constants  
+!!   call document_constants
+
+!-----------------------------------------------------------------------
+!
+!  output delimiter to log file
+!
+!-----------------------------------------------------------------------
+ 
+   if (my_task == master_task) then
+      write(stdout,blank_fmt)
+      write(stdout,'(" End of GLC initialization")')
+      write(stdout,blank_fmt)
+      write(stdout,ndelim_fmt)
+      call shr_sys_flush (stdout)
+   endif
+ 
+!--------------------------------------------------------------------
+! Initialize ice sheet model, grid, and coupling.
+! The following code is largely based on GLIMMER.
+!-----------------------------------------------------------------------
 
    climatefile  = 'unknown_climatefile'
    paramfile    = 'unknown_paramfile'
 
 !lipscomb - debug
-   write(6,*) 'Read namelist file'
+   if (verbose) then
+      write(stdout,*) 'Read namelist file'
+      call shr_sys_flush(stdout) 
+   endif
 
    open (nml_in, file=nml_filename, status='old',iostat=nml_error)
    if (nml_error /= 0) then
@@ -175,31 +311,37 @@
    if (nml_error == 0) close(nml_in)
 
 !lipscomb - debug
-   write(6,*) 'Got namelist file'
-   write(6,*) 'climatefile = ', climatefile
-   write(6,*) 'paramfile =   ', paramfile
-   call shr_sys_flush(6)
+   if (verbose) then
+      write(stdout,*) 'climatefile = ', climatefile
+      write(stdout,*) 'paramfile =   ', paramfile
+      write (stdout,*) 'dtt =', dtt
+      call shr_sys_flush(stdout)
+   endif
 
-
-!lipscomb - Replace ifdef with logical if, at least for now
-!!!#ifdef COUPGLC
- if (l_coupglc) then
+!lipscomb - to do - Uncomment the ifdef at some point?
+!!#ifdef COUPGLC
+  if (coupglc) then   ! temporary, in place of ifdef
 
 !lipscomb - debug
-   write (6,*) 'GLC will exchange fields with the coupler'
-   call shr_sys_flush(6)
+   if (verbose) then
+      write (stdout,*) 'GLC will exchange fields with the coupler'
+      call shr_sys_flush(stdout)
+   endif
 
   ! Initialize glc_grid (glc_grid, used for coupling)
 
 !lipscomb - debug
-   write (6,*) 'Get glc_grid'
-   call shr_sys_flush(6)
+   if (verbose) then
+      write (stdout,*) 'Initialize glc_grid'
+      call shr_sys_flush(stdout)
+   endif
 
    call init_glc_grid
 
-!lipscomb - debug
-   write (6,*) 'Get glint grid'
-   call shr_sys_flush(6)
+   if (verbose) then
+      write (stdout,*) 'Initialize glint grid'
+      call shr_sys_flush(stdout)
+   endif
 
    ! initialize GLINT grid (glint_grid, used for upscaling/downscaling)
  
@@ -222,7 +364,7 @@
    glint_grid%box_areas(:,:) = glc_grid%box_areas(:,:)
 
    ! switch latitude indices
-   ! latitude is S to N on glc_grid, N to S on all_grid
+   ! latitude is S to N on glc_grid, N to S on glint_grid
    do j = 1, ny
       glint_grid%lats(j) = glc_grid%lats(ny-j+1)
    enddo
@@ -231,23 +373,29 @@
       glint_grid%lat_bound(j) = glc_grid%lat_bound(ny-j+2)
    enddo
 
-!lipscomb - debug
-   write (6,*) 'Initialize coupling'
-   call shr_sys_flush(6)
+   ! set values of climate derived type
+!lipscomb - to do - Are other values needed?
 
-!lipscomb - set values of climate derived type
+   climate%climate_tstep = dtt/3600._r8   ! convert from sec to hr
+
+!lipscomb - debug
+   if (verbose) then
+      write (stdout,*) 'climate_tstep (hr) =', climate%climate_tstep
+      write (stdout,*) 'Initialize coupling'
+      call shr_sys_flush(stdout)
+   endif
 
   ! Initialize coupling
 
    call init_coupled
 
 !!!#else
- else   ! not coupled
+ else   ! not coupled (temporary, in place of ifdef)
 
 !lipscomb - debug
-   write (6,*) 'GLC will read data from climate files'
-   write (6,*) 'This part still needs to be tested'
-   write (6,*) 'Initialize climate'
+   write (stdout,*) 'GLC will read data from climate files'
+   write (stdout,*) 'This code has not been tested!'
+   write (stdout,*) 'Initialize climate'
 
   ! Initialize climate, including grid
  
@@ -286,31 +434,33 @@
    enddo
 
 !lipscomb - debug
-  write (6,*) ' '
-  write (6,*) 'Read climate file'
+  write (stdout,*) ' '
+  write (stdout,*) 'Read climate file'
   i = itest
   j = jtest
-  write (6,*) 'Test points: i, j =', i, j
-  write (6,*) 'pclim =',  climate%pclim_load(i,j,1)
-  write (6,*) 'stclim =', climate%stclim_load(i,j,1)
-  write (6,*) 'orog =',   climate%orog_load(i,j)
-  call shr_sys_flush(6)
+  write (stdout,*) 'Test points: i, j =', i, j
+  write (stdout,*) 'pclim =',  climate%pclim_load(i,j,1)
+  write (stdout,*) 'stclim =', climate%stclim_load(i,j,1)
+  write (stdout,*) 'orog =',   climate%orog_load(i,j)
+  call shr_sys_flush(stdout)
 
+!lipscomb - todo - Uncomment the ifdef?
 !!!#endif
- endif  ! l_coupglc
+ endif    ! temporary, in place of ifdef
 
   ! start logging
   call open_log(unit=101, fname=logname(climatefile))  
  
 !lipscomb - debug
-   write (6,*) 'Allocate global arrays'
-   call shr_sys_flush(6)
+  if (verbose) then
+     write (stdout,*) 'Allocate global arrays'
+     call shr_sys_flush(stdout)
+  endif
 
   ! Allocate global arrays
-  call glc_allocate_global(nx, ny, nec)
+  call glc_allocate_global(nx, ny, glc_nec)
 
-!lipscomb - Initialize tsfc, qice, topo?
-  ! Initialize arrays
+  ! Initialize global arrays
  
   tsfc(:,:,:)   = c0
   topo(:,:,:)   = c0
@@ -326,7 +476,8 @@
 
   ! Calculate example orographic latitudes
  
-!lipscomb - Set nxo = nx and nyo = ny for now
+!lipscomb - to do - Not sure that nxo and nyo are needed.
+!                   Set nxo = nx and nyo = ny for now
 !!!  nxo=200 ; nyo=100                  ! Example grid used for orographic output
   nxo = nx
   nyo = ny
@@ -343,22 +494,27 @@
  
   ! Initialize the ice model
 
-!lipscomb - Get tstep and daysinyear for coupled case
-!lipscomb - anything else to pass?
- 
 !lipscomb - debug
-   write (6,*) 'Initialize glint'
-   call shr_sys_flush(6)
+  if (verbose) then
+     write (stdout,*) ' '
+     write (stdout,*) 'Initialize glint'
+     call shr_sys_flush(stdout)
+  endif
+
+!lipscomb - to do - Include optional argmt ice_dt to inform GLC of the ice dynamics timestep?
 
   call glc_glint_initialize(ice_sheet,             &
                             glint_grid,            &
                             climate%climate_tstep, &
                             (/paramfile/),         &
                             orog       = orog_out, &
-                            daysinyear = climate%days_in_year)
+                            daysinyear = climate%days_in_year,  &
+                            start_time = ihour)
  
-   write(*,*) 'Initialized glint'
-   call shr_sys_flush(6)
+  if (verbose) then
+     write(*,*) 'Initialized glint'
+     call shr_sys_flush(stdout)
+  endif
 
   ! Set the message level (1 is the default - only fatal errors)
   ! N.B. Must do this after initialization
@@ -366,19 +522,27 @@
   call glimmer_set_msg_level(6)
  
   ! Get coverage maps for the ice model instances
-  !lipscomb - Is GLIMMER supposed to be able to do this? 
+
+  !lipscomb - to do - Not sure this is needed
+
   if (glint_coverage_map(ice_sheet,coverage,cov_orog) /= 0) then
      call write_log('Unable to get coverage maps',GM_FATAL,__FILE__,__LINE__)
      stop
   endif
 
-  ! Initialize time  !lipscomb - Remove later and get time from CCSM
-
-   time = climate%climate_tstep   !lipscomb - just for now
-
-   write(*,*) 'Initialized time:', time
-   call shr_sys_flush(6)
-
+!-----------------------------------------------------------------------
+!
+!  output delimiter to log file
+!
+!-----------------------------------------------------------------------
+ 
+   if (my_task == master_task) then
+      write(stdout,blank_fmt)
+      write(stdout,'(" End of GLC initialization")')
+      write(stdout,blank_fmt)
+      write(stdout,ndelim_fmt)
+      call shr_sys_flush (stdout)
+   endif
 
 !-----------------------------------------------------------------------
 !EOC

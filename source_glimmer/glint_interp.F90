@@ -634,7 +634,7 @@ contains
           call find_ll_index(il,jl,ilon,jlat,ggrid%lons,ggrid%lats)
 
           xloc(i,j,1)=il  ! This is the starting point - we now need to find
-          yloc(i,j,1)=jl  ! three other points that enclose the interpolation target
+          yloc(i,j,1)=jl  ! three other points that enclose the interpolation target  
 
           if (jlat>ggrid%lats(ggrid%ny)) then
 

@@ -26,7 +26,7 @@
 !
 ! !REVISION HISTORY:
 !  SVN:$Id: POP_ErrorMod.F90 808 2006-04-28 17:06:38Z njn01 $
-!  glc version copied from POP_ErrorMod.F90
+!  Adapted by William Lipscomb from POP_ErrorMod.F90
 !
 ! !USES:
 

@@ -79,9 +79,7 @@ contains
 #endif
 
     ! allocate memory for ADI scheme
-!lipscomb - added a glissade ADI option, whichevol = 11
-!    if (model%options%whichevol.eq.1) then
-    if (model%options%whichevol.eq.1 .or. model%options%whichevol.eq.11) then
+    if (model%options%whichevol.eq.1) then
        allocate(model%thckwk%alpha(max(model%general%ewn, model%general%nsn)))
        allocate(model%thckwk%beta (max(model%general%ewn, model%general%nsn)))
        allocate(model%thckwk%gamma(max(model%general%ewn, model%general%nsn)))

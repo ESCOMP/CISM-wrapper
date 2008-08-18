@@ -12,7 +12,7 @@
 !
 ! !REVISION HISTORY:
 !  SVN:$Id: exit_mod.F90 808 2006-04-28 17:06:38Z njn01 $
-!  WHL, May 2007: Adapted from exit_mod in POP 2.0
+!  Adapted by William Lipscomb from exit_mod.F90 in POP
 
 ! !USES:
 

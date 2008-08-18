@@ -10,23 +10,22 @@
 !  global glc grid quantities.
 !  
 !  This module is very simple because all we need to do is read in
-!  grid size, latitude, and longitude from a file.  This is
-!  the information needed to receive data from the coupler and pass
-!  it to GLINT.  
+!   grid size, latitude, and longitude from a file.  This information
+!  is needed to receive data from the coupler and pass it to GLINT.  
 !
 !  Later we may have a more sophisticated, POP-like routine to set up
 !  the high-resolution regional ice sheet grid(s).
 !
 ! !REVISION HISTORY:
 !  SVN:$Id: grid.F90 808 2006-04-28 17:06:38Z njn01 $
-!  Aug 2006: Adapted by William Lipscomb from grid.F90 in POP
+!  Adapted by William Lipscomb from grid.F90 in POP
 !
 ! !USES:
 
    use glc_kinds_mod
    use glc_communicate
    use glc_constants
-   use glc_io
+   use glc_io_types, only: stdout, nml_in, nml_filename, get_unit, release_unit
    use glc_exit_mod
    use glint_global_grid
    
@@ -185,12 +184,16 @@
       if (my_task == master_task) then
 !lipscomb - Include the entire global grid for now
 !!!        write(stdout,'(a24)') ' No region masks defined'
-      region_mask(:,:) = 1
+         write(6,*) 'Set region_mask = 1 everywhere'
+
+         allocate(region_mask(glc_grid%nx,glc_grid%ny))
+         region_mask(:,:) = 1
       endif
    endif
 
 !lipscomb - debug
    print*, 'Leaving init_glc_grid'
+   write(6,*) 'itest, jtest, region_mask:', itest, jtest, region_mask(itest,jtest)
    call shr_sys_flush(6)
 
 !-----------------------------------------------------------------------

@@ -68,6 +68,11 @@ contains
     type(glint_instance) :: instance
 
     select case (instance%whichprecip)
+!lipscomb - added case (0): receive surface mass balance from coupler
+!         - This is the same as case (1), but is included to be consistent
+!           with indexing convention for whichacab
+    case(0)
+       ! Do nothing to the precip field
     case(1)
        ! Do nothing to the precip field
     case(2)
@@ -86,7 +91,8 @@ contains
 
     ! Convert from mm to m - very important!
 
-    instance%prcp=instance%prcp*0.001
+!lipscomb - added dp here
+    instance%prcp=instance%prcp*0.001_dp
 
   end subroutine glint_calc_precip
 

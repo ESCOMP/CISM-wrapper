@@ -52,14 +52,15 @@
 
    integer (int_kind), public ::      &
       timer_total,            &! total time
-      timer_step               ! time stepping
-!      timer_dynamics,         &! dynamics
-!      timer_advect,           &! horizontal advection
-!      timer_thermo,           &! column
-!      timer_column,           &! column
-!      timer_ridge,            &! ridging
-!      timer_catconv,          &! category conversions
-!      timer_couple,           &! coupling
+      timer_step,             &! time stepping
+!lipscomb - uncomment ifdef?
+!!!#if (defined CCSM) || (defined SEQ_MCT)
+      timer_send_to_recv,     &! time from send to receive
+      timer_recv_to_send,     &! time from receive to send
+      timer_send_to_cpl,      &! time sending to cpl
+      timer_recv_from_cpl,    &! time receiving from cpl
+!!!#endif
+      timer_out                ! output
 !      timer_readwrite,        &! read/write
 !      timer_bound              ! boundary updates
 !      timer_tmp                ! for temporary timings
@@ -196,13 +197,14 @@
 !lipscomb - CICE timers commented out.  Add timers as desired.
    call get_glc_timer(timer_total,    'Total',    nblocks,distrb_info%nprocs)
    call get_glc_timer(timer_step,     'Step',     nblocks,distrb_info%nprocs)
-!   call get_glc_timer(timer_dynamics, 'Dynamics', nblocks,distrb_info%nprocs)
-!   call get_glc_timer(timer_advect,   'Advection',nblocks,distrb_info%nprocs)
-!   call get_glc_timer(timer_column,   'Column',   nblocks,distrb_info%nprocs)
-!   call get_glc_timer(timer_thermo,   'Thermo',   nblocks,distrb_info%nprocs)
-!   call get_glc_timer(timer_ridge,    'Ridging',  nblocks,distrb_info%nprocs)
-!   call get_glc_timer(timer_catconv,  'Cat Conv', nblocks,distrb_info%nprocs)
-!   call get_glc_timer(timer_couple,   'Coupling', nblocks,distrb_info%nprocs)
+!lipscomb - uncomment ifdef?
+!!!#if (defined CCSM) || (defined SEQ_MCT)
+   call get_glc_timer(timer_send_to_cpl,  'Cpl-send', nblocks,distrb_info%nprocs)
+   call get_glc_timer(timer_recv_from_cpl,'Cpl-recv', nblocks,distrb_info%nprocs)
+   call get_glc_timer(timer_recv_to_send, 'Rcv->snd', nblocks,distrb_info%nprocs)
+   call get_glc_timer(timer_send_to_recv, 'Snd->rcv', nblocks,distrb_info%nprocs)
+!!!#endif
+   call get_glc_timer(timer_total,    'Output',   nblocks,distrb_info%nprocs)
 !   call get_glc_timer(timer_readwrite,'ReadWrite',nblocks,distrb_info%nprocs)
 !   call get_glc_timer(timer_bound,    'Bound',    nblocks,distrb_info%nprocs)
 !   call get_glc_timer(timer_tmp,      '         ',nblocks,distrb_info%nprocs)

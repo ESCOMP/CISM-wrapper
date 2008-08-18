@@ -14,7 +14,7 @@
 !
 ! !REVISION HISTORY:
 !  SVN:$Id: POP.F90 2290 2006-10-25 18:23:10Z njn01 $
-!  WHL, May 2007: Adapted from POP.F90 in POP 2.0.
+!  Adapted by William Lipscomb from POP.F90
 
 ! !USES:
 
@@ -29,15 +29,17 @@
    use glc_communicate, only: my_task, master_task
    use glc_exit_mod
    use glc_domain, only: distrb_info
-   use glc_timers, only: glc_timer_print_all, get_glc_timer, glc_timer_start, glc_timer_stop
+   use glc_timers
    use glc_ErrorMod   
    use glc_time_management, only: init_time_flag, check_time_flag, sigAbort,    &
        nsteps_run, stdout, sigExit, exit_glc, set_time_flag
-   use glc_coupled, only: recv_from_coupler, send_to_coupler, lcoupled
-   use glc_output, only: output_driver  
+   use glc_coupled, only: recv_from_coupler, send_to_coupler, lcoupled,  &
+                          coupled_freq_iopt, coupled_freq
+!!   use glc_output, only: output_driver  
 
 !lipscomb - debug
    use shr_sys_mod
+   use glc_constants, only: verbose
 
    implicit none
 
@@ -50,10 +52,12 @@
 !-----------------------------------------------------------------------
 
    integer (i4) :: &
-      timer_total,       &! timer number for total time
-      timer_step,        &! timer number for step
-      timer_out,         &! timer number for output driver
+!!!      timer_total,       &! timer number for total time
+!!!      timer_step,        &! timer number for step
+!!!      timer_out,         &! timer number for output driver
       ierr,              &! error flag
+!lipscomb - added fcpl_ts here
+      fcpl_ts,           &! flag id for coupled step
       fstop_now           ! flag id for stop_now flag
 
    integer (i4) :: &
@@ -64,7 +68,6 @@
    integer (int_kind) :: &
       nThreads
 
-   write (*,*) 'whl - Starting glc'
    call MPH_get_argument("THREADS", nThreads, "glc")
 #endif
 
@@ -77,10 +80,17 @@
    errorCode = glc_Success
 
 !lipscomb - debug
-   write(stdout,*) 'Initialize glc'
+   if (verbose) then
+      write(stdout,*) 'GLC: Initialize'
+      call shr_sys_flush(6)
+   endif
+
    call glc_initialize(errorCode)
 
    fstop_now = init_time_flag('stop_now')
+   fcpl_ts   = init_time_flag('coupled_ts',                  &
+                               freq_opt = coupled_freq_iopt,  &
+                               freq     = coupled_freq)
 
 !-----------------------------------------------------------------------
 !
@@ -88,10 +98,14 @@
 !
 !-----------------------------------------------------------------------
 
-!lipscomb - Add other timers?
+!lipscomb - debug
+   if (verbose) then
+      write(stdout,*) 'GLC: timer_total, timer_step =', timer_total, timer_step
+      call shr_sys_flush(6)
+   endif
 
-   call get_glc_timer(timer_total,'STEP'  , 1, distrb_info%nprocs)
-   call get_glc_timer(timer_total,'TOTAL' , 1, distrb_info%nprocs)
+!!!   call get_glc_timer(timer_step,'STEP'  , 1, distrb_info%nprocs)
+!!!   call get_glc_timer(timer_total,'TOTAL' , 1, distrb_info%nprocs)
    call glc_timer_start(timer_total)
 
 !-----------------------------------------------------------------------
@@ -100,35 +114,81 @@
 !
 !-----------------------------------------------------------------------
 
-   write(stdout,*) 'Begin main glc loop'
+   if (verbose) then
+      write(stdout,*) 'GLC: Begin main loop'
+      call shr_sys_flush(6)
+   endif
 
    advance: do while (.not. check_time_flag(fstop_now))
 
-!lipscomb - timers around cpl calls?
+!lipscomb - debug
+    if (verbose) then
+       write(stdout,*) 'GLC timestep, nsteps_run =', nsteps_run
+       call shr_sys_flush(6)
+    endif
+
+!-----------------------------------------------------------------------
+!  send and receive state variables at appropriate intervals
+!-----------------------------------------------------------------------
+
+!lipscomb - Change to ifdef?
+      if (lcoupled) then
+
+         if (check_time_flag(fcpl_ts)) then
 
 !lipscomb - debug
-    write(6,*) 'Recv from coupler'
-    call shr_sys_flush(6)
+            if (verbose) then
+               write(stdout,*) 'GLC: Send message to coupler'
+               call shr_sys_flush(6)
+            endif
 
-      if (lcoupled) call recv_from_coupler
+            call glc_timer_stop  (timer_recv_to_send)
+            call glc_timer_start (timer_send_to_cpl)
+
+            call send_to_coupler
+
+         endif  ! coupling step
+
+         if (check_time_flag(fcpl_ts) .or. nsteps_run==0) then
+
+            if (verbose) then
+               write(stdout,*) 'GLC: Recv message from coupler'
+               call shr_sys_flush(6)
+            endif
+
+            call glc_timer_stop  (timer_send_to_cpl) 
+            call glc_timer_start (timer_send_to_recv)
+            call glc_timer_stop  (timer_send_to_recv) 
+            call glc_timer_start (timer_recv_from_cpl)
+
+            call recv_from_coupler
+
+         call glc_timer_stop  (timer_recv_from_cpl)
+         call glc_timer_start (timer_recv_to_send)
+
+         endif ! coupling step or 1st step
+
+      endif   ! lcoupled
+
+!-----------------------------------------------------------------------
+!  run the model 
+!-----------------------------------------------------------------------
+
+      if (verbose) then
+         write(stdout,*) 'GLC: Take a step'
+         call shr_sys_flush(6)
+      endif
 
       call glc_timer_start(timer_step)
-
-!lipscomb - debug
-    write(6,*) 'Run glc'
-    call shr_sys_flush(6)
-
       call glc_run
-
       call glc_timer_stop(timer_step)
 
-!lipscomb - debug
-    write(6,*) 'Send to coupler'
-    call shr_sys_flush(6)
+      if (verbose) then
+         write(stdout,*) 'GLC: Took step'
+         call shr_sys_flush(6)
+      endif
 
-      if (lcoupled) call send_to_coupler
-
-      if (lcoupled .and. check_time_flag(fstop_now)) exit advance
+      if (check_time_flag(fstop_now)) exit advance
 
 !-----------------------------------------------------------------------
 !
@@ -136,11 +196,17 @@
 !
 !-----------------------------------------------------------------------
 
-      call glc_timer_start(timer_out)
-      call output_driver
-      call glc_timer_stop (timer_out)
+!lipscomb - to do - May want to uncomment later
+!!      call glc_timer_start(timer_out)
+!!      call output_driver
+!!      call glc_timer_stop (timer_out)
 
    enddo advance
+
+   if (verbose) then
+      write(stdout,*) 'GLC: Exiting'
+      call shr_sys_flush(6)
+   endif
 
 !-----------------------------------------------------------------------
 !

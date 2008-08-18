@@ -15,7 +15,7 @@
 !  SVN:$Id: ice_blocks.F90 54 2007-02-26 21:19:41Z eclare $
 !
 ! author: Phil Jones, LANL
-!         Adapted from POP by William Lipscomb, LANL
+!         Adapted by William Lipscomb from POP/CICE
 !
 ! !USES:
 

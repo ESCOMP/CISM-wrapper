@@ -10,7 +10,7 @@
 !
 ! !REVISION HISTORY:
 ! 
-!  author William Lipscomb, LANL
+!  Author: William Lipscomb, LANL
 !
 ! !USES:
 
@@ -44,18 +44,20 @@
   !                       qice => precipitation
 
   logical, parameter ::   &
-     l_glcseb = .true.    ! if true, use surface energy_balance model in CLM
+     glc_smb = .true.     ! if true, get surface mass balance from CLM via coupler
                           ! if false, use PDD scheme in GLIMMER
 
-!lipscomb - Later, get nec from an input file?
+!lipscomb - Later, get glc_nec from an input file?
+!           This must agree with values in CLM and coupler
   integer, parameter ::   &
-     nec = 1              ! number of elevation classes
-!!     nec = 10              ! number of elevation classes
+     glc_nec = 10             ! number of elevation classes
 
-  real(r8), dimension(0:nec), parameter ::  &
-     hec_max = (/ 0._r8, 10000._r8 /)
-!!     hec_max = (/ 0._r8,  200._r8,  400._r8,  700._r8, 1000._r8,  1500._r8, &
-!!                         2000._r8, 3000._r8, 4000._r8, 5000._r8, 10000._r8 /)
+!lipscomb - These must agree with values in CLM (clm_varpar.F90)
+!lipscomb - Might want to change 0._r8 to -eps to avoid spurious inequalities when topo = 0
+  real(r8), dimension(0:glc_nec), parameter ::  &
+!!     hec_max = (/ 0._r8, 10000._r8 /)                  ! glc_nec = 1
+     hec_max = (/ 0._r8,  200._r8,  400._r8,  700._r8, 1000._r8,  1300._r8, &
+                         1600._r8, 2000._r8, 2500._r8, 3000._r8, 10000._r8 /)
 
   ! input from coupler (3rd dimension for elevation classes)
 
@@ -71,10 +73,8 @@
      gfrac       ,&! fractional glacier area [0,1] 
      gthck       ,&! glacier thickness (m)
      gtopo       ,&! glacier surface elevation (m)
-     ghflx         ! heat flux from glacier interior, positive down (W/m^2)
-
-  real(r8),dimension(:,:), allocatable ::  & 
-     groff         ! glacier runoff (kg/m^2/s)
+     ghflx       ,&! heat flux from glacier interior, positive down (W/m^2)
+     groff         ! glacier runoff/calving flux (kg/m^2/s)
 
   type(glint_params) :: ice_sheet   ! Parameters relevant to all model instances, 
                                     ! i.e. pertaining to the global model 
@@ -122,7 +122,7 @@
 ! !IROUTINE: glc_allocate_global
 ! !INTERFACE:
 
- subroutine glc_allocate_global (nx, ny, nec)
+ subroutine glc_allocate_global (nx, ny, glc_nec)
 
 ! !DESCRIPTION:
 !  Allocate global arrays on glc grid.
@@ -143,23 +143,23 @@
       nx, ny           ! global grid dimensions
 
    integer (i4), intent(in), optional ::  &
-      nec              ! number of elevation classes
+      glc_nec              ! number of elevation classes
 !EOP
 !BOC
 
    integer (i4) :: nxo, nyo  !lipscomb - temporary
 
  ! from coupler
-   allocate(tsfc(nx,ny,nec))
-   allocate(topo(nx,ny,nec))
-   allocate(qice(nx,ny,nec))
+   allocate(tsfc(nx,ny,glc_nec))
+   allocate(topo(nx,ny,glc_nec))
+   allocate(qice(nx,ny,glc_nec))
 
  ! to coupler
-   allocate(gfrac(nx,ny,nec))
-   allocate(gthck(nx,ny,nec))
-   allocate(gtopo(nx,ny,nec))
-   allocate(ghflx(nx,ny,nec))
-   allocate(groff(nx,ny))
+   allocate(gfrac(nx,ny,glc_nec))
+   allocate(gthck(nx,ny,glc_nec))
+   allocate(gtopo(nx,ny,glc_nec))
+   allocate(ghflx(nx,ny,glc_nec))
+   allocate(groff(nx,ny,glc_nec))
 
  ! Other fields
 
