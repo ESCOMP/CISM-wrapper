@@ -1,12 +1,12 @@
 
 &files_nml
-  climatefile = '/homebv/lipscomb/inputdata/glc/glint_example.LY.config'
-  paramfile   = '/homebv/lipscomb/inputdata/glc/ice.config'
+  climatefile = '/fis/cgd/cseg/csm/inputdata/glc/glc/glint_example.LY.config'
+  paramfile   = '/fis/cgd/cseg/csm/inputdata/glc/glc/ice.config'
 /
 
 &grid_nml
   horiz_grid_opt  = 'file'
-  horiz_grid_file = '/homebv/lipscomb/inputdata/topo/topodata_48x96_USGS_070110.glc.nc'
+  horiz_grid_file = '/fis/cgd/cseg/csm/inputdata/glc/glc/topodata_48x96_USGS_070110.glc.nc'
   topo_varname    = 'TOPO'
 /
 
