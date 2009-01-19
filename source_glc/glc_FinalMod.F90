@@ -22,9 +22,9 @@
    use glc_kinds_mod
    use glc_ErrorMod
    use glc_communicate, only: exit_message_environment
-   use glc_timers, only: glc_timer_print_all
+!!   use glc_timers, only: glc_timer_print_all
 !!   use glc_xdisplay, only: lxdisplay, clear_display
-   use glc_io_types, only: stdout
+   use glc_constants, only: stdout
    !use POP_CommMod
    !use esmf_mod
 
@@ -94,7 +94,7 @@
 !
 !-----------------------------------------------------------------------
 
-   call glc_timer_print_all(stats=.true.)
+!!   call glc_timer_print_all(stats=.true.)
 !!   if (lxdisplay) call clear_display
 
 !-----------------------------------------------------------------------

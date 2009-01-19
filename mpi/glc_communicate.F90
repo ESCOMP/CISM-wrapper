@@ -17,8 +17,7 @@
 ! !USES:
 
    use glc_kinds_mod
-   use cpl_interface_mod, only : cpl_interface_init, cpl_interface_finalize
-   use cpl_fields_mod, only : cpl_fields_glcname
+   use shr_sys_mod, only : shr_sys_abort
 
    implicit none
    private
@@ -57,13 +56,17 @@
 ! !IROUTINE: init_communicate
 ! !INTERFACE:
 
- subroutine init_communicate
+ subroutine init_communicate(mpicom)
 
 ! !DESCRIPTION:
 !  This routine sets up MPI environment and defines glc communicator.
 !
 ! !REVISION HISTORY:
 !  same as module
+
+! !INPUT PARAMETERS:
+ 
+   integer (int_kind), intent(in) :: mpicom   ! MPI error flag
 
 !EOP
 !BOC
@@ -84,8 +87,7 @@
 !
 !-----------------------------------------------------------------------
 
-   call create_glc_communicator
-
+   MPI_COMM_GLC = mpicom
    master_task = 0
    call MPI_COMM_RANK  (MPI_COMM_GLC, my_task, ierr)
 
@@ -166,8 +168,8 @@
 !EOP
 !BOC
 !-----------------------------------------------------------------------
- 
-   call cpl_interface_finalize(cpl_fields_glcname)
+
+  return 
  
 !-----------------------------------------------------------------------
 !EOC
@@ -200,68 +202,16 @@
 !BOC
 !-----------------------------------------------------------------------
  
-   call MPI_BARRIER(MPI_COMM_GLC,ierr)
-   ierr = 13
-   call MPI_ABORT(0,ierr)
-   call cpl_interface_finalize(cpl_fields_glcname)
+!   call MPI_BARRIER(MPI_COMM_GLC,ierr)
+!   ierr = 13
+!   call MPI_ABORT(0,ierr)
+   call shr_sys_abort('glc_communicate.F90: abort_message_environment')
  
 !-----------------------------------------------------------------------
 !EOC
  
  end subroutine abort_message_environment
  
-!***********************************************************************
-!BOP
-! !IROUTINE: create_glc_communicator
-! !INTERFACE:
-
- subroutine create_glc_communicator
-
-! !DESCRIPTION:
-!  This routine queries all the tasks in MPI_COMM_WORLD to see
-!  which belong to the land ice (glc).  In standalone mode, this should
-!  be all tasks, but in coupled mode we need to determine
-!  which tasks are assigned to the land ice component.
-!
-!  this routine should be called after mpi_init, but before
-!  setting up any internal mpi setups (since these will require
-!  the internal communicators returned by this routine)
-!
-! !REVISION HISTORY:
-!  same as module
-
-! !INCLUDES:
-
-   include 'mpif.h'
-
-!EOP
-!BOC
-!-----------------------------------------------------------------------
-!
-!  local variables
-!
-!-----------------------------------------------------------------------
-   
-   integer (int_kind) :: &   
-     ierr                    ! error flag for MPI comms
-
-!-----------------------------------------------------------------------
-!
-
-!  the stuff below cannot be used since my_task has not been defined yet
-!  if (my_task == master_task) then
-!     write(6,*)'call cpl_interface_init'
-!     call flush(6)
-!  endif
-   write(*,*) 'jw: call cpl_interface_init'
-   call cpl_interface_init(cpl_fields_glcname, MPI_COMM_GLC)
-   write(*,*) 'jw: after cpl_interface_init'
-
-!-----------------------------------------------------------------------
-!EOC
-
- end subroutine create_glc_communicator
-
 !***********************************************************************
 !BOP
 ! !IROUTINE: create_communicator

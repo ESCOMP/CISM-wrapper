@@ -34,7 +34,6 @@
    !use glc_CommMod
    use glc_communicate
    use glc_constants
-   use glc_io_types
 
    implicit none
    private

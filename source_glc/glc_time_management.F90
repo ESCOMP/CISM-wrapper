@@ -18,10 +18,9 @@
    use glc_kinds_mod
    use glc_constants
    use glc_communicate, only: my_task, master_task
-   use glc_broadcast
+!!   use glc_broadcast
 !!   use glc_io
 !!   use glc_io_tools
-   use glc_io_types, only: stdout, nml_in, nml_filename
    use glc_exit_mod
 !!   use glc_registry
    use shr_sys_mod
@@ -549,7 +548,7 @@
       if (nml_error == 0) close(nml_in)
    endif
 
-   call broadcast_scalar(nml_error, master_task)
+!!   call broadcast_scalar(nml_error, master_task)
    if (nml_error /= 0) then
       call exit_glc(sigAbort,'ERROR reading time_manager_nml')
    endif
@@ -581,25 +580,25 @@
 !!      end select
 !!   endif
 
-   call broadcast_scalar (runid           , master_task)
+!!   call broadcast_scalar (runid           , master_task)
 !!   call broadcast_scalar (tmix_iopt       , master_task)
 !!   call broadcast_scalar (fit_freq        , master_task)
 !!   call broadcast_scalar (time_mix_freq   , master_task)
 !!   call broadcast_scalar (impcor          , master_task)
 !!   call broadcast_scalar (laccel          , master_task)
 !!   call broadcast_scalar (dtuxcel         , master_task)
-   call broadcast_scalar (iyear0          , master_task)
-   call broadcast_scalar (imonth0         , master_task)
-   call broadcast_scalar (iday0           , master_task)
-   call broadcast_scalar (ihour0          , master_task)
-   call broadcast_scalar (iminute0        , master_task)
-   call broadcast_scalar (isecond0        , master_task)
-   call broadcast_scalar (dt_option       , master_task)
-   call broadcast_scalar (dt_count        , master_task)
-   call broadcast_scalar (stop_option     , master_task)
-   call broadcast_scalar (stop_count      , master_task)
-   call broadcast_scalar (allow_leapyear  , master_task)
-   call broadcast_scalar (date_separator  , master_task)
+!!   call broadcast_scalar (iyear0          , master_task)
+!!   call broadcast_scalar (imonth0         , master_task)
+!!   call broadcast_scalar (iday0           , master_task)
+!!   call broadcast_scalar (ihour0          , master_task)
+!!   call broadcast_scalar (iminute0        , master_task)
+!!   call broadcast_scalar (isecond0        , master_task)
+!!   call broadcast_scalar (dt_option       , master_task)
+!!   call broadcast_scalar (dt_count        , master_task)
+!!   call broadcast_scalar (stop_option     , master_task)
+!!   call broadcast_scalar (stop_count      , master_task)
+!!   call broadcast_scalar (allow_leapyear  , master_task)
+!!   call broadcast_scalar (date_separator  , master_task)
  
 
 !-----------------------------------------------------------------------
@@ -655,11 +654,11 @@
 
 !lipscomb - debug
   if (verbose) then
-     write(6,*) 'dt_option =', trim(dt_option)
-     write(6,*) 'dt_count =', dt_count
-     write(6,*) 'seconds_in_day =', seconds_in_day
-     write(6,*) 'dtt =', dtt
-     call shr_sys_flush(6)
+     write(stdout,*) 'dt_option =', trim(dt_option)
+     write(stdout,*) 'dt_count =', dt_count
+     write(stdout,*) 'seconds_in_day =', seconds_in_day
+     write(stdout,*) 'dtt =', dtt
+     call shr_sys_flush(stdout)
   endif
 
 !-----------------------------------------------------------------------
@@ -1286,7 +1285,8 @@
 ! !IROUTINE: time_manager
 ! !INTERFACE:
 
- subroutine time_manager (lcoupled)
+!! subroutine time_manager (lcoupled)
+ subroutine time_manager
 
 ! !DESCRIPTION:
 !  This routine updates various time-related variables to their 
@@ -1298,8 +1298,8 @@
 
 ! !INPUT PARAMETERS:
 
-   logical (log_kind), intent(in) :: &
-      lcoupled         ! flag for when model is coupled
+!!   logical (log_kind), intent(in) :: &
+!!      lcoupled         ! flag for when model is coupled
 !!      liceform         ! flag to determine when ice formation is on
 
 !EOP
@@ -1369,10 +1369,10 @@
 !!   endif
 
    if (verbose) then   
-      write (6,*) 'New nsteps_run =', nsteps_run
-      write (6,*) 'New nsteps_total =', nsteps_total
-      write (6,*) 'stepsize =', stepsize
-      call shr_sys_flush(6)
+      write (stdout,*) 'New nsteps_run =', nsteps_run
+      write (stdout,*) 'New nsteps_total =', nsteps_total
+      write (stdout,*) 'stepsize =', stepsize
+      call shr_sys_flush(stdout)
    endif
 
 !-----------------------------------------------------------------------

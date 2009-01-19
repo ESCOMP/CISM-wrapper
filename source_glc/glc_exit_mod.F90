@@ -76,30 +76,25 @@
    integer (int_kind) :: ierr  ! error flag
 
 !-----------------------------------------------------------------------
-!
-!  print message - must use unit 6 in place of stdout to
-!  prevent circular dependence with io module
-!
-!-----------------------------------------------------------------------
 
    if (my_task == master_task) then
-      write (6,delim_fmt)
-      write (6,blank_fmt)
-      call shr_sys_flush(6)
+      write (stdout,delim_fmt)
+      write (stdout,blank_fmt)
+      call shr_sys_flush(stdout)
 
       select case(exit_mode)
       case(sigExit)
-         write (6,'(a14)') 'glc exiting...'
+         write (stdout,'(a14)') 'glc exiting...'
       case(sigAbort)
-         write (6,'(a15)') 'glc aborting...'
+         write (stdout,'(a15)') 'glc aborting...'
       case default
-         write (6,'(a37)') 'glc exiting with unknown exit mode...'
+         write (stdout,'(a37)') 'glc exiting with unknown exit mode...'
       end select
 
-      write (6,*) exit_message
-      write (6,blank_fmt)
-      write (6,delim_fmt)
-      call shr_sys_flush(6)
+      write (stdout,*) exit_message
+      write (stdout,blank_fmt)
+      write (stdout,delim_fmt)
+      call shr_sys_flush(stdout)
    endif
 
 !-----------------------------------------------------------------------

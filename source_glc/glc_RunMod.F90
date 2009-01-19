@@ -20,14 +20,13 @@
 !lipscomb - These are from POP.
 !lipscomb - to do - Some of these use statements may not be needed.
    use glc_kinds_mod
-   use glc_timers
+!!   use glc_timers
    use glc_time_management, only:  thour, tday,                      &
        time_to_do, freq_opt_nstep, time_manager, check_time_flag,    &
        init_time_flag, check_time_flag_freq, check_time_flag_freq_opt, eod
    use shr_sys_mod
    use glc_communicate, only: my_task, master_task
-   use glc_io_types, only: stdout
-   use glc_coupled, only: lcoupled
+   use glc_constants, only: stdout
 
 !lipscomb - added this one
    use glc_time_management, only: set_time_flag  ! to signal end of run
@@ -136,9 +135,9 @@
 
 !lipscomb - debug
      if (verbose) then
-        write(6,*) ' ' 
-        write(6,*) 'In glc_run, first_call =', first_call
-        call shr_sys_flush(6)
+        write(stdout,*) ' ' 
+        write(stdout,*) 'In glc_run, first_call =', first_call
+        call shr_sys_flush(stdout)
      endif
 
    if (first_call) then
@@ -155,8 +154,8 @@
 
 !lipscomb - debug
     if (verbose) then
-       write (6,*) 'Run glint, time(days) =', tday
-       call shr_sys_flush(6)
+       write (stdout,*) 'Run glint, time(days) =', tday
+       call shr_sys_flush(stdout)
     endif
 
 !lipscomb - This is from GLIMMER.  I think it is not needed here.
@@ -185,9 +184,9 @@
 
 !lipscomb - debug
          if (verbose) then
-            write(6,*) 'Surface mass balance is passed in'
-            write(6,*) 'Call glc_glint_driver'
-            call shr_sys_flush(6)
+            write(stdout,*) 'Surface mass balance is passed in'
+            write(stdout,*) 'Call glc_glint_driver'
+            call shr_sys_flush(stdout)
          endif
 
          call glc_glint_driver (ice_sheet,       nint(thour),   &
@@ -200,18 +199,18 @@
 !lipscomb - debug
 
          if (verbose) then
-            write(6,*) ' '
-            write(6,*) 'Global fields from GLINT:'
+            write(stdout,*) ' '
+            write(stdout,*) 'Global fields from GLINT:'
             do n = 1, glc_nec
                ig = itest
                jg = jjtest   ! N to S global indexing as in GLINT
-               write(6,*) ' '
-               write(6,*) 'i, j, n =', ig, jg, n
-               write(6,*) 'gfrac(n) =', gfrac(ig,jg,n)
-               write(6,*) 'gthck(n) =', gthck(ig,jg,n)
-               write(6,*) 'gtopo(n) =', gtopo(ig,jg,n)
-               write(6,*) 'ghflx(n) =', ghflx(ig,jg,n)
-               write(6,*) 'groff(n) =', groff(ig,jg,n)
+               write(stdout,*) ' '
+               write(stdout,*) 'i, j, n =', ig, jg, n
+               write(stdout,*) 'gfrac(n) =', gfrac(ig,jg,n)
+               write(stdout,*) 'gthck(n) =', gthck(ig,jg,n)
+               write(stdout,*) 'gtopo(n) =', gtopo(ig,jg,n)
+               write(stdout,*) 'ghflx(n) =', ghflx(ig,jg,n)
+               write(stdout,*) 'groff(n) =', groff(ig,jg,n)
             enddo
          endif
 
@@ -221,10 +220,10 @@
 
 !lipscomb - debug
        if (verbose) then 
-          write(6,*) 'Using positive-degree-day scheme'
-          write(6,*) 'Call glint driver'
-          write(6,*) 'This has not been tested!'
-          call shr_sys_flush(6)
+          write(stdout,*) 'Using positive-degree-day scheme'
+          write(stdout,*) 'Call glint driver'
+          write(stdout,*) 'This has not been tested!'
+          call shr_sys_flush(stdout)
        endif
 
 !lipscomb - to do - need to return gtopo; not sure about gthck and ghflx 
@@ -245,8 +244,8 @@
 
      if (thour > climate%total_years*climate%hours_in_year) then
         call set_time_flag(cpl_stop_now,.true.)
-        write(6,*) 'Last time step; model should quit now'
-        call shr_sys_flush(6)
+        write(stdout,*) 'Last time step; model should quit now'
+        call shr_sys_flush(stdout)
      endif
 
 !-----------------------------------------------------------------------
@@ -255,7 +254,7 @@
 !
 !-----------------------------------------------------------------------
 
-   if (lcoupled .and. check_time_flag(cpl_stop_now) ) RETURN
+!!   if (lcoupled .and. check_time_flag(cpl_stop_now) ) RETURN
 
 !-----------------------------------------------------------------------
 !
@@ -264,13 +263,13 @@
 !
 !-----------------------------------------------------------------------
 
-   call time_manager (lcoupled)
+   call time_manager
 
 !lipscomb - debug
    if (verbose) then
-      write(6,*) 'Called time manager, end of glc_run'
-      write(6,*) 'New thour =', thour
-      call shr_sys_flush(6)
+      write(stdout,*) 'Called time manager, end of glc_run'
+      write(stdout,*) 'New thour =', thour
+      call shr_sys_flush(stdout)
    endif
 
 !-----------------------------------------------------------------------

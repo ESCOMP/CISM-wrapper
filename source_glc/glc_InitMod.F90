@@ -22,11 +22,9 @@
    use glc_kinds_mod
    use glc_ErrorMod
    use glc_communicate, only: my_task, master_task
-   use glc_io_types, only : nml_in, nml_filename, init_io, stdout
-   use shr_msg_mod,  only : shr_msg_chdir, shr_msg_dirio
 
 !lipscomb - debug
-   use glc_constants, only: verbose
+   use glc_constants, only: verbose, nml_in, nml_filename, stdout
 
    implicit none
    private
@@ -79,13 +77,12 @@
    use glimmer_log
    use glc_constants
    use glc_communicate, only: init_communicate
-   use glc_coupled, only: init_coupled
    use glc_time_management, only: init_time1, init_time2, dtt, ihour
-   use glc_timers
+!!   use glc_timers
    use glc_glint, only: glc_glint_initialize
 
 !lipscomb - not sure we need init_global_reductions
-   use glc_global_reductions, only: init_global_reductions
+!   use glc_global_reductions, only: init_global_reductions
 
 !lipscomb - debug
    use glc_global_grid, only: region_mask
@@ -132,25 +129,6 @@
 !-----------------------------------------------------------------------
 
    ErrorCode = glc_Success
-
-!--------------------------------------------------------------------
-! CCSM-specific stuff to change the current working directory
-!--------------------------------------------------------------------
-
-   call shr_msg_chdir('glc')
-
-!-----------------------------------------------------------------------
-!  initialize message-passing or other communication protocol
-!-----------------------------------------------------------------------
-
-   call init_communicate
-
-!-----------------------------------------------------------------------
-! CCSM-specific stuff to redirect stdin,stdout
-!--------------------------------------------------------------------
-
-   call shr_msg_dirio('glc')
-   !when parallel, this is usually done only for master_task
 
 !-----------------------------------------------------------------------
 !
@@ -199,10 +177,10 @@
 !
 !-----------------------------------------------------------------------
  
-   call init_glc_timers
+!!   call init_glc_timers
 
 !lipscomb - Is this needed?
-   call init_global_reductions(.false.)  ! set ltripole_grid
+!   call init_global_reductions(.false.)  ! set ltripole_grid
 
 !-----------------------------------------------------------------------
 !
@@ -384,10 +362,6 @@
       write (stdout,*) 'Initialize coupling'
       call shr_sys_flush(stdout)
    endif
-
-  ! Initialize coupling
-
-   call init_coupled
 
 !!!#else
  else   ! not coupled (temporary, in place of ifdef)

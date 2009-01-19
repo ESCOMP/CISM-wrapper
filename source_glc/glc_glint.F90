@@ -26,7 +26,6 @@
   use glc_constants
   use glc_global_fields
   use glc_exit_mod
-  use glc_io_types, only: stdout
 
 !lipscomb - to do - Might be better to pass glint_params explicitly?
   use glint_main, only: glint_params, splice_field, check_mbts
@@ -145,7 +144,7 @@
     real(r8) :: timeyr   ! time in years
 
     if (verbose) then
-       write(6,*) 'Starting glc_glint_initialize'
+       write(stdout,*) 'Starting glc_glint_initialize'
        call flushm(stdout)
     endif
 
@@ -168,9 +167,9 @@
     end if
  
     if (verbose) then
-       write(6,*) 'time_step (hr)  =', params%time_step
-       write(6,*) 'start_time (hr) =', params%start_time
-       write(6,*) 'Initialize global grid'
+       write(stdout,*) 'time_step (hr)  =', params%time_step
+       write(stdout,*) 'start_time (hr) =', params%start_time
+       write(stdout,*) 'Initialize global grid'
        call flushm(stdout)
     endif
 
@@ -256,8 +255,8 @@
     allocate(mbts(params%ninstances),idts(params%ninstances))
  
     if (verbose) then
-       write(6,*) 'Number of instances =', params%ninstances
-       write(6,*) 'Read config files and initialize each instance'
+       write(stdout,*) 'Number of instances =', params%ninstances
+       write(stdout,*) 'Read config files and initialize each instance'
        call flushm(stdout)
     endif
 
@@ -278,7 +277,7 @@
        end if
 
        if (verbose) then
-          write(6,*) 'Initialize instance =', i
+          write(stdout,*) 'Initialize instance =', i
           call flushm(stdout)
        endif 
 
@@ -304,7 +303,7 @@
 
        timeyr = c0
        if (verbose) then
-          write(6,*) 'Write diagnostics, time (yr)=', timeyr
+          write(stdout,*) 'Write diagnostics, time (yr)=', timeyr
           call glide_write_diag(params%instances(i)%model, timeyr, itest, jtest)
        endif
 
@@ -320,10 +319,10 @@
  
 !lipscomb - debug
     if (verbose) then
-       write(6,*) 'tstep_mbal =', params%tstep_mbal
-       write(6,*) 'start_time =', params%start_time
-       write(6,*) 'time_step =',  params%time_step
-       write(6,*) 'ice_dt =', ice_dt
+       write(stdout,*) 'tstep_mbal =', params%tstep_mbal
+       write(stdout,*) 'start_time =', params%start_time
+       write(stdout,*) 'time_step =',  params%time_step
+       write(stdout,*) 'ice_dt =', ice_dt
        call flushm(stdout)
     endif
 
@@ -361,7 +360,7 @@
     allocate(groff_temp(nxg,nyg,glc_nec))
 
     if (verbose) then
-       write(6,*) 'Upscale initial ice sheet fields'
+       write(stdout,*) 'Upscale initial ice sheet fields'
        call flushm(stdout)
     endif
 
@@ -420,7 +419,7 @@
     deallocate(groff_temp)
  
     if (verbose) then
-       write(6,*) 'Done in glc_glint_initialize'
+       write(stdout,*) 'Done in glc_glint_initialize'
        call flushm(stdout)
     endif
 
@@ -489,11 +488,11 @@
     nec = size(qice,3)
   
     if (verbose) then
-       write (6,*) 'In glc_glint_driver, current time (hr) =', time
-       write (6,*) 'av_start_time =', params%av_start_time
-       write (6,*) 'next_av_start =', params%next_av_start
-       write (6,*) 'new_av =', params%new_av
-       write (6,*) 'tstep_mbal =', params%tstep_mbal
+       write (stdout,*) 'In glc_glint_driver, current time (hr) =', time
+       write (stdout,*) 'av_start_time =', params%av_start_time
+       write (stdout,*) 'next_av_start =', params%next_av_start
+       write (stdout,*) 'new_av =', params%new_av
+       write (stdout,*) 'tstep_mbal =', params%tstep_mbal
        call flushm(stdout)
     endif
 
@@ -550,15 +549,15 @@
         topo_av(:,:,:) = topo_av(:,:,:) / real(params%av_steps,r8)
  
         if (verbose) then
-           write(6,*) 'Take an ice timestep, time (hr) =', time
+           write(stdout,*) 'Take an ice timestep, time (hr) =', time
            i = itest
            j = jjtest
            do n = 1, glc_nec
-              write (6,*) ' '
-              write (6,*) 'n =', n
-              write (6,*) 'tsfc_av (Celsius) =', tsfc_av(i,j,n)
-              write (6,*) 'topo_av (m) =', topo_av(i,j,n)
-              write (6,*) 'qice_av (kg m-2 s-1) =', qice_av(i,j,n)
+              write (stdout,*) ' '
+              write (stdout,*) 'n =', n
+              write (stdout,*) 'tsfc_av (Celsius) =', tsfc_av(i,j,n)
+              write (stdout,*) 'topo_av (m) =', topo_av(i,j,n)
+              write (stdout,*) 'qice_av (kg m-2 s-1) =', qice_av(i,j,n)
            enddo
         endif
 
@@ -586,8 +585,8 @@
                                    groff_temp,   l_ice_tstep)
                                   
           if (verbose) then
-             write(6,*) 'Finished ice timestep'
-             write(6,*) 'Upscale fields to global grid'
+             write(stdout,*) 'Finished ice timestep'
+             write(stdout,*) 'Upscale fields to global grid'
           endif
 
           ! Upscale the output to elevation classes on the global grid
@@ -605,16 +604,16 @@
           if (verbose) then
              ig = itest
              jg = jjtest
-             write(6,*) ' '
-             write(6,*) 'After upscaling:'
+             write(stdout,*) ' '
+             write(stdout,*) 'After upscaling:'
              do n = 1, nec
-               write(6,*) ' '
-               write(6,*) 'n =', n
-               write(6,*) 'gfrac(n) =', gfrac(ig,jg,n)
-               write(6,*) 'gthck(n) =', gthck(ig,jg,n)
-               write(6,*) 'gtopo(n) =', gtopo(ig,jg,n)
-!!               write(6,*) 'ghflx(n) =', ghflx(ig,jg,n)
-!!               write(6,*) 'groff(n) =', groff(ig,jg,n)
+               write(stdout,*) ' '
+               write(stdout,*) 'n =', n
+               write(stdout,*) 'gfrac(n) =', gfrac(ig,jg,n)
+               write(stdout,*) 'gthck(n) =', gthck(ig,jg,n)
+               write(stdout,*) 'gtopo(n) =', gtopo(ig,jg,n)
+!!               write(stdout,*) 'ghflx(n) =', ghflx(ig,jg,n)
+!!               write(stdout,*) 'groff(n) =', groff(ig,jg,n)
              enddo
           endif
 
@@ -664,7 +663,7 @@
                   params%instances(i)%model%numerics%ndiag) == 0)  then
              if (verbose) then
                 timeyr = real(time,r8)/8760.0_r8 
-                write(6,*) 'Write diagnostics, time (yr)=', timeyr 
+                write(stdout,*) 'Write diagnostics, time (yr)=', timeyr 
                 call glide_write_diag(params%instances(i)%model, timeyr, itest, jtest)
              endif
           endif 
@@ -701,7 +700,7 @@
     endif    ! tstep_mbal
 
     if (verbose) then
-       write (6,*) 'Done in glc_glint_driver'
+       write (stdout,*) 'Done in glc_glint_driver'
        call flushm(stdout)
     endif
 
@@ -790,9 +789,9 @@
     ! Check whether we're doing anything this time.
 
     if (verbose) then
-       write(6,*) ' '
-       write(6,*) 'In glc_glint_ice_tstep, time =', time
-       write(6,*) 'next_time =', instance%next_time
+       write(stdout,*) ' '
+       write(stdout,*) 'In glc_glint_ice_tstep, time =', time
+       write(stdout,*) 'next_time =', instance%next_time
        call flushm(stdout)
     endif
 
@@ -825,7 +824,7 @@
 !lipscomb - This is a new subroutine adapted to CLM input.
 
     if (verbose) then
-       write(6,*) 'Downscale input fields to local grid'
+       write(stdout,*) 'Downscale input fields to local grid'
        call flushm(stdout)
     endif
 
@@ -907,12 +906,12 @@
  
 !lipscomb - debug
     if (verbose) then
-       write(6,*) ' '
-       write(6,*) 'Check for ice dynamics timestep'
-       write(6,*) 'time =', time
-       write(6,*) 'start_time =', instance%mbal_accum%start_time
-       write(6,*) 'mbal_step =', instance%mbal_tstep
-       write(6,*) 'mbal_accum_time =', instance%mbal_accum_time
+       write(stdout,*) ' '
+       write(stdout,*) 'Check for ice dynamics timestep'
+       write(stdout,*) 'time =', time
+       write(stdout,*) 'start_time =', instance%mbal_accum%start_time
+       write(stdout,*) 'mbal_step =', instance%mbal_tstep
+       write(stdout,*) 'mbal_accum_time =', instance%mbal_accum_time
        call flushm(stdout)
     endif
 
@@ -924,7 +923,7 @@
             == instance%mbal_accum_time) then
 
        if (verbose) then
-          write(6,*) 'Taking an ice dynamics step'
+          write(stdout,*) 'Taking an ice dynamics step'
           call flushm(stdout)
        endif
   
@@ -957,7 +956,7 @@
 
 !lipscomb - debug
           if (verbose) then
-             write (6,*) 'GLIDE timestep, iteration i =', i
+             write (stdout,*) 'GLIDE timestep, iteration i =', i
              call flushm(stdout)
           endif
 
@@ -996,9 +995,9 @@
           if (verbose) then 
              il = itest_local
              jl = jtest_local
-             write (6,*) ' '
-             write (6,*) 'GLIDE input for test point: i, j =', il, jl
-             write (6,*) 'acab, artm =', instance%acab(il,jl), instance%artm(il,jl)
+             write (stdout,*) ' '
+             write (stdout,*) 'GLIDE input for test point: i, j =', il, jl
+             write (stdout,*) 'acab, artm =', instance%acab(il,jl), instance%artm(il,jl)
              call flushm(stdout)
           endif
 
@@ -1024,10 +1023,10 @@
           if (verbose) then
              il = itest_local
              jl = jtest_local
-             write (6,*) 'After conversion of units: acab, artm =', &
+             write (stdout,*) 'After conversion of units: acab, artm =', &
                    instance%model%climate%acab(il,jl), instance%model%climate%artm(il,jl)
-             write (6,*) 'Initial thickness =', instance%model%geometry%thck(il,jl)
-             write (6,*) 'call glide_tstep_p1'
+             write (stdout,*) 'Initial thickness =', instance%model%geometry%thck(il,jl)
+             write (stdout,*) 'call glide_tstep_p1'
              call flushm(stdout)
           endif
 
@@ -1035,15 +1034,15 @@
           call glide_tstep_p1(instance%model, instance%glide_time)
 
           if (verbose) then
-              write (6,*) 'call glide_tstep_p2'
+              write (stdout,*) 'call glide_tstep_p2'
               call flushm(stdout)
           endif
 
           call glide_tstep_p2(instance%model)
 
           if (verbose) then
-              write (6,*) 'New thickness =', instance%model%geometry%thck(il,jl)
-              write (6,*) 'call glide_tstep_p3'
+              write (stdout,*) 'New thickness =', instance%model%geometry%thck(il,jl)
+              write (stdout,*) 'call glide_tstep_p3'
               call flushm(stdout)
           endif
 
@@ -1236,14 +1235,14 @@
     if (verbose) then
        i = itest
        j = jjtest
-       write (6,*) ' ' 
-       write (6,*) 'In glc_glint_downscaling: i, j =', i, j
+       write (stdout,*) ' ' 
+       write (stdout,*) 'In glc_glint_downscaling: i, j =', i, j
        do n = 1, glc_nec
-          write (6,*) ' '
-          write (6,*) 'n =', n
-          write (6,*) 'tsfc_g =', tsfc_g(i,j,n)
-          write (6,*) 'topo_g =', topo_g(i,j,n)
-          write (6,*) 'qice_g =', qice_g(i,j,n)
+          write (stdout,*) ' '
+          write (stdout,*) 'n =', n
+          write (stdout,*) 'tsfc_g =', tsfc_g(i,j,n)
+          write (stdout,*) 'topo_g =', topo_g(i,j,n)
+          write (stdout,*) 'qice_g =', qice_g(i,j,n)
        enddo
        call flushm(stdout)
     endif
@@ -1256,7 +1255,7 @@
     allocate(qice_l(nxl,nyl,nec))
 
     if (verbose) then
-       write (6,*) 'Interp to local grid'
+       write (stdout,*) 'Interp to local grid'
     endif
 
 !   Downscale global fields for each elevation class to local grid
@@ -1271,14 +1270,14 @@
     if (verbose) then
        i = itest_local
        j = jtest_local
-       write (6,*) ' ' 
-       write (6,*) 'Interpolated to local cells: i, j =', i, j
+       write (stdout,*) ' ' 
+       write (stdout,*) 'Interpolated to local cells: i, j =', i, j
        do n = 1, glc_nec
-          write (6,*) ' '
-          write (6,*) 'n =', n
-          write (6,*) 'tsfc_l =', tsfc_l(i,j,n)
-          write (6,*) 'topo_l =', topo_l(i,j,n)
-          write (6,*) 'qice_l =', qice_l(i,j,n)
+          write (stdout,*) ' '
+          write (stdout,*) 'n =', n
+          write (stdout,*) 'tsfc_l =', tsfc_l(i,j,n)
+          write (stdout,*) 'topo_l =', topo_l(i,j,n)
+          write (stdout,*) 'qice_l =', qice_l(i,j,n)
        enddo
        call flushm(stdout)
     endif
@@ -1312,11 +1311,11 @@
 
        if (verbose) then
           if (i==itest_local .and. j==jtest_local) then
-             write (6,*) ' '
-             write (6,*) 'Interpolated values, i, j =', i, j
-             write (6,*) 'usrf =', usrf
-             write (6,*) 'acab =', instance%acab(i,j)
-             write (6,*) 'artm =', instance%artm(i,j)
+             write (stdout,*) ' '
+             write (stdout,*) 'Interpolated values, i, j =', i, j
+             write (stdout,*) 'usrf =', usrf
+             write (stdout,*) 'acab =', instance%acab(i,j)
+             write (stdout,*) 'artm =', instance%artm(i,j)
           endif
        endif
 
@@ -1425,11 +1424,11 @@
        jg = jjtest
        il = itest_local
        jl = jtest_local
-       write(6,*) 'In get_gcl_upscaled_fields'
-       write(6,*) 'il, jl =', il, jl
-       write(6,*) 'ig, jg =', ig, jg
-       write(6,*) 'nxl, nyl =', nxl,nyl
-       write(6,*) 'nxg, nyg =', nxg,nyg
+       write(stdout,*) 'In get_gcl_upscaled_fields'
+       write(stdout,*) 'il, jl =', il, jl
+       write(stdout,*) 'ig, jg =', ig, jg
+       write(stdout,*) 'nxl, nyl =', nxl,nyl
+       write(stdout,*) 'nxg, nyg =', nxg,nyg
        call flushm(stdout)
     endif
 
@@ -1446,9 +1445,9 @@
     enddo
 
     if (verbose) then
-       write(6,*) 'local ifrac =', temp(il, jl)
-       write(6,*) 'local topo =', ltopo_temp(il,jl)
-       write(6,*) 'local mask =', instance%out_mask(il,jl)
+       write(stdout,*) 'local ifrac =', temp(il, jl)
+       write(stdout,*) 'local topo =', ltopo_temp(il,jl)
+       write(stdout,*) 'local mask =', instance%out_mask(il,jl)
     endif
 
     call mean_to_global_mec(instance%ups,                       &
@@ -1471,8 +1470,8 @@
 
 
 !lipscomb - debug
-    write(6,*) ' '
-    write(6,*) 'local topo =', ltopo_temp(il,jl)
+    write(stdout,*) ' '
+    write(stdout,*) 'local topo =', ltopo_temp(il,jl)
 
     ! surface elevation
 
@@ -1508,34 +1507,34 @@
 
     if (verbose) then
 
-       write(6,*) ' '
-       write(6,*) 'global ifrac:'
+       write(stdout,*) ' '
+       write(stdout,*) 'global ifrac:'
        do n = 1, nec
-          write(6,*) n, gfrac(ig, jg, n)
+          write(stdout,*) n, gfrac(ig, jg, n)
        enddo
 
-       write(6,*) ' '
-       write(6,*) 'global gtopo:'
+       write(stdout,*) ' '
+       write(stdout,*) 'global gtopo:'
        do n = 1, nec
-          write(6,*) n, gtopo(ig, jg, n)
+          write(stdout,*) n, gtopo(ig, jg, n)
        enddo
 
-       write(6,*) ' '
-       write(6,*) 'global gthck:'
+       write(stdout,*) ' '
+       write(stdout,*) 'global gthck:'
        do n = 1, nec
-          write(6,*) n, gthck(ig, jg, n)
+          write(stdout,*) n, gthck(ig, jg, n)
        enddo
 
-!       write(6,*) ' '
-!       write(6,*) 'global ghflx:'
+!       write(stdout,*) ' '
+!       write(stdout,*) 'global ghflx:'
 !       do n = 1, nec
-!          write(6,*) n, ghflx(ig, jg, n)
+!          write(stdout,*) n, ghflx(ig, jg, n)
 !       enddo
 
-!       write(6,*) ' '
-!       write(6,*) 'global groff:'
+!       write(stdout,*) ' '
+!       write(stdout,*) 'global groff:'
 !       do n = 1, nec
-!          write(6,*) n, groff(ig, jg, n)
+!          write(stdout,*) n, groff(ig, jg, n)
 !       enddo
 
     endif    ! verbose
@@ -1626,26 +1625,26 @@
        n = gboxec(i,j)
 !lipscomb - bug check
        if (n==0) then
-          print*, 'Bug, local topography out of bounds'
-          print*, 'i, j, topo:', i, j, ltopo(i,j)
-          print*, 'hec_max(0) =', hec_max(0)
+          write(stdout,*) 'Bug, local topography out of bounds'
+          write(stdout,*) 'i, j, topo:', i, j, ltopo(i,j)
+          write(stdout,*) 'hec_max(0) =', hec_max(0)
           call exit_glc(sigAbort, 'Local topography out of bounds')
        endif
 
 !lipscomb - debug
        if (verbose .and. i==itest_local .and. j==jtest_local) then
-          write(6,*) ' '
-          write(6,*) 'il, jl =', i, j
-          write(6,*) 'ig, jg, n =', ig, jg, n
-          write(6,*) 'Old global val =', global(ig,jg,n)
-          write(6,*) 'local, mask =', local(i,j), tempmask(i,j)
+          write(stdout,*) ' '
+          write(stdout,*) 'il, jl =', i, j
+          write(stdout,*) 'ig, jg, n =', ig, jg, n
+          write(stdout,*) 'Old global val =', global(ig,jg,n)
+          write(stdout,*) 'local, mask =', local(i,j), tempmask(i,j)
        endif
 
        global(ig,jg,n) = global(ig,jg,n) + local(i,j)*tempmask(i,j)
 
 !lipscomb - debug
        if (verbose .and. i==itest_local .and. j==jtest_local) then
-          write(6,*) 'New global val =', global(ig,jg,n)
+          write(stdout,*) 'New global val =', global(ig,jg,n)
        endif
 
     enddo
@@ -1683,8 +1682,8 @@
 
 !lipscomb - to do - Use a less arbitrary error threshold
     if (abs(gsum-lsum) > 1.0) then 
-       write(6,*) 'local and global sums disagree'
-       write (6,*) 'lsum, gsum =', lsum, gsum 
+       write(stdout,*) 'local and global sums disagree'
+       write (stdout,*) 'lsum, gsum =', lsum, gsum 
        call exit_glc(sigAbort, 'Upscaling conservation error')
     endif
 

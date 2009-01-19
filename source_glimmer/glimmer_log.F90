@@ -74,6 +74,7 @@ module glimmer_log
   !*FD \end{itemize}
 
   use glimmer_global, only : fname_length,dirsep
+  use shr_sys_mod   , only : shr_sys_abort
 
   integer,parameter :: GM_DIAGNOSTIC = 1 !*FD Numerical identifier for diagnostic messages.
   integer,parameter :: GM_TIMESTEP   = 2 !*FD Numerical identifier for timestep messages.
@@ -183,6 +184,8 @@ contains
     ! stop logging if we encountered a fatal error
     if (local_type.eq.GM_FATAL) then
        call close_log
+! tcraig: added the abort, a stop causes the model to hang rather than stop
+       call shr_sys_abort('glimmer_log.F90: write_log')
        stop
     end if
   end subroutine write_log

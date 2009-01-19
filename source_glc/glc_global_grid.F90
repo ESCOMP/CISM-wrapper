@@ -25,12 +25,12 @@
    use glc_kinds_mod
    use glc_communicate
    use glc_constants
-   use glc_io_types, only: stdout, nml_in, nml_filename, get_unit, release_unit
    use glc_exit_mod
    use glint_global_grid
    
 !lipscomb - debug
-   use shr_sys_mod, only: shr_sys_flush
+   use shr_sys_mod, only : shr_sys_flush
+   use shr_file_mod, only : shr_file_getunit, shr_file_freeunit
 
    implicit none
    private
@@ -161,7 +161,7 @@
       if (my_task == master_task) then
          write(stdout,*) 'Reading horizontal grid from file:', &
                           trim(horiz_grid_file)
-      call shr_sys_flush(6)
+      call shr_sys_flush(stdout)
       endif
       call read_horiz_grid(horiz_grid_file, topo_varname)
    case default
@@ -184,7 +184,7 @@
       if (my_task == master_task) then
 !lipscomb - Include the entire global grid for now
 !!!        write(stdout,'(a24)') ' No region masks defined'
-         write(6,*) 'Set region_mask = 1 everywhere'
+         write(stdout,*) 'Set region_mask = 1 everywhere'
 
          allocate(region_mask(glc_grid%nx,glc_grid%ny))
          region_mask(:,:) = 1
@@ -192,9 +192,9 @@
    endif
 
 !lipscomb - debug
-   print*, 'Leaving init_glc_grid'
-   write(6,*) 'itest, jtest, region_mask:', itest, jtest, region_mask(itest,jtest)
-   call shr_sys_flush(6)
+   write(stdout,*) 'Leaving init_glc_grid'
+   write(stdout,*) 'itest, jtest, region_mask:', itest, jtest, region_mask(itest,jtest)
+   call shr_sys_flush(stdout)
 
 !-----------------------------------------------------------------------
 !EOC
@@ -393,23 +393,23 @@
    enddo
 
 !lipscomb - debug
-   print*, ''
-   print*, 'Horizontal grid:'
-   print*, 'nx =', nx
-   print*, 'ny =', ny
-!   print*, 'lats =', glc_grid%lats(:)
-!   print*, 'lons =', glc_grid%lons(:)
-!   print*, 'lat_bound =', glc_grid%lat_bound(:)
-!   print*, 'lon_bound =', glc_grid%lon_bound(:)
-   print*, ''
+   write(stdout,*) ''
+   write(stdout,*) 'Horizontal grid:'
+   write(stdout,*) 'nx =', nx
+   write(stdout,*) 'ny =', ny
+!   write(stdout,*) 'lats =', glc_grid%lats(:)
+!   write(stdout,*) 'lons =', glc_grid%lons(:)
+!   write(stdout,*) 'lat_bound =', glc_grid%lat_bound(:)
+!   write(stdout,*) 'lon_bound =', glc_grid%lon_bound(:)
+   write(stdout,*) ''
    i = itest
    j = jtest
-   print*, 'Test point, i, j, =', itest, jtest
-   print*, 'lat, lon =', glc_grid%lats(j), glc_grid%lons(i)
-   print*, 'area =', glc_grid%box_areas(i,j)
-   print*, 'frac of earth =', glc_grid%box_areas(i,j) / (c4*pi*radius*radius)
-   print*, 'Leaving read_horiz_grid'
-   call shr_sys_flush(6)
+   write(stdout,*) 'Test point, i, j, =', itest, jtest
+   write(stdout,*) 'lat, lon =', glc_grid%lats(j), glc_grid%lons(i)
+   write(stdout,*) 'area =', glc_grid%box_areas(i,j)
+   write(stdout,*) 'frac of earth =', glc_grid%box_areas(i,j) / (c4*pi*radius*radius)
+   write(stdout,*) 'Leaving read_horiz_grid'
+   call shr_sys_flush(stdout)
 
 !-----------------------------------------------------------------------
 !EOC
@@ -466,7 +466,7 @@
 
    allocate(REGION_MASK(nx,ny))
 
-   call get_unit(nu)
+   nu = shr_file_getunit()
    if (my_task == master_task) then
       allocate(REGION_G(nx,ny))
       inquire (iolength=reclength) REGION_G
@@ -481,7 +481,7 @@
       read(nu, rec=1, iostat=ioerr) REGION_G
       close(nu)
    endif
-   call release_unit(nu)
+   call shr_file_freeunit(nu)
 
    if (ioerr /= 0) call exit_glc(sigAbort, &
                                  'Error reading region mask file')

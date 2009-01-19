@@ -25,6 +25,7 @@
 !=======================================================================
 
   implicit none
+  public
 
   include 'netcdf.inc'
 
@@ -143,6 +144,14 @@
 
    character (char_len), public ::  &
       char_blank          ! empty character string
+
+   character (7), parameter, public :: &
+      nml_filename = 'gglc_in'  ! namelist input file name
+
+   integer (i4), public :: &
+      nml_in,            &! reserved unit for namelist input
+      stdout,            &! reserved unit for standard output
+      stderr              ! reserved unit for standard error
 
 !EOP
 !
