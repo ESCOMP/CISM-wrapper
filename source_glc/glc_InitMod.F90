@@ -22,10 +22,19 @@
    use glc_kinds_mod
    use glc_ErrorMod
    use glc_communicate, only: my_task, master_task
+! lipscomb - added the following to change the start date after restart
+   use glc_time_management, only: iyear0, imonth0, iday0, elapsed_days0,  &
+                                  iyear,  imonth,  iday,  elapsed_days,   &
+                                  ihour,  iminute, isecond, nsteps_total, &
+                                  ymd2eday, eday2ymd 
+! lipscomb - glc timer calls have been commented out
+!!!   use glc_timers
+    use glc_glint, only: glc_glint_initialize
 
 !lipscomb - debug
    use glc_constants, only: verbose, nml_in, nml_filename, stdout
-
+   use glc_exit_mod
+ 
    implicit none
    private
    save
@@ -117,6 +126,9 @@
   integer (i4) :: &
       nml_error      ! namelist i/o error flag
 
+  integer (i4) :: &
+      nhour_glint    ! number of hours since start of complete glint/glimmer run
+
   logical, parameter :: coupglc = .true.   ! temporary, in place of ifdef
 
   namelist /files_nml/  climatefile, paramfile
@@ -179,9 +191,6 @@
  
 !!   call init_glc_timers
 
-!lipscomb - Is this needed?
-!   call init_global_reductions(.false.)  ! set ltripole_grid
-
 !-----------------------------------------------------------------------
 !
 !  compute time step and initialize time-related quantities
@@ -197,7 +206,7 @@
 !
 !-----------------------------------------------------------------------
  
-!lipscomb - to do - Replace with read of restart file?
+!lipscomb - Restart file is read later, in call to glc_glint_initialize
 !!   call init_ts
  
 !-----------------------------------------------------------------------
@@ -207,7 +216,8 @@
 !
 !-----------------------------------------------------------------------
  
-   call init_time2
+!lipscomb - This call moved to end of subroutine, after restart info is read
+!!   call init_time2
  
 !-----------------------------------------------------------------------
 !
@@ -215,7 +225,7 @@
 !
 !-----------------------------------------------------------------------
 
-!lipscomb - to do - Initialize diagnostics
+!lipscomb - to do - Initialize diagnostics?
 !!   call init_diagnostics
  
 !-----------------------------------------------------------------------
@@ -228,7 +238,7 @@
 !
 !-----------------------------------------------------------------------
  
-!lipscomb - to do - Initialize output
+!lipscomb - to do - Initialize output?
 !!   call init_output
 
 !-----------------------------------------------------------------------
@@ -237,7 +247,7 @@
 !
 !-----------------------------------------------------------------------
 
-!lipscomb - to do - Initialize budget diagnostics
+!lipscomb - to do - Initialize budget diagnostics?
 !!   call init_budget_diagnostics
  
 !-----------------------------------------------------------------------
@@ -246,7 +256,7 @@
 !
 !-----------------------------------------------------------------------
 
-!lipscomb - to do - Document constants  
+!lipscomb - to do - Document constants?  
 !!   call document_constants
 
 !-----------------------------------------------------------------------
@@ -273,7 +283,7 @@
 
 !lipscomb - debug
    if (verbose) then
-      write(stdout,*) 'Read namelist file'
+      write(stdout,*) 'GLC: Read namelist file'
       call shr_sys_flush(stdout) 
    endif
 
@@ -354,7 +364,7 @@
    ! set values of climate derived type
 !lipscomb - to do - Are other values needed?
 
-   climate%climate_tstep = dtt/3600._r8   ! convert from sec to hr
+   climate%climate_tstep = nint(dtt/3600._r8)   ! convert from sec to integer hours
 
 !lipscomb - debug
    if (verbose) then
@@ -468,25 +478,40 @@
  
   ! Initialize the ice model
 
-!lipscomb - debug
-  if (verbose) then
-     write (stdout,*) ' '
-     write (stdout,*) 'Initialize glint'
-     call shr_sys_flush(stdout)
-  endif
-
 !lipscomb - to do - Include optional argmt ice_dt to inform GLC of the ice dynamics timestep?
 
+  nhour_glint = 0     ! number of hours glint has run since start of complete simulation
+                      ! must be set to correct value if reading from a restart file
+ 
   call glc_glint_initialize(ice_sheet,             &
                             glint_grid,            &
                             climate%climate_tstep, &
                             (/paramfile/),         &
                             orog       = orog_out, &
                             daysinyear = climate%days_in_year,  &
-                            start_time = ihour)
+                            start_time = nhour_glint)
  
   if (verbose) then
-     write(*,*) 'Initialized glint'
+     write(stdout,*) 'Initialized glint, nhour_glint =', nhour_glint
+     call shr_sys_flush(stdout)
+  endif
+
+  ! If restarting (nhour_glint > 0), recompute the year, month, and day
+  ! Assume that ihour0 = iminute0 = isecond0 = 0
+  ! Note that glint does not handle leap years
+
+  if (nhour_glint > 0) then
+     call ymd2eday (iyear0, imonth0, iday0, elapsed_days0)
+     elapsed_days = elapsed_days0 + nhour_glint/24     
+     call eday2ymd(elapsed_days, iyear, imonth, iday)
+     ihour = 0
+     iminute = 0
+     isecond = 0
+     nsteps_total = nhour_glint / climate%climate_tstep     
+!lipscomb - debug
+     write(6,*) 'Initial eday/y/m/d:', elapsed_days0, iyear0, imonth0, iday0
+     write (6,*) 'eday/y/m/d after restart:', elapsed_days, iyear, imonth, iday
+     write (6,*) 'nsteps_total =', nsteps_total
      call shr_sys_flush(stdout)
   endif
 
@@ -504,6 +529,17 @@
      stop
   endif
 
+!-----------------------------------------------------------------------
+!
+!  finish computing time-related quantities after restart info
+!  available
+!
+!-----------------------------------------------------------------------
+!lipscomb - This subroutine assumes that iyear, imonth, and iday are known
+!           after restart
+ 
+   call init_time2
+ 
 !-----------------------------------------------------------------------
 !
 !  output delimiter to log file

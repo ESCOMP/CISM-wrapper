@@ -18,11 +18,10 @@
    use glc_kinds_mod
    use glc_constants
    use glc_communicate, only: my_task, master_task
+   use glc_exit_mod
 !!   use glc_broadcast
 !!   use glc_io
 !!   use glc_io_tools
-   use glc_exit_mod
-!!   use glc_registry
    use shr_sys_mod
 
    implicit none
@@ -911,6 +910,7 @@
 !
 !-----------------------------------------------------------------------
 
+!lipscomb - debug - not sure this is needed
    if (dtt /= dtt_input ) then
       new_dtt_value = .true.
       dtt = dtt_input
@@ -973,6 +973,8 @@
 !       0 and 365*24.
 !
 !-----------------------------------------------------------------------
+
+!lipscomb - to do - I think the following code is not needed
 
    thour00_begin_this_year = thour00 - &
                              (seconds_this_year/seconds_in_hour)
@@ -1560,6 +1562,11 @@
           elapsed_months_this_run == stop_count) &
          call set_time_flag(stop_now,.true.)
  
+   endif
+
+   if (verbose .and. check_time_flag(stop_now)) then
+      write(stdout,*) 'Time manager, stop_now =', check_time_flag(stop_now)
+      write(stdout,*) 'stop_option, stop_count =', trim(stop_option), stop_count
    endif
 
    new_dtt_value = .false.
@@ -3275,9 +3282,14 @@
 
    if (.not. allow_leapyear) then
 
-      nnorm = eday/days_in_norm_year + 1
-      nleap = 0
-      days  = eday -nnorm*days_in_norm_year
+!lipscomb - This section of code appears not to work.  Commented out and rewrote.
+!     nnorm = eday/days_in_norm_year + 1
+!      nleap = 0
+!      days  = eday -nnorm*days_in_norm_year
+!      tdays_in_prior_months = days_in_prior_months
+
+      year = eday/days_in_norm_year
+      days = eday - year*days_in_norm_year
       tdays_in_prior_months = days_in_prior_months
 
 !-----------------------------------------------------------------------
@@ -3288,6 +3300,8 @@
 !-----------------------------------------------------------------------
 
    else
+
+      write(stdout,*) 'WARNING: GLINT will not handle leap years correctly!!!'
 
       !***  First, initialize arrays used to determine date
 
@@ -3349,7 +3363,10 @@
 !
 !-----------------------------------------------------------------------
 
-   if (days <= 0 .or. days > days_in_leap_year ) then
+!lipscomb - Modified so that code does not abort when days = 0
+ 
+!!   if (days <= 0 .or. days > days_in_leap_year ) then
+   if (days < 0 .or. days > days_in_leap_year ) then
       err_string = char_blank
       write (err_string,'(a,i6)') & 
           'eday2ymd: days undetermined, days = ', days

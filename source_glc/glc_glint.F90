@@ -123,8 +123,9 @@
     integer,                optional,intent(out)   :: ice_dt      !*FD Ice dynamics time-step in hours
     type(ConfigData),dimension(:),optional ::  extraconfigs !*FD Additional configuration information - overwrites
                                                                   !*FD config data read from files
-    integer,                optional,intent(in)    :: start_time  !*FD Time of first call to glint (hours)
- 
+!lipscomb - start_time is now inout instead of in so that it can be read from a restart file
+    integer,                optional,intent(inout)    :: start_time  !*FD Time of first call to glint (hours)
+
     ! Internal variables -----------------------------------------------------------------------
  
     type(ConfigSection), pointer :: global_config, instance_config, section  ! configuration stuff
@@ -143,6 +144,12 @@
 
     real(r8) :: timeyr   ! time in years
 
+!lipscomb - new array - start time can be read from a restart file
+! Note: The code will abort if all instances do not have the same start time. 
+    integer(i4), allocatable :: instance_start_time(:)   ! start_time in hours
+
+    allocate(instance_start_time(params%ninstances))
+
     if (verbose) then
        write(stdout,*) 'Starting glc_glint_initialize'
        call flushm(stdout)
@@ -159,6 +166,7 @@
     end if
  
     params%next_av_start = params%start_time
+    instance_start_time(:) = params%start_time
  
     ! Initialise year-length -----------------------------------------------------------
  
@@ -232,6 +240,12 @@
     params%cov_normalise  = c0
     params%cov_norm_orog  = c0
  
+    if (verbose) then
+       write(stdout,*) 'Read paramfile'
+       write(stdout,*) 'paramfile =', paramfile
+       call flushm(stdout)
+    endif
+
     ! ---------------------------------------------------------------
     ! Determine how many instances there are, according to what
     ! configuration files we've been provided with
@@ -290,8 +304,8 @@
                                 idts(i),               &
                                 params%need_winds,     &
                                 params%enmabal,        &
-                                params%start_time,     &
-                                params%time_step)
+                                instance_start_time(i), &    ! hours (integer)
+                                params%time_step)            ! hours (integer)
  
        params%total_coverage = params%total_coverage + params%instances(i)%frac_coverage
        params%total_cov_orog = params%total_cov_orog + params%instances(i)%frac_cov_orog
@@ -301,14 +315,38 @@
  
        ! initial ice sheet diagnostics 
 
-       timeyr = c0
        if (verbose) then
+          timeyr = real(instance_start_time(i)/8760)
           write(stdout,*) 'Write diagnostics, time (yr)=', timeyr
           call glide_write_diag(params%instances(i)%model, timeyr, itest, jtest)
        endif
 
     end do  ! ninstances
  
+!lipscomb - added code to change start time when restarting the model
+
+    ! Check that all instances have the same start time
+
+    if (params%ninstances > 1) then
+       do i = 2, params%ninstances
+          if (instance_start_time(i) .ne. instance_start_time(1)) then
+             write(6,*) 'Instances have inconsistent start times'
+             write(6,*) 'instance 1: start_time =', instance_start_time(1) 
+             write(6,*) 'instance', i, ': start_time =', instance_start_time(i) 
+             call exit_glc(sigAbort, 'Aborting after glint_i_initialise')
+          endif
+       enddo 
+    endif
+
+    ! Reset start_time if necessary (i.e., if a restart file was read)
+
+    if (instance_start_time(1) .ne. params%start_time) then
+       write (6,*) 'New start time:', instance_start_time(1)
+       params%start_time = instance_start_time(1)
+       params%next_av_start = params%start_time
+       start_time = params%start_time       ! passed back to glc_RunMod
+    endif
+
     ! Check that all mass-balance time-steps are the same length and 
     ! assign that value to the top-level variable
  
@@ -503,6 +541,10 @@
           params%av_start_time = time
           params%new_av = .false.
        else
+!lipscomb - debug
+          write(6,*) 'Aborting with time discrepancy'
+          call flushm(stdout)
+
           write(message,*) 'Unexpected calling of GLINT at time ',time
           call write_log(message,GM_FATAL,__FILE__,__LINE__)
        end if

@@ -80,11 +80,15 @@ contains
     integer,               intent(out)   :: idts        !*FD ice dynamics time-step (hours)
     logical,               intent(inout) :: need_winds  !*FD Set if this instance needs wind input
     logical,               intent(inout) :: enmabal     !*FD Set if this instance uses the energy balance mass-bal model
-    integer,               intent(in)    :: force_start !*FD The glint forcing start time (hours)
+!lipscomb - force_start set to inout instead of in so it can be changed on restart
+    integer,               intent(inout) :: force_start !*FD The glint forcing start time (hours)
     integer,               intent(in)    :: force_dt    !*FD The glint forcing time step (hours)
 
     ! Internal
     real(sp),dimension(:,:),allocatable :: thk
+
+!lipscomb - new variable (same as glide_time, except glide_time has units of years)
+    integer :: glide_time_hours     ! glide time in hours
 
 !lipscomb - debug
     write (6,*) 'Initializing glint'
@@ -102,7 +106,16 @@ contains
     write (6,*) 'ice_tstep (hr) =', idts
     write (6,*) 'glide_time =', instance%glide_time
     call shr_sys_flush(6)
-
+!lipscomb - Change force_start if tstart and glide_time have been updated 
+!           (i.e., from reading a restart file in glide_initialise).
+!lipscomb - Note tstart and glide_time have units of years
+    glide_time_hours = nint (instance%glide_time*years2hours)
+    if (glide_time_hours .ne. force_start) then
+       force_start = glide_time_hours
+       write (6,*) 'New glide_time (yr) =', instance%glide_time
+       write (6,*) 'New start_time (hr) =', force_start
+       call shr_sys_flush(6)
+    endif
 
     ! create glint variables
     call glint_io_createall(instance%model)
@@ -233,10 +246,6 @@ contains
        need_winds=.true.
        enmabal=.true.
     end if
-
-!lipscomb - debug
-    write (6,*) 'Done initializing glint'
-    call shr_sys_flush(6)
 
   end subroutine glint_i_initialise
 

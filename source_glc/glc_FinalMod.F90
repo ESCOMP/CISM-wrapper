@@ -22,11 +22,16 @@
    use glc_kinds_mod
    use glc_ErrorMod
    use glc_communicate, only: exit_message_environment
-!!   use glc_timers, only: glc_timer_print_all
-!!   use glc_xdisplay, only: lxdisplay, clear_display
+   use glc_global_fields, only: ice_sheet
+   use glint_main, only: end_glint
+!lipscomb - Timer calls have been commented out
+!!!   use glc_timers, only: glc_timer_print_all
    use glc_constants, only: stdout
    !use POP_CommMod
    !use esmf_mod
+
+!lipscomb - debug
+   use shr_sys_mod, only: shr_sys_flush
 
    implicit none
    private
@@ -82,6 +87,17 @@
 
 !-----------------------------------------------------------------------
 !
+!  exit glint gracefully
+!
+!-----------------------------------------------------------------------
+!lipscomb - debug
+      write(6,*) 'GLC: Call end_glint'
+      call shr_sys_flush(6)
+
+   call end_glint(ice_sheet)
+
+!-----------------------------------------------------------------------
+!
 !  call Error Logging to print any error messages.
 !
 !-----------------------------------------------------------------------
@@ -94,8 +110,7 @@
 !
 !-----------------------------------------------------------------------
 
-!!   call glc_timer_print_all(stats=.true.)
-!!   if (lxdisplay) call clear_display
+!!!   call glc_timer_print_all(stats=.true.)
 
 !-----------------------------------------------------------------------
 !

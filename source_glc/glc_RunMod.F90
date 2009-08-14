@@ -17,19 +17,12 @@
 !
 ! !USES:
 
-!lipscomb - These are from POP.
-!lipscomb - to do - Some of these use statements may not be needed.
    use glc_kinds_mod
 !!   use glc_timers
-   use glc_time_management, only:  thour, tday,                      &
-       time_to_do, freq_opt_nstep, time_manager, check_time_flag,    &
-       init_time_flag, check_time_flag_freq, check_time_flag_freq_opt, eod
+   use glc_time_management, only:  thour, time_manager, check_time_flag, init_time_flag
    use shr_sys_mod
    use glc_communicate, only: my_task, master_task
    use glc_constants, only: stdout
-
-!lipscomb - added this one
-   use glc_time_management, only: set_time_flag  ! to signal end of run
 
    implicit none
    private
@@ -123,7 +116,7 @@
   integer (i4) ::  & 
      i,j            ! Array index counters 
 
-!lipscomb-debug
+!lipscomb - debug
    integer :: ig, jg, n
 
 !-----------------------------------------------------------------------
@@ -133,14 +126,8 @@
 !
 !-----------------------------------------------------------------------
 
-!lipscomb - debug
-     if (verbose) then
-        write(stdout,*) ' ' 
-        write(stdout,*) 'In glc_run, first_call =', first_call
-        call shr_sys_flush(stdout)
-     endif
-
    if (first_call) then
+      if (verbose) write(stdout,*) 'In glc_run, first_call =', first_call
       ! this line should set cpl_stop_now = 1 (flag id index)
       cpl_stop_now  = init_time_flag('stop_now',default=.false.)
       tavg_flag     = init_time_flag('tavg')      
@@ -151,12 +138,6 @@
 !
 !  Get climate information
 !-----------------------------------------------------------------------
-
-!lipscomb - debug
-    if (verbose) then
-       write (stdout,*) 'Run glint, time(days) =', tday
-       call shr_sys_flush(stdout)
-    endif
 
 !lipscomb - This is from GLIMMER.  I think it is not needed here.
 
@@ -184,8 +165,7 @@
 
 !lipscomb - debug
          if (verbose) then
-            write(stdout,*) 'Surface mass balance is passed in'
-            write(stdout,*) 'Call glc_glint_driver'
+            write(stdout,*) 'Call glc_glint_driver, thour =', thour
             call shr_sys_flush(stdout)
          endif
 
@@ -241,12 +221,6 @@
                      ice_volume      = ice_vol)
 
      endif   ! glc_smb
-
-     if (thour > climate%total_years*climate%hours_in_year) then
-        call set_time_flag(cpl_stop_now,.true.)
-        write(stdout,*) 'Last time step; model should quit now'
-        call shr_sys_flush(stdout)
-     endif
 
 !-----------------------------------------------------------------------
 !

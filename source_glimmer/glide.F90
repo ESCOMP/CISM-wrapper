@@ -140,8 +140,11 @@ contains
 
     ! open all input files
     call openall_in(model)
+
     ! and read first time slice
+!lipscomb - if restarting, this subroutine should reset model%numerics%tstart
     call glide_io_readall(model,model)
+
     ! Write projection info to log
     call glimmap_printproj(model%projection)
 
@@ -160,6 +163,7 @@ contains
 
     ! open all output files
     call openall_out(model)
+
     ! create glide variables
     call glide_io_createall(model)
 

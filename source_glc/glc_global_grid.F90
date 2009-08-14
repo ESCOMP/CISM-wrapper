@@ -57,8 +57,10 @@
 
    character (char_len) ::  &
       horiz_grid_opt,       &! option for getting horiz grid info
+      topo_varname           ! variable name for topography
+
+   character (char_len_long) ::  &
       horiz_grid_file,      &! input file for reading horiz grid info
-      topo_varname,         &! variable name for topography
       region_mask_file       ! input file for region mask
 
 !EOC

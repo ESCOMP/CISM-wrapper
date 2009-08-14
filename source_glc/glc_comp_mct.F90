@@ -608,11 +608,14 @@ subroutine glc_final_mct()
     call mct_gGrid_importIAttr(dom_g,'GlobGridNum',idata,lsize)
 
     ! Fill in correct values for domain components
-
+    ! lat/lon in degrees, area in radians^2, real-valued mask and frac
     do j = 1,nyg
     do i = 1,nxg
        n = (j-1)*nxg + i
-       data(n) = glc_grid%lons(i)/radian
+!lipscomb - glc mod - degrees, not radians (to be consistent with sno domain)
+!!!       data(n) = glc_grid%lons(i)/radian
+       data(n) = glc_grid%lons(i)
+!lipscomb - end glc mod
     end do
     end do
     call mct_gGrid_importRattr(dom_g,"lon",data,lsize) 
@@ -620,7 +623,10 @@ subroutine glc_final_mct()
     do j = 1,nyg
     do i = 1,nxg
        n = (j-1)*nxg + i
-       data(n) = glc_grid%lats(j)/radian
+!lipscomb - glc mod - degrees, not radians (to be consistent with sno domain)
+!!!       data(n) = glc_grid%lats(j)/radian
+       data(n) = glc_grid%lats(j)
+!lipscomb - end glc mod
     end do
     end do
     call mct_gGrid_importRattr(dom_g,"lat",data,lsize) 
@@ -636,15 +642,22 @@ subroutine glc_final_mct()
     do j = 1,nyg
     do i = 1,nxg
        n = (j-1)*nxg + i
-       data(n) = region_mask(i,j)
+!lipscomb - glc mod - mask is r8
+!!!       data(n) = region_mask(i,j)
+       data(n) = real(region_mask(i,j), r8)
+!lipscomb - end glc mod
     end do
     end do
+
     call mct_gGrid_importRattr(dom_g,"mask",data,lsize) 
 
     do j = 1,nyg
     do i = 1,nxg
        n = (j-1)*nxg + i
-       data(n) = region_mask(i,j)
+!lipscomb - glc mod - frac is r8
+!!!       data(n) = region_mask(i,j)
+       data(n) = real(region_mask(i,j), r8)
+!lipscomb - end glc mod
     end do
     end do
     call mct_gGrid_importRattr(dom_g,"frac",data,lsize) 
