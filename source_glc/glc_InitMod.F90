@@ -83,12 +83,12 @@
    use glc_global_fields, only: albedo, lats_orog, lons_orog ! to be removed?
    use glc_global_fields, only: time, coverage, cov_orog  ! to be removed?
    use glc_global_grid,   only: init_glc_grid, glc_grid, glint_grid
-   use glimmer_log
    use glc_constants
    use glc_communicate, only: init_communicate
    use glc_time_management, only: init_time1, init_time2, dtt, ihour
 !!   use glc_timers
    use glc_glint, only: glc_glint_initialize
+   use glimmer_log
 
 !lipscomb - not sure we need init_global_reductions
 !   use glc_global_reductions, only: init_global_reductions
@@ -267,8 +267,6 @@
  
    if (my_task == master_task) then
       write(stdout,blank_fmt)
-      write(stdout,'(" End of GLC initialization")')
-      write(stdout,blank_fmt)
       write(stdout,ndelim_fmt)
       call shr_sys_flush (stdout)
    endif
@@ -432,8 +430,16 @@
 !!!#endif
  endif    ! temporary, in place of ifdef
 
+!lipscomb - debug
+  if (verbose) then
+     write (stdout,*) 'Set glimmer_unit =', stdout
+     call shr_sys_flush(stdout)
+  endif
+
+!lipscomb - Set glimmer_unit for CCSM runs. (Log file is already open)
   ! start logging
-  call open_log(unit=101, fname=logname(climatefile))  
+!!  call open_log(unit=101)
+  call set_glimmer_unit(stdout)   ! new subroutine in glimmer_log
  
 !lipscomb - debug
   if (verbose) then

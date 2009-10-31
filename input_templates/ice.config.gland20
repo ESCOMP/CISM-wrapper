@@ -1,0 +1,81 @@
+[grid]
+ewn = 76 
+nsn = 141
+upn = 11
+
+[sigma]
+sigma_levels: 0.00 0.10 0.20 0.30 0.40 0.50 0.60 0.70 0.80 0.90 1.00
+
+[GLINT climate]
+precip_mode = 1
+acab_mode = 1
+
+[GLINT projection]
+projection = 2
+cpx = 41
+cpy = 171
+latc=90.0
+lonc=321.0
+std_parallel=71.0
+
+[options]
+temperature = 1
+flow_law = 1
+isostasy = 0
+sliding_law = 1
+basal_water = 2
+marine_margin = 1
+slip_coeff = 0
+stress_calc = 0
+evolution = 0
+vertical_integration = 0
+hotstart=0
+
+[time]
+dt = 1.
+ntem = 1.
+nvel = 1.
+niso = 1.
+ndiag = 100
+
+[parameters]
+log_level=6
+ice_limit = 100.
+marine_limit = -200.
+geothermal = -5.e-2
+flow_factor = 3
+hydro_time = 1000.
+isos_time = 3000.
+basal_tract = 2 10 10 0 1
+
+########################################
+# I/O configuration follows
+########################################
+
+[CF default]
+title: GLINT example test run
+institution: Glimmer Inst
+references:  some reference
+comment: results from the simple test run
+
+[CF output]
+name:      gland20.10a.nc
+frequency: 10
+variables: thk topg ablt_spot acab_spot diffu_spot temp_spot
+numspot:   4
+spotx:     40 10 60 20 
+spoty:     70 10 30 100 
+comment:   spots are taken at nodes
+
+[CF output]
+name:      gland20.1a.nc
+frequency: 1
+variables: glint_prcp glint_acab glint_ablt glint_artm global_orog local_orog acab glint_thk thk usurf snowd siced uflx vflx
+
+[CF output]
+name:      gland20.hot.nc
+frequency: 1
+variables: hot
+
+[CF input]
+name: gland20.input.nc
