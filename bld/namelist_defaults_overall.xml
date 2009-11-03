@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet type="text/xsl" href="namelist_defaults.xsl"?>
+
+<namelist_defaults>
+
+<!--
+Values to use by default for creation of CLM model namelists.
+These are overall settings used as defaults for the model
+configuration of all namelists. None of these are items
+in a namelist, but they are default values that will help
+determine default values for namelists.
+-->
+
+<!-- Default location of {csmdata} -->
+<csmdata>/fs/cgd/csm/inputdata</csmdata>
+
+<!-- Default resolution -->
+<res>1.9x2.5</res>
+
+<!-- Default mask -->
+<mask>USGS</mask>
+
+<!-- Start date (YYYYMMDD) -->
+<start_ymd>10101</start_ymd>
+
+<!-- Start time of day (sec) -->
+<start_tod>0</start_tod>
+
+</namelist_defaults>

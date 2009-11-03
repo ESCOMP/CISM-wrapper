@@ -1,4 +1,8 @@
 #! /bin/csh -f
+#-------------------------------------------------------------------------------
+# Template to build scripts to create ASCII input files for GGLC, and to
+# compile GGLC code into a library that can be used by CCSM.
+#-------------------------------------------------------------------------------
 
 if !(-d $CASEBUILD) mkdir $CASEBUILD
 
@@ -6,50 +10,78 @@ if !(-d $CASEBUILD) mkdir $CASEBUILD
 # setup
 #-------------------------------------------------------------------------------
 
+set GLC_GRID = "gland20"
+
 set NX = $GLC_NX
 set NY = $GLC_NY
 
-set climatefile = glint_example.LY.config
-set paramfile   = ice.config
-set glandfile   = gland20.input.nc
+set climatefile  = glint_example.LY.config
+set gglcgridfile = $GLC_GRID.input.nc
 
 # ---------------------------------------------------------------------------
-#  Figure out the gridfile
+#  Figure out the gridfile and paramfile
 # ---------------------------------------------------------------------------
 
-set gridfile = UNSET
-if ( $ATM_GRID =~ 48x96)    set gridfile = \$DIN_LOC_ROOT/glc/gglc/topodata_48x96_USGS_070110.glc.nc
-if ( $ATM_GRID =~ 0.9x1.25) set gridfile = /blhome/lipscomb/ccsm4_0_glc01/models/glc/gglc/input_templates/griddata/topodata_0.9x1.25_USGS_070110.glc.nc
-if ( $ATM_GRID =~ 1.9x2.5 ) set gridfile = /blhome/lipscomb/ccsm4_0_glc01/models/glc/gglc/input_templates/griddata/topodata_1.9x2.5_USGS_061130.glc.nc
+set gridfile  = UNSET
+if ( $ATM_GRID =~ 48x96   )then
+   set gridfile  = \$DIN_LOC_ROOT/glc/gglc/topodata_48x96_USGS_070110.glc.nc
+endif
+if ( $ATM_GRID =~ 0.9x1.25)then
+   set gridfile  = \$DIN_LOC_ROOT/glc/gglc/topodata_0.9x1.25_USGS_070110.glc.nc
+endif
+if ( $ATM_GRID =~ 1.9x2.5 )then
+   set gridfile  = \$DIN_LOC_ROOT/glc/gglc/topodata_1.9x2.5_USGS_061130.glc.nc
+endif
 
-if ( $gridfile  == "UNSET" ) then
+if ( $gridfile  == "UNSET" )then
    echo "ERROR: unsupported grid = $ATM_GRID"
    exit -1
 endif
 
 # ---------------------------------------------------------------------------
-#  Create resolved namelist 
+#  Figure out the paramfile
+# ---------------------------------------------------------------------------
+
+set paramfile = UNSET
+if ( $GLC_GRID =~ gland20 )then
+   set paramfile = $CODEROOT/glc/gglc/input_templates/ice.config.$GLC_GRID
+endif
+
+if ( $paramfile == "UNSET" ) then
+   echo "ERROR: unsupported ice grid = $GLC_GRID"
+   exit -1
+endif
+
+# ---------------------------------------------------------------------------
+#  Create list of input files
 # ---------------------------------------------------------------------------
 
 cat >! $CASEBUILD/gglc.input_data_list << EOF
-climatefile = \$DIN_LOC_ROOT/glc/gglc/$climatefile
-paramfile   = \$DIN_LOC_ROOT/glc/gglc/$paramfile
-gridfile    = $gridfile
-gland_input = \$DIN_LOC_ROOT/glc/gglc/$glandfile
+climatefile    = \$DIN_LOC_ROOT/glc/gglc/$climatefile
+gridfile       = $gridfile
+gglcgrid_input = \$DIN_LOC_ROOT/glc/gglc/$gglcgridfile
 EOF
 
+# ---------------------------------------------------------------------------
+#  Create namelist build script
+# ---------------------------------------------------------------------------
 cat >! $CASEBUILD/gglc.buildnml.csh << EOF1
 #! /bin/csh -f 
+# ---------------------------------------------------------------------------
+#  Create input text files to run GGLC
+# ---------------------------------------------------------------------------
 
 set exedir = \$RUNDIR; cd \$exedir
+set gglcgrid_input = \$DIN_LOC_ROOT/glc/gglc/$gglcgridfile
 
-cp \$DIN_LOC_ROOT/glc/gglc/$glandfile \$exedir/
-chmod 644 \$exedir/$glandfile
+cp \$gglcgrid_input \$exedir/$gglcgridfile
+chmod 644 \$exedir/$gglcgridfile
 
+# Input namelists
 cat >! gglc_in <<EOF
 &files_nml
   climatefile = '\$DIN_LOC_ROOT/glc/gglc/$climatefile'
-  paramfile   = '\$DIN_LOC_ROOT/glc/gglc/$paramfile'
+  paramfile   = 'ice.config'
 /
 &grid_nml
   horiz_grid_opt  = 'file'
@@ -72,6 +104,15 @@ cat >! gglc_in <<EOF
 /
 EOF
 
+# Input configuration file
+cat >! ice.config <<EOF
+EOF1
+# Bring a copy of the ice.config file that the user can edit for their case
+cat $paramfile >> $CASEBUILD/gglc.buildnml.csh
+cat            >> $CASEBUILD/gglc.buildnml.csh << EOF1
+EOF
+
+# Input text file with grid/decomposition information
 cat >! gglcx_in << EOF
 $NX       !  i-direction global dimension
 $NY       !  j-direction global dimension
@@ -83,11 +124,14 @@ EOF
 EOF1
 
 # ---------------------------------------------------------------------------
-#  Create script to build dead model
+#  Create script to build GGLC model
 # ---------------------------------------------------------------------------
 
 cat >! $CASEBUILD/gglc.buildexe.csh << EOF2
 #! /bin/csh -f 
+# ---------------------------------------------------------------------------
+#  Create script to build GGLC model
+# ---------------------------------------------------------------------------
 
 set objdir = \$OBJROOT/glc/obj; cd \$objdir
 

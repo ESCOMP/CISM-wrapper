@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet type="text/xsl" href="namelist_definition.xsl"?>
+
+<namelist_definition>
+
+<entry id="res" type="char*30" category="default_settings"
+       group="default_settings"  
+       valid_values="48x96,1.9x2.5,0.9x1.25"
+Horizontal atmosphere resolutions
+</entry> 
+
+<entry id="mask" type="char*10" category="default_settings"
+       group="default_settings"  
+       valid_values="USGS"
+Land mask description
+</entry> 
+
+<entry id="use_case_desc" type="char*256"  category="default_settings"
+       group="use_case_desc" valid_values="" >
+Description of the use case selected.
+</entry>
+
+</namelist_definition>
