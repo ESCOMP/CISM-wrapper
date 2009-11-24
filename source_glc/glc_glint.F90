@@ -148,6 +148,9 @@
 ! Note: The code will abort if all instances do not have the same start time. 
     integer(i4), allocatable :: instance_start_time(:)   ! start_time in hours
 
+!lipscomb - debug
+    integer :: ii, jj
+
     allocate(instance_start_time(params%ninstances))
 
     if (verbose) then
@@ -271,6 +274,7 @@
     if (verbose) then
        write(stdout,*) 'Number of instances =', params%ninstances
        write(stdout,*) 'Read config files and initialize each instance'
+       write(stdout,*) ' '
        call flushm(stdout)
     endif
 
@@ -307,6 +311,25 @@
                                 instance_start_time(i), &    ! hours (integer)
                                 params%time_step)            ! hours (integer)
  
+!lipscomb - debug - Identify local cells that use info from the selected global cell
+
+    write(stdout,*) ' '
+    write(stdout,*) 'Local cells that use info from global cell', itest, jjtest
+
+    do jj = 1, params%instances(i)%lgrid%size%pt(2)
+    do ii = 1, params%instances(i)%lgrid%size%pt(1)
+ 
+        if ( (params%instances(i)%downs%xloc(ii,jj,1) == itest .and. params%instances(i)%downs%yloc(ii,jj,1) == jjtest) .or.  &
+             (params%instances(i)%downs%xloc(ii,jj,2) == itest .and. params%instances(i)%downs%yloc(ii,jj,2) == jjtest) .or.  &
+             (params%instances(i)%downs%xloc(ii,jj,3) == itest .and. params%instances(i)%downs%yloc(ii,jj,3) == jjtest) .or.  &
+             (params%instances(i)%downs%xloc(ii,jj,4) == itest .and. params%instances(i)%downs%yloc(ii,jj,4) == jjtest) ) then
+            write(stdout,*) ii, jj
+        endif
+    enddo
+    enddo
+    
+
+
        params%total_coverage = params%total_coverage + params%instances(i)%frac_coverage
        params%total_cov_orog = params%total_cov_orog + params%instances(i)%frac_cov_orog
  
@@ -591,9 +614,10 @@
         topo_av(:,:,:) = topo_av(:,:,:) / real(params%av_steps,r8)
  
         if (verbose) then
-           write(stdout,*) 'Take an ice timestep, time (hr) =', time
            i = itest
            j = jjtest
+           write(stdout,*) 'Take a mass balance timestep, time (hr) =', time
+           write(stdout,*) 'i, j =', i, j
            do n = 1, glc_nec
               write (stdout,*) ' '
               write (stdout,*) 'n =', n
@@ -894,41 +918,46 @@
 
     ! Do accumulation --------------------------------------------------------
 
-!    call glint_accumulate(instance%mbal_accum,  time,               &
-!                          instance%artm,        instance%arng,                &
-!                          instance%prcp,                            &
-!                          instance%snowd,       instance%siced,    &
-!                          instance%xwind,       instance%ywind,    &
-!                          instance%local_orog,real(thck_temp,rk),  &
-!                          instance%humid,       instance%swdown,   &
-!                          instance%lwdown,      instance%airpress)
+!lipscomb - to do - Allow for either CLM SMB option or PDD option?
 
-!lipscomb - Commented out call to glint_accumulate, since we have acab already.
+    call glint_accumulate(instance%mbal_accum,  time,              &
+                          instance%artm,        instance%arng,     &
+                          instance%prcp,                           &
+                          instance%snowd,       instance%siced,    &
+                          instance%xwind,       instance%ywind,    &
+                          instance%local_orog,real(thck_temp,rk),  &
+                          instance%humid,       instance%swdown,   &
+                          instance%lwdown,      instance%airpress, &
+                          instance%acab                            )
+
+!lipscomb - to do - Make sure these are initialized correctly.
+!                   Have snowd and siced been set?
 !           Still have to initialize mbal_accum (type glint_mbc); this is done
 !            in glc_glint_get_mbal and in the following code.
-!lipscomb - to do - Move this code elsewhere?
 
-    if (instance%mbal_accum%new_accum) then
+!lipscomb - to do - Delete this code
 
-       instance%mbal_accum%new_accum=.false.
-       instance%mbal_accum%av_count =0
+!    if (instance%mbal_accum%new_accum) then
+
+!       instance%mbal_accum%new_accum=.false.
+!       instance%mbal_accum%av_count =0
 
 !lipscomb - important to initialize start_time correctly
-       instance%mbal_accum%start_time = time
+!       instance%mbal_accum%start_time = time
 
        ! Initialise some quantities that will not be used
 
 !!       instance%mbal_accum%snowd=snowd
 !!       instance%mbal_accum%siced=siced
-       instance%mbal_accum%snowd=c0
-       instance%mbal_accum%siced=c0
+!       instance%mbal_accum%snowd=c0
+!       instance%mbal_accum%siced=c0
 
-       instance%mbal_accum%prcp_save=c0
-       instance%mbal_accum%ablt_save=c0
-       instance%mbal_accum%acab_save=c0
-       instance%mbal_accum%artm_save=c0
+!       instance%mbal_accum%prcp_save=c0
+!       instance%mbal_accum%ablt_save=c0
+!       instance%mbal_accum%acab_save=c0
+!       instance%mbal_accum%artm_save=c0
 
-    end if
+!    end if
 
     instance%mbal_accum%av_count = instance%mbal_accum%av_count+1
 
@@ -1011,26 +1040,17 @@
                                instance%local_orog)
           call glint_remove_bath(instance%local_orog,1,1)
  
-!lipscomb - The following is a new subroutine for coupled runs.
-!         - The new version simply writes instance%mbal_accum%artm into instance%atrm, etc.
-!         - Note: instance%acab has units of m/yr
-
-!lipscomb - Removed artm and acab from argument list, since these are received from coupler
-
-!lipscomb - to do - Get rid of this subroutine?
-
-          ! Get the mass-balance, as m water/year 
-          call glc_glint_get_mbal(instance%mbal_accum,   &
-!                                  instance%artm,     instance%acab,         &
-                                  instance%prcp,     instance%ablt,         &
-                                  instance%snowd,    instance%siced,        &
-                                  instance%mbal_accum_time)
+          call glint_get_mbal(instance%mbal_accum,   &
+                              instance%artm,     instance%prcp,         &
+                              instance%ablt,     instance%acab,         &
+                              instance%snowd,    instance%siced,        &
+                              instance%mbal_accum_time)
   
           ! Mask out non-accumulation in ice-free areas
  
           where(thck_temp<=0.0 .and. instance%acab<0.0)
              instance%acab = 0.0
-!             instance%ablt = instance%prcp
+             instance%ablt = instance%prcp
           end where
 
 !lipscomb - debug
@@ -1039,7 +1059,14 @@
              jl = jtest_local
              write (stdout,*) ' '
              write (stdout,*) 'GLIDE input for test point: i, j =', il, jl
-             write (stdout,*) 'acab, artm =', instance%acab(il,jl), instance%artm(il,jl)
+             write (stdout,*) 'acab (m/y), artm (C) =', instance%acab(il,jl), instance%artm(il,jl)
+             write (stdout,*) ' '
+             write (stdout,*) 'acab and artm for neighboring points'
+             do jj = jl-5, jl+5
+             do ii = il-5, il+5 
+                write (stdout,*) ii, jj, instance%acab(ii,jj), instance%artm(ii,jj)
+             enddo
+             enddo
              call flushm(stdout)
           endif
 
@@ -1067,7 +1094,8 @@
              jl = jtest_local
              write (stdout,*) 'After conversion of units: acab, artm =', &
                    instance%model%climate%acab(il,jl), instance%model%climate%artm(il,jl)
-             write (stdout,*) 'Initial thickness =', instance%model%geometry%thck(il,jl)
+             write (stdout,*) 'Initial thickness, usrf (m) =', instance%model%geometry%thck(il,jl)*thk0,  &
+                                                               instance%model%geometry%usrf(il,jl)*thk0
              write (stdout,*) 'call glide_tstep_p1'
              call flushm(stdout)
           endif
@@ -1302,11 +1330,39 @@
 
 !   Downscale global fields for each elevation class to local grid
 
+!lipscomb - Does topo_g need to be downscaled?  Is the downscaling done correctly?
+
     do n = 1, nec
        call interp_to_local(instance%lgrid, tsfc_g(:,:,n), instance%downs, localdp=tsfc_l(:,:,n))
        call interp_to_local(instance%lgrid, topo_g(:,:,n), instance%downs, localdp=topo_l(:,:,n))
        call interp_to_local(instance%lgrid, qice_g(:,:,n), instance%downs, localdp=qice_l(:,:,n))
     enddo
+
+!lipscomb - debug - Write topo in each class of global cell
+
+    write(stdout,*) ' '
+    write(stdout,*) 'Global cell =', itest, jjtest
+    do n = 1, nec
+       write(stdout,*) n, topo_g(itest,jjtest, n)
+    enddo
+
+!lipscomb - debug - Identify local cells that use info from the selected global cell
+
+    write(stdout,*) ' '
+    write(stdout,*) 'Local cells that use info from global cell', itest, jjtest
+
+    do j = 1, nyl
+    do i = 1, nxl
+ 
+        if ( (instance%downs%xloc(i,j,1) == itest .and. instance%downs%yloc(i,j,1) == jjtest) .or.  &
+             (instance%downs%xloc(i,j,2) == itest .and. instance%downs%yloc(i,j,2) == jjtest) .or.  &
+             (instance%downs%xloc(i,j,3) == itest .and. instance%downs%yloc(i,j,3) == jjtest) .or.  &
+             (instance%downs%xloc(i,j,4) == itest .and. instance%downs%yloc(i,j,4) == jjtest) ) then
+            write(stdout,*) i, j, thk0 * instance%model%geometry%usrf(i,j)
+        endif
+    enddo
+    enddo
+    
 
 !lipscomb - debug
     if (verbose) then
@@ -1329,8 +1385,8 @@
 !   If the local topography is outside the bounds of the global elevations classes,
 !    extrapolate the temperature using the prescribed lapse rate.
 
-    do j = 1, nxl
-    do i = 1, nyl
+    do j = 1, nyl
+    do i = 1, nxl
 
        usrf = instance%model%geometry%usrf(i,j) * thk0   ! actual sfc elevation (m)
 
@@ -1370,58 +1426,6 @@
  
   end subroutine glc_glint_downscaling
 
-!================================================================================
-!lipscomb - Removed artm and acab from argument list.  Use values from coupler instead.
-
-  subroutine glc_glint_get_mbal(params,           &
-!                                artm,    acab,    &
-                                prcp,    ablt,    &
-                                snowd,   siced,   &
-                                dt)
- 
-!lipscomb - The corresponding GLINT routine computes prcp, ablt, snowd and siced.
-!           Here I just set these to 0.0.
-
-    use glint_constants, only: hours2years
- 
-    type(glint_mbc)  :: params
-!    real(sp),dimension(:,:),intent(out)   :: artm   !*FD Mean air temperature (degC)
-!    real(sp),dimension(:,:),intent(out)   :: acab   !*FD Mass-balance
-    real(sp),dimension(:,:),intent(out)   :: prcp   !*FD Precipitation (m)
-    real(sp),dimension(:,:),intent(out)   :: ablt   !*FD Ablation
-    real(sp),dimension(:,:),intent(inout) :: snowd  !*FD Snow depth (m)
-    real(sp),dimension(:,:),intent(inout) :: siced  !*FD Superimposed ice depth (m)
-    integer,                intent(in)    :: dt     !*FD accumulation time in hours
- 
-!lipscomb - to do - Is this needed?
-    if (.not.params%new_accum) then
-       params%artm_save = params%artm_save/real(params%av_count)
-    end if
- 
-    params%new_accum=.true.
- 
-!lipscomb - Commented out because we use values from CLM
-!    artm=params%artm_save
-!    acab=params%acab_save / real(dt*hours2years,sp)
-
-!lipscomb - Just set the following to zero, since they are computed in CLM
-!           and not needed by GLIMMER.
-!    prcp=params%prcp_save / real(dt*hours2years,sp)
-!    ablt=params%ablt_save / real(dt*hours2years,sp)
-!    snowd=params%snowd
-!    siced=params%siced
- 
-!    where (snowd<0.0) snowd=0.0
-!    where (siced<0.0) siced=0.0
-
-     ! single precision
-     prcp  = 0.0
-     ablt  = 0.0
-     snowd = 0.0
-     siced = 0.0 
-
-  end subroutine glc_glint_get_mbal
-  
 !================================================================================
 
   subroutine get_glc_upscaled_fields(instance,    nec,      &
@@ -1466,14 +1470,23 @@
        jg = jjtest
        il = itest_local
        jl = jtest_local
-       write(stdout,*) 'In get_gcl_upscaled_fields'
+       write(stdout,*) 'In get_glc_upscaled_fields'
        write(stdout,*) 'il, jl =', il, jl
        write(stdout,*) 'ig, jg =', ig, jg
        write(stdout,*) 'nxl, nyl =', nxl,nyl
        write(stdout,*) 'nxg, nyg =', nxg,nyg
+       write(stdout,*) 'topo =', ltopo_temp(il,jl) 
        call flushm(stdout)
     endif
 
+!lipscomb - debug
+    write(stdout,*) ' '
+    do jl = jtest_local-5, jtest_local+5
+    do il = itest_local-2, itest_local+2
+       write(stdout,*) 'il, jl, ltopo:', il, jl, ltopo_temp(il,jl)
+    enddo
+    enddo
+ 
     ! ice fraction
 
     do j = 1, nyl
@@ -1487,6 +1500,8 @@
     enddo
 
     if (verbose) then
+       il = itest_local 
+       jl = jtest_local 
        write(stdout,*) 'local ifrac =', temp(il, jl)
        write(stdout,*) 'local topo =', ltopo_temp(il,jl)
        write(stdout,*) 'local mask =', instance%out_mask(il,jl)
@@ -1510,10 +1525,6 @@
                             temp,               gthck,      &
                             ltopo_temp,         instance%out_mask)
 
-
-!lipscomb - debug
-    write(stdout,*) ' '
-    write(stdout,*) 'local topo =', ltopo_temp(il,jl)
 
     ! surface elevation
 
@@ -1671,6 +1682,11 @@
           write(stdout,*) 'i, j, topo:', i, j, ltopo(i,j)
           write(stdout,*) 'hec_max(0) =', hec_max(0)
           call exit_glc(sigAbort, 'Local topography out of bounds')
+       endif
+
+!lipscomb - debug
+       if (verbose .and. ig==itest .and. jg==jjtest) then
+!!          write(stdout,*) 'ig, jg, il, jl = ', ig, jg, i, j
        endif
 
 !lipscomb - debug

@@ -169,6 +169,22 @@
             call shr_sys_flush(stdout)
          endif
 
+!lipscomb - debug
+
+         if (verbose) then
+            write(stdout,*) ' '
+            write(stdout,*) 'Global fields from CLM to GLINT'
+            do n = 1, glc_nec
+               ig = itest
+               jg = jjtest   ! N to S global indexing as in GLINT
+               write(stdout,*) ' '
+               write(stdout,*) 'i, j, n =', ig, jg, n
+               write(stdout,*) 'tsfc(n) =', tsfc(ig,jg,n)
+               write(stdout,*) 'topo(n) =', topo(ig,jg,n)
+               write(stdout,*) 'qice(n) =', qice(ig,jg,n)
+            enddo
+         endif
+
          call glc_glint_driver (ice_sheet,       nint(thour),   &
                                 tsfc,            qice,    &
                                 topo,                     &
@@ -180,7 +196,7 @@
 
          if (verbose) then
             write(stdout,*) ' '
-            write(stdout,*) 'Global fields from GLINT:'
+            write(stdout,*) 'Global fields from GLINT to CLM:'
             do n = 1, glc_nec
                ig = itest
                jg = jjtest   ! N to S global indexing as in GLINT
@@ -189,8 +205,8 @@
                write(stdout,*) 'gfrac(n) =', gfrac(ig,jg,n)
                write(stdout,*) 'gthck(n) =', gthck(ig,jg,n)
                write(stdout,*) 'gtopo(n) =', gtopo(ig,jg,n)
-               write(stdout,*) 'ghflx(n) =', ghflx(ig,jg,n)
-               write(stdout,*) 'groff(n) =', groff(ig,jg,n)
+!               write(stdout,*) 'ghflx(n) =', ghflx(ig,jg,n)
+!               write(stdout,*) 'groff(n) =', groff(ig,jg,n)
             enddo
          endif
 

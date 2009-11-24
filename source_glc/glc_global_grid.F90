@@ -403,6 +403,7 @@
 !   write(stdout,*) 'lons =', glc_grid%lons(:)
 !   write(stdout,*) 'lat_bound =', glc_grid%lat_bound(:)
 !   write(stdout,*) 'lon_bound =', glc_grid%lon_bound(:)
+
    write(stdout,*) ''
    i = itest
    j = jtest
@@ -412,6 +413,7 @@
    write(stdout,*) 'frac of earth =', glc_grid%box_areas(i,j) / (c4*pi*radius*radius)
    write(stdout,*) 'Leaving read_horiz_grid'
    call shr_sys_flush(stdout)
+!lipscomb - end debug
 
 !-----------------------------------------------------------------------
 !EOC

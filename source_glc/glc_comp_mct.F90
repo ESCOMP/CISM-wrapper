@@ -427,7 +427,7 @@ subroutine glc_final_mct()
     use glc_global_fields, only: tsfc, topo, qice       ! from coupler
 
     type(mct_aVect),intent(inout) :: x2g
-    integer(IN), intent(in) :: ndx
+    integer(IN), intent(in) :: ndx                      ! elevation class
     integer(IN), intent(in) :: index_tsrf
     integer(IN), intent(in) :: index_topo
     integer(IN), intent(in) :: index_qice
@@ -457,6 +457,7 @@ subroutine glc_final_mct()
     enddo
 
     if (verbose) then
+       write(stdout,*) ' '
        write(stdout,*) subname,' x2g tsrf ',ndx,minval(x2g%rAttr(index_tsrf,:)),maxval(x2g%rAttr(index_tsrf,:))
        write(stdout,*) subname,' x2g topo ',ndx,minval(x2g%rAttr(index_topo,:)),maxval(x2g%rAttr(index_topo,:))
        write(stdout,*) subname,' x2g qice ',ndx,minval(x2g%rAttr(index_qice,:)),maxval(x2g%rAttr(index_qice,:))
