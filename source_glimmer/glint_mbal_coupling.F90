@@ -162,7 +162,7 @@ contains
   ! +++++++++++++++++++++++++++++++++++++++++++++++++
 
   subroutine glint_accumulate(params,time,artm,arng,prcp,snowd,siced,xwind,ywind,local_orog, &
-       thck,humidity,SWdown,LWdown,Psurf)
+       thck,humidity,SWdown,LWdown,Psurf, acab_in)
 
     type(glint_mbc)  :: params
     integer :: time
@@ -179,6 +179,9 @@ contains
     real(rk),dimension(:,:),intent(in) :: SWdown       !*FD Downwelling shortwave (W/m^2)
     real(rk),dimension(:,:),intent(in) :: LWdown       !*FD Downwelling longwave (W/m^2)
     real(rk),dimension(:,:),intent(in) :: Psurf        !*FD Surface pressure (Pa)
+!lipscomb - added an optional input argument, acab_in, 
+!           for case that mass balance is given by climate model
+    real(sp),dimension(:,:),intent(in), optional :: acab_in   !*FD Mass balance (m/s)
 
     real(sp),dimension(size(artm,1),size(artm,2)) :: ablt,acab
 
@@ -205,10 +208,20 @@ contains
 
     params%av_count=params%av_count+1
 
-    ! Call mass-balance
+!lipscomb - set acab to acab_in, if present (mass balance computed already)
+!           Else calculate the mass balance
 
-    call glint_mbal_calc(params%mbal,artm,arng,prcp,(local_orog>0.0.or.thck>0.0),params%snowd, &
-         params%siced,ablt,acab,thck,xwind,ywind,humidity,SWdown,LWdown,Psurf) 
+    if (present(acab_in)) then
+
+       acab = acab_in     !lipscomb - Is it safe to assume that acab and acab_in are the same size?   
+       ablt = 0.0         ! not computed in this case
+
+    else  ! Call mass-balance
+
+       call glint_mbal_calc(params%mbal,artm,arng,prcp,(local_orog>0.0.or.thck>0.0),params%snowd, &
+                            params%siced,ablt,acab,thck,xwind,ywind,humidity,SWdown,LWdown,Psurf) 
+
+    endif
 
     ! Accumulate
 

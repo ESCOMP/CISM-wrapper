@@ -112,7 +112,7 @@ contains
 
     select case(which)
 
-!lipscomb - added case(0): receive surface mass balance from coupler
+!lipscomb - added case(0): receive surface mass balance from climate model
 !lipscomb - Assume accumulation time of one year unless otherwise specified
 !lipscomb - to do - Allow this to be specified in namelist?
     case(0) 
@@ -167,6 +167,7 @@ contains
     real(rk),dimension(size(acab,1),size(acab,2)) :: acab_temp
 
     select case(params%which)
+
     case(1)
        call glimmer_pdd_mbal(params%annual_pdd,artm,arng,prcp,ablt,acab,landsea) 
     case(2) 

@@ -120,6 +120,8 @@ module glint_type
 
      !*FD Which mass-balance scheme: 
      !*FD \begin{description}
+!lipscomb - added case 0: receive mass balance from climate model
+     !*FD \item[0] Receive mass balance from climate model
      !*FD \item[1] PDD mass-balance model
      !*FD \item[2] Accumulation only 
      !*FD \item[3] RAPID energy balance model
