@@ -30,6 +30,27 @@
   include 'netcdf.inc'
 
    !-----------------------------------------------------------------
+   ! elevation class info
+   !-----------------------------------------------------------------
+
+  logical, parameter ::   &
+     glc_smb = .true.     ! if true, get surface mass balance from CLM via coupler
+                          ! (in multiple elevation classes)
+                          ! if false, use PDD scheme in GLIMMER
+
+!lipscomb - Later, get glc_nec from an input file?
+!           This must agree with values in CLM and coupler
+  integer, parameter ::   &
+     glc_nec = 10             ! number of elevation classes
+
+!lipscomb - These must agree with values in CLM (clm_varpar.F90)
+!lipscomb - Might want to change 0._r8 to -eps to avoid spurious inequalities when topo = 0
+  real(r8), dimension(0:glc_nec), parameter ::  &
+!!     hec_max = (/ 0._r8, 10000._r8 /)                  ! glc_nec = 1
+     hec_max = (/ 0._r8,  200._r8,  400._r8,  700._r8, 1000._r8,  1300._r8, &
+                         1600._r8, 2000._r8, 2500._r8, 3000._r8, 10000._r8 /)
+
+   !-----------------------------------------------------------------
    ! test point for debugging
    !-----------------------------------------------------------------
 

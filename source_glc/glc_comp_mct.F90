@@ -18,7 +18,8 @@ module glc_comp_mct
   use seq_timemgr_mod
   use seq_flds_indices
 
-  use glc_constants,   only : verbose,stdout,stderr,nml_in,radius,radian,tkfrz
+  use glc_constants,   only : verbose, stdout, stderr, nml_in, &
+                              radius,  radian, tkfrz,  glc_nec
   use glc_errormod,    only : glc_success
   use glc_InitMod,     only : glc_initialize
   use glc_RunMod,      only : glc_run
@@ -26,7 +27,6 @@ module glc_comp_mct
   use glc_communicate, only : init_communicate
   use glc_time_management, only: iyear,imonth,iday,ihour,iminute,isecond
   use glc_global_grid, only: glc_grid, region_mask
-  use glc_global_fields,only: glc_nec
 
 ! !PUBLIC TYPES:
   implicit none

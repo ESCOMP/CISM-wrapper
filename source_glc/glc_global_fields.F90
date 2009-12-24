@@ -43,22 +43,6 @@
   !       For PDD scheme, tsfc => 2m reference temp
   !                       qice => precipitation
 
-  logical, parameter ::   &
-     glc_smb = .true.     ! if true, get surface mass balance from CLM via coupler
-                          ! if false, use PDD scheme in GLIMMER
-
-!lipscomb - Later, get glc_nec from an input file?
-!           This must agree with values in CLM and coupler
-  integer, parameter ::   &
-     glc_nec = 10             ! number of elevation classes
-
-!lipscomb - These must agree with values in CLM (clm_varpar.F90)
-!lipscomb - Might want to change 0._r8 to -eps to avoid spurious inequalities when topo = 0
-  real(r8), dimension(0:glc_nec), parameter ::  &
-!!     hec_max = (/ 0._r8, 10000._r8 /)                  ! glc_nec = 1
-     hec_max = (/ 0._r8,  200._r8,  400._r8,  700._r8, 1000._r8,  1300._r8, &
-                         1600._r8, 2000._r8, 2500._r8, 3000._r8, 10000._r8 /)
-
   ! input from coupler (3rd dimension for elevation classes)
 
   real(r8),dimension(:,:,:), allocatable ::  & 
@@ -66,6 +50,12 @@
                    ! received from coupler in Kelvin, must be converted
      topo        ,&! surface elevation (m)
      qice          ! flux of new glacier ice (kg/m^2/s)
+
+!lipscomb - to do - delete these when glc_glint is removed
+  real(r8), dimension(:,:,:), allocatable ::  &
+     tsfc_av     ,&! averaging array for tsfc
+     topo_av     ,&! averaging array for topo
+     qice_av       ! averaging array for qice
 
   ! output to coupler
 
@@ -161,7 +151,14 @@
    allocate(ghflx(nx,ny,glc_nec))
    allocate(groff(nx,ny,glc_nec))
 
+  ! averaging arrays
+ 
+  allocate(tsfc_av(nx,ny,glc_nec))
+  allocate(qice_av(nx,ny,glc_nec))
+  allocate(topo_av(nx,ny,glc_nec))
+
  ! Other fields
+
 
 !lipscomb - may want to get rid of some of these
    nxo = nx; nyo = ny  ! temporary, till I decide whether to keep these arrays

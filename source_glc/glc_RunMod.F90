@@ -22,7 +22,7 @@
    use glc_time_management, only:  thour, time_manager, check_time_flag, init_time_flag
    use shr_sys_mod
    use glc_communicate, only: my_task, master_task
-   use glc_constants, only: stdout
+   use glc_constants, only: stdout, glc_nec, glc_smb
 
    implicit none
    private
@@ -65,8 +65,7 @@
 ! !USES:
 
    use glint_main
-   use glc_global_fields   !lipscomb - to do - specify what fields are used
-   use glc_glint, only: glc_glint_driver
+   use glc_global_fields    !lipscomb - to do - specify what fields are used
    use glimmer_log
    use glint_global_interp
    use glint_example_clim
@@ -165,7 +164,7 @@
 
 !lipscomb - debug
          if (verbose) then
-            write(stdout,*) 'Call glc_glint_driver, thour =', thour
+            write(stdout,*) 'Call glint, thour =', thour
             call shr_sys_flush(stdout)
          endif
 
@@ -185,12 +184,15 @@
             enddo
          endif
 
-         call glc_glint_driver (ice_sheet,       nint(thour),   &
-                                tsfc,            qice,    &
-                                topo,                     &
-                                gfrac,           gthck,   &
-                                gtopo,           ghflx,   &
-                                groff,           l_ice_tstep)
+         call glint (ice_sheet,       nint(thour),   &
+                     temp,            precip,  &     ! temp, precip, orog are set to zero
+                     orog,                     &
+                     ice_tstep = l_ice_tstep,  & 
+                     tsfc  = tsfc,     qice  = qice,    &
+                     topo  = topo,                      &
+                     gfrac = gfrac,    gthck = gthck,   &
+                     gtopo = gtopo,    ghflx = ghflx,   &
+                     groff = groff )
 
 !lipscomb - debug
 
@@ -257,7 +259,7 @@
 
 !lipscomb - debug
    if (verbose) then
-      write(stdout,*) 'Called time manager, end of glc_run'
+      write(stdout,*) 'Called time manager after glc timestep'
       write(stdout,*) 'New thour =', thour
       call shr_sys_flush(stdout)
    endif

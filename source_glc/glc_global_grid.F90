@@ -69,6 +69,8 @@
  contains
 
 !***********************************************************************
+
+!lipscomb - This subroutine is based on POP and could be simplified.
 !BOP
 ! !IROUTINE: init_glc_grid
 ! !INTERFACE:
@@ -360,14 +362,13 @@
    ! Note: Global grid is indexed from south to north, so the south edge of cell (i,j+1)
    !       is the north edge of cell (i,j)
 !lipscomb - make sure lat_bound and lon_bound have correct dimensions
-!lipscomb - convert from degrees to radians
 
    allocate(glc_grid%box_areas(nx,ny))
 
    do j = 1, ny
    do i = 1, nx
 
-      latn = glc_grid%lat_bound(j+1) * pi/180._r8
+      latn = glc_grid%lat_bound(j+1) * pi/180._r8   ! degrees to radians
       lats = glc_grid%lat_bound(j)   * pi/180._r8
       latn = p5*pi - latn  ! so lat = 0 at NP, = pi at SP
       lats = p5*pi - lats  
