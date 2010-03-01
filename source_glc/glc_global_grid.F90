@@ -330,6 +330,35 @@
    nx = glc_grid%nx
    ny = glc_grid%ny
 
+   ! Set test point based on global grid - jwolfe added 3/1/10
+
+   if (nx.eq.96 .AND. ny.eq.48) then   ! T31
+      itest  = 84
+      jtest  = 42
+      jjtest = 49 - jtest
+      itest_local = 24
+      jtest_local = 45
+   elseif (nx.eq.144 .AND. ny.eq.96) then   ! fv 2-degree
+      itest  = 133
+      jtest  = 84
+      jjtest = 97 - jtest
+      itest_local = 60
+      jtest_local = 54
+   elseif (nx.eq.288 .AND. ny.eq.192) then   ! fv 1-degree
+      itest  = 265
+      jtest  = 167
+      jjtest = 193 - jtest
+      itest_local = 60
+      jtest_local = 54
+   else
+      write(stdout,*) 'Global grid not identified, test point set to 1,1'
+      itest  = 1
+      jtest  = 1
+      jjtest = 1
+      itest_local = 1
+      jtest_local = 1
+   endif
+
 !lipscomb - kludge
 !lipscomb - GLIMMER assumes the grid is indexed N to S and therefore sets
 !            lat_bound(1) = 90, lat_bound(ny+1) = -90.

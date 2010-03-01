@@ -54,6 +54,14 @@
    ! test point for debugging
    !-----------------------------------------------------------------
 
+   integer (i4), public :: &
+      itest,             &! test grid cell, i-index
+      jtest,             &! test grid cell, j-index
+      jjtest,            &! test grid cell, j-index, reversed for N to S indexing
+      itest_local,       &! 
+      jtest_local         ! 
+
+!jwolfe - the following test cell settings have been moved to glc_global_grid
 !lipscomb - debug T31
 !   integer(i4), parameter ::   &
 !      gtest = 1864,            &          ! test grid cell, global index (T31)
@@ -62,11 +70,11 @@
 !      itest_local = 24, jtest_local = 45  ! Greenland local grid
 
 !lipscomb - debug FV2
-   integer(i4), parameter ::   &
-      gtest = 84,              &           ! test grid cell, global index (FV2)
-      itest = 133, jtest = 84,  &          ! in Greenland (FV2), lat 67.3 N, lon 330 E
-                  jjtest = 97 - jtest,  &  ! reversed for N to S indexing (FV2, ny = 96)
-      itest_local = 60, jtest_local = 54   ! Greenland 20 deg grid, initial usrf = 491 m
+!     integer(i4), parameter ::   &
+!        gtest = 84,              &           ! test grid cell, global index (FV2)
+!        itest = 133, jtest = 84,  &          ! in Greenland (FV2), lat 67.3 N, lon 330 E
+!                    jjtest = 97 - jtest,  &  ! reversed for N to S indexing (FV2, ny = 96)
+!        itest_local = 60, jtest_local = 54   ! Greenland 20 deg grid, initial usrf = 491 m
 
 !      gtest = 5578,              &           ! test grid cell, global index (FV2)
 !      itest = 126, jtest = 84,  &          ! in Greenland (FV2), lat 67.3 N, lon 330 E
