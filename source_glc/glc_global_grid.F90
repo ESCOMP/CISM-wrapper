@@ -36,16 +36,19 @@
    private
    save
 
-   public  :: init_glc_grid, region_mask, glc_grid, glint_grid
+   public  :: init_glc_grid, glc_landmask, glc_landfrac, glc_grid
 
 ! !PUBLIC DATA MEMBERS:
 
    type(global_grid), pointer ::   &
-      glc_grid        ,&! info (nx, ny, lat, lon, area) for coupling grid (S to N)
-      glint_grid        ! info for glint grid (N to S)
+      glc_grid        ! info (nx, ny, lat, lon, area) for coupling grid (indexed S to N)
 
-   integer(i4), dimension(:,:), allocatable ::  &
-      region_mask           ! mask, = 1 for ice sheet regions and 0 elsewhere
+   integer, dimension(:,:), allocatable ::  &
+      glc_landmask          ! landmask = 1 where global grid has valid data from CLM
+                            ! (i.e., gridcells with nonzero land area)
+
+   real(r8), dimension(:,:), allocatable ::  &
+      glc_landfrac          ! land fraction, between 0 and 1
  
 !EOP
 !BOC
@@ -56,12 +59,12 @@
 !-----------------------------------------------------------------------
 
    character (char_len) ::  &
-      horiz_grid_opt,       &! option for getting horiz grid info
-      topo_varname           ! variable name for topography
+      horiz_grid_opt       ,&! option for getting horiz grid info
+      mask_varname         ,&! variable name for landmask
+      frac_varname           ! variable name for landfrac
 
    character (char_len_long) ::  &
-      horiz_grid_file,      &! input file for reading horiz grid info
-      region_mask_file       ! input file for region mask
+      horiz_grid_file        ! input file for reading horiz grid info
 
 !EOC
 !***********************************************************************
@@ -91,8 +94,7 @@
 !
 !-----------------------------------------------------------------------
 
-   namelist /grid_nml/ horiz_grid_opt, horiz_grid_file, topo_varname,  &
-                       region_mask_file
+   namelist /grid_nml/ horiz_grid_opt, horiz_grid_file, mask_varname, frac_varname
 
    integer (int_kind) :: &
       nml_error           ! namelist i/o error flag
@@ -105,8 +107,8 @@
 
    horiz_grid_opt       = 'unknown_horiz_grid_opt'
    horiz_grid_file      = 'unknown_horiz_grid_file'
-   topo_varname         = 'unknown topo varname'
-   region_mask_file     = 'unknown_region_mask'
+   mask_varname         = 'unknown mask varname'
+   frac_varname         = 'unknown frac varname'
 
    if (my_task == master_task) then
       open (nml_in, file=nml_filename, status='old',iostat=nml_error)
@@ -167,38 +169,10 @@
                           trim(horiz_grid_file)
       call shr_sys_flush(stdout)
       endif
-      call read_horiz_grid(horiz_grid_file, topo_varname)
+      call read_horiz_grid(horiz_grid_file, mask_varname, frac_varname)
    case default
       call exit_glc(sigAbort,'ERROR: unknown horizontal grid option')
    end select
-
-!-----------------------------------------------------------------------
-!
-!  set region-masks
-!
-!-----------------------------------------------------------------------
-
-   if (trim(region_mask_file) /= 'unknown_region_mask') then
-      if (my_task == master_task) write(stdout,'(a36,a)') &
-         'Region masks initialized from file: ',trim(region_mask_file)
-!lipscomb - need a new subroutine if this is to read from file
-!!!      call area_masks(region_mask_file,region_info_file)
-      call exit_glc(sigAbort, 'No subroutine for reading region mask from file')
-   else
-      if (my_task == master_task) then
-!lipscomb - Include the entire global grid for now
-!!!        write(stdout,'(a24)') ' No region masks defined'
-         write(stdout,*) 'Set region_mask = 1 everywhere'
-
-         allocate(region_mask(glc_grid%nx,glc_grid%ny))
-         region_mask(:,:) = 1
-      endif
-   endif
-
-!lipscomb - debug
-   write(stdout,*) 'Leaving init_glc_grid'
-   write(stdout,*) 'itest, jtest, region_mask:', itest, jtest, region_mask(itest,jtest)
-   call shr_sys_flush(stdout)
 
 !-----------------------------------------------------------------------
 !EOC
@@ -282,10 +256,10 @@
 ! !IROUTINE: read_horiz_grid
 ! !INTERFACE:
 
- subroutine read_horiz_grid(horiz_grid_file, topo_varname)
+ subroutine read_horiz_grid(horiz_grid_file, mask_varname, frac_varname)
 
 ! !DESCRIPTION:
-!  Reads horizontal grid and topography from input grid file
+!  Reads horizontal grid, landmask, and landfrac from input grid file
 !
 ! !REVISION HISTORY:
 !  same as module
@@ -299,8 +273,8 @@
 
    character (*), intent(in) :: &
       horiz_grid_file  ,&! filename of file containing grid data
-      topo_varname       ! variable name for topography
-                         ! assume units are meters
+      mask_varname     ,&! variable name for landmask
+      frac_varname       ! variable name for landfrac
 !EOP
 !BOC
 !-----------------------------------------------------------------------
@@ -313,75 +287,61 @@
    integer(i4) :: nx, ny          ! global grid dimensions
 
    real(r8), dimension(:,:), pointer ::  &
-      glc_topo       ! surface elevation, glc/clm grid
+      landmask       ,&! landmask, glc/clm grid
+      landfrac         ! landfrac, glc/clm grid
 
    real(r8) :: &
       latn, lats, lone, lonw   ! lat and lon of cell edges (radians)
 
 !-----------------------------------------------------------------------
 !
-! Extract global grid and topo information from netCDF topography file.
+! Extract global grid and mask information from netCDF topography file.
 ! For now we use GLINT subroutines to do this.
 !
 !-----------------------------------------------------------------------
 
-   call read_ncdf(horiz_grid_file, topo_varname, glc_topo, glc_grid)
+   call read_ncdf(horiz_grid_file, mask_varname, landmask, glc_grid)
+   call read_ncdf(horiz_grid_file, frac_varname, landfrac, glc_grid)
 
    nx = glc_grid%nx
    ny = glc_grid%ny
 
-   ! Set test point based on global grid - jwolfe added 3/1/10
-
-   if (nx.eq.96 .AND. ny.eq.48) then   ! T31
-      itest  = 84
-      jtest  = 42
-      jjtest = 49 - jtest
-      itest_local = 24
-      jtest_local = 45
-   elseif (nx.eq.144 .AND. ny.eq.96) then   ! fv 2-degree
-      itest  = 133
-      jtest  = 84
-      jjtest = 97 - jtest
-      itest_local = 60
-      jtest_local = 54
-   elseif (nx.eq.288 .AND. ny.eq.192) then   ! fv 1-degree
-      itest  = 265
-      jtest  = 167
-      jjtest = 193 - jtest
-      itest_local = 60
-      jtest_local = 54
-   else
-      write(stdout,*) 'Global grid not identified, test point set to 1,1'
-      itest  = 1
-      jtest  = 1
-      jjtest = 1
-      itest_local = 1
-      jtest_local = 1
-   endif
-
 !lipscomb - kludge
-!lipscomb - GLIMMER assumes the grid is indexed N to S and therefore sets
+!lipscomb - GLINT assumes the grid is indexed N to S and automatically sets
 !            lat_bound(1) = 90, lat_bound(ny+1) = -90.
 !           Reverse that convention here.
 
    glc_grid%lat_bound(1)    = -90._r8
    glc_grid%lat_bound(ny+1) =  90._r8
 
-!lipscomb - Another kludge - Make sure lon_bound > 0
+!lipscomb - Make sure lon_bound > 0
 
    do i = 1, nx
       if (glc_grid%lon_bound(i) < 0._r8)   &
           glc_grid%lon_bound(i) = glc_grid%lon_bound(i) + 360._r8
    enddo
  
-   ! Make sure elevations are in bounds 
+   ! Set glc_landmask and glc_landfrac
+
+   allocate(glc_landmask(nx,ny))
+   glc_landmask(:,:) = nint(landmask(:,:))
+
+   allocate(glc_landfrac(nx,ny))
+   glc_landfrac(:,:) = landfrac(:,:)
+
+   ! Make sure glc_landmask and glc_landfrac have expected values.
 
    do j = 1, ny
    do i = 1, nx
  
-      if (glc_topo(i,j) < -10000. .or. glc_topo(i,j) > 10000.) then
-         write(stdout,*) 'Topo out of bounds: i, j, topo =', i, j, glc_topo(i,j)
-         call exit_glc(sigAbort, 'topography out of bounds on glc_grid')
+      if (glc_landmask(i,j) /= 0 .and. glc_landmask(i,j) /= 1) then
+         write(stdout,*) 'landmask has invalid value: i, j, landmask =', i, j, glc_landmask(i,j)
+         call exit_glc(sigAbort, 'invalid landmask value')
+      endif
+
+      if (glc_landfrac(i,j) < 0._r8 .or. glc_landfrac(i,j) > 1._r8) then
+         write(stdout,*) 'landfrac has invalid value: i, j, landfrac =', i, j, glc_landfrac(i,j)
+         call exit_glc(sigAbort, 'invalid landfrac value')
       endif
 
    enddo
@@ -399,15 +359,15 @@
 
       latn = glc_grid%lat_bound(j+1) * pi/180._r8   ! degrees to radians
       lats = glc_grid%lat_bound(j)   * pi/180._r8
-      latn = p5*pi - latn  ! so lat = 0 at NP, = pi at SP
-      lats = p5*pi - lats  
+      latn = pi/2._r8 - latn  ! so lat = 0 at NP, = pi at SP
+      lats = pi/2._r8 - lats  
       lone = glc_grid%lon_bound(i+1) * pi/180._r8
       lonw = glc_grid%lon_bound(i)   * pi/180._r8
-      if (lone < lonw) lone = lone + c2*pi
+      if (lone < lonw) lone = lone + 2._r8*pi
       glc_grid%box_areas(i,j) = radius**2 * (cos(latn)-cos(lats)) * (lone-lonw)
 
       ! Make sure area is positive
-      if (glc_grid%box_areas(i,j) <= c0) then
+      if (glc_grid%box_areas(i,j) <= 0._r8) then
          write(stdout,*) 'Negative area: i, j, area =', i, j, glc_grid%box_areas(i,j)
 !lipscomb - debug
          write(stdout,*) 'latn, lats =', latn, lats
@@ -440,7 +400,9 @@
    write(stdout,*) 'Test point, i, j, =', itest, jtest
    write(stdout,*) 'lat, lon =', glc_grid%lats(j), glc_grid%lons(i)
    write(stdout,*) 'area =', glc_grid%box_areas(i,j)
-   write(stdout,*) 'frac of earth =', glc_grid%box_areas(i,j) / (c4*pi*radius*radius)
+   write(stdout,*) 'landmask =', glc_landmask(i,j)
+   write(stdout,*) 'landfrac =', glc_landfrac(i,j)
+   write(stdout,*) 'frac of earth =', glc_grid%box_areas(i,j) / (4._r8*pi*radius*radius)
    write(stdout,*) 'Leaving read_horiz_grid'
    call shr_sys_flush(stdout)
 !lipscomb - end debug
@@ -450,84 +412,6 @@
 
  end subroutine read_horiz_grid
 
-!***********************************************************************
-!lipscomb - Deleted most of the POP version; need a new version
-!BOP
-! !IROUTINE: area_masks
-! !INTERFACE:
-
- subroutine area_masks(mask_filename,info_filename)
-
-! !DESCRIPTION:
-!   This subroutine reads in file with regional area mask
-!
-! !REVISION HISTORY:
-!  same as module
-
-! !INPUT PARAMETERS:
-
-   character(*), intent(in) :: &
-      mask_filename           ,&! name of file containing region masks
-      info_filename             ! name of file containing region names
-
-!EOP
-!BOC
-!-----------------------------------------------------------------------
-!
-!  local variables
-!
-!-----------------------------------------------------------------------
-
-   integer (int_kind) :: &
-      k, n,              &! loop counters
-      nx, ny,            &! global dimensions
-      nu,                &! i/o unit number
-      reclength,         &! record length of file
-      ioerr,             &! i/o error flag
-      region              ! region counter
-
-   integer (int_kind), dimension(:,:), allocatable :: &
-      REGION_G            ! global-sized region mask
-
-!-----------------------------------------------------------------------
-!
-!  read in regional area masks
-!
-!-----------------------------------------------------------------------
-
-   nx = glc_grid%nx
-   nx = glc_grid%ny
-
-   allocate(REGION_MASK(nx,ny))
-
-   nu = shr_file_getunit()
-   if (my_task == master_task) then
-      allocate(REGION_G(nx,ny))
-      inquire (iolength=reclength) REGION_G
-      open(nu, file=mask_filename,status='old',form='unformatted', &
-               access='direct', recl=reclength, iostat=ioerr)
-   endif
-
-   if (ioerr /= 0) call exit_glc(sigAbort, &
-                                 'Error opening region mask file')
-
-   if (my_task == master_task) then
-      read(nu, rec=1, iostat=ioerr) REGION_G
-      close(nu)
-   endif
-   call shr_file_freeunit(nu)
-
-   if (ioerr /= 0) call exit_glc(sigAbort, &
-                                 'Error reading region mask file')
-
-   if (my_task == master_task) deallocate(REGION_G)
-
-!-----------------------------------------------------------------------
-!EOC
-
- end subroutine area_masks
-
-!***********************************************************************
 !***********************************************************************
 
  end module glc_global_grid

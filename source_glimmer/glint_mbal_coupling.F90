@@ -181,6 +181,9 @@ contains
     real(rk),dimension(:,:),intent(in) :: Psurf        !*FD Surface pressure (Pa)
 !lipscomb - added an optional input argument, acab_in, 
 !           for case that mass balance is given by climate model
+! Note: acab is not physically meaningful in masked-out grid cells, but is later set 
+!       to an appropriate value (i.e., zero). 
+
     real(sp),dimension(:,:),intent(in), optional :: acab_in   !*FD Mass balance (m/s)
 
     real(sp),dimension(size(artm,1),size(artm,2)) :: ablt,acab

@@ -93,6 +93,7 @@ contains
     use glc_constants, only: verbose, stdout, itest_local, jtest_local
     use glc_exit_mod, only: flushm
     use glc_glint_interp, only: glc_glint_downscaling
+    use glide_mask, only: glide_mask_ocean 
 !lipscomb - end glc mods
 
     implicit none
@@ -248,7 +249,7 @@ contains
          instance%local_orog,real(thck_temp,rk),instance%humid,instance%swdown,instance%lwdown, &
          instance%airpress, &
 !lipscomb - glc mod - added acab
-                          instance%acab                            )
+                          instance%acab )
 !lipscomb - end glc mod
 
     ! Initialise water budget quantities to zero. These will be over-ridden if
@@ -289,7 +290,7 @@ contains
           ablat_temp=0.0
        end if
 
-       ! Calculate the initial ice volume (scaled and converted to water equi)
+       ! Calculate the initial ice volume (scaled and converted to water equivalent)
 
 !lipscomb - to do - Is this call needed?  See call to glide_get_thck above.
 !                   See also the call a few lines below.
@@ -329,6 +330,25 @@ contains
              instance%ablt=instance%prcp
           end where
 
+!lipscomb - glc mods
+          ! Set acab and artm to zero in gridcells where interpolation from global grid is invalid
+          ! These are local cells outside the domain of the global landmask.
+
+!lipscomb - to do - set to spval instead of zero?
+
+          where (instance%downs%lmask == 0) 
+             instance%acab = 0.0    
+             instance%artm = 0.0
+          endwhere  
+
+!lipscomb - Set acab to zero in ocean cells (bed below sea level, no ice present) 
+
+          where (instance%model%geometry%thkmask == glide_mask_ocean)
+             instance%acab = 0.0
+          endwhere
+
+!lipscomb - end glc mods
+
 !lipscomb - debug
           if (verbose) then 
              il = itest_local
@@ -356,6 +376,15 @@ contains
           call glide_set_acab(instance%model,instance%acab*real(rhow/rhoi))
           call glide_set_artm(instance%model,instance%artm)
 
+!lipscomb - debug
+          if (verbose) then 
+             il = itest_local
+             jl = jtest_local
+             write (stdout,*) ' '
+             write (stdout,*) 'After glide_set_acab, glide_set_artm: i, j =', il, jl
+             write (stdout,*) 'acab (m/y), artm (C) =', instance%acab(il,jl), instance%artm(il,jl)
+          endif
+
 !lipscomb - Note that acab can have either sign, and ablt = 0 at this point
           ! Adjust glint acab and ablt for output. 
           where (instance%acab<-thck_temp.and.thck_temp>0.0)
@@ -364,10 +393,19 @@ contains
           end where
 
 !lipscomb - debug
+          if (verbose) then 
+             il = itest_local
+             jl = jtest_local
+             write (stdout,*) ' '
+             write (stdout,*) 'After thck_temp adjustment, i, j =', il, jl
+             write (stdout,*) 'acab (m/y) =', instance%acab(il,jl)
+          endif
+
+!lipscomb - debug
           if (verbose) then
              il = itest_local
              jl = jtest_local
-             write (stdout,*) 'After conversion of units: acab, artm =', &
+             write (stdout,*) 'instance%model%climate%acab, artm =', &
                    instance%model%climate%acab(il,jl), instance%model%climate%artm(il,jl)
              write (stdout,*) 'Initial thck, usrf (m) =', instance%model%geometry%thck(il,jl)*thk0,  &
                                                                instance%model%geometry%usrf(il,jl)*thk0

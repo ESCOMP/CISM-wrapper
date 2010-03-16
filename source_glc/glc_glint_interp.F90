@@ -10,18 +10,21 @@
 ! This module contains routines for upscaling and downscaling fields between the global 
 !  glc grid (with multiple elevation classes per gridcell) and the local Glimmer grid.
 !
+!lipscomb - to do - Incorporate these subroutines in Glint?
+!
 ! !REVISION HISTORY:
 !  Author: William Lipscomb, LANL
 !
 ! !USES:
 !
-!lipscomb - are all of these needed?
-  use glc_constants
+  use glc_kinds_mod
+  use glc_constants, only: glc_nec, hec_max, lapse, stdout
   use glc_exit_mod
 
-  use glimmer_global
   use glint_type, only: glint_instance, upscale
-  use glint_constants
+
+!lipscomb - debug
+  use glc_constants, only: verbose, itest, jtest, jjtest, itest_local, jtest_local
  
 !EOP
 !=======================================================================
@@ -43,7 +46,7 @@
     ! Downscale fields from the global grid (with multiple elevation classes)
     !  to the local grid.
 
-    type(glint_instance) :: instance
+    type(glint_instance), intent(inout) :: instance
     integer, intent(in) :: nec                           ! number of elevation classes
     real(r8),dimension(:,:,:),intent(in) :: tsfc_g       ! Surface temperature (C)
     real(r8),dimension(:,:,:),intent(in) :: qice_g       ! Depth of new ice (m)
@@ -92,16 +95,17 @@
     endif
 
 !   Downscale global fields for each elevation class to local grid
+!   Set local fields to zero where interpolation from the global grid is invalid (instance%downs%lmask = 0).
 
-!lipscomb - Does topo_g need to be downscaled?  Is the downscaling done correctly?
+!lipscomb - to do - Is topo_g downscaled correctly?
 
     do n = 1, nec
-       call interp_to_local(instance%lgrid, tsfc_g(:,:,n), instance%downs, localdp=tsfc_l(:,:,n))
-       call interp_to_local(instance%lgrid, topo_g(:,:,n), instance%downs, localdp=topo_l(:,:,n))
-       call interp_to_local(instance%lgrid, qice_g(:,:,n), instance%downs, localdp=qice_l(:,:,n))
+       call interp_to_local(instance%lgrid, tsfc_g(:,:,n), instance%downs, localdp=tsfc_l(:,:,n), maskval=0._r8)
+       call interp_to_local(instance%lgrid, topo_g(:,:,n), instance%downs, localdp=topo_l(:,:,n), maskval=0._r8)
+       call interp_to_local(instance%lgrid, qice_g(:,:,n), instance%downs, localdp=qice_l(:,:,n), maskval=0._r8)
     enddo
 
-!lipscomb - debug - Write topo in each class of global cell
+!lipscomb - debug - Write topo in each elevation class of global cell
 
     write(stdout,*) ' '
     write(stdout,*) 'Global cell =', itest, jjtest
@@ -153,7 +157,7 @@
 
        usrf = instance%model%geometry%usrf(i,j) * thk0   ! actual sfc elevation (m)
 
-       if (usrf < topo_l(i,j,1)) then
+       if (usrf <= topo_l(i,j,1)) then
           instance%acab(i,j) = qice_l(i,j,1)
           instance%artm(i,j) = tsfc_l(i,j,1) + lapse*(topo_l(i,j,1)-usrf)
        elseif (usrf > topo_l(i,j,nec)) then
@@ -161,27 +165,45 @@
           instance%artm(i,j) = tsfc_l(i,j,nec) - lapse*(usrf-topo_l(i,j,nec))
        else
           do n = 2, nec
-             if (usrf > topo_l(i,j,n-1) .and. usrf < topo_l(i,j,n)) then
+             if (usrf > topo_l(i,j,n-1) .and. usrf <= topo_l(i,j,n)) then
                 fact = (topo_l(i,j,n) - usrf) / (topo_l(i,j,n) - topo_l(i,j,n-1)) 
-                instance%acab(i,j) = fact*qice_l(i,j,n-1) + (c1-fact)*qice_l(i,j,n)
-                instance%artm(i,j) = fact*tsfc_l(i,j,n-1) + (c1-fact)*tsfc_l(i,j,n)
+                instance%acab(i,j) = fact*qice_l(i,j,n-1) + (1._r8-fact)*qice_l(i,j,n)
+                instance%artm(i,j) = fact*tsfc_l(i,j,n-1) + (1._r8-fact)*tsfc_l(i,j,n)
+!lipscomb - debug
+             if (i==itest_local .and. j==jtest_local) then
+                write(stdout,*) 'Exiting, n, fact =', n, fact
+                write (stdout,*) 'acab =', instance%acab(i,j)
+                write (stdout,*) 'artm =', instance%artm(i,j)
+             endif
+!lipscomb - end debug
                 exit
              endif
           enddo
        endif   ! usrf
 
+!lipscomb - debug
        if (verbose) then
           if (i==itest_local .and. j==jtest_local) then
+             n = 4  
              write (stdout,*) ' '
-             write (stdout,*) 'Interpolated values, i, j =', i, j
+             write (stdout,*) 'Interpolated values, i, j, n =', i, j, n
              write (stdout,*) 'usrf =', usrf
              write (stdout,*) 'acab =', instance%acab(i,j)
              write (stdout,*) 'artm =', instance%artm(i,j)
+             write (stdout,*) 'topo(n-1) =', topo_l(i,j,n-1)
+             write (stdout,*) 'topo(n) =', topo_l(i,j,n)
+             write (stdout,*) 'qice(n-1) =', qice_l(i,j,n-1)
+             write (stdout,*) 'qice(n) =', qice_l(i,j,n)
+             write (stdout,*) 'tsfc(n-1) =', tsfc_l(i,j,n-1)
+             write (stdout,*) 'tsfc(n) =', tsfc_l(i,j,n)
+             write (stdout,*) 'fact = ', (topo_l(i,j,n) - usrf) / (topo_l(i,j,n) - topo_l(i,j,n-1)) 
           endif
        endif
 
     enddo  ! i
     enddo  ! j
+
+
 
 !lipscomb - commented out
 !!!    if (orogflag) &
@@ -254,10 +276,10 @@
 
     do j = 1, nyl
     do i = 1, nxl
-       if (ltopo_temp(i,j) > c0) then
-          temp(i,j) = c1
+       if (ltopo_temp(i,j) > 0._r8) then
+          temp(i,j) = 1._r8
        else
-          temp(i,j) = c0
+          temp(i,j) = 0._r8
        endif
     enddo
     enddo
@@ -267,7 +289,7 @@
        jl = jtest_local 
        write(stdout,*) 'local ifrac =', temp(il, jl)
        write(stdout,*) 'local topo =', ltopo_temp(il,jl)
-       write(stdout,*) 'local mask =', instance%out_mask(il,jl)
+       write(stdout,*) 'local out_mask =', instance%out_mask(il,jl)
     endif
 
     call mean_to_global_mec(instance%ups,                       &
@@ -302,7 +324,7 @@
     ! heat flux
 
 !lipscomb - to do - Copy runoff into temp array
-    temp(:,:) = c0
+    temp(:,:) = 0._r8
 
     call mean_to_global_mec(instance%ups,                   &
                             nxl,                 nyl,       &
@@ -312,7 +334,7 @@
                             ltopo_temp,          instance%out_mask)
  
 !lipscomb - to do - Copy runoff into temp array
-    temp(:,:) = c0
+    temp(:,:) = 0._r8
 
     call mean_to_global_mec(instance%ups,                   &
                             nxl,                 nyl,       &
@@ -442,7 +464,7 @@
        enddo
     enddo
 
-    global(:,:,:) = c0
+    global(:,:,:) = 0._r8
 
     do j = 1, nyl
     do i = 1, nxl
@@ -487,7 +509,7 @@
           if (gnumloc(i,j,n) /= 0) then
              global(i,j,n) = global(i,j,n) / gnumloc(i,j,n)
           else
-             global(i,j,n) = c0
+             global(i,j,n) = 0._r8
           endif
        enddo
        enddo
@@ -495,14 +517,14 @@
 
     ! conservation check
 
-    lsum = c0
+    lsum = 0._r8
     do j = 1, nyl
     do i = 1, nxl
        lsum = lsum + local(i,j)*tempmask(i,j)
     enddo
     enddo
 
-    gsum = c0
+    gsum = 0._r8
     do n = 1, nec
     do j = 1, nyg
     do i = 1, nxg

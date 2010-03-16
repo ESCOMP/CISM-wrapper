@@ -86,6 +86,12 @@ module glint_global_grid
      !*FD The areas of the grid-boxes (m$^2$). This is a two-dimensional array to take
      !*FD account of the possibility of a grid irregularly spaced in longitude
 
+!lipscomb - glc mod - mask for global grid
+     integer,pointer,dimension(:,:) :: mask => null()
+     !*FD This mask = 1 where the global data are valid, = 0 elsewhere
+     !*FD (e.g., over ocean, where the GCM does not compute a surface mass balance)
+!lipscomb - end glc mod
+
   end type global_grid
 
   private pi
@@ -133,7 +139,9 @@ contains
 #undef RST_GLINT_GLOBAL_GRID
 #endif
 
-  subroutine new_global_grid(grid,lons,lats,lonb,latb,radius,correct)
+!lipscomb - glc mod - added optional argument
+!  subroutine new_global_grid(grid,lons,lats,lonb,latb,radius,correct)
+  subroutine new_global_grid(grid, lons, lats, lonb, latb, radius, correct, mask)
 
     use glimmer_log
 
@@ -146,7 +154,10 @@ contains
     real(rk),dimension(:),optional,intent(in)    :: latb !*FD Latitudinal boundaries of grid-boxes (degrees)
     real(rk),             optional,intent(in)    :: radius !*FD The radius of the Earth (m)
     logical,              optional,intent(in)    :: correct !*FD Set to correct for boundaries (default is .true.)
-
+!lipscomb - glc mod
+    integer,dimension(:,:),optional,intent(in)   :: mask 
+!lipscomb - end glc mod
+ 
     ! Internal variables
 
     real(rk) :: radea=1.0
@@ -168,6 +179,9 @@ contains
     if (associated(grid%lat_bound)) deallocate(grid%lat_bound)
     if (associated(grid%lon_bound)) deallocate(grid%lon_bound)
     if (associated(grid%box_areas)) deallocate(grid%box_areas)
+!lipscomb - glc mod
+    if (associated(grid%mask))      deallocate(grid%mask)
+!lipscomb - end glc mod
 
     ! Find size of grid
 
@@ -180,6 +194,9 @@ contains
     allocate(grid%lon_bound(grid%nx+1))
     allocate(grid%lat_bound(grid%ny+1))
     allocate(grid%box_areas(grid%nx,grid%ny))
+!lipscomb - glc mod
+    allocate(grid%mask(grid%nx,grid%ny))
+!lipscomb - end glc mod
 
     ! Check dimensions of boundary arrays, if supplied
 
@@ -227,6 +244,16 @@ contains
        enddo
     enddo
 
+!lipscomb - glc mod
+    ! Specify mask
+
+    if (present(mask)) then
+       grid%mask(:,:) = mask(:,:)
+    else
+       grid%mask(:,:) = 1   ! assume global data are valid everywhere 
+    endif
+!lipscomb - end glc mod
+
   end subroutine new_global_grid
 
   !-----------------------------------------------------------------------------
@@ -250,12 +277,18 @@ contains
     if (associated(out%lat_bound)) deallocate(out%lat_bound)
     if (associated(out%lon_bound)) deallocate(out%lon_bound)
     if (associated(out%box_areas)) deallocate(out%box_areas)
+!lipscomb - glc mod
+    if (associated(out%mask))      deallocate(out%mask)
+!lipscomb - end glc mod
 
     allocate(out%lons(out%nx))
     allocate(out%lats(out%ny))
     allocate(out%lon_bound(out%nx+1))
     allocate(out%lat_bound(out%ny+1))
     allocate(out%box_areas(out%nx,out%ny))
+!lipscomb - glc mod
+    allocate(out%mask(out%nx,out%ny))
+!lipscomb - end glc mod
 
     ! Copy data
 
@@ -264,6 +297,9 @@ contains
     out%lat_bound=in%lat_bound
     out%lon_bound=in%lon_bound
     out%box_areas=in%box_areas
+!lipscomb - glc mod
+    out%mask     =in%mask
+!lipscomb - end glc mod
 
   end subroutine copy_global_grid
 

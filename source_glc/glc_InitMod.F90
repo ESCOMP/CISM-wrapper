@@ -85,19 +85,20 @@
 
    use glc_global_fields, only: albedo, lats_orog, lons_orog, orog_out  ! to be removed?
    use glc_global_fields, only: time, coverage, cov_orog  ! to be removed?
-   use glc_global_grid,   only: init_glc_grid, glc_grid, glint_grid
+   use glc_global_grid,   only: init_glc_grid, glc_grid
    use glc_constants
    use glc_communicate, only: init_communicate
    use glc_time_management, only: init_time1, init_time2, dtt, ihour
 !!   use glc_timers
    use glimmer_log
+   use glc_global_grid, only: glc_landmask
 
 !lipscomb - not sure we need init_global_reductions
 !   use glc_global_reductions, only: init_global_reductions
 
 !lipscomb - debug
-   use glc_global_grid, only: region_mask
    use shr_sys_mod, only: shr_sys_flush
+   use glc_global_grid, only: glc_landfrac
 
 ! !INPUT/OUTPUT PARAMETERS:
 
@@ -113,27 +114,30 @@
 !-----------------------------------------------------------------------
 
   character(fname_length) ::  &
-      paramfile    ,&! Name of the top-level configuration file
-      climatefile    ! Name of climate configuration file
+      paramfile      ,&! Name of the top-level configuration file
+      climatefile      ! Name of climate configuration file
  
   ! Scalars which hold information about the global grid --------------
  
   integer (i4) ::  &
-      nx,ny,        &! Size of global glc grid
-      nxo,nyo        ! Size of global orography grid
+      nx,ny,          &! Size of global glc grid
+      nxo,nyo          ! Size of global orography grid
  
   integer (i4) ::  &
-      i,j            ! Array index counters
+      i,j              ! Array index counters
 
   integer (i4) :: &
-      nml_error      ! namelist i/o error flag
+      nml_error        ! namelist i/o error flag
 
   integer (i4) :: &
-      nhour_glint    ! number of hours since start of complete glint/glimmer run
+      nhour_glint      ! number of hours since start of complete glint/glimmer run
 
-  real(rk), dimension(:), allocatable ::  &
-      glint_lats   ,&! lats on glint grid (N to S indexing, instead of S to N as on glc_grid)  
-      glint_latb     ! lat_bound on glint grid
+  real(rk), dimension(:), allocatable ::  &    
+      glint_lats     ,&! lats on glint grid (N to S indexing, instead of S to N as on glc_grid)  
+      glint_latb       ! lat_bound on glint grid
+
+  integer, dimension(:,:), allocatable ::  &    
+      glint_landmask   ! landmask on glint grid (N to S indexing)
 
   logical, parameter :: coupglc = .true.   ! temporary, in place of ifdef
 
@@ -286,17 +290,26 @@
       call shr_sys_flush(stdout)
    endif
 
-   call init_glc_grid
+   call init_glc_grid   ! glc_landmask is computed here
 
    ! switch latitude indices for sending info to Glint
-   ! latitude is S to N on glc_grid, N to S on glint_grid
+   ! latitude is S to N on glc_grid, N to S on glint grid
 
    nx = glc_grid%nx  ! not needed?
    ny = glc_grid%ny
+
    allocate(glint_lats(ny))
 
    do j = 1, ny
-        glint_lats(j) = glc_grid%lats(ny-j+1)
+      glint_lats(j) = glc_grid%lats(ny-j+1)
+   enddo
+
+   allocate(glint_landmask(nx,ny))
+
+   do j = 1, ny
+   do i = 1, nx
+      glint_landmask(i,j) = glc_landmask(i,ny-j+1)
+   enddo
    enddo
 
    ! set values of climate derived type
@@ -311,7 +324,7 @@
       call shr_sys_flush(stdout)
    endif
 
- else   ! not coupled (Is this code needed?
+ else   ! not coupled (to do - Is this code needed?)
 
 !lipscomb - debug
    write (stdout,*) 'GLC will read data from climate files'
@@ -380,23 +393,23 @@
   ! Initialize global arrays
  
   ! The following are passed to Glint if running if SMB mode.
-  tsfc(:,:,:)   = c0
-  qice(:,:,:)   = c0
-  topo(:,:,:)   = c0
+  tsfc(:,:,:)   = 0._r8
+  qice(:,:,:)   = 0._r8
+  topo(:,:,:)   = 0._r8
 
-  tsfc_av(:,:,:) = c0
-  qice_av(:,:,:) = c0
-  topo_av(:,:,:) = c0
+  tsfc_av(:,:,:) = 0._r8
+  qice_av(:,:,:) = 0._r8
+  topo_av(:,:,:) = 0._r8
 
   ! These are passed to Glint only if running in PDD mode.
-  temp(:,:)     = c0
-  precip(:,:)   = c0
-  orog(:,:)     = c0
+  temp(:,:)     = 0._r8
+  precip(:,:)   = 0._r8
+  orog(:,:)     = 0._r8
 
 
 !lipscomb - not sure these are needed; currently are not used
-  albedo(:,:)   = c0
-  orog_out(:,:) = c0
+  albedo(:,:)   = 0._r8
+  orog_out(:,:) = 0._r8
 
 !lipscomb - if coupled?   
 !!!  orog = real(climate%orog_clim)                    ! Put orography where it belongs
@@ -437,16 +450,17 @@
 !                            daysinyear = climate%days_in_year, &
 !                            start_time = nhour_glint)
 
-  call initialise_glint (ice_sheet,             &
-                         glint_lats,            &   ! indexing is N to S for Glint
-                         glc_grid%lons,         &
-                         climate%climate_tstep, &
-                         (/paramfile/),         &
-                         gfrac = gfrac,         &
-                         gthck = gthck,         &
-                         gtopo = gtopo,         &
-                         ghflx = ghflx,         &
-                         groff = groff,         &
+  call initialise_glint (ice_sheet,              &
+                         glint_lats,             &   ! indexing is N to S for Glint
+                         glc_grid%lons,          &
+                         climate%climate_tstep,  &
+                         (/paramfile/),          &
+                         gmask = glint_landmask, & 
+                         gfrac = gfrac,          &
+                         gthck = gthck,          &
+                         gtopo = gtopo,          &
+                         ghflx = ghflx,          &
+                         groff = groff,          &
                          daysinyear = climate%days_in_year, &
                          start_time = nhour_glint)
  

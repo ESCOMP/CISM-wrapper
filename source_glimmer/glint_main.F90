@@ -172,7 +172,7 @@ contains
   subroutine initialise_glint(params,lats,longs,time_step,paramfile,latb,lonb,orog,albedo, &
                               ice_frac,veg_frac,snowice_frac,snowveg_frac,snow_depth,      &
 !lipscomb - glc mods
-                              gfrac, gthck, gtopo, ghflx, groff,                    &
+                              gmask, gfrac, gthck, gtopo, ghflx, groff,                    &
 !lipscomb - end glc mods
                               orog_lats,orog_longs,orog_latb,orog_lonb,output_flag, &
                               daysinyear,snow_model,ice_dt,extraconfigs,start_time)
@@ -203,11 +203,12 @@ contains
     real(rk),dimension(:,:),optional,intent(out)   :: snowveg_frac !*FD Initial snow-covered veg fraction
     real(rk),dimension(:,:),optional,intent(out)   :: snow_depth  !*FD Initial snow depth 
 !lipscomb - glc mods
-    real(rk),dimension(:,:,:),optional,intent(out) :: gfrac    ! ice fractional area [0,1]
-    real(rk),dimension(:,:,:),optional,intent(out) :: gthck    ! ice thickness (m)
-    real(rk),dimension(:,:,:),optional,intent(out) :: gtopo    ! surface elevation (m)
-    real(rk),dimension(:,:,:),optional,intent(out) :: ghflx    ! heat flux (W/m^2, positive down)
-    real(rk),dimension(:,:,:),optional,intent(out) :: groff    ! runoff (kg/m^2/s = mm H2O/s)
+    integer, dimension(:,:),  optional,intent(in)  :: gmask    !*FD mask = 1 where global data are valid 
+    real(rk),dimension(:,:,:),optional,intent(out) :: gfrac    !*FD ice fractional area [0,1]
+    real(rk),dimension(:,:,:),optional,intent(out) :: gthck    !*FD ice thickness (m)
+    real(rk),dimension(:,:,:),optional,intent(out) :: gtopo    !*FD surface elevation (m)
+    real(rk),dimension(:,:,:),optional,intent(out) :: ghflx    !*FD heat flux (W/m^2, positive down)
+    real(rk),dimension(:,:,:),optional,intent(out) :: groff    !*FD runoff (kg/m^2/s = mm H2O/s)
 !lipscomb - end glc mods
     real(rk),dimension(:),  optional,intent(in)    :: orog_lats   !*FD Latitudinal location of gridpoints 
                                                                   !*FD for global orography output.
@@ -246,7 +247,7 @@ contains
 !lipscomb - end glc mods
 
 !lipscomb - debug
-    integer :: ii, jj
+    integer :: j, ii, jj
 
     if (verbose) then
        write(stdout,*) 'Starting initialise_glint'
@@ -281,16 +282,32 @@ contains
 
     ! Initialise main global grid --------------------------------------------------------------
 
-    call new_global_grid(params%g_grid,longs,lats,lonb=lonb,latb=latb)
+!lipscomb - glc mod - added mask option
+!    call new_global_grid(params%g_grid,longs,lats,lonb=lonb,latb=latb)
+    if (present(gmask)) then
+       call new_global_grid(params%g_grid,longs,lats,lonb=lonb,latb=latb,mask=gmask)
+    else
+       call new_global_grid(params%g_grid,longs,lats,lonb=lonb,latb=latb)
+    endif
 
+!lipscomb - debug
     write (stdout,*) ' '
     write (stdout,*) 'Called new_global_grid '
     write (stdout,*) 'g_grid%nx =', params%g_grid%nx
     write (stdout,*) 'g_grid%ny =', params%g_grid%ny
+    write (stdout,*) ' '
     write (stdout,*) 'g_grid%lons =', params%g_grid%lons
+    write (stdout,*) ' '
     write (stdout,*) 'g_grid%lats =', params%g_grid%lats
+    write (stdout,*) ' '
     write (stdout,*) 'g_grid%lon_bound =', params%g_grid%lon_bound
+    write (stdout,*) ' '
     write (stdout,*) 'g_grid%lat_bound =', params%g_grid%lat_bound
+    do j = 5, 10
+       write (stdout,*)
+       write (stdout,*) 'j, g_grid%mask =', j, params%g_grid%mask(:,j)
+    enddo
+!lipscomb - end debug
 
     ! Initialise orography grid ------------------------------------
 

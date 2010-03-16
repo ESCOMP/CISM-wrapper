@@ -26,7 +26,7 @@ module glc_comp_mct
   use glc_FinalMod,    only : glc_final
   use glc_communicate, only : init_communicate
   use glc_time_management, only: iyear,imonth,iday,ihour,iminute,isecond
-  use glc_global_grid, only: glc_grid, region_mask
+  use glc_global_grid, only: glc_grid, glc_landmask, glc_landfrac
 
 ! !PUBLIC TYPES:
   implicit none
@@ -640,12 +640,13 @@ subroutine glc_final_mct()
     end do
     call mct_gGrid_importRattr(dom_g,"area",data,lsize) 
 
+!lipscomb - glc_landmask and glc_landfrac are read from file when grid is initialized
     do j = 1,nyg
     do i = 1,nxg
        n = (j-1)*nxg + i
-!lipscomb - glc mod - mask is r8
-!!!       data(n) = region_mask(i,j)
-       data(n) = real(region_mask(i,j), r8)
+!lipscomb - glc mod - data is r8, glc_landmask is i4
+!!!       data(n) = glc_landmask(i,j)
+       data(n) = real(glc_landmask(i,j), r8)
 !lipscomb - end glc mod
     end do
     end do
@@ -655,10 +656,7 @@ subroutine glc_final_mct()
     do j = 1,nyg
     do i = 1,nxg
        n = (j-1)*nxg + i
-!lipscomb - glc mod - frac is r8
-!!!       data(n) = region_mask(i,j)
-       data(n) = real(region_mask(i,j), r8)
-!lipscomb - end glc mod
+       data(n) = glc_landfrac(i,j)
     end do
     end do
     call mct_gGrid_importRattr(dom_g,"frac",data,lsize) 

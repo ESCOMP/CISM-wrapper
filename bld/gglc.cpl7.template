@@ -30,7 +30,7 @@ if ( $ATM_GRID =~ 0.9x1.25)then
    set gridfile  = \$DIN_LOC_ROOT/glc/gglc/topodata_0.9x1.25_USGS_070110.glc.nc
 endif
 if ( $ATM_GRID =~ 1.9x2.5 )then
-   set gridfile  = \$DIN_LOC_ROOT/glc/gglc/topodata_1.9x2.5_USGS_061130.glc.nc
+   set gridfile  = \$DIN_LOC_ROOT/glc/gglc/fracdata/fracdata_1.9x2.5_gx1v6_c090206.glc.nc
 endif
 
 if ( $gridfile  == "UNSET" )then
@@ -86,7 +86,8 @@ cat >! gglc_in <<EOF
 &grid_nml
   horiz_grid_opt  = 'file'
   horiz_grid_file = '$gridfile'
-  topo_varname    = 'TOPO'
+  mask_varname    = 'LANDMASK'
+  frac_varname    = 'LANDFRAC'
 /
 &time_manager_nml
   runid             = '\$CASE'
