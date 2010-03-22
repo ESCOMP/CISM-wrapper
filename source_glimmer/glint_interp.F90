@@ -225,9 +225,9 @@ contains
 
   !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-!lipscomb - glc mod - added optional argument 'maskval'
+!lipscomb - glc mod - added optional arguments 'gmask' and 'maskval'
 !  subroutine interp_to_local(lgrid,global,downs,localsp,localdp,localrk,global_fn)
-  subroutine interp_to_local(lgrid,global,downs,localsp,localdp,localrk,global_fn,maskval)
+  subroutine interp_to_local(lgrid,global,downs,localsp,localdp,localrk,global_fn,gmask,maskval)
 
     !*FD Interpolate a global scalar field onto a projected grid. 
     !*FD 
@@ -238,6 +238,15 @@ contains
     !*FD Either localsp or localdp must be present (or both), depending
     !*FD which precision output is required.
 
+!lipscomb - added diagram
+! Cell indexing for (xloc,yloc) is as follows:
+!
+!       4---------3  
+!       |         |
+!       |         |
+!       |         |
+!       1---------2
+!
     use glimmer_utils
     use glimmer_coordinates
     use glimmer_log
@@ -257,7 +266,11 @@ contains
                                                                !*FD In these circumstances, \texttt{global}
                                                                !*FD may be of any size, and its contents are irrelevant.
 !lipscomb - glc mod
+    integer, dimension(:,:), intent(in),optional  :: gmask     !*FD = 1 where global data are valid, else = 0
     real(dp), intent(in), optional                :: maskval   !*FD Value to write for masked-out cells 
+
+    integer :: x1, x2, x3, x4
+    integer :: y1, y2, y3, y4
 !lipscomb - end glc mod
 
     ! Local variable declarations
@@ -275,6 +288,7 @@ contains
        call write_log('Interp_to_local has no output',GM_WARNING,__FILE__,__LINE__)
     endif
 
+!lipscomb - to do - rearrange ifs and do loops? 
     ! Main interpolation loop
 
     do i=1,lgrid%size%pt(1)
@@ -289,40 +303,114 @@ contains
                  write(stdout,*) downs%xloc(i,j,n), downs%yloc(i,j,n)
               enddo
           endif
-       
-!lipscomb - to do - Masking is not necessary if nearest-neighbor cell is available
-!lipscomb - glcmod - deal with masked-out cells
- 
-          if (present(maskval) .and. downs%lmask(i,j) == 0) then
 
-             ! set field to maskval
+          ! Compile the temporary array f from adjacent points 
  
-             if (present(localsp)) localsp(i,j) = maskval
-             if (present(localdp)) localdp(i,j) = maskval
-             if (present(localrk)) localrk(i,j) = maskval
+!lipscomb mod - added code to handle masked-out global gridcells
+             
+          if (present(gmask) .and. present(maskval)) then
 
-          else
-!lipscomb - end glc mod
+             if (downs%lmask(i,j) == 0) then
+
+                f(1) = maskval
+                f(2) = maskval
+                f(3) = maskval
+                f(4) = maskval
+
+             else
+
+                x1 = downs%xloc(i,j,1); y1 = downs%yloc(i,j,1)
+                x2 = downs%xloc(i,j,2); y2 = downs%yloc(i,j,2)
+                x3 = downs%xloc(i,j,3); y3 = downs%yloc(i,j,3)
+                x4 = downs%xloc(i,j,4); y4 = downs%yloc(i,j,4)
  
-             ! Compile the temporary array f from adjacent points 
+!lipscomb - debug
+          if (i==itest_local .and. j==jtest_local) then
+              write(stdout,*) ' '
+              write(stdout,*) 'x, y, gmask:' 
+              write(stdout,*) x1, y1, gmask(x1,y1)
+              write(stdout,*) x2, y2, gmask(x2,y2)
+              write(stdout,*) x3, y3, gmask(x3,y3)
+              write(stdout,*) x4, y4, gmask(x4,y4)
+          endif
+
+
+                ! if a gridcell is masked out, try to assign a value from a
+                ! neighbor that is not masked out
+
+                if (gmask(x1,y1) /= 0) then
+                   f(1) = global(x1,y1)
+                elseif (gmask(x2,y2) /= 0) then
+                   f(1) = global(x2,y2)
+                elseif (gmask(x4,y4) /= 0) then
+                   f(1) = global(x4,y4)
+                elseif  (gmask(x3,y3) /= 0) then
+                   f(1) = global(x3,y3)
+                else
+                   f(1) = maskval
+                endif
+
+                if (gmask(x2,y2) /= 0) then
+                   f(2) = global(x2,y2)
+                elseif (gmask(x1,y1) /= 0) then
+                   f(2) = global(x1,y1)
+                elseif (gmask(x3,y3) /= 0) then
+                   f(2) = global(x3,y3)
+                elseif  (gmask(x4,y4) /= 0) then
+                   f(2) = global(x4,y4)
+                else
+                   f(2) = maskval
+                endif
+
+                if (gmask(x3,y3) /= 0) then
+                   f(3) = global(x3,y3)
+                elseif (gmask(x4,y4) /= 0) then
+                   f(3) = global(x4,y4)
+                elseif (gmask(x2,y2) /= 0) then
+                   f(3) = global(x2,y2)
+                elseif  (gmask(x1,y1) /= 0) then
+                   f(3) = global(x1,y1)
+                else
+                   f(3) = maskval
+                endif
+
+                if (gmask(x4,y4) /= 0) then
+                   f(4) = global(x4,y4)
+                elseif (gmask(x3,y3) /= 0) then
+                   f(4) = global(x3,y3)
+                elseif (gmask(x1,y1) /= 0) then
+                   f(4) = global(x1,y1)
+                elseif  (gmask(x2,y2) /= 0) then
+                   f(4) = global(x2,y2)
+                else
+                   f(4) = maskval
+                endif
+ 
+             endif    ! lmask = 0
+
+!lipscomb end mod
+
+          else        ! gmask and maskval not present
 
              if (present(global_fn)) then
                 f(1)=global_fn(downs%xloc(i,j,1),downs%yloc(i,j,1))
                 f(2)=global_fn(downs%xloc(i,j,2),downs%yloc(i,j,2))
                 f(3)=global_fn(downs%xloc(i,j,3),downs%yloc(i,j,3))
                 f(4)=global_fn(downs%xloc(i,j,4),downs%yloc(i,j,4))
-             else
+             else 
                 f(1)=global(downs%xloc(i,j,1),downs%yloc(i,j,1))
                 f(2)=global(downs%xloc(i,j,2),downs%yloc(i,j,2))
                 f(3)=global(downs%xloc(i,j,3),downs%yloc(i,j,3))
                 f(4)=global(downs%xloc(i,j,4),downs%yloc(i,j,4))
              end if
 
-             ! Apply the bilinear interpolation
+          endif       ! gmask and maskval present
 
-             if (present(localsp)) localsp(i,j)=bilinear_interp(downs%xfrac(i,j),downs%yfrac(i,j),f)
-             if (present(localdp)) localdp(i,j)=bilinear_interp(downs%xfrac(i,j),downs%yfrac(i,j),f)
-             if (present(localrk)) localrk(i,j)=bilinear_interp(downs%xfrac(i,j),downs%yfrac(i,j),f)
+          ! Apply the bilinear interpolation
+
+          if (present(localsp)) localsp(i,j)=bilinear_interp(downs%xfrac(i,j),downs%yfrac(i,j),f)
+          if (present(localdp)) localdp(i,j)=bilinear_interp(downs%xfrac(i,j),downs%yfrac(i,j),f)
+          if (present(localrk)) localrk(i,j)=bilinear_interp(downs%xfrac(i,j),downs%yfrac(i,j),f)
 
 !lipscomb - debug
           if (i==itest_local .and. j==jtest_local) then
@@ -332,9 +420,6 @@ contains
               write(stdout,*) 'localdp =', localdp(i,j) 
           endif
 
-!lipscomb - glc mod
-          endif    ! present(maskval)
-!lipscomb - end glc mod
        enddo
     enddo
 
@@ -662,7 +747,7 @@ contains
 
   !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-!lipscomb - glc mod - added optional arguments
+!lipscomb - glc mod - added optional argument lmask
 !  subroutine index_local_boxes(xloc,yloc,xfrac,yfrac,ggrid,proj,lgrid)
   subroutine index_local_boxes(xloc, yloc, xfrac, yfrac, ggrid, proj, lgrid, lmask)
 
@@ -701,12 +786,6 @@ contains
     write(stdout,*) 'nx,  ny =', nx, ny
     write(stdout,*) 'nxg, nyg =', nxg, nyg
     write(stdout,*) 'Indexing local boxes'
-
-!lipscomb - glc mod
-    ! initialize local mask, assuming global data is valid everywhere
-
-    lmask(:,:) = 1
-!lipscomb - end glc mod
 
     do i=1,lgrid%size%pt(1)
        do j=1,lgrid%size%pt(2)
@@ -778,90 +857,12 @@ contains
              enddo
           endif
 
-!lipscomb - glc mods - check for masked out global points
-          ! Check to see whether any of these global points is masked out.
-          ! If so, then look for a neighbor that is not masked out.
-          ! If all neighbors are masked out, then tag the local gridcell
-          !  as being out of range of downscaling.
-
-          if (ggrid%mask(xloc(i,j,1),yloc(i,j,1)) == 0) then
-
 !lipscomb - debug
 !                write(stdout,*) ' '
 !                write(stdout,*) 'pt 1 masked out: i, j, xloc, yloc =', i, j, xloc(i,j,1), yloc(i,j,1)
 !                write(stdout,*) 'mask 2, 3, 4:', ggrid%mask(xloc(i,j,2),yloc(i,j,2)), &
 !                                                 ggrid%mask(xloc(i,j,3),yloc(i,j,3)), &
 !                                                 ggrid%mask(xloc(i,j,4),yloc(i,j,4))
-
-             if (ggrid%mask(xloc(i,j,2),yloc(i,j,2)) /= 0) then
-                xloc(i,j,1) = xloc(i,j,2)
-                yloc(i,j,1) = yloc(i,j,2 )
-             elseif (ggrid%mask(xloc(i,j,4),yloc(i,j,4)) /= 0) then
-                xloc(i,j,1) = xloc(i,j,4)
-                yloc(i,j,1) = yloc(i,j,4)
-             elseif (ggrid%mask(xloc(i,j,3),yloc(i,j,3)) /= 0) then
-                xloc(i,j,1) = xloc(i,j,3)
-                yloc(i,j,1) = yloc(i,j,3)
-             else
-                lmask(i,j) = 0      ! no data available for interpolation to (i,j)
-             endif
-!lipscomb - debug
-!!             write(stdout,*) 'New lmask, i, j, xloc, yloc:', lmask(i,j), i, j, xloc(i,j,1), yloc(i,j,1)
-
-          endif
- 
-          if (ggrid%mask(xloc(i,j,2),yloc(i,j,2)) == 0) then
-             if (ggrid%mask(xloc(i,j,1),yloc(i,j,1)) /= 0) then
-                xloc(i,j,2) = xloc(i,j,1)
-                yloc(i,j,2) = yloc(i,j,1)
-             elseif (ggrid%mask(xloc(i,j,3),yloc(i,j,3)) /= 0) then
-                xloc(i,j,2) = xloc(i,j,3)
-                yloc(i,j,2) = yloc(i,j,3)
-             elseif (ggrid%mask(xloc(i,j,4),yloc(i,j,4)) /= 0) then
-                xloc(i,j,2) = xloc(i,j,4)
-                yloc(i,j,2) = yloc(i,j,4)
-             endif
-          endif
-
-          if (ggrid%mask(xloc(i,j,3),yloc(i,j,3)) == 0) then
-             if (ggrid%mask(xloc(i,j,4),yloc(i,j,4)) /= 0) then
-                xloc(i,j,3) = xloc(i,j,4)
-                yloc(i,j,3) = yloc(i,j,4)
-             elseif (ggrid%mask(xloc(i,j,2),yloc(i,j,2)) /= 0) then
-                xloc(i,j,3) = xloc(i,j,2)
-                yloc(i,j,3) = yloc(i,j,2)
-             elseif (ggrid%mask(xloc(i,j,1),yloc(i,j,1)) /= 0) then
-                xloc(i,j,3) = xloc(i,j,1)
-                yloc(i,j,3) = yloc(i,j,1)
-             endif
-          endif
-
-          if (ggrid%mask(xloc(i,j,4),yloc(i,j,4)) == 0) then
-             if (ggrid%mask(xloc(i,j,3),yloc(i,j,3)) /= 0) then
-                xloc(i,j,4) = xloc(i,j,3)
-                yloc(i,j,4) = yloc(i,j,3)
-             elseif (ggrid%mask(xloc(i,j,1),yloc(i,j,1)) /= 0) then
-                xloc(i,j,4) = xloc(i,j,1)
-                yloc(i,j,4) = yloc(i,j,1)
-             elseif (ggrid%mask(xloc(i,j,2),yloc(i,j,2)) /= 0) then
-                xloc(i,j,4) = xloc(i,j,2)
-                yloc(i,j,4) = yloc(i,j,2)
-             endif
-          endif
-
-!lipscomb - to do - Allow option of setting (xloc,ylco) using nearest global value with mask = 1 
-
-!lipscomb - end glc mods
-
-!lipscomb - debug
-          if (i==itest_local .and. j==jtest_local) then
-             write(stdout,*) ' '
-             write(stdout,*) 'After mask check, i, j =', i, j
-             write(stdout,*) 'xloc, yloc' 
-             do n = 1, 4
-                write(stdout,*) xloc(i,j,n), yloc(i,j,n) 
-             enddo
-          endif
 
           ! Now, find out where each of those points is on the projected
           ! grid, and calculate fractional displacements accordingly
@@ -873,6 +874,20 @@ contains
 
           call calc_fractional(xfrac(i,j),yfrac(i,j),real(i,rk),real(j,rk), &
                xa,ya,xb,yb,xc,yc,xd,yd)
+
+!lipscomb - glc mods - check for masked out global points
+          ! If all four global gridcells surrounding this local gridcell
+          ! are masked out, then mask out the local gridcell
+
+          if ( (ggrid%mask(xloc(i,j,1),yloc(i,j,1)) == 0) .and.  &
+               (ggrid%mask(xloc(i,j,2),yloc(i,j,2)) == 0) .and.  &
+               (ggrid%mask(xloc(i,j,3),yloc(i,j,3)) == 0) .and.  &
+               (ggrid%mask(xloc(i,j,4),yloc(i,j,4)) == 0) ) then
+             lmask(i,j) = 0
+          else
+             lmask(i,j) = 1
+          endif
+!lipscomb - end glc mods
 
        enddo
     enddo
@@ -1143,34 +1158,29 @@ contains
 
     c=xp*(yd-ya)+yp*(xa-xd)+ya*xd-xa*yd
 
-!lipscomb - glc mods - allow for degenerate points (a = b, c = d) 
-!    if (abs(a)>small) then
+    if (abs(a)>small) then
+       x=(-b-sqrt(b**2-4*a*c))/(2*a)
+    else
+       x=-c/b
+    endif
+
+    y=(yp-ya-x*(yb-ya))/(yd+x*(yc-yd-yb+ya)-ya)
+
+!lipscomb - Can use this code if points are degenerate (a=b, c=d) 
+!    if (abs(a) > small) then
 !       x=(-b-sqrt(b**2-4*a*c))/(2*a)
-!    else
+!    elseif (abs(b) > small) then
 !       x=-c/b
+!    else
+!       x=0._rk 
+!    endif
+!
+!    if (abs(yd+x*(yc-yd-yb+ya)-ya) > small) then
+!       y=(yp-ya-x*(yb-ya))/(yd+x*(yc-yd-yb+ya)-ya)
+!    else
+!       y=0._rk
 !    endif
 
-    if (abs(a) > small) then
-       x=(-b-sqrt(b**2-4*a*c))/(2*a)
-    elseif (abs(b) > small) then
-       x=-c/b
-    else
-       x=0._rk 
-    endif
-
-!lipscomb - glc mods - allow for degeneracy here too
-    
-!    y=(yp-ya-x*(yb-ya))/(yd+x*(yc-yd-yb+ya)-ya)
-
-    if (abs(yd+x*(yc-yd-yb+ya)-ya) > small) then
-       y=(yp-ya-x*(yb-ya))/(yd+x*(yc-yd-yb+ya)-ya)
-    else
-       y=0._rk
-    endif
-!lipscomb - end glc mods 
-
-!lipscomb - to do - verify that these formulae are correct for degenerate points
- 
   end subroutine calc_fractional
 
 end module glint_interp

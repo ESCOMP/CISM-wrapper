@@ -65,7 +65,7 @@ contains
        t_wout,ice_vol,out_f,orogflag,ice_tstep,  &
 !lipscomb - glc mods
                                  tsfc_g,    qice_g,       &
-                                 topo_g,                  &
+                                 topo_g,    gmask,        &
                                  gfrac,     gthck,        &
                                  gtopo,     ghflx,        &
                                  groff )
@@ -131,16 +131,17 @@ contains
     logical,                intent(out)  :: ice_tstep    !*FD Set if we have done an ice time step
 
 !lipscomb - glc mods
-!lipscomb - to do - change to rk?
-    real(rk),dimension(:,:,:),optional,intent(in) :: tsfc_g        ! Surface temperature (C)
-    real(rk),dimension(:,:,:),optional,intent(in) :: qice_g        ! Depth of new ice (m)
-    real(rk),dimension(:,:,:),optional,intent(in) :: topo_g        ! Surface elevation (m)
+    real(rk),dimension(:,:,:),optional,intent(in)  :: tsfc_g       ! Surface temperature (C)
+    real(rk),dimension(:,:,:),optional,intent(in)  :: qice_g       ! Depth of new ice (m)
+    real(rk),dimension(:,:,:),optional,intent(in)  :: topo_g       ! Surface elevation (m)
+    integer, dimension(:,:),  optional,intent(in)  :: gmask        ! = 1 where global data are valid, else = 0
 
     real(rk),dimension(:,:,:),optional,intent(out) :: gfrac        ! ice fractional area [0,1]
     real(rk),dimension(:,:,:),optional,intent(out) :: gthck        ! ice thickness (m)
     real(rk),dimension(:,:,:),optional,intent(out) :: gtopo        ! surface elevation (m)
     real(rk),dimension(:,:,:),optional,intent(out) :: ghflx        ! heat flux (W/m^2, positive down)
     real(rk),dimension(:,:,:),optional,intent(out) :: groff        ! runoff (kg/m^2/s = mm H2O/s)
+
 !lipscomb - end glc mods
 
     ! ------------------------------------------------------------------------  
@@ -203,12 +204,20 @@ contains
          g_humid,g_lwdown,g_swdown,g_airpress,orogflag)
 
 !lipscomb - glc mods
-    ! Downscale input fields on global glc grid
+    ! Downscale input fields from global to local grid
     ! This subroutine computes instance%acab and instance%artm, the key inputs to GLIDE.
 
-    if (present(qice_g)) call glc_glint_downscaling (instance,      nec,      &
-                                                     tsfc_g,        qice_g,   &
-                                                     topo_g)
+    if (present(qice_g)) then
+       if (present(gmask)) then
+          call glc_glint_downscaling (instance,              &
+                                      tsfc_g,      qice_g,   &
+                                      topo_g,      gmask)
+       else
+          call glc_glint_downscaling (instance,              &
+                                      tsfc_g,      qice_g,   &
+                                      topo_g)
+       endif
+    endif
 !lipscomb - end glc mods
 
     ! ------------------------------------------------------------------------  
@@ -334,6 +343,7 @@ contains
           ! Set acab and artm to zero in gridcells where interpolation from global grid is invalid
           ! These are local cells outside the domain of the global landmask.
 
+!lipscomb - to do - Is this needed, or is it handled by interp_to_local with maskval?
 !lipscomb - to do - set to spval instead of zero?
 
           where (instance%downs%lmask == 0) 

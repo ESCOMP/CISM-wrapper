@@ -36,9 +36,9 @@
 
 !================================================================================
 
-  subroutine glc_glint_downscaling (instance,   nec,     &
+  subroutine glc_glint_downscaling (instance,            &
                                     tsfc_g,     qice_g,  &
-                                    topo_g)
+                                    topo_g,     gmask)
  
     use glint_interp, only: interp_to_local
     use glimmer_paramets, only: thk0
@@ -46,19 +46,22 @@
     ! Downscale fields from the global grid (with multiple elevation classes)
     !  to the local grid.
 
+!lipscomb - to do - Do not pass nec 
     type(glint_instance), intent(inout) :: instance
-    integer, intent(in) :: nec                           ! number of elevation classes
     real(r8),dimension(:,:,:),intent(in) :: tsfc_g       ! Surface temperature (C)
-    real(r8),dimension(:,:,:),intent(in) :: qice_g       ! Depth of new ice (m)
+    real(r8),dimension(:,:,:),intent(in) :: qice_g       ! Surface mass balance (m)
     real(r8),dimension(:,:,:),intent(in) :: topo_g       ! Surface elevation (m)
+    integer ,dimension(:,:),  intent(in),optional :: gmask ! = 1 where global data are valid
+                                                           ! = 0 elsewhere
 
-!lipscomb - to do - Is this needed?
-!!!    logical, optional,       intent(in)  :: orogflag     ! Set if we have new global orog
+    real(r8), parameter :: maskval = 0.0_r8    ! value written to masked out gridcells
 
-    integer ::    &
-       i, j, n,       &
-       nxl, nyl
-  
+    integer ::       &
+       nec,          &      ! number of elevation classes
+       i, j, n,      &      ! indices 
+       nxl, nyl             ! local grid dimensions
+
+ 
 !lipscomb - to do - Might want to find a less memory-intensive way to do downscaling
 
     real(r8), dimension(:,:,:), allocatable ::   &
@@ -68,21 +71,7 @@
 
     real(r8) :: fact
 
-    if (verbose) then
-       i = itest
-       j = jjtest
-       write (stdout,*) ' ' 
-       write (stdout,*) 'In glc_glint_downscaling: i, j =', i, j
-       do n = 1, glc_nec
-          write (stdout,*) ' '
-          write (stdout,*) 'n =', n
-          write (stdout,*) 'tsfc_g =', tsfc_g(i,j,n)
-          write (stdout,*) 'topo_g =', topo_g(i,j,n)
-          write (stdout,*) 'qice_g =', qice_g(i,j,n)
-       enddo
-       call flushm(stdout)
-    endif
-
+    nec = size(qice_g,3)
     nxl = instance%lgrid%size%pt(1)
     nyl = instance%lgrid%size%pt(2)
 
@@ -91,7 +80,8 @@
     allocate(qice_l(nxl,nyl,nec))
 
     if (verbose) then
-       write (stdout,*) 'Interp to local grid'
+       write (stdout,*) ' ' 
+       write (stdout,*) 'Interpolate fields to local grid'
     endif
 
 !   Downscale global fields for each elevation class to local grid
@@ -99,24 +89,33 @@
 
 !lipscomb - to do - Is topo_g downscaled correctly?
 
-    do n = 1, nec
-       call interp_to_local(instance%lgrid, tsfc_g(:,:,n), instance%downs, localdp=tsfc_l(:,:,n), maskval=0._r8)
-       call interp_to_local(instance%lgrid, topo_g(:,:,n), instance%downs, localdp=topo_l(:,:,n), maskval=0._r8)
-       call interp_to_local(instance%lgrid, qice_g(:,:,n), instance%downs, localdp=qice_l(:,:,n), maskval=0._r8)
-    enddo
+    if (present(gmask)) then   ! set local field = maskval where the global field is masked out
+
+       do n = 1, nec
+          call interp_to_local(instance%lgrid, tsfc_g(:,:,n), instance%downs, localdp=tsfc_l(:,:,n), &
+                               gmask = gmask, maskval=maskval)
+          call interp_to_local(instance%lgrid, topo_g(:,:,n), instance%downs, localdp=topo_l(:,:,n), &
+                               gmask = gmask, maskval=maskval)
+          call interp_to_local(instance%lgrid, qice_g(:,:,n), instance%downs, localdp=qice_l(:,:,n), &
+                               gmask = gmask, maskval=maskval)
+       enddo
+
+    else    ! global field values are assumed to be valid everywhere
+
+       do n = 1, nec
+          call interp_to_local(instance%lgrid, tsfc_g(:,:,n), instance%downs, localdp=tsfc_l(:,:,n))
+          call interp_to_local(instance%lgrid, topo_g(:,:,n), instance%downs, localdp=topo_l(:,:,n))
+          call interp_to_local(instance%lgrid, qice_g(:,:,n), instance%downs, localdp=qice_l(:,:,n))
+       enddo
+
+    endif
 
 !lipscomb - debug - Write topo in each elevation class of global cell
-
     write(stdout,*) ' '
     write(stdout,*) 'Global cell =', itest, jjtest
     do n = 1, nec
        write(stdout,*) n, topo_g(itest,jjtest, n)
     enddo
-
-!lipscomb - debug - Identify local cells that use info from the selected global cell
-
-    write(stdout,*) ' '
-    write(stdout,*) 'Local cells that use info from global cell', itest, jjtest
 
     do j = 1, nyl
     do i = 1, nxl
@@ -130,8 +129,6 @@
     enddo
     enddo
     
-
-!lipscomb - debug
     if (verbose) then
        i = itest_local
        j = jtest_local
@@ -146,6 +143,8 @@
        enddo
        call flushm(stdout)
     endif
+!lipscomb - end debug
+
 
 !   Interpolate tsfc and qice to local topography using values in the neighboring 
 !    elevation classes.
@@ -169,13 +168,6 @@
                 fact = (topo_l(i,j,n) - usrf) / (topo_l(i,j,n) - topo_l(i,j,n-1)) 
                 instance%acab(i,j) = fact*qice_l(i,j,n-1) + (1._r8-fact)*qice_l(i,j,n)
                 instance%artm(i,j) = fact*tsfc_l(i,j,n-1) + (1._r8-fact)*tsfc_l(i,j,n)
-!lipscomb - debug
-             if (i==itest_local .and. j==jtest_local) then
-                write(stdout,*) 'Exiting, n, fact =', n, fact
-                write (stdout,*) 'acab =', instance%acab(i,j)
-                write (stdout,*) 'artm =', instance%artm(i,j)
-             endif
-!lipscomb - end debug
                 exit
              endif
           enddo
@@ -203,12 +195,6 @@
     enddo  ! i
     enddo  ! j
 
-
-
-!lipscomb - commented out
-!!!    if (orogflag) &
-!!!       call interp_to_local(instance%lgrid, topo_g, instance%downs, localdp=instance%global_orog)
- 
   end subroutine glc_glint_downscaling
 
 !================================================================================

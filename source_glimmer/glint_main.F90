@@ -945,6 +945,7 @@ contains
                params%g_av_tsfc,             &
                params%g_av_qice,             &
                params%g_av_topo,             &
+               params%g_grid%mask,           &
                gfrac_temp,   gthck_temp,     &
                gtopo_temp,   ghflx_temp,     &
                groff_temp)
