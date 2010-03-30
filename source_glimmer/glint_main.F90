@@ -1135,7 +1135,7 @@ contains
        call glint_i_end(params%instances(i))
     enddo
 
-    call close_log
+!jw    call close_log
 
   end subroutine end_glint
 

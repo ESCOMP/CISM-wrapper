@@ -73,6 +73,7 @@ cat >! $CASEBUILD/gglc.buildnml.csh << EOF1
 
 set exedir = \$RUNDIR; cd \$exedir
 set gglcgrid_input = \$DIN_LOC_ROOT/glc/gglc/$gglcgridfile
+set cism_history = \$CASE.cism.h
 
 cp \$gglcgrid_input \$exedir/$gglcgridfile
 chmod 644 \$exedir/$gglcgridfile

@@ -69,6 +69,7 @@ contains
     use glide
     use glimmer_log
     use glint_constants
+    use glc_io
     implicit none
 
     ! Arguments
@@ -97,6 +98,10 @@ contains
     ! initialise model
 
     call glide_config(instance%model,config)
+
+    !jw CCSM-ize the glint output names
+    call glc_io_create_suffix_ccsm(instance%model)
+
     call glide_initialise(instance%model)
     instance%ice_tstep=get_tinc(instance%model)*years2hours
     instance%glide_time=instance%model%numerics%tstart

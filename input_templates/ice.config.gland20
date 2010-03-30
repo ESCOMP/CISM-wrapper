@@ -59,7 +59,7 @@ references:  some reference
 comment: results from the simple test run
 
 [CF output]
-name:      gland20.10a.nc
+name:      ${cism_history}
 frequency: 10
 variables: thk topg ablt_spot acab_spot diffu_spot temp_spot
 numspot:   4
@@ -68,12 +68,12 @@ spoty:     70 10 30 100
 comment:   spots are taken at nodes
 
 [CF output]
-name:      gland20.1a.nc
+name:      ${cism_history}1
 frequency: 1
 variables: glint_prcp glint_acab glint_ablt glint_artm global_orog local_orog acab glint_thk thk usurf snowd siced uflx vflx
 
 [CF output]
-name:      gland20.hot.nc
+name:      ${cism_history}ot
 frequency: 1
 variables: hot
 
