@@ -107,6 +107,7 @@ contains
   subroutine ConfigRead(fname,config)
     !*FD read configuration file
     use glimmer_log
+    use shr_file_mod
     implicit none
     character(len=*), intent(in) :: fname
     !*FD name of configuration file
@@ -125,7 +126,7 @@ contains
        call write_log('Cannot open configuration file '//trim(fname),GM_FATAL)
     end if
     
-    unit=99
+    unit=shr_file_getunit()
     open(unit,file=trim(fname),status='old')
     ios=0
     linenr=0
@@ -163,6 +164,7 @@ contains
        linenr = linenr + 1
     end do
     close(unit)
+    call shr_file_freeunit(unit)
     return
   end subroutine ConfigRead
 

@@ -13,7 +13,7 @@ are: hgrid and mask.
 -->
 
 <climatefile   >glc/gglc/glint_example.LY.config</climatefile>
-<paramfile     >ice.config</paramfile>
+<paramfile     >cism.config</paramfile>
 <horiz_grid_opt>file</horiz_grid_opt>
 
 <!-- Greenland 20km resolution input grid file -->

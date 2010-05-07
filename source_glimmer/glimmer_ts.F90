@@ -84,10 +84,12 @@ contains
   subroutine glimmer_read_ts(ts,fname,numv)
     !*FD read time series from file
     use glimmer_log
+    use shr_file_mod
     implicit none
     type(glimmer_tseries) :: ts           !*FD time series data
     character(len=*), intent(in) :: fname !*FD read from this file
     integer, intent(in),optional :: numv  !*FD number of values per time
+    integer :: unit
     
     ! local variables
     real :: d1,d2,fact=1.
@@ -100,7 +102,8 @@ contains
        ts%numv = 1
     end if
 
-    open(99,file=trim(fname),status='old',iostat=ios)
+    unit = shr_file_getunit()
+    open(unit,file=trim(fname),status='old',iostat=ios)
     
     if (ios.ne.0) then
        call write_log('Error opening file: '//trim(fname),type=GM_FATAL)
@@ -111,7 +114,7 @@ contains
     d1 = 1
     do
        d2 = d1
-       read(99,*,iostat=ios) d1
+       read(unit,*,iostat=ios) d1
        d1 = fact*d1
        if (ios.ne.0) then
           exit
@@ -136,15 +139,16 @@ contains
           end if
        end if
     end do
-    rewind(99)
+    rewind(unit)
 
     allocate(ts%times(ts%numt))
     allocate(ts%values(ts%numv,ts%numt))
     ! read data
     do i=1,ts%numt
-       read(99,*) ts%times(i),(ts%values(j,i),j=1,ts%numv)
+       read(unit,*) ts%times(i),(ts%values(j,i),j=1,ts%numv)
     end do
-    close(99)
+    close(unit)
+    call shr_file_freeUnit(unit)
   end subroutine glimmer_read_ts
 
   subroutine glimmer_ts_step_array(ts,time,value)

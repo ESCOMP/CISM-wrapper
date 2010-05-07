@@ -19,7 +19,7 @@ set climatefile  = glint_example.LY.config
 set gglcgridfile = $GLC_GRID.input.nc
 
 # ---------------------------------------------------------------------------
-#  Figure out the gridfile and paramfile
+#  Figure out the gridfile
 # ---------------------------------------------------------------------------
 
 set gridfile  = UNSET
@@ -82,7 +82,7 @@ chmod 644 \$exedir/$gglcgridfile
 cat >! gglc_in <<EOF
 &files_nml
   climatefile = '\$DIN_LOC_ROOT/glc/gglc/$climatefile'
-  paramfile   = 'ice.config'
+  paramfile   = 'cism.config'
 /
 &grid_nml
   horiz_grid_opt  = 'file'
@@ -107,9 +107,9 @@ cat >! gglc_in <<EOF
 EOF
 
 # Input configuration file
-cat >! ice.config <<EOF
+cat >! cism.config <<EOF
 EOF1
-# Bring a copy of the ice.config file that the user can edit for their case
+# Bring a copy of the cism.config file that the user can edit for their case
 cat $paramfile >> $CASEBUILD/gglc.buildnml.csh
 cat            >> $CASEBUILD/gglc.buildnml.csh << EOF1
 EOF

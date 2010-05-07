@@ -1,6 +1,0 @@
-
-&files_nml
-  climatefile = '/homebv/jwolfe/six_comp/data/glint_example.LY.config'
-  paramfile   = '/homebv/jwolfe/six_comp/data/ice.config'
-/
-
