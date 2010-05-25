@@ -40,7 +40,7 @@
 
 ! !PUBLIC DATA MEMBERS:
 
-   type(global_grid), pointer ::   &
+   type(global_grid) ::   &
       glc_grid        ! info (nx, ny, lat, lon, area) for coupling grid (indexed S to N)
 
    integer, dimension(:,:), allocatable ::  &
@@ -266,7 +266,8 @@
 
 ! !USES:
 
-   use glint_example_clim
+   use glint_example_clim, only: read_ncdf, read_ncdf_ggrid
+   use glimmer_paramets,   only: itest, jtest
    use glint_global_grid
 
 ! !INPUT PARAMETERS:
@@ -287,8 +288,8 @@
    integer(i4) :: nx, ny          ! global grid dimensions
 
    real(r8), dimension(:,:), pointer ::  &
-      landmask       ,&! landmask, glc/clm grid
-      landfrac         ! landfrac, glc/clm grid
+      landmask => null()      ,&! landmask, glc/clm grid
+      landfrac => null()        ! landfrac, glc/clm grid
 
    real(r8) :: &
       latn, lats, lone, lonw   ! lat and lon of cell edges (radians)
@@ -300,8 +301,16 @@
 !
 !-----------------------------------------------------------------------
 
-   call read_ncdf(horiz_grid_file, mask_varname, landmask, glc_grid)
-   call read_ncdf(horiz_grid_file, frac_varname, landfrac, glc_grid)
+! to do - Make sure the read is done correctly
+!!   call read_ncdf(horiz_grid_file, mask_varname, landmask, glc_grid)
+!!   call read_ncdf(horiz_grid_file, frac_varname, landfrac, glc_grid)
+
+   ! Initialize the grid and masks
+
+   call read_ncdf_ggrid(horiz_grid_file, glc_grid)
+
+   call read_ncdf(horiz_grid_file, mask_varname, landmask)
+   call read_ncdf(horiz_grid_file, frac_varname, landfrac)
 
    nx = glc_grid%nx
    ny = glc_grid%ny

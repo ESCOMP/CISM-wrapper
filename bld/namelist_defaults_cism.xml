@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet type="text/xsl" href="namelist_defaults.xsl"?>
+
+<namelist_defaults>
+
+<!--
+Values to use by default for creation of CISM  model namelists.
+The element names are the same as the corresponding namelist
+variables.  Values that depend on the model configuration use
+attributes to express the dependency.  The recognized attributes
+are: hgrid and mask.
+-->
+
+<paramfile     >ice.config</paramfile>
+<horiz_grid_opt>file</horiz_grid_opt>
+
+<!-- Greenland 20km resolution input grid file -->
+<inputgrid glc_grid="gland20" >glc/cism/gland20.input.nc</inputgrid>
+
+<!-- Horizontal topography files -->
+<horiz_grid_file hgrid="48x96"    mask="USGS"  >glc/cism/topodata_48x96_USGS_070110.glc.nc</horiz_grid_file>
+<horiz_grid_file hgrid="48x96"    mask="gx3v5" >glc/cism/topodata_48x96_USGS_070110.glc.nc</horiz_grid_file>
+<horiz_grid_file hgrid="1.9x2.5"  mask="USGS"  >glc/cism/topodata_1.9x2.5_USGS_061130.glc.nc</horiz_grid_file>
+<horiz_grid_file hgrid="1.9x2.5"  mask="gx1v5" >glc/cism/topodata_1.9x2.5_USGS_061130.glc.nc</horiz_grid_file>
+<horiz_grid_file hgrid="0.9x1.25" mask="gx1v5" >glc/cism/topodata_0.9x1.25_USGS_070110.glc.nc</horiz_grid_file>
+<horiz_grid_file hgrid="0.9x1.25" mask="USGS"  >glc/cism/topodata_0.9x1.25_USGS_070110.glc.nc</horiz_grid_file>
+
+<topo_varname  >TOPO</topo_varname>
+<date_separator>-</date_separator>
+<diri          >./</diri>
+<diro          >./</diro>
+<logfile       >glc.log</logfile>
+<stop_option   >never</stop_option>
+
+</namelist_defaults>

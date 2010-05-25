@@ -1,4 +1,4 @@
-!lipscomb - Uncomment references to lcoupled
+!lipscomb - Uncomment references to lcoupled?
 
 !|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
@@ -18,7 +18,6 @@
 ! !USES:
 
    use glc_kinds_mod
-!!   use glc_timers
    use glc_time_management, only:  thour, time_manager, check_time_flag, init_time_flag
    use shr_sys_mod
    use glc_communicate, only: my_task, master_task
@@ -71,7 +70,7 @@
    use glint_example_clim
 
 !lipscomb - debug
-   use glc_constants, only: verbose, itest, jjtest
+   use glimmer_paramets, only: itest, jjtest
 
 !EOP
 !BOC
@@ -126,7 +125,7 @@
 !-----------------------------------------------------------------------
 
    if (first_call) then
-      if (verbose) write(stdout,*) 'In glc_run, first_call =', first_call
+      write(stdout,*) 'In glc_run, first_call =', first_call
       ! this line should set cpl_stop_now = 1 (flag id index)
       cpl_stop_now  = init_time_flag('stop_now',default=.false.)
       tavg_flag     = init_time_flag('tavg')      
@@ -163,14 +162,11 @@
      if (glc_smb) then
 
 !lipscomb - debug
-         if (verbose) then
             write(stdout,*) 'Call glint, thour =', thour
             call shr_sys_flush(stdout)
-         endif
 
 !lipscomb - debug
 
-         if (verbose) then
             write(stdout,*) ' '
             write(stdout,*) 'Global fields from CLM to GLINT'
             do n = 1, glc_nec
@@ -182,21 +178,20 @@
                write(stdout,*) 'topo(n) =', topo(ig,jg,n)
                write(stdout,*) 'qice(n) =', qice(ig,jg,n)
             enddo
-         endif
 
          call glint (ice_sheet,       nint(thour),   &
                      temp,            precip,  &     ! temp, precip, orog are set to zero
                      orog,                     &
                      ice_tstep = l_ice_tstep,  & 
+                     ccsm_smb_in = glc_smb,    & 
                      tsfc  = tsfc,     qice  = qice,    &
                      topo  = topo,                      &
-                     gfrac = gfrac,    gthck = gthck,   &
-                     gtopo = gtopo,    ghflx = ghflx,   &
-                     groff = groff )
+                     gfrac = gfrac,    gtopo = gtopo,   &
+                     grofi = grofi,    grofl = grofl,   &
+                     ghflx = ghflx)
 
 !lipscomb - debug
 
-         if (verbose) then
             write(stdout,*) ' '
             write(stdout,*) 'Global fields from GLINT to CLM:'
             do n = 1, glc_nec
@@ -205,30 +200,25 @@
                write(stdout,*) ' '
                write(stdout,*) 'i, j, n =', ig, jg, n
                write(stdout,*) 'gfrac(n) =', gfrac(ig,jg,n)
-               write(stdout,*) 'gthck(n) =', gthck(ig,jg,n)
                write(stdout,*) 'gtopo(n) =', gtopo(ig,jg,n)
+!               write(stdout,*) 'grofi(n) =', grofi(ig,jg,n)
+!               write(stdout,*) 'grofl(n) =', grofl(ig,jg,n)
 !               write(stdout,*) 'ghflx(n) =', ghflx(ig,jg,n)
-!               write(stdout,*) 'groff(n) =', groff(ig,jg,n)
             enddo
-         endif
 
      else    ! use PDD scheme in GLIMMER
 
 !lipscomb - to do - Need to test this option
 
 !lipscomb - debug
-       if (verbose) then 
           write(stdout,*) 'Using positive-degree-day scheme'
           write(stdout,*) 'Call glint driver'
           write(stdout,*) 'This has not been tested!'
-          call shr_sys_flush(stdout)
-       endif
 
-!lipscomb - to do - need to return gtopo; not sure about gthck and ghflx 
          call glint (ice_sheet,                  &
                      nint(thour),                &
-                     temp,                       &
-                     precip,                     &
+                     tsfc(:,:,1),                &  ! 2-m air temp
+                     qice(:,:,1),                &  ! precip
                      orog,                       &
                      output_flag     = out,      &
                      ice_frac        = ice_frac, &
@@ -258,11 +248,9 @@
    call time_manager
 
 !lipscomb - debug
-   if (verbose) then
       write(stdout,*) 'Called time manager after glc timestep'
       write(stdout,*) 'New thour =', thour
       call shr_sys_flush(stdout)
-   endif
 
 !-----------------------------------------------------------------------
 !EOC

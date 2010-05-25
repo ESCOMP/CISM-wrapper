@@ -61,10 +61,10 @@
 
   real(r8),dimension(:,:,:), allocatable ::  &   ! per elevation class
      gfrac       ,&! fractional glacier area [0,1] 
-     gthck       ,&! glacier thickness (m)
      gtopo       ,&! glacier surface elevation (m)
-     ghflx       ,&! heat flux from glacier interior, positive down (W/m^2)
-     groff         ! glacier runoff/calving flux (kg/m^2/s)
+     grofi       ,&! ice runoff (calving) flux (kg/m^2/s)
+     grofl       ,&! ice runoff (calving) flux (kg/m^2/s)
+     ghflx         ! heat flux from glacier interior, positive down (W/m^2)
 
   type(glint_params) :: ice_sheet   ! Parameters relevant to all model instances, 
                                     ! i.e. pertaining to the global model 
@@ -146,10 +146,10 @@
 
  ! to coupler
    allocate(gfrac(nx,ny,glc_nec))
-   allocate(gthck(nx,ny,glc_nec))
    allocate(gtopo(nx,ny,glc_nec))
+   allocate(grofi(nx,ny,glc_nec))
+   allocate(grofl(nx,ny,glc_nec))
    allocate(ghflx(nx,ny,glc_nec))
-   allocate(groff(nx,ny,glc_nec))
 
   ! averaging arrays
  
@@ -203,10 +203,10 @@
 
  ! to coupler
    deallocate(gfrac)
-   deallocate(gthck)
    deallocate(gtopo)
+   deallocate(grofi)
+   deallocate(grofl)
    deallocate(ghflx)
-   deallocate(groff)
 
  ! Other fields
 !lipscomb - may want to get rid of some of these

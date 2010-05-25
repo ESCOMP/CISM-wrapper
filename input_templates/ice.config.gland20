@@ -36,7 +36,7 @@ dt = 1.
 ntem = 1.
 nvel = 1.
 niso = 1.
-ndiag = 100
+ndiag = 1
 
 [parameters]
 log_level=6
@@ -53,29 +53,17 @@ basal_tract = 2 10 10 0 1
 ########################################
 
 [CF default]
-title: GLINT example test run
-institution: Glimmer Inst
-references:  some reference
-comment: results from the simple test run
+title: Glimmer-CISM simulation
+institution: Community Earth System Model
 
 [CF output]
 name:      ${cism_history}
-frequency: 10
-variables: thk topg ablt_spot acab_spot diffu_spot temp_spot
-numspot:   4
-spotx:     40 10 60 20 
-spoty:     70 10 30 100 
-comment:   spots are taken at nodes
-
-[CF output]
-name:      ${cism_history}1
 frequency: 1
-variables: glint_prcp glint_acab glint_ablt glint_artm global_orog local_orog acab glint_thk thk usurf snowd siced uflx vflx
+variables: acab artm prcp ablt thk usurf uvel vvel uflx vflx temp
 
 [CF output]
 name:      ${cism_history}ot
 frequency: 1
+xtype: double
 variables: hot
 
-[CF input]
-name: gland20.input.nc

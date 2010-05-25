@@ -1,0 +1,135 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet type="text/xsl" href="namelist_definition.xsl"?>
+
+<namelist_definition>
+
+<!-- ========================================================================================  -->
+<!-- GLC Namelists                                                                             -->
+<!-- ========================================================================================  -->
+
+<entry id="paramfile" type="char*100" category="files" input_pathname="abs" 
+       group="files_nml" valid_values="">
+Name of top-level configuration file for Glimmer Glacier model
+</entry>
+
+<entry id="inputgrid" type="char*100" category="files" input_pathname="abs" 
+       group="cism_internal" valid_values="gland20">
+Glacier model input grid file
+</entry>
+
+<entry id="horiz_grid_opt" type="char*80" category="grid"
+       group="grid_nml" valid_values="internal,file">
+How grid is being specified from file or internally
+</entry>
+
+<entry id="horiz_grid_file" type="char*80" category="grid" input_pathname="abs" 
+       group="grid_nml" valid_values="">
+Filename of file to specify horizontal grid resolution
+</entry>
+
+<entry id="topo_varname" type="char*80" category="grid"
+       group="grid_nml" valid_values="">
+Variable name for topography
+</entry>
+
+<entry id="dt_option" type="char*80" category="time"
+       group="time_manager_nml" valid_values="steps_per_year,steps_per_day,seconds,hours,">
+time-step units
+</entry>
+
+<entry id="runid" type="char*80" category="case"
+       group="time_manager_nml" valid_values="">
+Simulation identifier (ie case name)
+</entry>
+
+<entry id="dt_option" type="char*80" category="time"
+       group="time_manager_nml" valid_values="steps_per_year,steps_per_day,seconds,hours">
+time-step units
+</entry>
+
+<entry id="dt_count" type="real" category="time"
+       group="time_manager_nml" valid_values="">
+Number of time-steps at dt_option frequency
+</entry>
+
+<entry id="iyear0" type="integer" category="start-time"
+       group="time_manager_nml" valid_values="">
+Starting year number
+</entry>
+
+<entry id="imonth0" type="integer" category="start-time"
+       group="time_manager_nml" valid_values="1,2,3,4,5,6,7,8,9,10,11,12">
+Starting month number
+</entry>
+
+<entry id="iday0" type="integer" category="start-time"
+       group="time_manager_nml" 
+       valid_values="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31">
+Starting day number in month
+</entry>
+
+<entry id="ihour0" type="integer" category="start-time"
+       group="time_manager_nml" 
+       valid_values="0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23">
+Starting hour of the day
+</entry>
+
+<entry id="iminute0" type="integer" category="start-time"
+       group="time_manager_nml" 
+       valid_values=
+"0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59"
+>
+Starting minute of the day
+</entry>
+
+<entry id="isecond0" type="integer" category="start-time"
+       group="time_manager_nml" 
+       valid_values=
+"0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59"
+>
+Starting second of the minute
+</entry>
+
+<entry id="date_separator" type="char*1" category="time"
+       group="time_manager_nml" valid_values="">
+Character to separate date values
+</entry>
+
+<entry id="stop_option" type="char*80" category="time"
+       group="time_manager_nml" valid_values="never" value="never">
+Stop option -- always let the coupler stop the model so use never.
+</entry>
+
+<entry id="stop_count" type="char*80" category="time"
+       group="time_manager_nml" valid_values="1">
+Stop count
+</entry>
+
+<entry id="runic" type="char*80" category="case"
+       group="time_manager_nml" valid_values="">
+Case name
+</entry>
+
+<entry id="diri" type="char*80" category="case"
+       group="modelio" valid_values="">
+Input directory for glacier model
+</entry>
+
+<entry id="diro" type="char*80" category="case"
+       group="modelio" valid_values="">
+Output directory for glacier model
+</entry>
+
+<entry id="logfile" type="char*80" category="case"
+       group="modelio" valid_values="">
+Log file for glacier model
+</entry>
+
+<entry id="glc_grid" type="char*32" category="internal"
+       group="cism_internal" valid_values="gland20">
+Glacier model grid description
+</entry>
+
+
+</namelist_definition>

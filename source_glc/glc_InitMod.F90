@@ -26,12 +26,13 @@
    use glc_time_management, only: iyear0, imonth0, iday0, elapsed_days0,  &
                                   iyear,  imonth,  iday,  elapsed_days,   &
                                   ihour,  iminute, isecond, nsteps_total, &
-                                  ymd2eday, eday2ymd 
+                                  ymd2eday, eday2ymd, runtype
 ! lipscomb - glc timer calls have been commented out
 !!!   use glc_timers
 
 !lipscomb - debug
-   use glc_constants, only: verbose, nml_in, nml_filename, stdout, glc_nec
+   use glc_constants, only: nml_in, nml_filename, stdout, glc_nec
+   use glc_io,        only: glc_io_read_restart_time
    use glc_exit_mod
  
    implicit none
@@ -81,7 +82,7 @@
                                 temp,    precip,  orog,    ice_frac,       &
                                 tsfc,    qice,    topo,                    &
                                 tsfc_av, qice_av, topo_av,                 &
-                                gfrac,   gthck,   gtopo,  ghflx,  groff
+                                gfrac,   gtopo,   grofi,   grofl,  ghflx
 
    use glc_global_fields, only: albedo, lats_orog, lons_orog, orog_out  ! to be removed?
    use glc_global_fields, only: time, coverage, cov_orog  ! to be removed?
@@ -114,8 +115,7 @@
 !-----------------------------------------------------------------------
 
   character(fname_length) ::  &
-      paramfile      ,&! Name of the top-level configuration file
-      climatefile      ! Name of climate configuration file
+      paramfile        ! Name of the top-level configuration file
  
   ! Scalars which hold information about the global grid --------------
  
@@ -132,6 +132,10 @@
   integer (i4) :: &
       nhour_glint      ! number of hours since start of complete glint/glimmer run
 
+  logical :: &
+      ccsm_rst = .false. ! Logical flag to pass to glimmer, telling it to hotstart
+                         ! from a CCSM restart
+
   real(rk), dimension(:), allocatable ::  &    
       glint_lats     ,&! lats on glint grid (N to S indexing, instead of S to N as on glc_grid)  
       glint_latb       ! lat_bound on glint grid
@@ -139,9 +143,7 @@
   integer, dimension(:,:), allocatable ::  &    
       glint_landmask   ! landmask on glint grid (N to S indexing)
 
-  logical, parameter :: coupglc = .true.   ! temporary, in place of ifdef
-
-  namelist /files_nml/  climatefile, paramfile
+  namelist /files_nml/  paramfile
  
 !lipscomb - Many of the calls in this routine are from POP.
 !lipscomb - Some are commented out but may be added later.
@@ -244,14 +246,7 @@
 ! The following code is largely based on GLIMMER.
 !-----------------------------------------------------------------------
 
-   climatefile  = 'unknown_climatefile'
    paramfile    = 'unknown_paramfile'
-
-!lipscomb - debug
-   if (verbose) then
-      write(stdout,*) 'GLC: Read namelist file'
-      call shr_sys_flush(stdout) 
-   endif
 
    open (nml_in, file=nml_filename, status='old',iostat=nml_error)
    if (nml_error /= 0) then
@@ -264,38 +259,21 @@
    end do
    if (nml_error == 0) close(nml_in)
 
-!lipscomb - debug
-   if (verbose) then
-      write(stdout,*) 'climatefile = ', climatefile
-      write(stdout,*) 'paramfile =   ', paramfile
+#ifdef GLC_DEBUG
+      write (stdout,*) 'paramfile =   ', paramfile
       write (stdout,*) 'dtt =', dtt
-      call shr_sys_flush(stdout)
-   endif
-
-!lipscomb - Can I assume that this code will always be run in coupled mode?
-
-  if (coupglc) then   ! temporary, in place of ifdef
-
-!lipscomb - debug
-   if (verbose) then
-      write (stdout,*) 'GLC will exchange fields with the coupler'
-      call shr_sys_flush(stdout)
-   endif
-
-  ! Initialize glc_grid (used for coupling)
-
-!lipscomb - debug
-   if (verbose) then
       write (stdout,*) 'Initialize glc_grid'
       call shr_sys_flush(stdout)
-   endif
+#endif
+
+  ! Initialize glc_grid (used for coupling)
 
    call init_glc_grid   ! glc_landmask is computed here
 
    ! switch latitude indices for sending info to Glint
    ! latitude is S to N on glc_grid, N to S on glint grid
 
-   nx = glc_grid%nx  ! not needed?
+   nx = glc_grid%nx  ! nx not needed?
    ny = glc_grid%ny
 
    allocate(glint_lats(ny))
@@ -318,75 +296,15 @@
    climate%climate_tstep = nint(dtt/3600._r8)   ! convert from sec to integer hours
 
 !lipscomb - debug
-   if (verbose) then
-      write (stdout,*) 'climate_tstep (hr) =', climate%climate_tstep
-      write (stdout,*) 'Initialize coupling'
-      call shr_sys_flush(stdout)
-   endif
-
- else   ! not coupled (to do - Is this code needed?)
-
-!lipscomb - debug
-   write (stdout,*) 'GLC will read data from climate files'
-   write (stdout,*) 'This code has not been tested!'
-   write (stdout,*) 'Initialize climate'
-
-  ! Initialize climate, including grid
- 
-   call glex_clim_init (climate,climatefile)
-
-   glc_grid = climate%all_grid   ! this is the glint grid; lats must be switched
-
-   ! switch latitude indices
-   ! latitude is S to N on glc_grid, N to S on all_grid
-
-   ny = glc_grid%ny   
-   allocate(glint_lats(ny))
-   allocate(glint_latb(ny+1))
-
-   glint_lats(:) = glc_grid%lats(:)
-   glint_latb(:) = glc_grid%lat_bound(:)
-
-   do j = 1, ny
-      glc_grid%lats(j) = glint_lats(ny-j+1)
-   enddo
-
-   do j = 1, ny+1
-      glc_grid%lat_bound(j) = glint_latb(ny-j+2)
-   enddo
-
-!lipscomb - debug
-  write (stdout,*) ' '
-  write (stdout,*) 'Read climate file'
-  i = itest
-  j = jtest
-  write (stdout,*) 'Test points: i, j =', i, j
-  write (stdout,*) 'pclim_load =',  climate%pclim_load(i,j,1)
-  write (stdout,*) 'stclim_load =', climate%stclim_load(i,j,1)
-  write (stdout,*) 'orog_load =',   climate%orog_load(i,j)
-  call shr_sys_flush(stdout)
-
- endif    ! coup_glc
-
-
-
-!lipscomb - debug
-  if (verbose) then
+     write (stdout,*) 'climate_tstep (hr) =', climate%climate_tstep
      write (stdout,*) 'Set glimmer_unit =', stdout
      call shr_sys_flush(stdout)
-  endif
 
 !lipscomb - Set glimmer_unit for CCSM runs. (Log file is already open)
   ! start logging
 !!  call open_log(unit=101)
   call set_glimmer_unit(stdout)   ! new subroutine in glimmer_log
  
-!lipscomb - debug
-  if (verbose) then
-     write (stdout,*) 'Allocate global arrays'
-     call shr_sys_flush(stdout)
-  endif
-
   ! Allocate global arrays
   call glc_allocate_global(nx, ny, glc_nec)
 
@@ -404,16 +322,14 @@
   ! These are passed to Glint only if running in PDD mode.
   temp(:,:)     = 0._r8
   precip(:,:)   = 0._r8
-  orog(:,:)     = 0._r8
-
 
 !lipscomb - not sure these are needed; currently are not used
   albedo(:,:)   = 0._r8
+  orog(:,:)     = 0._r8
   orog_out(:,:) = 0._r8
 
 !lipscomb - if coupled?   
 !!!  orog = real(climate%orog_clim)                    ! Put orography where it belongs
-
 
   ! Calculate example orographic latitudes
  
@@ -433,69 +349,91 @@
      lons_orog(i)=(360.0/nxo)*i-(180.0/nxo)
   enddo
  
+
+!lipscomb - debug 
+   if (my_task == master_task) then
+      write(stdout,*) 'Initialize glint'
+   endif
+
   ! Initialize the ice model
 
   nhour_glint = 0     ! number of hours glint has run since start of complete simulation
                       ! must be set to correct value if reading from a restart file
  
-!lipscomb - to do - If a restart, then read the CCSM/GLC time from a restart file and reset nhour_glint.
+  ! if this is a continuation run, then set up to read restart and get the restart time
+  if (runtype.eq.'continue') then
+    ccsm_rst = .true.
+    call glc_io_read_restart_time(nhour_glint)
+    if (verbose) then
+       write(stdout,*) 'Successfully read restart, nhour_glint =', nhour_glint
+       call shr_sys_flush(stdout)
+    endif
+    call ymd2eday (iyear0, imonth0, iday0, elapsed_days0)
+    elapsed_days = elapsed_days0 + nhour_glint/24     
+    call eday2ymd(elapsed_days, iyear, imonth, iday)
+    ihour = 0
+    iminute = 0
+    isecond = 0
+    nsteps_total = nhour_glint / climate%climate_tstep     
+!lipscomb - debug
+    write(6,*) 'Initial eday/y/m/d:', elapsed_days0, iyear0, imonth0, iday0
+    write (6,*) 'eday/y/m/d after restart:', elapsed_days, iyear, imonth, iday
+    write (6,*) 'nsteps_total =', nsteps_total
+    call shr_sys_flush(stdout)
+  endif
 
 !lipscomb - to do - Include optional argmt ice_dt to inform GLC of the ice dynamics timestep?
+!lipscomb - to do - Implement PDD option (ccsm_smb = F?)
 
-!  call glc_glint_initialize(ice_sheet,             &
-!                            glint_lats,            &   ! indexing is N to S for Glint
-!                            glc_grid%lons,         &
-!                            climate%climate_tstep, &
-!                            (/paramfile/),         &
-!                            daysinyear = climate%days_in_year, &
-!                            start_time = nhour_glint)
-
-  call initialise_glint (ice_sheet,              &
-                         glint_lats,             &   ! indexing is N to S for Glint
-                         glc_grid%lons,          &
-                         climate%climate_tstep,  &
-                         (/paramfile/),          &
-                         gmask = glint_landmask, & 
-                         gfrac = gfrac,          &
-                         gthck = gthck,          &
-                         gtopo = gtopo,          &
-                         ghflx = ghflx,          &
-                         groff = groff,          &
+  call initialise_glint (ice_sheet,                 &
+                         glint_lats,                &   ! indexing is N to S for Glint
+                         glc_grid%lons,             &
+                         climate%climate_tstep,     &
+                         (/paramfile/),             &
                          daysinyear = climate%days_in_year, &
-                         start_time = nhour_glint)
+                         start_time = nhour_glint,  &
+                         ccsm_smb_in = .true.,      &
+                         gfrac = gfrac,             &
+                         gtopo = gtopo,             &
+                         grofi = grofi,             &
+                         grofl = grofl,             &
+                         ghflx = ghflx,             &
+                         gmask = glint_landmask,    &
+                         ccsm_rst = ccsm_rst)
  
+!lipscomb - debug 
+   print*, 'Initialized glint'
+
 ! Do the following:
 ! For each instance, convert ice_sheet%instances(i)%glide_time to hours and compare to nhour_glint.
 ! If different: Reset params%instances(i)%next_time, params%start_time, params%next_av_start
 ! Do this here or in initialise_glint?
 
-  if (verbose) then
      write(stdout,*) 'Initialized glint, nhour_glint =', nhour_glint
      call shr_sys_flush(stdout)
-  endif
 
   ! If restarting (nhour_glint > 0), recompute the year, month, and day
   ! By default, iyear0 = imonth0 = iday0 = 1 (set in namelist file)
   ! Assume that ihour0 = iminute0 = isecond0 = 0
   ! Note that glint does not handle leap years
 
-!lipscomb - to do - change to 'if (restart)'
-! if this is done before glint initialization, we can simply pass start_time = nint(thour)
-! Then set elapsed_days = thour/24 (without call to ymd2eday)
-  if (nhour_glint > 0) then
-     call ymd2eday (iyear0, imonth0, iday0, elapsed_days0)
-     elapsed_days = elapsed_days0 + nhour_glint/24     
-     call eday2ymd(elapsed_days, iyear, imonth, iday)
-     ihour = 0
-     iminute = 0
-     isecond = 0
-     nsteps_total = nhour_glint / climate%climate_tstep     
-!lipscomb - debug
-     write(6,*) 'Initial eday/y/m/d:', elapsed_days0, iyear0, imonth0, iday0
-     write (6,*) 'eday/y/m/d after restart:', elapsed_days, iyear, imonth, iday
-     write (6,*) 'nsteps_total =', nsteps_total
-     call shr_sys_flush(stdout)
-  endif
+!jw  TODO: figure out if this location for this is right
+!jw! if this is done before glint initialization, we can simply pass start_time = nint(thour)
+!jw! Then set elapsed_days = thour/24 (without call to ymd2eday)
+!jw  if (ccsm_rst) then
+!jw     call ymd2eday (iyear0, imonth0, iday0, elapsed_days0)
+!jw     elapsed_days = elapsed_days0 + nhour_glint/24     
+!jw     call eday2ymd(elapsed_days, iyear, imonth, iday)
+!jw     ihour = 0
+!jw     iminute = 0
+!jw     isecond = 0
+!jw     nsteps_total = nhour_glint / climate%climate_tstep     
+!jw!lipscomb - debug
+!jw     write(6,*) 'Initial eday/y/m/d:', elapsed_days0, iyear0, imonth0, iday0
+!jw     write (6,*) 'eday/y/m/d after restart:', elapsed_days, iyear, imonth, iday
+!jw     write (6,*) 'nsteps_total =', nsteps_total
+!jw     call shr_sys_flush(stdout)
+!jw  endif
 
   ! Set the message level (1 is the default - only fatal errors)
   ! N.B. Must do this after initialization
@@ -527,6 +465,8 @@
 !  output delimiter to log file
 !
 !-----------------------------------------------------------------------
+!lipscomb - debug 
+   print*, 'End of GLC initialization'
  
    if (my_task == master_task) then
       write(stdout,blank_fmt)

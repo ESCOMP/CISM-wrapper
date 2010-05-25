@@ -11,17 +11,16 @@
 !
 ! !REVISION HISTORY:
 !  SVN:$Id: time_management.F90 923 2006-05-10 22:25:10Z njn01 $
-!  Adapted by William Lipscomb from time_management.F90 in POP
-!
-! !USES:
+!  Adapted by William Lipscomb from time_management.F90 in POP.
+!  Much of the original POP code deleted because not needed here.
+!  Still have a lot of unused code, but kept for now in case needed later.
+
+!USES:
 
    use glc_kinds_mod
    use glc_constants
    use glc_communicate, only: my_task, master_task
    use glc_exit_mod
-!!   use glc_broadcast
-!!   use glc_io
-!!   use glc_io_tools
    use shr_sys_mod
 
    implicit none
@@ -44,7 +43,6 @@
              time_stamp,                &
              int_to_char,               &
              ccsm_date_stamp
-
 
 ! !PUBLIC DATA TYPES:
 
@@ -81,6 +79,7 @@
    character (char_len) :: &
       stop_option         ,&! specify how to determine stopping time
       runid               ,&! an identifier for the run
+      runtype             ,&! type of CCSM4 run (initial, continue, branch or hybrid)
       dt_option             ! method to determine tracer timestep size
 
    integer (int_kind) :: &
@@ -92,16 +91,6 @@
       nsteps_per_day    ,&! integer number of steps per day
       len_runid           ! length of character runid
 
-!!   integer (int_kind) ::      &! variables used with avgfit
-!!      fit_freq              , &! num of intervals/day into which full &
-                               !  half timesteps must exactly "fit"
-!!      fullsteps_per_interval, &! num of full timesteps per fitting interval
-!!      halfsteps_per_interval, &! num of half timesteps per fitting interval
-!!      fullsteps_per_day     , &! num of full timesteps per day
-!!      halfsteps_per_day     , &! num of half timesteps per day 
-!!      nsteps_per_interval   , &! number of steps in each 'fit' interval
-!!      nsteps_this_interval     ! number of steps in current 'fit' interval
-
    integer (int_kind), private :: &
       stop_now            ,&! time_flag id for stopping
       coupled_ts            ! time_flag id for a coupled timestep
@@ -111,14 +100,7 @@
       eod                 ,&!   at the end of the day
       eom                 ,&!   at the end of the month
       eoy                 ,&!   at the end of the year
-!!      avg_ts              ,&!   an averaging timestep
-!!      back_to_back        ,&!   the second of two avg timesteps in row
-!!      f_euler_ts          ,&!   a forward Euler timestep (first ts)
       first_step          ,&!   first time step
-!!      leapfrogts          ,&!   a leapfrog timestep
-!!      matsuno_ts          ,&!   an Euler-backward timestep
-!!      ice_ts              ,&!   an ice-formation timestep
-!!      sample_qflux_ts     ,&!   time to sample qflux for time avg 
       midnight              !   at midnight
 
    logical (log_kind)   :: &! the last timestep was:
@@ -131,8 +113,6 @@
       adjust_year_next    ,&!   step at which year values updated
       eom_next            ,&!   at the end of the month
       midnight_next       ,&!   at midnight
-!!      avg_ts_next         ,&!   an averaging ts?
-!!      back_to_back_next   ,&!   a second avg step in a row
       new_dtt_value       ,&! does restart have a new step size
       end_run_at_midnight   ! does model run end at midnight
  
@@ -183,7 +163,6 @@
       ihour0              ,&!
       iminute0            ,&!
       isecond0              !
- 
 
    integer (int_kind) ::      &
       iyear_start_run        ,&! initial start date and time
@@ -353,64 +332,13 @@
 !
 !-----------------------------------------------------------------------
 
-!!   logical (log_kind) :: &
-!!      laccel              ! flag for acceleration
-
    real (r8) ::          &
       dt_count          ,&! input count to determine dtt
       dtt               ,&! tracer timestep (sec)
       dtt_input         ,&! tracer timestep (sec) as specified in namelist
                           !   input; may be different from restart value
-!!      dtu               ,&! momentum timestep (sec)
-!!      dtp               ,&! barotropic timestep (sec)
-!!      c2dtu             ,&!
-!!      c2dtp             ,&!
-!!      c2dtq             ,&!
-!!      dtuxcel           ,&! factor to multiply MOMENTUM timestep
       stepsize          ,&! size of present timestep (sec)
       stepsize_next       ! size of next timestep (sec)
-
-!!   real (r8), dimension(km) :: &
-!!      dttxcel           ,&! array for depth-dependent acceleration
-!!      dztxcel           ,&
-!!      dzwxcel           ,&
-!!      dt                ,&! time step at each level
-!!      c2dtt               
-
-!-----------------------------------------------------------------------
-!
-!  time-centering and mixing variables
-!
-!-----------------------------------------------------------------------
-
-!!   logical (log_kind) :: &
-!!      impcor              ! implicit treatment of Coriolis terms
-
-!!   integer (int_kind), parameter :: &
-!!      tmix_matsuno = 1,  &! use matsuno step for time mixing
-!!      tmix_avg     = 2,  &! use averaging step for time mixing
-!!      tmix_avgbb   = 3,  &! use averaging step for time mixing, with
-!!                          !  back_to_back option to keep time boundaries
-!!      tmix_avgfit  = 4    ! use averaging step for time mixing, 
-                          !  selecting the timestep size in such
-                          !  a way as to force the end of the day
-                          !  (or interval) to coincide with the end of 
-                          !  a timestep
-
-!!   integer (int_kind) :: &
-!!      tmix_iopt,         &! option for which time mixing to use
-!!      time_mix_freq,     &! frequency of mixing
-!!      mix_pass            ! number of passes to perform mixing
-
-!!   real (r8) :: &
-!!      beta      ! = {alpha,theta} on {leapfrog,Matsuno} steps
-
-!!   real (r8), parameter ::  &
-!!      alpha = c1/c3,        &! leapfrog grap(ps) time-centering param
-!!      theta = p5,           &! Matsuno grap(ps) time-centering param
-!!      gamma = c1 - c2*alpha  ! for geostrophic balance, otherwise
-                             ! coriolis and  surface-pressure gradient
-                             ! are not time centered
 
 !EOP
 !BOC
@@ -457,7 +385,6 @@
 !-----------------------------------------------------------------------
 
    integer (int_kind) :: &
-!!      k,                 &! vertical level index
       nu,                &! i/o unit number
       nm                  ! month index
 
@@ -471,14 +398,9 @@
       nml_error           ! namelist i/o error flag
 
    character (char_len) :: &
-!!      time_mix_opt,        &! option for time mixing (Matsuno,averaging)
-!!      accel_file,          &! file containing acceleration factors
       message
 
    namelist /time_manager_nml/                                   &
-!!               time_mix_opt,   time_mix_freq,                    &
-!!               impcor,         laccel,          accel_file,      &
-!!               dtuxcel,        fit_freq,                         &
                runid,           dt_count,       dt_option,         &          
                iyear0,          imonth0,        iday0,           &
                ihour0,          iminute0,       isecond0,        &
@@ -503,13 +425,6 @@
 !-----------------------------------------------------------------------
 
    runid            = 'unknown_runid'
-!!   impcor           = .true.
-!!   time_mix_opt     = 'avgfit'
-!!   fit_freq         =  1
-!!   time_mix_freq    = 17
-!!   dtuxcel          = c1
-!!   laccel           = .false.
-!!   accel_file       = 'unknown_accel_file'
    allow_leapyear   = .false.
    stop_option      = 'unknown_stop_option'
    stop_count       = -1
@@ -564,28 +479,7 @@
       write(stdout,blank_fmt)
    endif
 
-!!   if (my_task == master_task) then
-!!      select case (time_mix_opt)
-!!      case ('matsuno')
-!!         tmix_iopt = tmix_matsuno
-!!      case ('avg')
-!!         tmix_iopt = tmix_avg
-!!      case ('avgbb')
-!!         tmix_iopt = tmix_avgbb
-!!      case ('avgfit')
-!!         tmix_iopt = tmix_avgfit
-!!      case default
-!!         tmix_iopt = -1000
-!!      end select
-!!   endif
-
 !!   call broadcast_scalar (runid           , master_task)
-!!   call broadcast_scalar (tmix_iopt       , master_task)
-!!   call broadcast_scalar (fit_freq        , master_task)
-!!   call broadcast_scalar (time_mix_freq   , master_task)
-!!   call broadcast_scalar (impcor          , master_task)
-!!   call broadcast_scalar (laccel          , master_task)
-!!   call broadcast_scalar (dtuxcel         , master_task)
 !!   call broadcast_scalar (iyear0          , master_task)
 !!   call broadcast_scalar (imonth0         , master_task)
 !!   call broadcast_scalar (iday0           , master_task)
@@ -605,17 +499,6 @@
 !  error checking
 !
 !-----------------------------------------------------------------------
-
-!!   if (tmix_iopt == -1000) then
-!!      call exit_POP(sigAbort,'unknown option for time mixing')
-!!   endif
-
-!!   if (tmix_iopt == tmix_matsuno) then
-!!      message = ' matsuno time-mixing option is not supported in CCSM; ' /&
-!!              &/' budget diagnostics are incorrect with matsuno and tavg may be incorrect'
-!!      call exit_POP(sigAbort,message)
-!!   endif
-
 
    len_runid = len_trim(runid)
 
@@ -660,108 +543,7 @@
      call shr_sys_flush(stdout)
   endif
 
-!-----------------------------------------------------------------------
-!
-!  modify dtt value, if using avgfit option
-!
-!-----------------------------------------------------------------------
-
-!!   if (tmix_iopt  == tmix_avgfit) then
- 
-      !*** determine the number of full, half, and total number of
-      !*** steps in each interval. an interval is typically one day,
-      !*** unless fit_freq is greater than one (eg, coupling 
-      !*** frequency > 1x/day)
-
-!!      nsteps_per_day         = steps_per_day
-!!      fullsteps_per_interval = nsteps_per_day/fit_freq
-!!      if (fullsteps_per_interval < 1) fullsteps_per_interval = 1
-!!      halfsteps_per_interval = 1 + & 
-!!                               nsteps_per_day/(fit_freq*time_mix_freq)
-!!      nsteps_per_interval    = fullsteps_per_interval + &
-!!                               halfsteps_per_interval
- 
-      !*** is an adjustment to the number of half and full steps in
-      !*** each interval needed?
- 
-!!      if ((fullsteps_per_interval/time_mix_freq) <  &  
-!!          (nsteps_per_interval   /time_mix_freq)    ) then
-!!         halfsteps_per_interval = halfsteps_per_interval + 1
-!!         nsteps_per_interval    = nsteps_per_interval    + 1
-!!      endif
- 
-      !*** determine the number of half, full, and total steps in
-      !*** each day
-
-!!      fullsteps_per_day      = fit_freq*fullsteps_per_interval
-!!      halfsteps_per_day      = fit_freq*halfsteps_per_interval
-!!      nsteps_per_day         = fullsteps_per_day + halfsteps_per_day
- 
-      !*** compute modified dtt value
-
-!!      dtt = seconds_in_day/(fullsteps_per_day + 0.5*halfsteps_per_day)
-!!      steps_per_day  = seconds_in_day/dtt
- 
-!!   else
-!!      nsteps_per_interval = steps_per_day
-!!   endif
-
    dtt_input = dtt
-!!   dtp       = dtt
-!!   dtu       = dtt
-
-!-----------------------------------------------------------------------
-!
-!  multiply tracer timestep by acceleration factor(s)
-!  for depth varying acceleration factors, create several arrays
-!     to store the variable timestep (dt) and some
-!     combination dz/dttxcel arrays for use in convective adjustment.
-!
-!-----------------------------------------------------------------------
-
-!!   if (laccel) then
-
-!!      call get_unit(nu)
-!!      if (my_task == master_task) then
-
-!!         open(nu, file=accel_file, status = 'old')
-!!         do k = 1,km
-!!            read(nu,*) dttxcel(k)
-!!         end do
-
-!!         if (dttxcel(1) /= c1) then   !  make sure no accel in top layer
-!!            write(stdout,'(a36)') 'no acceleration allowed in top layer'
-!!            write(stdout,'(a36)') 'resetting acceleration factor to 1.0'
-!!            dttxcel(1) = c1
-!!         endif
-
-!!         close(nu)
-!!      endif
-!!      call release_unit(nu)
-
-!!      call broadcast_array(dttxcel, master_task)
-
-!!   else
-
-!!      dttxcel = c1
-
-!!   endif
-
-!!   do k = 1,km
-!!      dt(k) = dtt*dttxcel(k)
-!!      dztxcel(k) = dz(k)/dttxcel(k)
-!!   enddo
-!!   do k = 1,km-1
-!!      dzwxcel(k) = c1/(dztxcel(k) + dztxcel(k+1))
-!!   enddo
-!!   dzwxcel(km) = c0
-
-!!   dtu = dtu*dtuxcel
-!!   dtp = dtp*dtuxcel
-!!   if (dtuxcel /= c1 .and. my_task == master_task) then
-!!      write(stdout,blank_fmt)
-!!      write(stdout,'(a39)') '  MOMENTUM TIMESTEP ACCELERATION ACTIVE'
-!!   endif
 
 !-----------------------------------------------------------------------
 !
@@ -799,14 +581,6 @@
    call prior_days (days_in_prior_months, days_in_month)
 
 !-----------------------------------------------------------------------
-
-!-----------------------------------------------------------------------
-!
-!  Register init_time1
-!
-!-----------------------------------------------------------------------
-!lipscomb - Commented out for now
-!!   call register_string('init_time1')
 
    call flushm (stdout)
 !EOC
@@ -856,18 +630,6 @@
  
 !-----------------------------------------------------------------------
 !
-!   register init_time2, then determine if both init_time1 
-!   and init_ts have been registered
-!
-!-----------------------------------------------------------------------
-!!   call register_string   ('init_time2')
-!!   call registry_err_check('init_time1', .true., &
-!!                            caller='init_time2' )
-!!   call registry_err_check('init_ts', .true., &
-!!                            caller= 'init_time2' )
-
-!-----------------------------------------------------------------------
-!
 !  determine the number of days, months, and years elapsed since
 !  01-01-0000  and number of days and months elapsed this year
 !
@@ -910,7 +672,7 @@
 !
 !-----------------------------------------------------------------------
 
-!lipscomb - debug - not sure this is needed
+!lipscomb - to do - not sure this is needed
    if (dtt /= dtt_input ) then
       new_dtt_value = .true.
       dtt = dtt_input
@@ -955,7 +717,6 @@
    cmonth  = cmonths   (imonth)
    cmonth3 = month3_all(imonth)
 
-!!   nsteps_this_interval = 0
    nsteps_run = 0
 
 !-----------------------------------------------------------------------
@@ -973,30 +734,6 @@
 !       0 and 365*24.
 !
 !-----------------------------------------------------------------------
-
-!lipscomb - to do - I think the following code is not needed
-
-   thour00_begin_this_year = thour00 - &
-                             (seconds_this_year/seconds_in_hour)
-
-   thour00_midmonth_calendar(1) = 24.0_r8*p5*days_in_month(1)
-   thour00_endmonth_calendar(1) = 24.0_r8*days_in_month(1)
-
-   thour00_endmonth_equal(1) = hours_in_year/12.0_r8
-   thour00_midmonth_equal(1) = p5*thour00_endmonth_equal(1)
-
-   do nm = 2,12
-
-      thour00_endmonth_calendar(nm) = thour00_endmonth_calendar(nm-1) &
-                                    + 24.0_r8*days_in_month(nm)
-      thour00_midmonth_calendar(nm) = thour00_endmonth_calendar(nm-1) &
-                                    + 24.0_r8*p5*days_in_month(nm)
-
-      thour00_endmonth_equal(nm) = thour00_endmonth_equal(1)*nm
-      thour00_midmonth_equal(nm) = thour00_midmonth_equal(nm-1) + &
-                                   thour00_endmonth_equal(1)
-
-   enddo
 
 !-----------------------------------------------------------------------
 !
@@ -1027,20 +764,6 @@
 
 !-----------------------------------------------------------------------
 !
-!  error checking -- after restart file has been read
-!
-!-----------------------------------------------------------------------
-
-!!   if (tmix_iopt == tmix_avgfit) then 
-!!      if (.not. midnight) then
-!!         call exit_POP(sigAbort, &
-!!                       'model run must start at day boundary '/&
-!!                     &/'when using avgfit option')
-!!      endif
-!!   endif
- 
-!-----------------------------------------------------------------------
-!
 !  will this run end exactly at midnight?
 !  (this tests only obvious possibilities)
 !
@@ -1052,8 +775,6 @@
    else
       end_run_at_midnight = .false.
    endif
-
-!!   if (tmix_iopt == tmix_avgfit) end_run_at_midnight = .true.
 
 !-----------------------------------------------------------------------
 !
@@ -1238,7 +959,6 @@
 
    endif
  
-
    call ymd2eday (iyear_end_run, imonth_end_run, iday_end_run, &
                   elapsed_days_end_run)
  
@@ -1287,7 +1007,6 @@
 ! !IROUTINE: time_manager
 ! !INTERFACE:
 
-!! subroutine time_manager (lcoupled)
  subroutine time_manager
 
 ! !DESCRIPTION:
@@ -1297,12 +1016,6 @@
 !
 ! !REVISION HISTORY:
 !  same as module
-
-! !INPUT PARAMETERS:
-
-!!   logical (log_kind), intent(in) :: &
-!!      lcoupled         ! flag for when model is coupled
-!!      liceform         ! flag to determine when ice formation is on
 
 !EOP
 !BOC
@@ -1344,12 +1057,6 @@
    nsteps_run   = nsteps_run   + 1
    nsteps_total = nsteps_total + 1
 
-!!   if (tmix_iopt == tmix_avgfit) then
-!!      nsteps_this_interval = nsteps_this_interval + 1
-!!      if (nsteps_this_interval > nsteps_per_interval) &
-!!         nsteps_this_interval = 1
-!!   endif
-
 !-----------------------------------------------------------------------
 !
 !  activate logical switches which depend on nsteps_run, nsteps_total
@@ -1364,11 +1071,7 @@
 !
 !-----------------------------------------------------------------------
 
-!!   if (avg_ts .or. back_to_back) then
-!!      stepsize = p5*dtt
-!!   else
       stepsize =    dtt
-!!   endif
 
    if (verbose) then   
       write (stdout,*) 'New nsteps_run =', nsteps_run
@@ -1397,11 +1100,7 @@
 !
 !-----------------------------------------------------------------------
 
-!!   if ( avg_ts_next .or. back_to_back_next ) then
-!!      stepsize_next = p5*dtt
-!!   else
       stepsize_next =    dtt
-!!   endif
 
 !-----------------------------------------------------------------------
 !
@@ -1461,69 +1160,6 @@
 !-----------------------------------------------------------------------
 
    call set_time_flag_all
-
-!-----------------------------------------------------------------------
-!
-!  ice formation or sample qflux this timestep?
-!  this section must follow call set_time_flag_all
-!
-!-----------------------------------------------------------------------
-      
-!!   if (liceform) then
-!!      if (lcoupled) then
-
-!!         if (check_time_flag(coupled_ts) ) then
-!!            if (tmix_iopt == tmix_matsuno .or. &
-!!                tmix_iopt == tmix_avgfit       ) then
-!!               ice_ts = .true.
-!!            else
-!!               call exit_POP(sigAbort, &
-!!                             'Cannot use tmix_avg or tmix_avgbb '/&
-!!                           &/'with lcoupled and liceform')
-!!            endif
-          
-!!            if (avg_ts) call exit_POP (sigAbort, &
-!!                                       'Cannot have coupled timestep '/&
-!!                                     &/'be an averaging timestep')
-!!         endif
-
-!!         if ( tmix_iopt == tmix_avgfit ) then
-!!            if (mod(nsteps_this_interval+1,nsteps_per_interval) == 0) &
-!!               ice_ts = .true.
-!!         endif
-
-!!      else  ! .not. lcoupled
-
-!!         if (tmix_iopt == tmix_matsuno) then
-!!            if (mod(nsteps_total,time_mix_freq) == time_mix_freq-1) &
-!!               ice_ts = .true.
-!!         else if (tmix_iopt == tmix_avgfit  .or. &
-!!                  tmix_iopt == tmix_avg          ) then
-!!            ice_ts = .true.
-!!         else
-!!            call exit_POP (sigAbort, &
-!!                       'tmix_avgbb option is inconsistent with ice_ts')
-!!         endif
-
-!!      endif ! coupled
-
-!!      if (ice_ts) sample_qflux_ts = .true.
-
-!!   endif  ! liceform
-
-!-----------------------------------------------------------------------
-!
-!  if using Matsuno with a coupled model, take a Matsuno step
-!  after a coupling step to guarantee conservation of integrated fluxes
-!
-!-----------------------------------------------------------------------
-
-!!   if (tmix_iopt == tmix_matsuno) then
-!!      if (check_time_flag_last(coupled_ts) .and. nsteps_run > 1 ) then
-!!         matsuno_ts = .true.
-!!         leapfrogts = .false.
-!!      endif
-!!   endif
 
 !-----------------------------------------------------------------------
 !
@@ -1613,16 +1249,6 @@
    newday             = .false.  ! not new day
    newhour            = .false.  ! not new hour
 
-!!   leapfrogts         = .true.   ! a leapfrog timestep
-!!   f_euler_ts         = .false.  ! not a forward Euler timestep
-!!   matsuno_ts         = .false.  ! not an Euler-backward timestep
-!!   avg_ts             = .false.  ! not a time-averaging timestep
-!!   avg_ts_next        = .false.  ! not the step before avg step
-!!   back_to_back       = .false.  ! not a second time-averaging step
-!!   back_to_back_next  = .false.  ! not the step before 2nd avg step
-!!   ice_ts             = .false.  ! not an ice timestep
-!!   sample_qflux_ts    = .false.  ! do not sample qflux 
-
    call reset_time_flag_all
 
 !-----------------------------------------------------------------------
@@ -1654,76 +1280,9 @@
 !-----------------------------------------------------------------------
 
    if (first_step) then 
-!!      leapfrogts = .false.
-!!      f_euler_ts = .true.
       newday     = .true.
       first_step = .false.
    endif
-
-!-----------------------------------------------------------------------
-!
-!  set avg_ts flags    (avg or avgbb options)
-!
-!-----------------------------------------------------------------------
-
-!!   if (tmix_iopt == tmix_avg .or. tmix_iopt == tmix_avgbb) then
-
-!!      if (mod(nsteps_total+1,time_mix_freq) == 0) avg_ts_next  = .true.
-!!      if (mod(nsteps_total  ,time_mix_freq) == 0) avg_ts       = .true.
-
-!!   endif
- 
-!-----------------------------------------------------------------------
-!
-!  set back-to-back flags  (avgbb option)   
-!
-!-----------------------------------------------------------------------
-
-!!   if (tmix_iopt == tmix_avgbb) then
-!!      if (avg_ts) back_to_back_next  = .true.
-!!      if (nsteps_total > 1 .and. &
-!!          mod(nsteps_total-1,time_mix_freq) == 0) back_to_back = .true.
-!!   endif
-
-!-----------------------------------------------------------------------
-!
-!  set avg_ts flags (avgfit option)
-!
-!-----------------------------------------------------------------------
- 
-!!   if (tmix_iopt == tmix_avgfit) then
-
-!!      if      (nsteps_this_interval == 1) then
-!!         avg_ts_next = .true.
-!!      else if (nsteps_this_interval == 2) then
-!!         avg_ts      = .true.
-!!      else if (mod(nsteps_this_interval+1,time_mix_freq) == 0) then
-!!         avg_ts_next = .true.
-!!      else if (mod(nsteps_this_interval  ,time_mix_freq) == 0) then
-!!         avg_ts      = .true.
-!!      endif
- 
-      !*** no averaging step in the first step of an interval
-
-!!      if (nsteps_this_interval == nsteps_per_interval) then
-!!         avg_ts_next = .false.   
-!!      endif
- 
-!!   endif
-
-!-----------------------------------------------------------------------
-!
-!  use Euler backward timestep this timestep?
-!
-!-----------------------------------------------------------------------
-
-!!   if (tmix_iopt == tmix_matsuno .and. nsteps_total /= 1) then
-!!      if (mod(nsteps_total,time_mix_freq) == 0 .or. &
-!!          time_mix_freq == 1) then
-!!         matsuno_ts = .true.
-!!         leapfrogts = .false.
-!!      endif
-!!   endif
 
 !-----------------------------------------------------------------------
 !EOC
@@ -4334,28 +3893,17 @@
       cmonth0,        &!
       cday0            !
  
-!!   character (3) ::   &
-!!      mix_step
-
    character (4) ::   &
       cyear0,         &!
       cyear_end_run    !
 
-!!   character (char_len) :: &
-!!      mix_steps
- 
    character (*), parameter :: &! output formats
       out_fmt1 = "('       date(month-day-year):',2x,2(a2,'-'),a4)", &
       out_fmt2 = "('                    ',a7,2x,i10)",               &
       out_fmt3 = "('This run will terminate ',/,a)",                 &
       out_fmt4 = "(a, :i7, a,a)",                                    &
       out_fmt5 = "('                   ',a8,2x,f16.3)",              &
-!!      out_fmt6 = "('Averaging time steps every ',i6,' steps',a)",    &
-!!      out_fmt7 =                                                     &
-!!"('Averaging time steps at the 2nd and ',i5,a2,' step of every day or coupled interval ')",&
-!!      out_fmt8 = "('Surface ',a10,' time step = ',1pe12.6, ' seconds')",&
-      out_fmt8 = "('GLC time step = ',1pe12.6, ' seconds')",&
-      out_fmt9 = "('There are ', i3, a6,' steps each day')"
+      out_fmt6 = "('GLC time step = ',1pe12.6, ' seconds')"
 
 !-----------------------------------------------------------------------
 !
@@ -4482,112 +4030,8 @@
       write (stdout,blank_fmt)
       write (stdout,'(a11,1pe12.6)') 'dt_count = ',dt_count
  
-!!      if (tmix_iopt == tmix_avgfit) then
-!!         write(stdout,out_fmt9) fullsteps_per_day,' full '
-!!         write(stdout,out_fmt9) halfsteps_per_day,' half '
-!!         write(stdout,out_fmt9) nsteps_per_day,   ' total'
-!!      endif
- 
-!!      write (stdout,blank_fmt)
-!!      write (stdout,'(a16,i6)') 'time_mix_freq = ', time_mix_freq
- 
-!!      write (stdout,'(a19)') 'Time mixing option:'
-!!      select case (tmix_iopt)
- 
-!!      case (tmix_avg)
-!!         write (stdout,'(a23)') '  avg -- time averaging'
- 
-!!      case (tmix_avgbb)
-!!         write (stdout,'(a59)') '  avgbb -- time averaging'/&
-!!                               &/' with back-to-back averaging steps'
- 
-!!      case (tmix_avgfit)
-!!         write (stdout,'(a26)') '  avgfit -- time averaging'
-!!         write (stdout,'(a71)') '  with timestep chosen to fit'/&
-!!                               &/' exactly into one day or coupling'/&
-!!                               &/' interval'
-!!         if (time_mix_freq > fullsteps_per_interval + 1) then
-!!            if (fit_freq == 1) then
-!!               write (stdout,'(a50)') &
-!!                  'Averaging time steps are at step number 2 each day'
-!!            else
-!!               write (stdout,'(a55)') &
-!!               'Averaging time steps are at step number 2 each interval'
-!!            endif
-!!         else
-!!            ind = 1
-!!            mix_steps = '2'
- 
-!!            do nn = 3, nsteps_per_interval
-!!               if (mod(nn,time_mix_freq) == 0) then
-!!                   write(mix_step,'(i2)' )  nn
-!!                   mix_steps = trim(mix_steps)/&
-!!                                               &/',' /&
-!!                                                      &/ trim(mix_step)
-!!               endif
-!!            enddo
- 
-!!            if (fit_freq == 1) then
-!!               write (stdout,'(a40,a,a9)') &
-!!                  'Averaging time steps are at step numbers', &
-!!                  trim(mix_steps), ' each day'
-!!            else
-!!               write (stdout,'(a40,a,a14)') &
-!!                  'Averaging time steps are at step numbers', &
-!!                  trim(mix_steps), ' each interval'
-!!            endif
-!!         endif
- 
-!!      case (tmix_matsuno)
-!!         write (stdout,'(a25,i6,a6)') &
-!!            'Matsuno time steps every ',time_mix_freq,' steps'
-!!      end select
-
-!!      write (stdout,blank_fmt)
-!!      select case (tmix_iopt)
-!!      case (tmix_avg)
-!!         write (stdout,out_fmt6) time_mix_freq, ' '
-!!      case (tmix_avgbb)
-!!         write (stdout,out_fmt6) time_mix_freq, &
-!!               ' with back-to-back averaging steps'
-!!      case (tmix_avgfit)
-!!         if (time_mix_freq == 1 .or.           &
-!!             (mod(time_mix_freq,10) == 1 .and. &
-!!              time_mix_freq /= 11)) then
-!!            write (stdout,out_fmt7) time_mix_freq, 'st'
-!!         elseif (time_mix_freq == 2 .or.           &
-!!                 (mod(time_mix_freq,10) == 2 .and. &
-!!                  time_mix_freq /= 12)) then
-!!            write (stdout,out_fmt7) time_mix_freq, 'nd'
-!!         elseif (time_mix_freq == 3 .or.           &
-!!                 (mod(time_mix_freq,10) == 3 .and. &
-!!                  time_mix_freq /= 13)) then
-!!            write (stdout,out_fmt7) time_mix_freq, 'rd'
-!!         else   
-!!            write (stdout,out_fmt7) time_mix_freq, 'th'
-!!         endif
-!!      case (tmix_matsuno)
-!!         write (stdout,'(a25,i6,a6)') &
-!!            'Matsuno time steps every ',time_mix_freq,' steps'
-!!      end select
-
       write (stdout,blank_fmt)
-      write (stdout,out_fmt8) dtt
-!!      write (stdout,out_fmt8) 'tracer    ',dtt
-!!      write (stdout,out_fmt8) 'momentum  ',dtu
-!!      write (stdout,out_fmt8) 'barotropic',dtp
-
-!!      write (stdout,blank_fmt)
-!!      if (laccel) then
-!!         write (stdout,'(a28)') 'Tracer acceleration  enabled'
-!!         write (stdout,'(a22)') '   k      accel factor'
-!!         write (stdout,'(a22)') '  ---     ------------'
-!!         do k=1,km
-!!            write (stdout,'(2x,i3,7x,f8.3)') k, dttxcel(k)
-!!         end do
-!!      else
-!!         write (stdout,'(a28)') 'Tracer acceleration disabled'
-!!      endif
+      write (stdout,out_fmt6) dtt
 
 !-----------------------------------------------------------------------
 !
@@ -4601,15 +4045,6 @@
       else
          write (stdout,'(a22)') 'Leap years not allowed'
       endif
-
-!!      write (stdout,blank_fmt)
-!!      if (impcor) then
-!!         write (stdout,'(a50)') &
-!!            'Implicit treatment of Coriolis terms (impcor):  ON'
-!!      else
-!!         write (stdout,'(a50)') &
-!!            'Implicit treatment of Coriolis terms (impcor): OFF'
-!!      endif
 
 !-----------------------------------------------------------------------
 !

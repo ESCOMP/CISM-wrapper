@@ -4,20 +4,20 @@
 # configure
 #
 #
-# This utility allows the GGLC user to specify compile-time configuration
+# This utility allows the CISM user to specify compile-time configuration
 # options via a commandline interface.  The output from configure is a
 # file with a list of CPP options and a cache file that contains all 
 # configuration parameters required to produce the CPP file.  A subsequent 
 # invocation of configure can use the cache file as input (via the -defaults 
-# argument) to reproduce the GGLC configuration contained in it.  Note that 
+# argument) to reproduce the CISM configuration contained in it.  Note that 
 # when a cache file is used to set default values only the model parameters 
 # are used.  The parameters that are platform dependent (e.g., compiler options, 
 # library locations, etc) are ignored.
 #
-# As the build time configurable options of GGLC are changed, this script
+# As the build time configurable options of CISM are changed, this script
 # must also be changed.  Thus configure is maintained under revision
-# control in the GGLC source tree and it is assumed that only the version of
-# configure in the source tree will be used to build GGLC.  Thus we assume
+# control in the CISM source tree and it is assumed that only the version of
+# configure in the source tree will be used to build CISM.  Thus we assume
 # that the root of the source tree can be derived from the location of this
 # script.
 #
@@ -45,11 +45,11 @@ OPTIONS
      NOT be bundled.
 
      -cache <file>       Name of output cache file (default: config_cache.xml).
-     -cachedir <file>    Name of directory where output cache file is written (default: GGLC build directory).
-     -gglc_bld <dir>      Directory where GGLC will be built.  This is where configure will write the
+     -cachedir <file>    Name of directory where output cache file is written (default: CISM build directory).
+     -cism_bld <dir>      Directory where CISM will be built.  This is where configure will write the
                          output files it generates (Makefile, Filepath, etc...)
-     -gglc_exedir <dir>   Directory where GGLC executable will be created (default: GGLC build directory).
-     -gglc_root <dir>     Root directory of gglc source code (default: directory above location of this script)
+     -cism_exedir <dir>   Directory where CISM executable will be created (default: CISM build directory).
+     -cism_root <dir>     Root directory of cism source code (default: directory above location of this script)
      -cppdefs <string>   A string of user specified CPP defines.  Appended to
                          Makefile defaults.  E.g. -cppdefs '-DVAR1 -DVAR2'
      -comp_intf <name>   Component interface to use (ESMF or MCT) (default MCT)
@@ -66,7 +66,7 @@ OPTIONS
      -usr_src <dir1>[,<dir2>[,<dir3>[...]]]
                          Directories containing user source code.
      -verbose [or -v]    Turn on verbose echoing of settings made by configure.
-     -version            Echo the CVS tag name used to check out this GGLC distribution.
+     -version            Echo the CVS tag name used to check out this CISM distribution.
 EOF
 }
 
@@ -77,7 +77,7 @@ EOF
 *STDOUT->autoflush();                  
 
 #-----------------------------------------------------------------------------------------------
-# Set the directory that contains the GGLC configuration scripts.  If the configure command was
+# Set the directory that contains the CISM configuration scripts.  If the configure command was
 # issued using a relative or absolute path, that path is in $ProgDir.  Otherwise assume the
 # command was issued from the current working directory.
 
@@ -101,14 +101,14 @@ my $commandline = "$cfgdir/configure @ARGV";
 # Parse command-line options.
 my %opts = (
 	    cache       => "config_cache.xml",
-            gglc_root    => undef,
+            cism_root    => undef,
 	    );
 GetOptions(
     "cache=s"                   => \$opts{'cache'},
     "cachedir=s"                => \$opts{'cachedir'},
-    "gglc_bld=s"                 => \$opts{'gglc_bld'},
-    "gglc_exedir=s"              => \$opts{'gglc_exedir'},
-    "gglc_root=s"                => \$opts{'gglc_root'},
+    "cism_bld=s"                 => \$opts{'cism_bld'},
+    "cism_exedir=s"              => \$opts{'cism_exedir'},
+    "cism_root=s"                => \$opts{'cism_root'},
     "cppdefs=s"                 => \$opts{'cppdefs'},
     "comp_intf=s"               => \$opts{'comp_interface'},
     "debug"                     => \$opts{'debug'},
@@ -168,7 +168,7 @@ EOF
     \"$cfgdir/../../../../scripts/ccsm_utils/Tools/perl5lib\" **
 EOF
 
-if ($print>=2) { print "Setting GGLC configuration script directory to $cfgdir$eol"; }
+if ($print>=2) { print "Setting CISM configuration script directory to $cfgdir$eol"; }
 
 #-----------------------------------------------------------------------------------------------
 # Add $cfgdir/perl5lib to the list of paths that Perl searches for modules
@@ -177,66 +177,66 @@ unshift @INC, @dirs;
 require XML::Lite;
 require Build::Config;
 
-# Initialize the configuration.  The $config_def_file provides the definition of a GGLC
+# Initialize the configuration.  The $config_def_file provides the definition of a CISM
 # configuration as well as the defaults.
 # $cfg_ref is a reference to the new configuration object.
 my $cfg_ref = Build::Config->new("$cfgdir/$config_def_file", 
 				 "$config_def_file");
 
 #-----------------------------------------------------------------------------------------------
-# GGLC root directory.  
-my $gglc_root;
+# CISM root directory.  
+my $cism_root;
 
-if ( ! defined($opts{'gglc_root'} ) ) {
-  $gglc_root = absolute_path("$cfgdir/..");
+if ( ! defined($opts{'cism_root'} ) ) {
+  $cism_root = absolute_path("$cfgdir/..");
 } else {
-  $gglc_root = $opts{'gglc_root'};
+  $cism_root = $opts{'cism_root'};
 }
 
-if ( &is_valid_directory( "$gglc_root/source_glimmer", allowEnv=>1 ) ) {
-    $cfg_ref->set('gglc_root', $gglc_root);
+if ( &is_valid_directory( "$cism_root/source_glimmer-cism", allowEnv=>1 ) ) {
+    $cfg_ref->set('cism_root', $cism_root);
 } else {
     die <<"EOF";
-** Invalid GGLC root directory: $gglc_root
+** Invalid CISM root directory: $cism_root
 ** 
-** The GGLC root directory must contain the subdirectory /source_glimmer/.
-** gglc_root can be entered on the command line or it will be derived
+** The CISM root directory must contain the subdirectory /source_glimmer-cism/.
+** cism_root can be entered on the command line or it will be derived
 ** from the location of this script.
 EOF
 }
 
-if ($print>=2) { print "Setting GGLC root directory to $gglc_root$eol"; }
+if ($print>=2) { print "Setting CISM root directory to $cism_root$eol"; }
 
 #-----------------------------------------------------------------------------------------------
-# GGLC build directory.
-my $gglc_bld;
-if (defined $opts{'gglc_bld'}) {
-    $gglc_bld = absolute_path($opts{'gglc_bld'});
+# CISM build directory.
+my $cism_bld;
+if (defined $opts{'cism_bld'}) {
+    $cism_bld = absolute_path($opts{'cism_bld'});
 }
 else { # use default value
-    $gglc_bld = absolute_path($cfg_ref->get('gglc_bld'));
+    $cism_bld = absolute_path($cfg_ref->get('cism_bld'));
 }
 
-if (&is_valid_directory( $gglc_bld ) or mkdirp($gglc_bld)) {
+if (&is_valid_directory( $cism_bld ) or mkdirp($cism_bld)) {
     # If the build directory exists or can be made then set the value...
-    $cfg_ref->set('gglc_bld', $gglc_bld);
+    $cfg_ref->set('cism_bld', $cism_bld);
 }
 else {
     die <<"EOF";
-** Could not create the specified GGLC build directory: $gglc_bld
+** Could not create the specified CISM build directory: $cism_bld
 EOF
 }
 
-if ($print>=2) { print "Setting GGLC build directory to $gglc_bld$eol"; }
+if ($print>=2) { print "Setting CISM build directory to $cism_bld$eol"; }
 
 #-----------------------------------------------------------------------------------------------
-# GGLC install directory.
-my $gglc_exedir;
-if (defined $opts{'gglc_exedir'}) {
-    $gglc_exedir = absolute_path($opts{'gglc_exedir'});
+# CISM install directory.
+my $cism_exedir;
+if (defined $opts{'cism_exedir'}) {
+    $cism_exedir = absolute_path($opts{'cism_exedir'});
 }
 else { # use default value
-    $gglc_exedir = $gglc_bld;
+    $cism_exedir = $cism_bld;
 }
 
 #-----------------------------------------------------------------------------------------------
@@ -266,7 +266,7 @@ if (defined $opts{'cachedir'}) {
     $config_cache_dir = absolute_path($opts{'cachedir'});
 }
 else {
-    $config_cache_dir = $cfg_ref->get('gglc_bld');
+    $config_cache_dir = $cfg_ref->get('cism_bld');
 }
 
 if (&is_valid_directory( $config_cache_dir, allowEnv=>1 ) or mkdirp($config_cache_dir)) {
@@ -332,17 +332,17 @@ if ($print>=2) { print "CPP definitions set by configure: \'$make_cppdefs\'$eol"
 #-----------------------------------------------------------------------------------------------
 
 my $fp_filename      = 'Filepath';             # name of output filepath file
-my $cpp_filename     = 'CCSM_cppdefs';         # name of output file for gglc's cppdefs in ccsm
+my $cpp_filename     = 'CCSM_cppdefs';         # name of output file for cism's cppdefs in ccsm
 my $misc_filename    = 'misc.h';               # name of output auxiliary cpp tokens file
 my $preproc_filename = 'preproc.h';            # name of output land model cpp tokens file
 
 # Write the filepath file for ccsm.
-write_filepath_ccsmbld("$gglc_bld/$fp_filename", "gglc", $cfg_ref, allowEnv=>1 );
-if ($print>=2) { print "creating $gglc_bld/$fp_filename\n"; }
+write_filepath_ccsmbld("$cism_bld/$fp_filename", "cism", $cfg_ref, allowEnv=>1 );
+if ($print>=2) { print "creating $cism_bld/$fp_filename\n"; }
 
-# Write the file for gglc's cppdefs needed in ccsm.
-write_cppdefs("$gglc_bld/$cpp_filename", $make_cppdefs);
-if ($print>=2) { print "creating $gglc_bld/$cpp_filename\n"; }
+# Write the file for cism's cppdefs needed in ccsm.
+write_cppdefs("$cism_bld/$cpp_filename", $make_cppdefs);
+if ($print>=2) { print "creating $cism_bld/$cpp_filename\n"; }
 
 # Write the configuration file.
 $cfg_ref->write_file($config_cache_file, $commandline);
@@ -365,13 +365,13 @@ sub write_filepath_ccsmbld
 
     # configuration parameters used to determine paths
     my $usr_src     = $cfg_ref->get('usr_src');
-    my $gglc_root   = $cfg_ref->get('gglc_root');
+    my $cism_root   = $cfg_ref->get('cism_root');
     my $spmd        = $cfg_ref->get('spmd');
     my $comp_intf   = $cfg_ref->get('comp_interface');
-    my $gglc_bld    = $cfg_ref->get('gglc_bld');
+    my $cism_bld    = $cfg_ref->get('cism_bld');
 
     # Source root
-    my $srcdir = "$gglc_root";
+    my $srcdir = "$cism_root";
     if ( ! &is_valid_directory( "$srcdir", %opts )  ) { die "** source directory does not exist: $srcdir\n"; }
 
     # User specified source directories.
@@ -384,7 +384,7 @@ sub write_filepath_ccsmbld
        print $fh "../SourceMods/src.glc\n";
     }
 
-    my @dirs = ( "source_glc", "source_glimmer", "mpi" );
+    my @dirs = ( "source_glc", "source_glimmer-cism", "mpi" );
     #if ( $comp_intf eq "MCT" ) { 
     #  push( @dirs, "cpl_mct" );
     #} elsif ( $comp_intf eq "ESMF" ) { 
@@ -539,7 +539,7 @@ sub mkdirp {
 #-------------------------------------------------------------------------------
 
 sub version {
-# The version is found in GGLC's ChangeLog file.
+# The version is found in CISM's ChangeLog file.
 # $cfgdir is set by the configure script to the name of its directory.
 
     my ($cfgdir) = @_;

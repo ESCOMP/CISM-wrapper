@@ -10,7 +10,7 @@
 
 <xsl:template match="config_definition">
   <head>
-    <title>GGLC Model Configuration Definition</title>
+    <title>CISM Model Configuration Definition</title>
   </head>
   <body>
     <h2>Configuration Definition</h2>

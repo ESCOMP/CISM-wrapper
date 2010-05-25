@@ -4,9 +4,9 @@
 
 <config_definition>
 
-<entry id="gglc_bld" >
+<entry id="cism_bld" >
 </entry>
-<entry id="gglc_root" >
+<entry id="cism_root" >
 </entry>
 <entry id="cppdefs" >
 </entry>
@@ -72,7 +72,7 @@ Switch to enable debugging options for Fortran compiler: 0=off, 1=on.
 CCSM build machine name and compiler
 </entry>
 <entry id="target_os" value="">
-OS for which GGLC is being built.  The value is the name returned by the "uname -s"
+OS for which CISM is being built.  The value is the name returned by the "uname -s"
 command on the target platform.  This parameter is to allow cross-compilation.
 </entry>
 

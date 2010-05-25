@@ -4,9 +4,131 @@ This file describes what main-trunk tags were created and why
 
 ================================================================================
 Originator: jwolfe
+Date: May 25, 2010
+Model: cism
+Version: cism1_100525
+One-line summary: initial commit of cism1, which is more-or-less the same as
+                  $SVN/glc/branch_tags/glimmer-cism-gcm_tags/glimmer-cism-gcm03_glc4_100301
+                  except the var.def files have been removed from the bld as well
+                  as the scripts to handle them.  CSEG decided not to require
+                  python, which one of the scripts uses, so the resulting _io.F90
+                  files are included in source_glimmer-cism instead.
+
+A      source_slap
+A      source_slap/dmset.F
+A      source_slap/dlaputil.F
+A      source_slap/xersla.F
+A      source_slap/dcgs.F
+A      source_slap/blas.F
+A      source_slap/dmvops.F
+A      source_slap/mach.F
+D      bld/namelist_definition_gglc.xml
+M      bld/configure
+M      bld/config_definition.xsl
+D      bld/gglc.cpl7.template
+M      bld/README
+A      bld/namelist_definition_cism.xml
+D      bld/namelist_defaults_gglc.xml
+A      bld/cism.cpl7.template
+M      bld/build-namelist
+M      bld/config_definition.xml
+A      bld/namelist_defaults_cism.xml
+M      source_glc/glc_glint_interp.F90
+M      source_glc/glc_comp_mct.F90
+M      source_glc/glc_InitMod.F90
+M      source_glc/glc_RunMod.F90
+M      source_glc/glc_global_grid.F90
+M      source_glc/glc_io.F90
+M      source_glc/glc_constants.F90
+M      source_glc/glc_global_fields.F90
+M      source_glc/glc_time_management.F90
+A      source_glimmer-cism
+A      source_glimmer-cism/glide.F90
+A      source_glimmer-cism/glimmer_scales.F90
+A      source_glimmer-cism/glint_timestep.F90
+A      source_glimmer-cism/glide_thck.F90
+A      source_glimmer-cism/glide_lithot_io.F90
+A      source_glimmer-cism/isostasy_setup.F90
+A      source_glimmer-cism/isostasy_el.F90
+A      source_glimmer-cism/glide_nc_custom.F90
+A      source_glimmer-cism/glint_mbal_io.F90
+A      source_glimmer-cism/glimmer_restart_statarr.F90
+A      source_glimmer-cism/isostasy_types.F90
+A      source_glimmer-cism/glimmer_ts.F90
+A      source_glimmer-cism/glimmer_routing.F90
+A      source_glimmer-cism/glimmer_searchcircle.F90
+A      source_glimmer-cism/glimmer_daily_pdd.F90
+A      source_glimmer-cism/xls.F90
+A      source_glimmer-cism/glint_mbal.F90
+A      source_glimmer-cism/glide_temp.F90
+A      source_glimmer-cism/glint_climate.F90
+A      source_glimmer-cism/glimmer_utils.F90
+A      source_glimmer-cism/glimmer_map_init.F90
+A      source_glimmer-cism/glimmer_anomcouple.F90
+A      source_glimmer-cism/glimmer_restart_pointarr.F90
+A      source_glimmer-cism/glimmer_filenames.F90
+A      source_glimmer-cism/glimmer_ncparams.F90
+A      source_glimmer-cism/glimmer_writestats.F90
+A      source_glimmer-cism/glint_initialise.F90
+A      source_glimmer-cism/glimmer_paramets.F90
+A      source_glimmer-cism/glimmer_vers.F90
+A      source_glimmer-cism/glide_lithot1d.F90
+A      source_glimmer-cism/glimmer_map_CFproj.F90
+A      source_glimmer-cism/glide_mask.F90
+A      source_glimmer-cism/glint_io.F90
+A      source_glimmer-cism/glide_profile.F90
+A      source_glimmer-cism/glide_setup.F90
+A      source_glimmer-cism/glimmer_map_proj4.F90
+A      source_glimmer-cism/glimmer_restart_common.F90
+A      source_glimmer-cism/glide_types.F90
+A      source_glimmer-cism/glide_velo.F90
+A      source_glimmer-cism/glimmer_global.F90
+A      source_glimmer-cism/glimmer_map_types.F90
+A      source_glimmer-cism/glimmer_deriv.F90
+A      source_glimmer-cism/glimmer_coordinates.F90
+A      source_glimmer-cism/glimmer_ncdf.F90
+A      source_glimmer-cism/kelvin.F90
+A      source_glimmer-cism/glide_stop.F90
+A      source_glimmer-cism/ncdf_utils.F90
+A      source_glimmer-cism/glint_example_clim.F90
+A      source_glimmer-cism/glimmer_log.F90
+A      source_glimmer-cism/glimmer_integrate.F90
+A      source_glimmer-cism/glint_precip_param.F90
+A      source_glimmer-cism/glimmer_restart.F90
+A      source_glimmer-cism/glint_global_grid.F90
+A      source_glimmer-cism/glimmer_sparse.F90
+A      source_glimmer-cism/glint_constants.F90
+A      source_glimmer-cism/glide_diagnostics.F90
+A      source_glimmer-cism/isostasy.F90
+A      source_glimmer-cism/glint_global_interp.F90
+A      source_glimmer-cism/glimmer_config.F90
+A      source_glimmer-cism/glint_main.F90
+A      source_glimmer-cism/glimmer_pdd.F90
+A      source_glimmer-cism/glint_mpinterp.F90
+A      source_glimmer-cism/glint_interp.F90
+A      source_glimmer-cism/glide_lithot3d.F90
+A      source_glimmer-cism/glimmer_restart_statscal.F90
+A      source_glimmer-cism/glimmer_physcon.F90
+A      source_glimmer-cism/profile.F90
+A      source_glimmer-cism/glimmer_map_trans.F90
+A      source_glimmer-cism/glimmer_ncio.F90
+A      source_glimmer-cism/glide_lithot.F90
+A      source_glimmer-cism/glint_mbal_coupling.F90
+A      source_glimmer-cism/glide_io.F90
+A      source_glimmer-cism/glint_type.F90
+A      source_glimmer-cism/glint_smb.F90
+M      ChangeLog
+D      source_glimmer
+A      input_templates/ice.config.gland10
+M      input_templates/ice.config.gland20
+A      input_templates/ice.config.gland5
+M      README
+
+================================================================================
+Originator: jwolfe
 Date: May 07, 2010
 Model: glc
-Version: glc4_105407
+Version: glc4_100507
 One-line summary: bug fixes and clean up
 
 * replace hard-wired unit numbers with calls to shr_file_getunit

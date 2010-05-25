@@ -1,20 +1,20 @@
 Scripts and datasets to create input text files to run the model with CCSM
 
-   gglc.cpl7.template ------------- Template to create scripts to build input text files
-                                    and script to compile the GGLC libary for CCSM
+   cism.cpl7.template ------------- Template to create scripts to build input text files
+                                    and script to compile the CISM libary for CCSM
 
 XML namelist description files:
 
-   namelist_definition_gglc.xml ------ Definition of all GGLC namelist items
-                                       (also used by clm to build GGLC namelist)
+   namelist_definition_cism.xml ------ Definition of all CISM namelist items
+                                       (also used by clm to build CISM namelist)
    namelist_definition.xsl ----------- Stylesheet to display namelist_definition file as html
-   namelist_defaults_gglc.xml -------- Default values to use in GGLC namelists
-                                       (also used by clm to build GGLC namelist)
+   namelist_defaults_cism.xml -------- Default values to use in CISM namelists
+                                       (also used by clm to build CISM namelist)
    namelist_defaults.xsl ------------- Stylesheet to display namelist_defaults file as html
 
-   namelist_defaults_overall.xml ----- Defaults for overall GGLC settings.
+   namelist_defaults_overall.xml ----- Defaults for overall CISM settings.
                                        (NOT used by clm)
-   namelist_definition_overall.xml --- Definitions for overall GGLC settings.
+   namelist_definition_overall.xml --- Definitions for overall CISM settings.
                                        (NOT used by clm)
 
 Scripts that are NOT currently working:
@@ -27,7 +27,7 @@ Scripts that are NOT currently working:
 
 Configuration description files:
 
-   config_definition.xml -- Definition of all GGLC configuration options
+   config_definition.xml -- Definition of all CISM configuration options
 
    config_definition.xsl -- Stylesheet to display configuration options as html
 

@@ -3,7 +3,7 @@
 #
 # build-namelist
 #
-# This script builds the namelists for GGLC
+# This script builds the namelists for CISM
 #
 # Date        Contributor      Modification
 # -------------------------------------------------------------------------------------------
@@ -37,7 +37,7 @@ OPTIONS
      -mask "landmask"         Type of land-mask (default, navy, gx3v5, gx1v5 etc.)
      -namelist "namelist"     Specify namelist settings directly on the commandline by supplying 
                               a string containing FORTRAN namelist syntax, e.g.,
-                                 -namelist "&gglc_inparm dt=1800 /"
+                                 -namelist "&cism_inparm dt=1800 /"
      -res "resolution"        Specify land model horizontal grid.  Use nlatxnlon for spectral grids;
                               dlatxdlon for fv grids (dlat and dlon are the grid cell size
     			      in degrees for latitude and longitude respectively)
@@ -57,7 +57,7 @@ EOF
 }
 
 #-----------------------------------------------------------------------------------------------
-# Set the directory that contains the GGLC configuration scripts.  If the command was
+# Set the directory that contains the CISM configuration scripts.  If the command was
 # issued using a relative or absolute path, that path is in $ProgDir.  Otherwise assume the
 # command was issued from the current working directory.
 
@@ -126,7 +126,7 @@ if ($opts{'silent'})  { $print = 0; }
 if ($opts{'verbose'}) { $print = 2; }
 my $eol = "\n";
 
-if ($print>=2) { print "Setting GGLC configuration script directory to $cfgdir$eol"; }
+if ($print>=2) { print "Setting CISM configuration script directory to $cfgdir$eol"; }
 
 # Add the location of the use case defaults files to the options hash
 $opts{'use_case_dir'} = "$cfgdir/use_cases";
@@ -148,7 +148,7 @@ EOF
 
 # The namelist definition file contains entries for all namelist variables that
 # can be output by build-namelist.
-my $glc_nl_definition_file = "$cfgdir/namelist_definition_gglc.xml";
+my $glc_nl_definition_file = "$cfgdir/namelist_definition_cism.xml";
 (-f "$glc_nl_definition_file")  or  die <<"EOF";
 ** $ProgName - Cannot find namelist definition file \"$glc_nl_definition_file\" **
 EOF
@@ -168,7 +168,7 @@ if ($print>=2) { print "Using namelist definition file $nl_definition_file$eol";
 EOF
 
 # The namelist defaults file contains default values for all required namelist variables.
-my $glc_nl_defaults_file = "$cfgdir/namelist_defaults_gglc.xml";
+my $glc_nl_defaults_file = "$cfgdir/namelist_defaults_cism.xml";
 (-f "$glc_nl_defaults_file")  or  die <<"EOF";
 ** $ProgName - Cannot find namelist defaults file \"$glc_nl_defaults_file\" **
 EOF
@@ -217,7 +217,7 @@ $glc_definition->add( $nl_definition_file );
 
 # Create a namelist defaults object.  This object provides default values for variables
 # contained in the input defaults file.  The configuration object provides attribute
-# values that are relevent for the GGLC executable for which the namelist is being produced.
+# values that are relevent for the CISM executable for which the namelist is being produced.
 my $glc_defaults = Build::NamelistDefaults->new( $glc_nl_defaults_file, $cfg );
 $glc_defaults->add( $nl_defaults_file, $cfg );
 
@@ -342,7 +342,7 @@ if ( $opts{$var} ne "default" ) {
     $val= $glc_defaults->get_value($var);
 }
 $res = $val;
-if ($print>=2) { print "GGLC atm resolution is $res $eol"; }
+if ($print>=2) { print "CISM atm resolution is $res $eol"; }
 $opts{$var} = $val;
 $val = &quote_string( $res );
 $group = $glc_definition->get_group_name($var);
@@ -367,13 +367,13 @@ if (  ! $glc_definition->is_valid_value( $var, $val ) ) {
    my @valid_values   = $glc_definition->get_valid_values( $var );
    die "$nm $var has a value ($val) that is NOT valid. Valid values are: @valid_values\n";
 }
-if ($print>=2) { print "GGLC land mask is $mask $eol"; }
+if ($print>=2) { print "CISM land mask is $mask $eol"; }
 
 # Add default values for required namelist variables that have not been previously set.
 # This is done either by using the namelist default object, or directly with inline logic.
 
 ##############################
-# namelist group: gglc_in    #
+# namelist group: cism_in    #
 ##############################
 
 my $case = $glc_nl->get_value('case_name');
@@ -381,7 +381,6 @@ my $case = $glc_nl->get_value('case_name');
 my $start_ymd = $glc_defaults->get_value("start_ymd" );
 my $start_tod = $glc_defaults->get_value("start_tod" );
 
-add_default($glc_nl, 'climatefile',     $glc_definition, $glc_defaults);
 add_default($glc_nl, 'paramfile',       $glc_definition, $glc_defaults);
 add_default($glc_nl, 'horiz_grid_opt',  $glc_definition, $glc_defaults);
 add_default($glc_nl, 'horiz_grid_file', $glc_definition, $glc_defaults, 
@@ -434,14 +433,14 @@ my $note = "Comment:\n" .
 
 # Glacier component
 my @groups = qw(files_nml grid_nml time_manager_nml);
-my $outfile = "$opts{'dir'}/gglc_in";
+my $outfile = "$opts{'dir'}/cism_in";
 $glc_nl->write($outfile, 'groups'=>\@groups, 'note'=>"$note" );
 if ($print>=2) { print "Writing glacier namelist to $outfile $eol"; }
 @groups = qw(modelio);
 $outfile = "$opts{'dir'}/glc_modelio.nml";
 $glc_nl->write($outfile, 'groups'=>\@groups, 'note'=>"$note" );
 if ($print>=2) { print "Writing glacier namelist to $outfile $eol"; }
-$outfile = "$opts{'dir'}/gglcx_in";
+$outfile = "$opts{'dir'}/cismx_in";
 $res =~ /([0-9]+)x([0-9]+)/;
 my $idir = $1;
 my $jdir = $2;

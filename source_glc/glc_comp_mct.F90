@@ -25,8 +25,10 @@ module glc_comp_mct
   use glc_RunMod,      only : glc_run
   use glc_FinalMod,    only : glc_final
   use glc_communicate, only : init_communicate
-  use glc_time_management, only: iyear,imonth,iday,ihour,iminute,isecond
-  use glc_global_grid, only: glc_grid, glc_landmask, glc_landfrac
+  use glc_io,          only : glc_io_write_restart
+  use glc_time_management, only: iyear,imonth,iday,ihour,iminute,isecond, runtype
+  use glc_global_fields,   only: ice_sheet
+  use glc_global_grid,     only: glc_grid, glc_landmask, glc_landfrac
 
 ! !PUBLIC TYPES:
   implicit none
@@ -102,19 +104,38 @@ CONTAINS
     character(*), parameter :: F90   = "('(glc_init_mct) ',73('='))"
     character(*), parameter :: F91   = "('(glc_init_mct) ',73('-'))"
     character(*), parameter :: subName = "(glc_init_mct) "
-!-------------------------------------------------------------------------------
-!
-!-------------------------------------------------------------------------------
-!
+!EOP
 !-------------------------------------------------------------------------------
 
+    !----------------------------------------------------------------------------
     ! Set cdata pointers
+    !----------------------------------------------------------------------------
 
     call seq_cdata_setptrs(cdata, ID=COMPID, mpicom=mpicom, &
          gsMap=gsMap, dom=dom, infodata=infodata)
 
     call mpi_comm_rank(mpicom, my_task, ierr)
 
+    !---------------------------------------------------------------------------
+    ! use infodata to determine type of run
+    !---------------------------------------------------------------------------
+
+    call seq_infodata_GetData( infodata, start_type=starttype)
+
+    if (     trim(starttype) == trim(seq_infodata_start_type_start)) then
+       runtype = "initial"
+    else if (trim(starttype) == trim(seq_infodata_start_type_cont) ) then
+       runtype = "continue"
+    else if (trim(starttype) == trim(seq_infodata_start_type_brnch)) then
+       runtype = "branch"
+    else
+       write(*,*) 'glc_comp_mct ERROR: unknown starttype'
+       call shr_sys_abort()
+    end if
+
+    !----------------------------------------------------------------------------
+    ! Reset shr logging to my log file
+    !----------------------------------------------------------------------------
     !--- open log file ---
     if (my_task == master_task) then
        stdout = shr_file_getUnit()
@@ -125,14 +146,9 @@ CONTAINS
     stderr = stdout
     nml_in = shr_file_getUnit()
 
-    !----------------------------------------------------------------------------
-    ! Reset shr logging to my log file
-    !----------------------------------------------------------------------------
     call shr_file_getLogUnit (shrlogunit)
     call shr_file_getLogLevel(shrloglev)
     call shr_file_setLogUnit (stdout)
-
-    call seq_infodata_GetData( infodata, start_type=starttype)
 
     errorCode = glc_Success
     if (verbose .and. my_task == master_task) then
@@ -146,6 +162,10 @@ CONTAINS
        write(stdout,F01) ' Initialize Done', errorCode
        call shr_sys_flush(stdout)
     endif
+
+!lipscomb - debug 
+   print*, 'glc_comp_mct: Initialize GLC done'
+   call shr_sys_flush(6)
 
     nxg = glc_grid%nx
     nyg = glc_grid%ny
@@ -163,6 +183,10 @@ CONTAINS
 
     call seq_infodata_PutData(infodata, glc_present=.true., &
        glc_prognostic = .true., glc_nx=nxg, glc_ny=nyg)
+
+!lipscomb - debug 
+   print*, 'glc_comp_mct: Initialize attribute vectors'
+   call shr_sys_flush(6)
 
     ! Initialize MCT attribute vectors
 
@@ -184,6 +208,10 @@ CONTAINS
     call shr_file_setLogUnit (shrlogunit)
     call shr_file_setLogLevel(shrloglev)
     call shr_sys_flush(stdout)
+
+!lipscomb - debug 
+   print*, 'glc_comp_mct: Done in glc_init_mct'
+   call shr_sys_flush(6)
 
 end subroutine glc_init_mct
 
@@ -235,6 +263,10 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
    character(*), parameter :: subName = "(glc_run_mct) "
 !-------------------------------------------------------------------------------
 
+!lipscomb - debug
+    write(stdout,*) 'Starting glc_run_mct, do_recv =', do_recv
+    call shr_sys_flush(stdout)
+
     !----------------------------------------------------------------------------
     ! Reset shr logging to my log file
     !----------------------------------------------------------------------------
@@ -253,6 +285,7 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
 !-----------------------------------------------------------------------
 
 !!    do_recv = .false.     ! tcx temporary 
+
     if (do_recv) then
     if (glc_nec >=  1) call glc_import_mct(x2g, 1,index_x2g_Ss_tsrf01, &
                        index_x2g_Ss_topo01,index_x2g_Fgss_qice01)
@@ -280,16 +313,15 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
 
     call seq_timemgr_EClockGetData(EClock,curr_ymd=ccsmYMD, curr_tod=ccsmTOD)
     stop_alarm = seq_timemgr_StopAlarmIsOn( EClock )
-    rest_alarm = seq_timemgr_RestartAlarmIsOn( EClock )
 
     glcYMD = iyear*10000 + imonth*100 + iday
     glcTOD = ihour*3600 + iminute*60 + isecond
     done = .false.
     if (glcYMD == ccsmYMD .and. glcTOD == ccsmTOD) done = .true.
-!    if (verbose .and. my_task == master_task) then
-!       write(stdout,F01) ' Run Starting ',glcYMD,glcTOD
-!       call shr_sys_flush(stdout)
-!    endif
+    if (verbose .and. my_task == master_task) then
+       write(stdout,F01) ' Run Starting ',glcYMD,glcTOD
+       call shr_sys_flush(stdout)
+    endif
 
     do while (.not. done) 
        if (glcYMD > ccsmYMD .or. (glcYMD == ccsmYMD .and. glcTOD > ccsmTOD)) then
@@ -300,48 +332,52 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
        glcYMD = iyear*10000 + imonth*100 + iday
        glcTOD = ihour*3600 + iminute*60 + isecond
        if (glcYMD == ccsmYMD .and. glcTOD == ccsmTOD) done = .true.
-!       if (verbose .and. my_task == master_task) then
-!          write(stdout,F01) ' GLC  Date ',glcYMD,glcTOD
-!       endif
+       if (verbose .and. my_task == master_task) then
+          write(stdout,F01) ' GLC  Date ',glcYMD,glcTOD
+       endif
     enddo
 
-!    if (verbose .and. my_task == master_task) then
-!       write(stdout,F01) ' Run Done',glcYMD,glcTOD
-!       call shr_sys_flush(stdout)
-!    endif
+    if (verbose .and. my_task == master_task) then
+       write(stdout,F01) ' Run Done',glcYMD,glcTOD
+       call shr_sys_flush(stdout)
+    endif
     
     ! PACK
 
+!lipscomb - debug
+    write(stdout,*) 'call glc_export_mct'
+    call shr_sys_flush(stdout)
+
     if (glc_nec >=  1) call glc_export_mct(g2x, 1,index_g2x_Sg_frac01, &
-                       index_g2x_Sg_thck01  ,index_g2x_Sg_topo01, &
-                       index_g2x_Fsgg_hflx01,index_g2x_Fsgg_roff01)
+                       index_g2x_Sg_topo01  ,index_g2x_Fsgg_rofi01, &
+                       index_g2x_Fsgg_rofl01,index_g2x_Fsgg_hflx01)
     if (glc_nec >=  2) call glc_export_mct(g2x, 2,index_g2x_Sg_frac02, &
-                       index_g2x_Sg_thck02  ,index_g2x_Sg_topo02, &
-                       index_g2x_Fsgg_hflx02,index_g2x_Fsgg_roff02)
+                       index_g2x_Sg_topo02  ,index_g2x_Fsgg_rofi02, &
+                       index_g2x_Fsgg_rofl02,index_g2x_Fsgg_hflx02)
     if (glc_nec >=  3) call glc_export_mct(g2x, 3,index_g2x_Sg_frac03, &
-                       index_g2x_Sg_thck03  ,index_g2x_Sg_topo03, &
-                       index_g2x_Fsgg_hflx03,index_g2x_Fsgg_roff03)
+                       index_g2x_Sg_topo03  ,index_g2x_Fsgg_rofi03, &
+                       index_g2x_Fsgg_rofl03,index_g2x_Fsgg_hflx03)
     if (glc_nec >=  4) call glc_export_mct(g2x, 4,index_g2x_Sg_frac04, &
-                       index_g2x_Sg_thck04  ,index_g2x_Sg_topo04, &
-                       index_g2x_Fsgg_hflx04,index_g2x_Fsgg_roff04)
+                       index_g2x_Sg_topo04  ,index_g2x_Fsgg_rofi04, &
+                       index_g2x_Fsgg_rofl04,index_g2x_Fsgg_hflx04)
     if (glc_nec >=  5) call glc_export_mct(g2x, 5,index_g2x_Sg_frac05, &
-                       index_g2x_Sg_thck05  ,index_g2x_Sg_topo05, &
-                       index_g2x_Fsgg_hflx05,index_g2x_Fsgg_roff05)
+                       index_g2x_Sg_topo05  ,index_g2x_Fsgg_rofi05, &
+                       index_g2x_Fsgg_rofl05,index_g2x_Fsgg_hflx05)
     if (glc_nec >=  6) call glc_export_mct(g2x, 6,index_g2x_Sg_frac06, &
-                       index_g2x_Sg_thck06  ,index_g2x_Sg_topo06, &
-                       index_g2x_Fsgg_hflx06,index_g2x_Fsgg_roff06)
+                       index_g2x_Sg_topo06  ,index_g2x_Fsgg_rofi06, &
+                       index_g2x_Fsgg_rofl06,index_g2x_Fsgg_hflx06)
     if (glc_nec >=  7) call glc_export_mct(g2x, 7,index_g2x_Sg_frac07, &
-                       index_g2x_Sg_thck07  ,index_g2x_Sg_topo07, &
-                       index_g2x_Fsgg_hflx07,index_g2x_Fsgg_roff07)
+                       index_g2x_Sg_topo07  ,index_g2x_Fsgg_rofi07, &
+                       index_g2x_Fsgg_rofl07,index_g2x_Fsgg_hflx07)
     if (glc_nec >=  8) call glc_export_mct(g2x, 8,index_g2x_Sg_frac08, &
-                       index_g2x_Sg_thck08  ,index_g2x_Sg_topo08, &
-                       index_g2x_Fsgg_hflx08,index_g2x_Fsgg_roff08)
+                       index_g2x_Sg_topo08  ,index_g2x_Fsgg_rofi08, &
+                       index_g2x_Fsgg_rofl08,index_g2x_Fsgg_hflx08)
     if (glc_nec >=  9) call glc_export_mct(g2x, 9,index_g2x_Sg_frac09, &
-                       index_g2x_Sg_thck09  ,index_g2x_Sg_topo09, &
-                       index_g2x_Fsgg_hflx09,index_g2x_Fsgg_roff09)
+                       index_g2x_Sg_topo09  ,index_g2x_Fsgg_rofi09, &
+                       index_g2x_Fsgg_rofl09,index_g2x_Fsgg_hflx09)
     if (glc_nec >= 10) call glc_export_mct(g2x,10,index_g2x_Sg_frac10, &
-                       index_g2x_Sg_thck10  ,index_g2x_Sg_topo10, &
-                       index_g2x_Fsgg_hflx10,index_g2x_Fsgg_roff10)
+                       index_g2x_Sg_topo10  ,index_g2x_Fsgg_rofi10, &
+                       index_g2x_Fsgg_rofl10,index_g2x_Fsgg_hflx10)
     
     ! log output for model date
 
@@ -353,6 +389,17 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
        write(stdout,F01) ' GLC  Date ',glcYMD,glcTOD
        call shr_sys_flush(stdout)
     end if
+
+    !----------------------------------------------------------------------------
+    ! if time to write restart, do so
+    !----------------------------------------------------------------------------
+    rest_alarm = seq_timemgr_RestartAlarmIsOn( EClock )
+    if (rest_alarm) then
+
+       ! TODO loop over instances
+       call glc_io_write_restart(ice_sheet%instances(1), EClock)
+
+    endif
 
     !----------------------------------------------------------------------------
     ! Reset shr logging to original values
@@ -467,17 +514,17 @@ subroutine glc_final_mct()
   end subroutine glc_import_mct
 
 !=================================================================================
-  subroutine glc_export_mct(g2x,ndx,index_frac,index_thck,index_topo,index_hflx,index_roff)
+  subroutine glc_export_mct(g2x,ndx,index_frac,index_topo,index_rofi,index_rofl,index_hflx)
 
-    use glc_global_fields, only: gfrac, gthck, gtopo, ghflx, groff   ! to coupler
+    use glc_global_fields, only: gfrac, gtopo, grofi, grofl, ghflx   ! to coupler
 
     type(mct_aVect),intent(inout) :: g2x
     integer(IN), intent(in) :: ndx
     integer(IN), intent(in) :: index_frac
-    integer(IN), intent(in) :: index_thck
     integer(IN), intent(in) :: index_topo
+    integer(IN), intent(in) :: index_rofi
+    integer(IN), intent(in) :: index_rofl
     integer(IN), intent(in) :: index_hflx
-    integer(IN), intent(in) :: index_roff
 
     integer(IN) :: j,jj,i,g,nxg,nyg,n
 
@@ -498,19 +545,19 @@ subroutine glc_final_mct()
        do i = 1, nxg
           g = (j-1)*nxg + i   ! global index (W to E, S to N)
           g2x%rAttr(index_frac,g) = gfrac(i,jj,ndx)
-          g2x%rAttr(index_thck,g) = gthck(i,jj,ndx)
           g2x%rAttr(index_topo,g) = gtopo(i,jj,ndx)
+          g2x%rAttr(index_rofi,g) = grofi(i,jj,ndx)
+          g2x%rAttr(index_rofl,g) = grofl(i,jj,ndx)
           g2x%rAttr(index_hflx,g) = ghflx(i,jj,ndx)
-          g2x%rAttr(index_roff,g) = groff(i,jj,ndx)
        enddo
     enddo
 
     if (verbose) then
        write(stdout,*) subname,' g2x frac ',ndx,minval(g2x%rAttr(index_frac,:)),maxval(g2x%rAttr(index_frac,:))
-       write(stdout,*) subname,' g2x thck ',ndx,minval(g2x%rAttr(index_thck,:)),maxval(g2x%rAttr(index_thck,:))
        write(stdout,*) subname,' g2x topo ',ndx,minval(g2x%rAttr(index_topo,:)),maxval(g2x%rAttr(index_topo,:))
+       write(stdout,*) subname,' g2x rofi ',ndx,minval(g2x%rAttr(index_rofi,:)),maxval(g2x%rAttr(index_rofi,:))
+       write(stdout,*) subname,' g2x rofl ',ndx,minval(g2x%rAttr(index_rofl,:)),maxval(g2x%rAttr(index_rofl,:))
        write(stdout,*) subname,' g2x hflx ',ndx,minval(g2x%rAttr(index_hflx,:)),maxval(g2x%rAttr(index_hflx,:))
-       write(stdout,*) subname,' g2x roff ',ndx,minval(g2x%rAttr(index_roff,:)),maxval(g2x%rAttr(index_roff,:))
        call shr_sys_flush(stdout)
     endif
 
