@@ -34,15 +34,15 @@ if ( $gridfile  == "UNSET" )then
 endif
 
 # ---------------------------------------------------------------------------
-#  Figure out the cismgridfile
+#  Figure out the cisminputfile
 # ---------------------------------------------------------------------------
 
 if ($RUN_TYPE == startup) then
   if ( $GLC_GRID =~ gland20 || $GLC_GRID =~ gland10 || $GLC_GRID =~ gland5) then
-     set cismgridfile = $GLC_GRID.input.nc
+     set cisminputfile = \$DIN_LOC_ROOT/glc/cism/$GLC_GRID.input.nc
   endif
 else if ($RUN_TYPE == branch || $RUN_TYPE == hybrid) then
-  set cismgridfile = ${RUN_REFCASE}.cism.r.${RUN_REFDATE}-00000.nc
+  set cisminputfile = ${RUN_REFCASE}.cism.r.${RUN_REFDATE}-00000.nc
 endif
 
 # ---------------------------------------------------------------------------
@@ -65,7 +65,7 @@ endif
 
 cat >! $CASEBUILD/cism.input_data_list << EOF
 gridfile       = $gridfile
-cismgrid_input = \$DIN_LOC_ROOT/glc/cism/$cismgridfile
+cismgrid_input = $cisminputfile
 EOF
 
 # ---------------------------------------------------------------------------
@@ -78,11 +78,13 @@ cat >! $CASEBUILD/cism.buildnml.csh << EOF1
 # ---------------------------------------------------------------------------
 
 set exedir = \$RUNDIR; cd \$exedir
-set cismgrid_input = \$DIN_LOC_ROOT/glc/cism/$cismgridfile
+set cismgrid_input = $cisminputfile
 set cism_history = \$CASE.cism.h
 
-cp \$cismgrid_input \$exedir/$cismgridfile
-chmod 644 \$exedir/$cismgridfile
+if ($RUN_TYPE != 'branch' && $RUN_TYPE != 'hybrid') then
+cp \$cismgrid_input \$exedir/$GLC_GRID.input.nc
+chmod 644 \$exedir/$GLC_GRID.input.nc
+endif
 
 # Input namelists
 cat >! cism_in <<EOF
@@ -118,10 +120,10 @@ EOF1
 cat $paramfile >> $CASEBUILD/cism.buildnml.csh
 cat            >> $CASEBUILD/cism.buildnml.csh << EOF1
 EOF
-if (\$CONTINUE_RUN == 'FALSE') then
+if (\$RUN_TYPE == startup && \$CONTINUE_RUN == 'FALSE') then
 cat >> cism.config <<EOF
 [CF input]
-name: $cismgridfile
+name: $GLC_GRID.input.nc
 EOF
 endif
 EOF1
