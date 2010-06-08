@@ -13,7 +13,7 @@
 ! !USES:
 
    use glc_time_management, only: iyear, imonth, iday, ihour, iminute, isecond, &
-                                  runtype, ccsm_date_stamp, elapsed_days_init_date
+                                  runtype, ccsm_date_stamp, elapsed_days, elapsed_days0
    use glc_communicate,     only: my_task, master_task
    use glimmer_ncdf,        only: add_output, delete_output
    use glimmer_ncio,        only: glimmer_nc_checkwrite, &
@@ -227,6 +227,7 @@
     integer(IN)   :: ccsmDAY           ! ccsm model day
     integer(IN)   :: glcYMD            ! cism model date
     integer(IN)   :: glcTOD            ! cism model sec
+    integer(IN)   :: rst_elapsed_days  ! 
     integer(IN)   :: ptr_unit          ! unit for pointer file
     integer(IN)   :: status            !
 
@@ -276,7 +277,8 @@
     call nc_errorhandle(__FILE__,__LINE__,status)
     status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'glcTOD', glcTOD)
     call nc_errorhandle(__FILE__,__LINE__,status)
-    status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'elapsed_days', elapsed_days_init_date)
+    rst_elapsed_days = elapsed_days - elapsed_days0
+    status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'elapsed_days', rst_elapsed_days)
     call nc_errorhandle(__FILE__,__LINE__,status)
     
     call glide_nc_filldvars(oc, instance%model)

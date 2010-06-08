@@ -657,6 +657,15 @@
 
 !-----------------------------------------------------------------------
 !
+!  compute seconds_this_year and seconds_the_day for next timestep
+!
+!-----------------------------------------------------------------------
+
+   seconds_this_year_next =  seconds_this_year + stepsize_next
+   seconds_this_day_next  =  seconds_this_day  + stepsize_next
+
+!-----------------------------------------------------------------------
+!
 !  determine tsecond, the number of seconds elapsed since beginning
 !  of complete simulation.
 !
@@ -2195,7 +2204,6 @@
 !  elapsed number of days (integer)
 !
 !-----------------------------------------------------------------------
-
    if (iday_of_year >= iday_of_year_last) then
       day_inc = iday_of_year - iday_of_year_last
    else

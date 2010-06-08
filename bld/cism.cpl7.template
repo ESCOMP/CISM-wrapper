@@ -19,10 +19,10 @@ set NY = $LND_NY
 
 set gridfile  = UNSET
 if ( $ATM_GRID =~ 48x96   )then
-   set gridfile  = \$DIN_LOC_ROOT/glc/cism/topodata_48x96_USGS_070110.glc.nc
+   set gridfile  = \$DIN_LOC_ROOT/glc/cism/fracdata/fracdata_48x96_gx3v7_c090915.glc.nc
 endif
 if ( $ATM_GRID =~ 0.9x1.25)then
-   set gridfile  = \$DIN_LOC_ROOT/glc/cism/topodata_0.9x1.25_USGS_070110.glc.nc
+   set gridfile  = \$DIN_LOC_ROOT/glc/cism/fracdata/fracdata_0.9x1.25_gx1v6_c090317.glc.nc
 endif
 if ( $ATM_GRID =~ 1.9x2.5 )then
    set gridfile  = \$DIN_LOC_ROOT/glc/cism/fracdata/fracdata_1.9x2.5_gx1v6_c090206.glc.nc

@@ -4,6 +4,17 @@ This file describes what main-trunk tags were created and why
 
 ================================================================================
 Originator: jwolfe
+Date: Jun 08, 2010
+Model: cism
+Version: cism1_100608
+One-line summary: Additional resolution support, fix calendar bug
+
+M      bld/cism.cpl7.template
+M      source_glc/glc_io.F90
+M      source_glc/glc_time_management.F90
+
+================================================================================
+Originator: jwolfe
 Date: Jun 03, 2010
 Model: cism
 Version: cism1_100603
