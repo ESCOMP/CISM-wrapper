@@ -13,7 +13,6 @@
 !  SVN:$Id: time_management.F90 923 2006-05-10 22:25:10Z njn01 $
 !  Adapted by William Lipscomb from time_management.F90 in POP.
 !  Much of the original POP code deleted because not needed here.
-!  Still have a lot of unused code, but kept for now in case needed later.
 
 !USES:
 
@@ -42,7 +41,7 @@
              time_to_start,             &
              time_stamp,                &
              int_to_char,               &
-             ccsm_date_stamp
+             cesm_date_stamp
 
 ! !PUBLIC DATA TYPES:
 
@@ -71,15 +70,10 @@
 !
 !-----------------------------------------------------------------------
 
-!lipscomb - Commented out options that I doubt will be used by glc,
-!            in particular those associated with variable time steps
-!            (leapfrog, Matsuno, mixing and all that).
-!           At some point, these should be deleted.
-
    character (char_len) :: &
       stop_option         ,&! specify how to determine stopping time
       runid               ,&! an identifier for the run
-      runtype             ,&! type of CCSM4 run (initial, continue, branch or hybrid)
+      runtype             ,&! type of cesm run (initial, continue, branch or hybrid)
       dt_option             ! method to determine tracer timestep size
 
    integer (int_kind) :: &
@@ -534,8 +528,7 @@
       call exit_glc(sigAbort,'unknown dt_option')
    end select
 
-!lipscomb - debug
-  if (verbose) then
+  if (verbose .and. my_task==master_task) then
      write(stdout,*) 'dt_option =', trim(dt_option)
      write(stdout,*) 'dt_count =', dt_count
      write(stdout,*) 'seconds_in_day =', seconds_in_day
@@ -681,7 +674,7 @@
 !
 !-----------------------------------------------------------------------
 
-!lipscomb - to do - not sure this is needed
+!lipscomb - TO DO - This may not be needed
    if (dtt /= dtt_input ) then
       new_dtt_value = .true.
       dtt = dtt_input
@@ -3413,9 +3406,9 @@
 
 !***********************************************************************
 !BOP
-! !IROUTINE: ccsm_date_stamp
+! !IROUTINE: cesm_date_stamp
 ! !INTERFACE:
- subroutine ccsm_date_stamp (date_string, ymds)
+ subroutine cesm_date_stamp (date_string, ymds)
 
 ! !DESCRIPTION:
 !-----------------------------------------------------------------------
@@ -3439,10 +3432,10 @@
 !EOP
 !BOC
 
-  character (4) :: ccsm_cyear
-  character (2) :: ccsm_cmonth
-  character (2) :: ccsm_cday  
-  character (5) :: ccsm_csecond
+  character (4) :: cesm_cyear
+  character (2) :: cesm_cmonth
+  character (2) :: cesm_cday  
+  character (5) :: cesm_csecond
  
   integer (kind=int_kind) ::  &
      iyear_stamp             ,&
@@ -3453,7 +3446,7 @@
    date_string = char_blank
 
 !---------------------------------------------------------------------
-!     set ixxxx_stamp variables to conform to the ccsm standard
+!     set ixxxx_stamp variables to conform to the cesm standard
 !---------------------------------------------------------------------
    if (midnight) then
      if (eoy) then
@@ -3481,30 +3474,30 @@
 !    use unmodified ixxx variables if printing ymds information
 !---------------------------------------------------------------------
        itotal_second = isecond + 60*iminute + 3600*ihour
-       call int_to_char (4,iyear        , ccsm_cyear  )
-       call int_to_char (2,imonth       , ccsm_cmonth )
-       call int_to_char (2,iday         , ccsm_cday   )
-       call int_to_char (5,itotal_second, ccsm_csecond)
-       write (date_string,1000) ccsm_cyear, ccsm_cmonth, ccsm_cday, &
-                                ccsm_csecond
+       call int_to_char (4,iyear        , cesm_cyear  )
+       call int_to_char (2,imonth       , cesm_cmonth )
+       call int_to_char (2,iday         , cesm_cday   )
+       call int_to_char (5,itotal_second, cesm_csecond)
+       write (date_string,1000) cesm_cyear, cesm_cmonth, cesm_cday, &
+                                cesm_csecond
 
      case ('ymd')
-        call int_to_char (4,iyear_stamp  , ccsm_cyear )
-        call int_to_char (2,imonth_stamp , ccsm_cmonth)
-        call int_to_char (2,iday_stamp   , ccsm_cday  )
-        write (date_string,1000) ccsm_cyear, ccsm_cmonth, ccsm_cday
+        call int_to_char (4,iyear_stamp  , cesm_cyear )
+        call int_to_char (2,imonth_stamp , cesm_cmonth)
+        call int_to_char (2,iday_stamp   , cesm_cday  )
+        write (date_string,1000) cesm_cyear, cesm_cmonth, cesm_cday
 
      case ('ym')
-        call int_to_char (4,iyear_stamp  , ccsm_cyear )
-        call int_to_char (2,imonth_stamp , ccsm_cmonth)
-        write (date_string,1000) ccsm_cyear, ccsm_cmonth
+        call int_to_char (4,iyear_stamp  , cesm_cyear )
+        call int_to_char (2,imonth_stamp , cesm_cmonth)
+        write (date_string,1000) cesm_cyear, cesm_cmonth
 
      case ('y')
-        call int_to_char (4,iyear_stamp  , ccsm_cyear)
-        write (date_string,1000) ccsm_cyear
+        call int_to_char (4,iyear_stamp  , cesm_cyear)
+        write (date_string,1000) cesm_cyear
         
         case default 
-        call exit_glc(sigAbort,'(ccsm_date_stamp)')
+        call exit_glc(sigAbort,'(cesm_date_stamp)')
  
    end select
  
@@ -3515,7 +3508,7 @@
 
 !-----------------------------------------------------------------------
 
-  end subroutine ccsm_date_stamp
+  end subroutine cesm_date_stamp
 
 !***********************************************************************
 !BOP

@@ -35,13 +35,11 @@
   ! All fields declared below use the glint convention, so the latitude
   !  index must be reversed when exchanging with the coupler.
 
-!lipscomb - May want to get rid of duplicate arrays here
-!           Do a copy to get arrays on the correct grid
-  ! fields received from CCSM coupler on glc grid
+  ! Fields received from CESM coupler on glc grid
   ! NOTE: For SEB scheme, tsfc = ground surface temp
-  !                       qice = accumulation minus ablation
+  !                       qsmb = accumulation minus ablation
   !       For PDD scheme, tsfc => 2m reference temp
-  !                       qice => precipitation
+  !                       qsmb => precipitation
 
   ! input from coupler (3rd dimension for elevation classes)
 
@@ -49,13 +47,7 @@
      tsfc        ,&! surface temperature (Celsius)
                    ! received from coupler in Kelvin, must be converted
      topo        ,&! surface elevation (m)
-     qice          ! flux of new glacier ice (kg/m^2/s)
-
-!lipscomb - to do - delete these when glc_glint is removed
-  real(r8), dimension(:,:,:), allocatable ::  &
-     tsfc_av     ,&! averaging array for tsfc
-     topo_av     ,&! averaging array for topo
-     qice_av       ! averaging array for qice
+     qsmb          ! flux of new glacier ice (kg/m^2/s)
 
   ! output to coupler
 
@@ -77,30 +69,32 @@
       precip      ,&! precipitation   (mm/s) 
       orog          ! orography       (m) 
 
+!lipscomb - TO DO - Not all of the remaining fields are needed
+!                   Some are commented out for now
+ 
   ! glint output fields (using glint N to S indexing convention)
   ! These are all on the global grid, except for orog_out
  
   real(r8),dimension(:,:), allocatable ::   &
-      albedo      ,&! Fractional albedo
-      orog_out    ,&! Output orography (m)
+!!      albedo      ,&! Fractional albedo
+!!      orog_out    ,&! Output orography (m)
       ice_frac    ,&! Ice coverage fraction
       fw          ,&! Freshwater output flux (mm/s)
       fw_in         ! Freshwater input flux (mm/s)
  
   ! arrays which hold information about the global grid
  
-  real(r8),dimension(:), allocatable ::  &
-     lats_orog    ,&! Latitudes of global orography gridpoints
-     lons_orog      ! Longitudes of global oropraphy gridpoints
+!!  real(r8),dimension(:), allocatable ::  &
+!!     lats_orog    ,&! Latitudes of global orography gridpoints
+!!     lons_orog      ! Longitudes of global oropraphy gridpoints
 
   ! arrays which hold information about the ice model instances
  
-  real(r8),dimension(:,:), allocatable ::   &
-      coverage    ,&! Coverage map for normal global grid
-      cov_orog      ! Coverage map for orography grid
+!!  real(r8),dimension(:,:), allocatable ::   &
+!!      coverage    ,&! Coverage map for normal global grid
+!!      cov_orog      ! Coverage map for orography grid
 
-!lipscomb - This time is internal to glint.  Remove later and use CCSM time.
-  integer(i4) :: time           ! current time in hours
+!!  integer(i4) :: time           ! current time in hours
 
 !EOP
 !***********************************************************************
@@ -137,12 +131,12 @@
 !EOP
 !BOC
 
-   integer (i4) :: nxo, nyo  !lipscomb - temporary
+!!   integer (i4) :: nxo, nyo  ! not currently used
 
  ! from coupler
    allocate(tsfc(nx,ny,glc_nec))
    allocate(topo(nx,ny,glc_nec))
-   allocate(qice(nx,ny,glc_nec))
+   allocate(qsmb(nx,ny,glc_nec))
 
  ! to coupler
    allocate(gfrac(nx,ny,glc_nec))
@@ -151,22 +145,16 @@
    allocate(grofl(nx,ny,glc_nec))
    allocate(ghflx(nx,ny,glc_nec))
 
-  ! averaging arrays
- 
-  allocate(tsfc_av(nx,ny,glc_nec))
-  allocate(qice_av(nx,ny,glc_nec))
-  allocate(topo_av(nx,ny,glc_nec))
-
  ! Other fields
 
-
-!lipscomb - may want to get rid of some of these
-   nxo = nx; nyo = ny  ! temporary, till I decide whether to keep these arrays
-
    allocate(temp(nx,ny),precip(nx,ny),orog(nx,ny))
-   allocate(orog_out(nxo,nyo),albedo(nx,ny),ice_frac(nx,ny),fw(nx,ny),fw_in(nx,ny))
-   allocate(lats_orog(nyo),lons_orog(nxo))
-   allocate(coverage(nx,ny),cov_orog(nxo,nyo))
+   allocate(ice_frac(nx,ny),fw(nx,ny),fw_in(nx,ny))
+
+!lipscomb - TO DO - I think these are not needed
+!!   nxo = nx; nyo = ny
+!!   allocate(orog_out(nxo,nyo),albedo(nx,ny))
+!!   allocate(lats_orog(nyo),lons_orog(nxo))
+!!   allocate(coverage(nx,ny),cov_orog(nxo,nyo))
 
    end subroutine glc_allocate_global
 
@@ -199,7 +187,7 @@
  ! from coupler
    deallocate(tsfc)
    deallocate(topo)
-   deallocate(qice)
+   deallocate(qsmb)
 
  ! to coupler
    deallocate(gfrac)
@@ -209,19 +197,19 @@
    deallocate(ghflx)
 
  ! Other fields
-!lipscomb - may want to get rid of some of these
+!lipscomb - TO DO - Some of these are not needed
   deallocate(temp)
   deallocate(orog)
   deallocate(precip)
-  deallocate(orog_out)
-  deallocate(albedo)
+!!  deallocate(orog_out)
+!!  deallocate(albedo)
   deallocate(ice_frac)  
   deallocate(fw)  
   deallocate(fw_in)
-  deallocate(lats_orog)
-  deallocate(lons_orog)
-  deallocate(coverage)
-  deallocate(cov_orog)
+!!  deallocate(lats_orog)
+!!  deallocate(lons_orog)
+!!  deallocate(coverage)
+!!  deallocate(cov_orog)
   
    end subroutine glc_deallocate_global
 

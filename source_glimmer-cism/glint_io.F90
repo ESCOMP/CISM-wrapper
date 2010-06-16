@@ -1,47 +1,34 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! WARNING: this file was automatically generated on
-! Mon, 24 May 2010 18:48:32 +0000
+! Tue, 15 Jun 2010 22:11:50 +0000
 ! from ncdf_template.F90.in
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ! +                                                           +
-! +  ncdf_template.f90 - part of the GLIMMER ice model        + 
+! +  ncdf_template.f90 - part of the Glimmer_CISM ice model   + 
 ! +                                                           +
 ! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ! 
-! Copyright (C) 2004 GLIMMER contributors - see COPYRIGHT file 
-! for list of contributors.
+! Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+! Glimmer-CISM contributors - see AUTHORS file for list of contributors
 !
-! This program is free software; you can redistribute it and/or 
-! modify it under the terms of the GNU General Public License as 
-! published by the Free Software Foundation; either version 2 of 
-! the License, or (at your option) any later version.
+! This file is part of Glimmer-CISM.
 !
-! This program is distributed in the hope that it will be useful, 
-! but WITHOUT ANY WARRANTY; without even the implied warranty of 
-! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+! Glimmer-CISM is free software: you can redistribute it and/or modify
+! it under the terms of the GNU General Public License as published by
+! the Free Software Foundation, either version 2 of the License, or (at
+! your option) any later version.
+!
+! Glimmer-CISM is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ! GNU General Public License for more details.
 !
-! You should have received a copy of the GNU General Public License 
-! along with this program; if not, write to the Free Software 
-! Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 
-! 02111-1307 USA
+! You should have received a copy of the GNU General Public License
+! along with Glimmer-CISM.  If not, see <http://www.gnu.org/licenses/>.
 !
-! GLIMMER is maintained by:
-!
-! Ian Rutt
-! School of Geographical Sciences
-! University of Bristol
-! University Road
-! Bristol
-! BS8 1SS
-! UK
-!
-! email: <i.c.rutt@bristol.ac.uk> or <ian.rutt@physics.org>
-!
-! GLIMMER is hosted on berliOS.de:
-!
+! Glimmer-CISM is hosted on BerliOS.de:
 ! https://developer.berlios.de/projects/glimmer-cism/
 !
 ! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -56,7 +43,7 @@ module glint_io
 
   private :: get_xtype
 
-  character(len=*),private,parameter :: hotvars = ' outmask  siced  snowd '
+  character(len=*),private,parameter :: hotvars = ' outmask '
 
 contains
 
@@ -201,24 +188,6 @@ contains
        end if
      end if
 
-    !     acab -- mass balance
-    pos = index(NCO%vars,' acab ')
-    status = nf90_inq_varid(NCO%id,'acab',varid)
-    if (pos.ne.0) then
-      NCO%vars(pos+1:pos+4) = '    '
-    end if
-    if (pos.ne.0 .and. status.eq.nf90_enotvar) then
-       call write_log('Creating variable acab')
-       status = nf90_def_var(NCO%id,'acab',get_xtype(outfile,NF90_FLOAT),(/x1_dimid, y1_dimid, time_dimid/),varid)
-       call nc_errorhandle(__FILE__,__LINE__,status)
-       status = nf90_put_att(NCO%id, varid, 'long_name', 'mass balance')
-       status = nf90_put_att(NCO%id, varid, 'units', 'meter (water)/year')
-       if (glimmap_allocated(model%projection)) then
-          status = nf90_put_att(NCO%id, varid, 'grid_mapping',glimmer_nc_mapvarname)
-          status = nf90_put_att(NCO%id, varid, 'coordinates', 'lon lat')
-       end if
-     end if
-
     !     arng -- air temperature half-range
     pos = index(NCO%vars,' arng ')
     status = nf90_inq_varid(NCO%id,'arng',varid)
@@ -230,24 +199,6 @@ contains
        status = nf90_def_var(NCO%id,'arng',get_xtype(outfile,NF90_FLOAT),(/x1_dimid, y1_dimid, time_dimid/),varid)
        call nc_errorhandle(__FILE__,__LINE__,status)
        status = nf90_put_att(NCO%id, varid, 'long_name', 'air temperature half-range')
-       status = nf90_put_att(NCO%id, varid, 'units', 'degreeC')
-       if (glimmap_allocated(model%projection)) then
-          status = nf90_put_att(NCO%id, varid, 'grid_mapping',glimmer_nc_mapvarname)
-          status = nf90_put_att(NCO%id, varid, 'coordinates', 'lon lat')
-       end if
-     end if
-
-    !     artm -- air temperature
-    pos = index(NCO%vars,' artm ')
-    status = nf90_inq_varid(NCO%id,'artm',varid)
-    if (pos.ne.0) then
-      NCO%vars(pos+1:pos+4) = '    '
-    end if
-    if (pos.ne.0 .and. status.eq.nf90_enotvar) then
-       call write_log('Creating variable artm')
-       status = nf90_def_var(NCO%id,'artm',get_xtype(outfile,NF90_FLOAT),(/x1_dimid, y1_dimid, time_dimid/),varid)
-       call nc_errorhandle(__FILE__,__LINE__,status)
-       status = nf90_put_att(NCO%id, varid, 'long_name', 'air temperature')
        status = nf90_put_att(NCO%id, varid, 'units', 'degreeC')
        if (glimmap_allocated(model%projection)) then
           status = nf90_put_att(NCO%id, varid, 'grid_mapping',glimmer_nc_mapvarname)
@@ -416,24 +367,10 @@ contains
        call nc_errorhandle(__FILE__,__LINE__,status)
     end if
 
-    status = nf90_inq_varid(NCO%id,'acab',varid)
-    if (status .eq. nf90_noerr) then
-       status = nf90_put_var(NCO%id, varid, &
-            data%acab, (/1,1,outfile%timecounter/))
-       call nc_errorhandle(__FILE__,__LINE__,status)
-    end if
-
     status = nf90_inq_varid(NCO%id,'arng',varid)
     if (status .eq. nf90_noerr) then
        status = nf90_put_var(NCO%id, varid, &
             data%arng, (/1,1,outfile%timecounter/))
-       call nc_errorhandle(__FILE__,__LINE__,status)
-    end if
-
-    status = nf90_inq_varid(NCO%id,'artm',varid)
-    if (status .eq. nf90_noerr) then
-       status = nf90_put_var(NCO%id, varid, &
-            data%artm, (/1,1,outfile%timecounter/))
        call nc_errorhandle(__FILE__,__LINE__,status)
     end if
 
@@ -688,28 +625,6 @@ contains
     data%ablt = inarray
   end subroutine glint_set_ablt
 
-  subroutine glint_get_acab(data,outarray)
-    use glimmer_scales
-    use glimmer_paramets
-    use glint_type
-    implicit none
-    type(glint_instance) :: data
-    real, dimension(:,:), intent(out) :: outarray
-
-    outarray = data%acab
-  end subroutine glint_get_acab
-
-  subroutine glint_set_acab(data,inarray)
-    use glimmer_scales
-    use glimmer_paramets
-    use glint_type
-    implicit none
-    type(glint_instance) :: data
-    real, dimension(:,:), intent(in) :: inarray
-
-    data%acab = inarray
-  end subroutine glint_set_acab
-
   subroutine glint_get_arng(data,outarray)
     use glimmer_scales
     use glimmer_paramets
@@ -731,28 +646,6 @@ contains
 
     data%arng = inarray
   end subroutine glint_set_arng
-
-  subroutine glint_get_artm(data,outarray)
-    use glimmer_scales
-    use glimmer_paramets
-    use glint_type
-    implicit none
-    type(glint_instance) :: data
-    real, dimension(:,:), intent(out) :: outarray
-
-    outarray = data%artm
-  end subroutine glint_get_artm
-
-  subroutine glint_set_artm(data,inarray)
-    use glimmer_scales
-    use glimmer_paramets
-    use glint_type
-    implicit none
-    type(glint_instance) :: data
-    real, dimension(:,:), intent(in) :: inarray
-
-    data%artm = inarray
-  end subroutine glint_set_artm
 
   subroutine glint_get_global_orog(data,outarray)
     use glimmer_scales

@@ -28,7 +28,7 @@
 !            write_log subroutine, which has a private output index
 !            called glimmer_unit, but it is convenient sometimes to
 !            write diagnostics directly to stdout.  
-!           In CCSM runs, glimmer_unit is set to stdout at initialization. 
+!           In CESM runs, glimmer_unit is set to stdout at initialization. 
 
   use glimmer_paramets, only: stdout
 !EOP
@@ -45,15 +45,16 @@
 
   logical, parameter :: verbose = .false.
 
-!lipscomb - to do - This should be infodata from the coupler?
+!lipscomb - TO DO - Set glc_smb using coupler infodata;
+!                   set to false when using PDD scheme
+
   logical, parameter ::   &
      glc_smb = .true.     ! if true, get surface mass balance from CLM via coupler
                           ! (in multiple elevation classes)
                           ! if false, use PDD scheme in GLIMMER
 
-!lipscomb - to do - Get glc_nec from an input file
-!                   Also get topomax array from an input file?
-!           This must agree with values in CLM and coupler
+!lipscomb - TO DO - Get glc_nec (and topomax) from an input file
+!                   to ensure that these values agree with CLM values
 
   integer, parameter ::   &
      glc_nec = 10             ! number of elevation classes
@@ -69,16 +70,10 @@
    !-----------------------------------------------------------------
    ! parameters for downscaling
    !-----------------------------------------------------------------
-!lipscomb - This should be consistent with lapse_glcmec in CLM (in clm_varcon.F90)
-!lipscomb - to do - Make this a shared constant?
+!lipscomb - TO DO- This should be consistent with lapse_glcmec in CLM (in clm_varcon.F90)
+!                  Make this a shared constant?
 
    real(r8), parameter :: lapse = 0.006_r8   ! atm lapse rate, deg/m
-
-!lipscomb - The remaining constants are from POP
-
-!lipscomb - to do - Move to glimmer_paramets?
-   real (r8), parameter, public :: &
-      spval  = 1.0e36_r8       ! special value for netCDF output
 
    !-----------------------------------------------------------------
    !  common formats for formatted output

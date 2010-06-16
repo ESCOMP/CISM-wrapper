@@ -28,7 +28,6 @@
    use glc_exit_mod
    use glint_global_grid
    
-!lipscomb - debug
    use shr_sys_mod, only : shr_sys_flush
    use shr_file_mod, only : shr_file_getunit, shr_file_freeunit
 
@@ -73,7 +72,6 @@
 
 !***********************************************************************
 
-!lipscomb - This subroutine is based on POP and could be simplified.
 !BOP
 ! !IROUTINE: init_glc_grid
 ! !INTERFACE:
@@ -210,41 +208,8 @@
       lathalf,          &! lat at T points
       xdeg               ! temporary longitude variable
 
+!lipscomb - TO DO - Enable internal grid generation, if desired
    call exit_glc(sigAbort, 'Internal grid generation not yet enabled')
-
-!lipscomb - Need a new routine here.  Most of POP routine is commented out.
-!-----------------------------------------------------------------------
-!
-!  calculate lat/lon coords of U points
-!  long range (-180,180)
-!
-!-----------------------------------------------------------------------
-
-!      dlon = 360.0_r8/real(nx_global)
-!      dlat = 180.0_r8/real(ny_global)
-
-!      allocate (ULAT(nx_global, ny_global), &
-!                ULON(nx_global, ny_global))
-
-!      do i=1,nx_global
-!         xdeg = i*dlon
-!         if (xdeg > 180.0_r8) xdeg = xdeg - 360.0_r8
-!         ULON(i,:) =  xdeg/radian
-!      enddo
-
-!      do j = 1,ny_global
-!         ULAT(:,j)  = (-90.0_r8 + j*dlat)/radian
-!      enddo
-
-!-----------------------------------------------------------------------
-!
-!  calculate grid spacings and other quantities
-!  compute here to avoid bad ghost cell values due to dropped land 
-!  blocks
-!
-!-----------------------------------------------------------------------
-
-!      deallocate(ULAT,ULON)
 
 !-----------------------------------------------------------------------
 !EOC
@@ -315,15 +280,12 @@
    nx = glc_grid%nx
    ny = glc_grid%ny
 
-!lipscomb - kludge
 !lipscomb - GLINT assumes the grid is indexed N to S and automatically sets
 !            lat_bound(1) = 90, lat_bound(ny+1) = -90.
 !           Reverse that convention here.
 
    glc_grid%lat_bound(1)    = -90._r8
    glc_grid%lat_bound(ny+1) =  90._r8
-
-!lipscomb - Make sure lon_bound > 0
 
    do i = 1, nx
       if (glc_grid%lon_bound(i) < 0._r8)   &
@@ -359,7 +321,6 @@
    ! compute grid cell area
    ! Note: Global grid is indexed from south to north, so the south edge of cell (i,j+1)
    !       is the north edge of cell (i,j)
-!lipscomb - make sure lat_bound and lon_bound have correct dimensions
 
    allocate(glc_grid%box_areas(nx,ny))
 
@@ -377,44 +338,43 @@
 
       ! Make sure area is positive
       if (glc_grid%box_areas(i,j) <= 0._r8) then
-         write(stdout,*) 'Negative area: i, j, area =', i, j, glc_grid%box_areas(i,j)
-!lipscomb - debug
-         write(stdout,*) 'latn, lats =', latn, lats
-         write(stdout,*) 'cos(latn), cos(lats) =', cos(latn), cos(lats)
-         write(stdout,*) 'lone, lonw =', lone, lonw
-         write(stdout,*) 'latb(j), latb(j+1) =', glc_grid%lat_bound(j), &
-                                                 glc_grid%lat_bound(j+1)
-         write(stdout,*) 'lonb(i), lonb(i+1) =', glc_grid%lon_bound(i), &
-                                                 glc_grid%lon_bound(i+1)
-
+         if (verbose) then
+            write(stdout,*) 'Negative area: i, j, area =', i, j, glc_grid%box_areas(i,j)
+            write(stdout,*) 'latn, lats =', latn, lats
+            write(stdout,*) 'cos(latn), cos(lats) =', cos(latn), cos(lats)
+            write(stdout,*) 'lone, lonw =', lone, lonw
+            write(stdout,*) 'latb(j), latb(j+1) =', glc_grid%lat_bound(j), &
+                                                    glc_grid%lat_bound(j+1)
+            write(stdout,*) 'lonb(i), lonb(i+1) =', glc_grid%lon_bound(i), &
+                                                    glc_grid%lon_bound(i+1)
+         endif
          call exit_glc(sigAbort, 'Negative gridcell area on glc grid')
       endif
 
    enddo
    enddo
 
-!lipscomb - debug
-   write(stdout,*) ''
-   write(stdout,*) 'Horizontal grid:'
-   write(stdout,*) 'nx =', nx
-   write(stdout,*) 'ny =', ny
-!   write(stdout,*) 'lats =', glc_grid%lats(:)
-!   write(stdout,*) 'lons =', glc_grid%lons(:)
-!   write(stdout,*) 'lat_bound =', glc_grid%lat_bound(:)
-!   write(stdout,*) 'lon_bound =', glc_grid%lon_bound(:)
-
-   write(stdout,*) ''
-   i = itest
-   j = jtest
-   write(stdout,*) 'Test point, i, j, =', itest, jtest
-   write(stdout,*) 'lat, lon =', glc_grid%lats(j), glc_grid%lons(i)
-   write(stdout,*) 'area =', glc_grid%box_areas(i,j)
-   write(stdout,*) 'landmask =', glc_landmask(i,j)
-   write(stdout,*) 'landfrac =', glc_landfrac(i,j)
-   write(stdout,*) 'frac of earth =', glc_grid%box_areas(i,j) / (4._r8*pi*radius*radius)
-   write(stdout,*) 'Leaving read_horiz_grid'
-   call shr_sys_flush(stdout)
-!lipscomb - end debug
+   if (verbose .and. my_task==master_task) then
+      write(stdout,*) ''
+      write(stdout,*) 'Horizontal grid:'
+      write(stdout,*) 'nx =', nx
+      write(stdout,*) 'ny =', ny
+!      write(stdout,*) 'lats =', glc_grid%lats(:)  
+!      write(stdout,*) 'lons =', glc_grid%lons(:)
+!      write(stdout,*) 'lat_bound =', glc_grid%lat_bound(:)
+!      write(stdout,*) 'lon_bound =', glc_grid%lon_bound(:)
+      write(stdout,*) ''
+      i = itest
+      j = jtest
+      write(stdout,*) 'Test point, i, j, =', itest, jtest
+      write(stdout,*) 'lat, lon =', glc_grid%lats(j), glc_grid%lons(i)
+      write(stdout,*) 'area =', glc_grid%box_areas(i,j)
+      write(stdout,*) 'landmask =', glc_landmask(i,j)
+      write(stdout,*) 'landfrac =', glc_landfrac(i,j)
+      write(stdout,*) 'frac of earth =', glc_grid%box_areas(i,j) / (4._r8*pi*radius*radius)
+      write(stdout,*) 'Leaving read_horiz_grid'
+      call shr_sys_flush(stdout)
+   endif
 
 !-----------------------------------------------------------------------
 !EOC

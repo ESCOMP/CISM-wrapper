@@ -13,7 +13,7 @@
 ! !USES:
 
    use glc_time_management, only: iyear, imonth, iday, ihour, iminute, isecond, &
-                                  runtype, ccsm_date_stamp, elapsed_days, elapsed_days0
+                                  runtype, cesm_date_stamp, elapsed_days, elapsed_days0
    use glc_communicate,     only: my_task, master_task
    use glimmer_ncdf,        only: add_output, delete_output
    use glimmer_ncio,        only: glimmer_nc_checkwrite, &
@@ -33,7 +33,7 @@
 
 ! !PUBLIC MEMBER FUNCTIONS:
 
-   public :: glc_io_create_suffix_ccsm, &
+   public :: glc_io_create_suffix_cesm, &
              glc_io_read_restart,       &
              glc_io_read_restart_time,  &
              glc_io_write_restart
@@ -54,10 +54,10 @@
 
 !***********************************************************************
 !BOP
-! !IROUTINE: glc_io_create_suffix_ccsm
+! !IROUTINE: glc_io_create_suffix_cesm
 ! !INTERFACE:
 
-   subroutine glc_io_create_suffix_ccsm(model)
+   subroutine glc_io_create_suffix_cesm(model)
 
     use glide_types
     implicit none
@@ -68,7 +68,7 @@
 
     character (char_len) :: &
       char_temp,            &! temp character space
-      ccsm_date_string,     &
+      cesm_date_string,     &
       file_suffix
 !-----------------------------------------------------------------------
 
@@ -82,9 +82,9 @@
 
     char_temp   = 'ymds'
 
-    call ccsm_date_stamp (ccsm_date_string, char_temp)
+    call cesm_date_stamp (cesm_date_string, char_temp)
 
-    file_suffix = trim(ccsm_date_string)//'.nc'
+    file_suffix = trim(cesm_date_string)//'.nc'
 
     oc=>model%funits%out_first
     do
@@ -93,7 +93,7 @@
        oc => oc%next
     end do
 
-  end subroutine glc_io_create_suffix_ccsm
+  end subroutine glc_io_create_suffix_cesm
 
 !***********************************************************************
 !BOP
@@ -155,8 +155,8 @@
 
     ! local variables
     character(CL) :: filename, filename0
-    integer(IN)   :: ccsmYMD           ! ccsm model date
-    integer(IN)   :: ccsmTOD           ! ccsm model sec
+    integer(IN)   :: cesmYMD           ! cesm model date
+    integer(IN)   :: cesmTOD           ! cesm model sec
     integer(IN)   :: glcYMD            ! glc model date
     integer(IN)   :: glcTOD            ! glc model sec
     integer(IN)   :: rst_elapsed_days  ! 
@@ -184,9 +184,9 @@
     rst_unit = shr_file_getUnit()
     status = nf90_open(filename,0,rst_unit)
     call nc_errorhandle(__FILE__,__LINE__,status)
-    status = nf90_get_att(rst_unit, NF90_GLOBAL, 'ccsmYMD', ccsmYMD)
+    status = nf90_get_att(rst_unit, NF90_GLOBAL, 'cesmYMD', cesmYMD)
     call nc_errorhandle(__FILE__,__LINE__,status)
-    status = nf90_get_att(rst_unit, NF90_GLOBAL, 'ccsmTOD', ccsmTOD)
+    status = nf90_get_att(rst_unit, NF90_GLOBAL, 'cesmTOD', cesmTOD)
     call nc_errorhandle(__FILE__,__LINE__,status)
     status = nf90_get_att(rst_unit, NF90_GLOBAL, 'glcYMD', glcYMD)
     call nc_errorhandle(__FILE__,__LINE__,status)
@@ -220,11 +220,11 @@
     ! local variables
     type(glimmer_nc_output),  pointer :: oc => null()
     character(CL) :: filename
-    integer(IN)   :: ccsmYMD           ! ccsm model date
-    integer(IN)   :: ccsmTOD           ! ccsm model sec
-    integer(IN)   :: ccsmYR            ! ccsm model year
-    integer(IN)   :: ccsmMON           ! ccsm model month
-    integer(IN)   :: ccsmDAY           ! ccsm model day
+    integer(IN)   :: cesmYMD           ! cesm model date
+    integer(IN)   :: cesmTOD           ! cesm model sec
+    integer(IN)   :: cesmYR            ! cesm model year
+    integer(IN)   :: cesmMON           ! cesm model month
+    integer(IN)   :: cesmDAY           ! cesm model day
     integer(IN)   :: glcYMD            ! cism model date
     integer(IN)   :: glcTOD            ! cism model sec
     integer(IN)   :: rst_elapsed_days  ! 
@@ -234,9 +234,9 @@
 !-----------------------------------------------------------------------
 
     ! figure out restart filename
-    call seq_timemgr_EClockGetData(EClock, curr_ymd=ccsmYMD, curr_tod=ccsmTOD, &
-                                   curr_yr=ccsmYR, curr_mon=ccsmMON, curr_day=ccsmDAY)
-    filename = glc_restart_filename(ccsmYR, ccsmMON, ccsmDAY, ccsmTOD)
+    call seq_timemgr_EClockGetData(EClock, curr_ymd=cesmYMD, curr_tod=cesmTOD, &
+                                   curr_yr=cesmYR, curr_mon=cesmMON, curr_day=cesmDAY)
+    filename = glc_restart_filename(cesmYR, cesmMON, cesmDAY, cesmTOD)
 
     if (my_task == master_task) then
        write(stdout,*) &
@@ -253,7 +253,7 @@
     oc%nc%vars       = ' hot '
     oc%nc%hotstart   = .true.
     oc%nc%vars_copy  = oc%nc%vars
-!jw TODO: fill out the rest of the metadata
+!jw TO DO: fill out the rest of the metadata
 !jw    oc%metadata%title =
 !jw    oc%metadata%institution =
 !jw    oc%metadata%source =
@@ -269,9 +269,9 @@
     ! write time to the file
     glcYMD = iyear*10000 + imonth*100 + iday
     glcTOD = ihour*3600 + iminute*60 + isecond
-    status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'ccsmYMD', ccsmYMD)
+    status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'cesmYMD', cesmYMD)
     call nc_errorhandle(__FILE__,__LINE__,status)
-    status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'ccsmTOD', ccsmTOD)
+    status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'cesmTOD', cesmTOD)
     call nc_errorhandle(__FILE__,__LINE__,status)
     status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'glcYMD', glcYMD)
     call nc_errorhandle(__FILE__,__LINE__,status)
@@ -290,7 +290,7 @@
     status = nf90_close(oc%nc%id)
     call nc_errorhandle(__FILE__,__LINE__,status)
     oc => null()
-!jw TODO: figure out why deallocate statement crashes the code
+!jw TO DO: figure out why deallocate statement crashes the code
 !jw    deallocate(oc)
 
     ! write pointer to restart file

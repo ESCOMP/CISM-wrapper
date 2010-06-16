@@ -1,41 +1,28 @@
 ! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ! +                                                           +
-! +  glint_interp.f90 - part of the GLIMMER ice model         + 
+! +  glint_interp.f90 - part of the Glimmer-CISM ice model    + 
 ! +                                                           +
 ! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ! 
-! Copyright (C) 2004 GLIMMER contributors - see COPYRIGHT file 
-! for list of contributors.
+! Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+! Glimmer-CISM contributors - see AUTHORS file for list of contributors
 !
-! This program is free software; you can redistribute it and/or 
-! modify it under the terms of the GNU General Public License as 
-! published by the Free Software Foundation; either version 2 of 
-! the License, or (at your option) any later version.
+! This file is part of Glimmer-CISM.
 !
-! This program is distributed in the hope that it will be useful, 
-! but WITHOUT ANY WARRANTY; without even the implied warranty of 
-! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+! Glimmer-CISM is free software: you can redistribute it and/or modify
+! it under the terms of the GNU General Public License as published by
+! the Free Software Foundation, either version 2 of the License, or (at
+! your option) any later version.
+!
+! Glimmer-CISM is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ! GNU General Public License for more details.
 !
-! You should have received a copy of the GNU General Public License 
-! along with this program; if not, write to the Free Software 
-! Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 
-! 02111-1307 USA
+! You should have received a copy of the GNU General Public License
+! along with Glimmer-CISM.  If not, see <http://www.gnu.org/licenses/>.
 !
-! GLIMMER is maintained by:
-!
-! Ian Rutt
-! School of Geographical Sciences
-! University of Bristol
-! University Road
-! Bristol
-! BS8 1SS
-! UK
-!
-! email: <i.c.rutt@bristol.ac.uk> or <ian.rutt@physics.org>
-!
-! GLIMMER is hosted on berliOS.de:
-!
+! Glimmer-CISM is hosted on BerliOS.de:
 ! https://developer.berlios.de/projects/glimmer-cism/
 !
 ! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -55,8 +42,6 @@ module glint_interp
 #ifdef GLC_DEBUG
   use glimmer_paramets, only: stdout, itest, jtest, jjtest, itest_local, jtest_local
 #endif
-!lipscomb - to do - Replace stdout by glimmer_unit for debug statements?
-!                   Else we have double referencing
   
   implicit none
 
@@ -108,20 +93,7 @@ module glint_interp
      module procedure mean_to_global_sp,mean_to_global_dp
   end interface
 
-!MH!  !MAKE_RESTART
-!MH!#ifdef RESTARTS
-!MH!#define RST_GLINT_INTERP
-!MH!#include "glimmer_rst_head.inc"
-!MH!#undef RST_GLINT_INTERP
-!MH!#endif
-
 contains
-
-!MH!#ifdef RESTARTS
-!MH!#define RST_GLINT_INTERP
-!MH!#include "glimmer_rst_body.inc"
-!MH!#undef RST_GLINT_INTERP
-!MH!#endif
 
   subroutine new_downscale(downs,proj,ggrid,lgrid,mpint)
 
@@ -298,10 +270,6 @@ contains
     integer :: x1, x2, x3, x4
     integer :: y1, y2, y3, y4
 
-#ifdef GLC_DEBUG
-    integer :: n
-#endif
-
     if (present(z_constrain)) then
        zc=z_constrain
     else
@@ -325,21 +293,10 @@ contains
     do i=1,lgrid%size%pt(1)
        do j=1,lgrid%size%pt(2)
 
-#ifdef GLC_DEBUG
-!          if (i==itest_local .and. j==jtest_local) then
-!              write(stdout,*) ' '
-!              write(stdout,*) 'Interpolating, i, j, lmask = ', i, j, downs%lmask(i,j)
-!              write(stdout,*) 'xloc, yloc:'
-!              do n = 1, 4
-!                 write(stdout,*) downs%xloc(i,j,n), downs%yloc(i,j,n)
-!              enddo
-!          endif
-#endif
-
           ! Compile the temporary array f from adjacent points 
 
-!lipscomb - to do - This could be handled more efficiently by precomputing arrays that
-!  specify which neighbor gridcell supplies values in each masked-out global gridcell.
+!lipscomb - TO DO - This could be handled more efficiently by precomputing arrays that specify
+!                   which neighbor gridcell supplies values in each masked-out global gridcell.
  
           if (present(gmask) .and. present(maskval)) then
 
@@ -713,12 +670,13 @@ contains
     !
     ! Note: This method is not the inverse of the interp_to_local routine.
     ! Also note that each local grid cell is weighted equally.
-    ! In the future we will probably want to use the CCSM coupler for upscaling.
+    ! In the future we may want to use the CESM coupler for upscaling.
  
     use glimmer_log
 
-!lipscomb - debug
+#ifdef GLC_DEBUG
     use glimmer_paramets, only: itest, jtest, jjtest, itest_local, jtest_local, stdout
+#endif
 
     ! Arguments
  
@@ -784,31 +742,16 @@ contains
        jg = ups%gboxy(i,j)
        n = gboxec(i,j)
        if (n==0) then
-!!!#ifdef GLC_DEBUG
+#ifdef GLC_DEBUG
           write(stdout,*) 'Upscaling error: local topography out of bounds'
           write(stdout,*) 'i, j, ltopo:', i, j, ltopo(i,j)
           write(stdout,*) 'topomax =', topomax(:)
-!!!#endif
+#endif
           call write_log('Upscaling error: local topography out of bounds', &
                GM_FATAL,__FILE__,__LINE__)
        endif
 
-!!!#ifdef GLC_DEBUG
-       if (i==itest_local .and. j==jtest_local) then
-          write(stdout,*) ' '
-          write(stdout,*) 'il, jl =', i, j
-          write(stdout,*) 'ig, jg, n =', ig, jg, n
-          write(stdout,*) 'Old global val =', global(ig,jg,n)
-          write(stdout,*) 'local, mask =', local(i,j), tempmask(i,j)
-       endif
-!!!#endif
        global(ig,jg,n) = global(ig,jg,n) + local(i,j)*tempmask(i,j)
-
-!!!#ifdef GLC_DEBUG
-       if (i==itest_local .and. j==jtest_local) then
-          write(stdout,*) 'New global val =', global(ig,jg,n)
-       endif
-!!!#endif
 
     enddo
     enddo
@@ -1038,17 +981,6 @@ contains
              xloc(i,j,4)=temp
 
           endif
-
-#ifdef GLC_DEBUG
-          if (i==itest_local .and. j==jtest_local) then
-             write(stdout,*) ' '
-             write(stdout,*) 'Index local boxes, i, j =', i, j
-             write(stdout,*) 'xloc, yloc'
-             do n = 1, 4
-                write(stdout,*) xloc(i,j,n), yloc(i,j,n)
-             enddo
-          endif
-#endif
 
           ! Now, find out where each of those points is on the projected
           ! grid, and calculate fractional displacements accordingly

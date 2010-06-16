@@ -2,13 +2,15 @@
 ewn = 151
 nsn = 281
 upn = 11
+dew = 10000.
+dns = 10000.
 
 [sigma]
 sigma_levels: 0.00 0.10 0.20 0.30 0.40 0.50 0.60 0.70 0.80 0.90 1.00
 
 [GLINT climate]
 precip_mode = 1
-acab_mode = 1
+acab_mode = 0
 
 [GLINT projection]
 projection = 2
@@ -59,7 +61,7 @@ institution: Community Earth System Model
 [CF output]
 name:      ${cism_history}
 frequency: 1
-variables: acab artm prcp ablt thk usurf uvel vvel uflx vflx temp
+variables: acab artm thk usurf uvel vvel uflx vflx temp
 
 [CF output]
 name:      ${cism_history}ot
