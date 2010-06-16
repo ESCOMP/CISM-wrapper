@@ -149,6 +149,7 @@ cd \$objdir
 #------------------------------------------------------------------------------
 cat >! Filepath << EOF
 \$CASEROOT/SourceMods/src.cism
+\$CODEROOT/glc/cism/drivers/cpl_mct
 \$CODEROOT/glc/cism/source_glc
 \$CODEROOT/glc/cism/source_glimmer-cism
 \$CODEROOT/glc/cism/source_slap
