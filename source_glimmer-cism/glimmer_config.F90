@@ -106,7 +106,7 @@ contains
   !> read a configuration file
   subroutine ConfigRead(fname,config,unit_in)
     use glimmer_log
-!!    use shr_file_mod, only : shr_file_getunit, shr_file_freeunit
+    use shr_file_mod, only : shr_file_getunit, shr_file_freeunit
     implicit none
 
     character(len=*), intent(in) :: fname   !< the name of the file to be read
