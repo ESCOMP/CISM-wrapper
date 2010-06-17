@@ -163,10 +163,6 @@ CONTAINS
        call shr_sys_flush(stdout)
     endif
 
-!lipscomb - debug 
-   print*, 'glc_comp_mct: Initialize GLC done'
-   call shr_sys_flush(6)
-
     nxg = glc_grid%nx
     nyg = glc_grid%ny
     lsize = nxg*nyg
@@ -183,10 +179,6 @@ CONTAINS
 
     call seq_infodata_PutData(infodata, glc_present=.true., &
        glc_prognostic = .true., glc_nx=nxg, glc_ny=nyg)
-
-!lipscomb - debug 
-   print*, 'glc_comp_mct: Initialize attribute vectors'
-   call shr_sys_flush(6)
 
     ! Initialize MCT attribute vectors
 
@@ -208,10 +200,6 @@ CONTAINS
     call shr_file_setLogUnit (shrlogunit)
     call shr_file_setLogLevel(shrloglev)
     call shr_sys_flush(stdout)
-
-!lipscomb - debug 
-   print*, 'glc_comp_mct: Done in glc_init_mct'
-   call shr_sys_flush(6)
 
 end subroutine glc_init_mct
 
@@ -240,8 +228,8 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
    
 !EOP
    !--- local ---
-   integer(IN)   :: ccsmYMD           ! ccsm model date
-   integer(IN)   :: ccsmTOD           ! ccsm model sec
+   integer(IN)   :: cesmYMD           ! cesm model date
+   integer(IN)   :: cesmTOD           ! cesm model sec
    integer(IN)   :: glcYMD            ! glc model date
    integer(IN)   :: glcTOD            ! glc model sec 
    integer(IN)   :: n                 ! index
@@ -262,10 +250,6 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
    character(*), parameter :: F04   = "('(glc_run_mct) ',2a,2i8,'s')"
    character(*), parameter :: subName = "(glc_run_mct) "
 !-------------------------------------------------------------------------------
-
-!lipscomb - debug
-    write(stdout,*) 'Starting glc_run_mct, do_recv =', do_recv
-    call shr_sys_flush(stdout)
 
     !----------------------------------------------------------------------------
     ! Reset shr logging to my log file
@@ -311,27 +295,27 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
 
     errorCode = glc_Success
 
-    call seq_timemgr_EClockGetData(EClock,curr_ymd=ccsmYMD, curr_tod=ccsmTOD)
+    call seq_timemgr_EClockGetData(EClock,curr_ymd=cesmYMD, curr_tod=cesmTOD)
     stop_alarm = seq_timemgr_StopAlarmIsOn( EClock )
 
     glcYMD = iyear*10000 + imonth*100 + iday
     glcTOD = ihour*3600 + iminute*60 + isecond
     done = .false.
-    if (glcYMD == ccsmYMD .and. glcTOD == ccsmTOD) done = .true.
+    if (glcYMD == cesmYMD .and. glcTOD == cesmTOD) done = .true.
     if (verbose .and. my_task == master_task) then
        write(stdout,F01) ' Run Starting ',glcYMD,glcTOD
        call shr_sys_flush(stdout)
     endif
 
     do while (.not. done) 
-       if (glcYMD > ccsmYMD .or. (glcYMD == ccsmYMD .and. glcTOD > ccsmTOD)) then
-          write(stdout,*) subname,' ERROR overshot coupling time ',glcYMD,glcTOD,ccsmYMD,ccsmTOD
+       if (glcYMD > cesmYMD .or. (glcYMD == cesmYMD .and. glcTOD > cesmTOD)) then
+          write(stdout,*) subname,' ERROR overshot coupling time ',glcYMD,glcTOD,cesmYMD,cesmTOD
           call shr_sys_abort('glc error overshot time')
        endif
        call glc_run
        glcYMD = iyear*10000 + imonth*100 + iday
        glcTOD = ihour*3600 + iminute*60 + isecond
-       if (glcYMD == ccsmYMD .and. glcTOD == ccsmTOD) done = .true.
+       if (glcYMD == cesmYMD .and. glcTOD == cesmTOD) done = .true.
        if (verbose .and. my_task == master_task) then
           write(stdout,F01) ' GLC  Date ',glcYMD,glcTOD
        endif
@@ -343,10 +327,6 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
     endif
     
     ! PACK
-
-!lipscomb - debug
-    write(stdout,*) 'call glc_export_mct'
-    call shr_sys_flush(stdout)
 
     if (glc_nec >=  1) call glc_export_mct(g2x, 1,index_g2x_Sg_frac01, &
                        index_g2x_Sg_topo01  ,index_g2x_Fsgg_rofi01, &
@@ -382,8 +362,8 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
     ! log output for model date
 
     if (my_task == master_task) then
-       call seq_timemgr_EClockGetData(EClock,curr_ymd=ccsmYMD, curr_tod=ccsmTOD)
-       write(stdout,F01) ' CCSM Date ', ccsmYMD,ccsmTOD
+       call seq_timemgr_EClockGetData(EClock,curr_ymd=cesmYMD, curr_tod=cesmTOD)
+       write(stdout,F01) ' CESM Date ', cesmYMD,cesmTOD
        glcYMD = iyear*10000 + imonth*100 + iday
        glcTOD = ihour*3600 + iminute*60 + isecond
        write(stdout,F01) ' GLC  Date ',glcYMD,glcTOD
@@ -471,7 +451,7 @@ subroutine glc_final_mct()
 !=================================================================================
   subroutine glc_import_mct(x2g,ndx,index_tsrf,index_topo,index_qice)
 
-    use glc_global_fields, only: tsfc, topo, qice       ! from coupler
+    use glc_global_fields, only: tsfc, topo, qsmb       ! from coupler
 
     type(mct_aVect),intent(inout) :: x2g
     integer(IN), intent(in) :: ndx                      ! elevation class
@@ -499,7 +479,7 @@ subroutine glc_final_mct()
           g = (j-1)*nxg + i   ! global index (W to E, S to N)
           tsfc(i,jj,ndx) = x2g%rAttr(index_tsrf,g) - tkfrz
           topo(i,jj,ndx) = x2g%rAttr(index_topo,g)
-          qice(i,jj,ndx) = x2g%rAttr(index_qice,g)
+          qsmb(i,jj,ndx) = x2g%rAttr(index_qice,g)
        enddo
     enddo
 
@@ -660,10 +640,7 @@ subroutine glc_final_mct()
     do j = 1,nyg
     do i = 1,nxg
        n = (j-1)*nxg + i
-!lipscomb - glc mod - degrees, not radians (to be consistent with sno domain)
-!!!       data(n) = glc_grid%lons(i)/radian
-       data(n) = glc_grid%lons(i)
-!lipscomb - end glc mod
+       data(n) = glc_grid%lons(i)   ! Note: degrees, not radians
     end do
     end do
     call mct_gGrid_importRattr(dom_g,"lon",data,lsize) 
@@ -671,10 +648,7 @@ subroutine glc_final_mct()
     do j = 1,nyg
     do i = 1,nxg
        n = (j-1)*nxg + i
-!lipscomb - glc mod - degrees, not radians (to be consistent with sno domain)
-!!!       data(n) = glc_grid%lats(j)/radian
-       data(n) = glc_grid%lats(j)
-!lipscomb - end glc mod
+       data(n) = glc_grid%lats(j)   ! Note: degrees, not radians
     end do
     end do
     call mct_gGrid_importRattr(dom_g,"lat",data,lsize) 
@@ -687,14 +661,11 @@ subroutine glc_final_mct()
     end do
     call mct_gGrid_importRattr(dom_g,"area",data,lsize) 
 
-!lipscomb - glc_landmask and glc_landfrac are read from file when grid is initialized
+    ! Note: glc_landmask and glc_landfrac are read from file when grid is initialized
     do j = 1,nyg
     do i = 1,nxg
        n = (j-1)*nxg + i
-!lipscomb - glc mod - data is r8, glc_landmask is i4
-!!!       data(n) = glc_landmask(i,j)
-       data(n) = real(glc_landmask(i,j), r8)
-!lipscomb - end glc mod
+       data(n) = real(glc_landmask(i,j), r8)  ! data is r8, glc_landmask is i4
     end do
     end do
 
