@@ -104,14 +104,14 @@ module glimmer_config
 contains
 
   !> read a configuration file
-  subroutine ConfigRead(fname,config,unit_in)
+  subroutine ConfigRead(fname,config,fileunit)
+
     use glimmer_log
-    use shr_file_mod, only : shr_file_getunit, shr_file_freeunit
     implicit none
 
-    character(len=*), intent(in) :: fname   !< the name of the file to be read
-    type(ConfigSection), pointer :: config  !< on return this pointer will point to the first section
-    integer, optional,intent(in) :: unit_in !< if supplied, open this unit
+    character(len=*), intent(in) :: fname    !< the name of the file to be read
+    type(ConfigSection), pointer :: config   !< on return this pointer will point to the first section
+    integer, optional,intent(in) :: fileunit !< if supplied, open this unit
 
     ! local variables
     type(ConfigSection), pointer :: this_section
@@ -126,10 +126,9 @@ contains
        call write_log('Cannot open configuration file '//trim(fname),GM_FATAL)
     end if
     
-    if (present(unit_in)) then
-       unit = unit_in
-    else
-       unit = 99
+    unit = 99
+    if (present(fileunit)) then
+       unit = fileunit
     endif
 
     open(unit,file=trim(fname),status='old')
@@ -169,8 +168,9 @@ contains
        linenr = linenr + 1
     end do
     close(unit)
-    call shr_file_freeunit (unit)
+
     return
+
   end subroutine ConfigRead
 
   !> print contents of file

@@ -107,6 +107,9 @@
   character(fname_length) ::  &
       paramfile        ! Name of the top-level configuration file
  
+  character(fname_length) ::  &
+      cesm_restart_file  ! Name of the hotstart file to be used for a restart
+ 
   ! Scalars which hold information about the global grid --------------
  
   integer (i4) ::  &
@@ -126,6 +129,10 @@
       cesm_restart = .false. ! Logical flag to pass to glimmer, telling it to hotstart
                              ! from a CESM restart
 
+  logical :: &
+      cism_debug   = .false. ! Logical flag to pass to glimmer, telling it to output extra
+                             ! debug diagnostics
+
   real(rk), dimension(:), allocatable ::  &    
       glint_lats     ,&! lats on glint grid (N to S indexing, instead of S to N as on glc_grid)  
       glint_latb       ! lat_bound on glint grid
@@ -135,7 +142,7 @@
 
   integer :: unit      ! fileunit passed to Glint 
 
-  namelist /files_nml/  paramfile
+  namelist /cism_params/  paramfile, cism_debug
  
 !-----------------------------------------------------------------------
 !  initialize return flag
@@ -181,7 +188,7 @@
 ! The following code is largely based on GLIMMER.
 !-----------------------------------------------------------------------
 
-   paramfile = 'unknown_paramfile'
+   paramfile  = 'unknown_paramfile'
 
    open (nml_in, file=nml_filename, status='old',iostat=nml_error)
    if (nml_error /= 0) then
@@ -190,7 +197,7 @@
       nml_error =  1
    endif
    do while (nml_error > 0)
-      read(nml_in, nml=files_nml,iostat=nml_error)
+      read(nml_in, nml=cism_params,iostat=nml_error)
    end do
    if (nml_error == 0) close(nml_in)
 
@@ -268,7 +275,7 @@
   ! if this is a continuation run, then set up to read restart file and get the restart time
   if (runtype == 'continue') then
     cesm_restart = .true.
-    call glc_io_read_restart_time(nhour_glint)
+    call glc_io_read_restart_time(nhour_glint, cesm_restart_file)
     call ymd2eday (iyear0, imonth0, iday0, elapsed_days0)
     elapsed_days = elapsed_days0 + nhour_glint/24     
     call eday2ymd(elapsed_days, iyear, imonth, iday)
@@ -293,22 +300,24 @@
 
 !lipscomb - TO DO - Implement PDD option (gcm_smb = F)
 
-  call initialise_glint (ice_sheet,                 &
-                         glint_lats,                &   ! indexing is N to S for Glint
-                         glc_grid%lons,             &
-                         climate%climate_tstep,     &
-                         (/paramfile/),             &
-                         daysinyear = climate%days_in_year, &
-                         start_time = nhour_glint,  &
-                         gcm_nec = glc_nec,         &
-                         gcm_smb = .true.,          &
-                         gfrac = gfrac,             &
-                         gtopo = gtopo,             &
-                         grofi = grofi,             &
-                         grofl = grofl,             &
-                         ghflx = ghflx,             &
-                         gmask = glint_landmask,    &
-                         gcm_restart = cesm_restart,&
+  call initialise_glint (ice_sheet,                            &
+                         glint_lats,                           &   ! indexing is N to S for Glint
+                         glc_grid%lons,                        &
+                         climate%climate_tstep,                &
+                         (/paramfile/),                        &
+                         daysinyear = climate%days_in_year,    &
+                         start_time = nhour_glint,             &
+                         gcm_nec = glc_nec,                    &
+                         gcm_smb = .true.,                     &
+                         gfrac = gfrac,                        &
+                         gtopo = gtopo,                        &
+                         grofi = grofi,                        &
+                         grofl = grofl,                        &
+                         ghflx = ghflx,                        &
+                         gmask = glint_landmask,               &
+                         gcm_restart = cesm_restart,           &
+                         gcm_restart_file = cesm_restart_file, &
+                         gcm_debug = cism_debug,               &
                          gcm_fileunit = unit)
  
    call shr_file_freeunit(unit)

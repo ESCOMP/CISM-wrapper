@@ -5,6 +5,73 @@
 #-------------------------------------------------------------------------------
 
 if !(-d $CASEBUILD) mkdir $CASEBUILD
+if !(-d $CASEBUILD/cismIOconf) mkdir $CASEBUILD/cismIOconf
+
+#-------------------------------------------------------------------------------
+# stage variable definition files and related scripts and templates to
+# $CASEBUILD/cismIOconf, so users can modify easily modify IO fields
+#-------------------------------------------------------------------------------
+
+cp $CODEROOT/glc/cism/bld/cismIO/README.cismIO        $CASEBUILD/cismIOconf/.
+cp $CODEROOT/glc/cism/bld/cismIO/generate_ncvars.py   $CASEBUILD/cismIOconf/.
+cp $CODEROOT/glc/cism/bld/cismIO/ncdf_template.F90.in $CASEBUILD/cismIOconf/.
+cp $CODEROOT/glc/cism/bld/cismIO/*_vars.def           $CASEBUILD/cismIOconf/.
+
+#-------------------------------------------------------------------------------
+# create cism.buildIO.csh script to allow users to modify the IO fields
+#-------------------------------------------------------------------------------
+
+cat >! $CASEBUILD/cismIOconf/cism.buildIO.csh << EOF
+#! /bin/csh -f
+
+# -----------------------------------------------------------------------------
+# NOTICE: This script was custom-generated for $CASEROOT.
+#
+#         DO NOT COPY to another case!
+#
+#         Use this script ONLY in $CASEROOT.
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# generate new glimmer _io.F90 files
+# -----------------------------------------------------------------------------
+
+set sourcemod_dir = $CASEROOT/SourceMods/src.cism
+set cism_confIOdir  = $CASEBUILD/cismIOconf; cd \$cism_confIOdir
+
+set prefix_files = (glide_lithot  glide  glint_mbal glint)
+foreach file (\$prefix_files)
+  set file_varsdef = \${file}_vars.def
+  set file_ioF90   = \${file}_io.F90
+  if (-f \${file_varsdef}) then
+# ---------------------------------------------------------------------------
+#  create new _io.F90 file using the glimmer python script
+# ---------------------------------------------------------------------------
+    \$PYTHON generate_ncvars.py \$file_varsdef ncdf_template.F90.in
+
+    if (-f \${file_ioF90}) then
+# ---------------------------------------------------------------------------
+#  compare new _io.F90 file with current version in the objdir (if it exists)
+#  if different, copy the new one to the objdir
+# ---------------------------------------------------------------------------
+      cp \${file_ioF90} \${sourcemod_dir}/\${file_ioF90}
+#jw      rm -f \${file_ioF90}
+    else
+# ---------------------------------------------------------------------------
+#  if new _io.F90 file not created for some reason, exit
+# ---------------------------------------------------------------------------
+      echo ERROR: glimmer python script failed to produce new file: \${file_ioF90}
+      exit 2
+    endif
+
+  else
+    echo ERROR: missing glimmer variable definition file: \${file_varsdef}
+    exit 2
+  endif
+end
+EOF
+
+chmod u+x $CASEBUILD/cismIOconf/cism.buildIO.csh
 
 #-------------------------------------------------------------------------------
 # setup
@@ -88,8 +155,9 @@ endif
 
 # Input namelists
 cat >! cism_in <<EOF
-&files_nml
+&cism_params
   paramfile   = 'cism.config'
+  cism_debug  = .false.
 /
 &grid_nml
   horiz_grid_opt  = 'file'

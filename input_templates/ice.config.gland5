@@ -12,13 +12,13 @@ sigma_levels: 0.00 0.10 0.20 0.30 0.40 0.50 0.60 0.70 0.80 0.90 1.00
 precip_mode = 1
 acab_mode = 0
 
-[GLINT projection]
-projection = 2
-cpx = 41
-cpy = 171
-latc=90.0
-lonc=321.0
-std_parallel=71.0
+[projection]
+type = 'STERE'
+centre_latitude = 90.0
+centre_longitude = 321.0
+false_easting = 800000.0 
+false_northing = 3400000.0
+standard_parallel = 71.0
 
 [options]
 temperature = 1

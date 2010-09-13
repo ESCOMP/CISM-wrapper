@@ -4,6 +4,47 @@ This file describes what main-trunk tags were created and why
 
 ================================================================================
 Originator: jwolfe, lipscomb
+Date: Sep 13, 2010
+Model: cism
+Version: cism1_100913
+One-line summary: add more capabilities, clean-up
+
+* pull vars.def files together along with template and python script, to
+  allow users to modify the IO list on a per case basis
+A      bld/cismIO
+A      bld/cismIO/glide_lithot_vars.def
+A      bld/cismIO/README.cismIO
+A      bld/cismIO/glint_mbal_vars.def
+A      bld/cismIO/glint_vars.def
+A      bld/cismIO/ncdf_template.F90.in
+A      bld/cismIO/glide_vars.def
+A      bld/cismIO/generate_ncvars.py
+M      bld/cism.cpl7.template
+
+* make GLC_DEBUG a variable instead of an IFDEF
+M      source_glimmer-cism/glide.F90
+M      source_glimmer-cism/glint_timestep.F90
+M      source_glimmer-cism/glint_climate.F90
+M      source_glimmer-cism/glimmer_paramets.F90
+M      source_glimmer-cism/glide_diagnostics.F90
+M      source_glimmer-cism/glint_main.F90
+M      source_glimmer-cism/glint_interp.F90
+M      source_glimmer-cism/glint_type.F90
+
+* reworked restart to keep glc calls out of glimmer-cism
+M      source_glc/glc_InitMod.F90
+M      source_glc/glc_io.F90
+A      source_glimmer-cism/glimmer_restart_gcm.F90
+M      source_glimmer-cism/glint_initialise.F90
+M      source_glimmer-cism/glimmer_config.F90
+
+* fixed configuration files to make other resolutions work correctly
+M      input_templates/ice.config.gland10
+M      input_templates/ice.config.gland20
+M      input_templates/ice.config.gland5
+
+================================================================================
+Originator: jwolfe, lipscomb
 Date: Jun 17, 2010
 Model: cism
 Version: cism1_100617a

@@ -18,6 +18,7 @@
    use glimmer_ncdf,        only: add_output, delete_output
    use glimmer_ncio,        only: glimmer_nc_checkwrite, &
                                   glimmer_nc_createfile
+   use glimmer_global,      only: fname_length
    use glc_constants
    use glc_kinds_mod
    use esmf_mod,            only: ESMF_Clock
@@ -34,7 +35,6 @@
 ! !PUBLIC MEMBER FUNCTIONS:
 
    public :: glc_io_create_suffix_cesm, &
-             glc_io_read_restart,       &
              glc_io_read_restart_time,  &
              glc_io_write_restart
 
@@ -97,72 +97,25 @@
 
 !***********************************************************************
 !BOP
-! !IROUTINE: glc_io_read_restart
-! !INTERFACE:
-
-   subroutine glc_io_read_restart(model)
-
-    use glide_types
-    implicit none
-    type(glide_global_type), intent(inout) :: model
-
-    ! local variables
-    type(glimmer_nc_input),  pointer :: ic => null()
-    character(CL) :: filename, filename0
-    integer(IN)   :: ptr_unit          ! unit for pointer file
-    integer(IN)   :: rst_unit          ! unit for restart file
-    integer(IN)   :: status            !
-
-!-----------------------------------------------------------------------
-
-    ! get restart filename from rpointer file
-    ptr_unit = shr_file_getUnit()
-    if (my_task == master_task) then
-       open(ptr_unit,file=ptr_filename)
-       read(ptr_unit,'(a)') filename0
-       filename = trim(filename0)
-       close(ptr_unit)
-       write(stdout,*) &
-            'glc_io_read_restart: using dumpfile for restart filename= ', filename
-       call shr_sys_flush(stdout)
-    endif
-!!    call broadcast_scalar(filename, master_task)
-    call shr_file_freeunit(ptr_unit)
-
-    ! create the input unit
-    allocate(ic)
-    ic%get_time_slice = 1
-    ic%nc%filename    = trim(filename)
-    ic%nc%vars        = ' hot '
-    ic%nc%hotstart    = .true.
-    ic%nc%vars_copy   = ic%nc%vars
-
-    ! add the input unit to the model
-    ! note that the model will do the actual reading of data
-    model%funits%in_first => ic
-
-  end subroutine glc_io_read_restart
-
-!***********************************************************************
-!BOP
 ! !IROUTINE: glc_io_read_restart_time
 ! !INTERFACE:
 
-   subroutine glc_io_read_restart_time(nhour_glint)
+   subroutine glc_io_read_restart_time(nhour_glint, filename)
 
     implicit none
-    integer(IN),          intent(inout) :: nhour_glint
+    integer(IN),             intent(inout) :: nhour_glint
+    character(fname_length), intent(inout) :: filename
 
     ! local variables
-    character(CL) :: filename, filename0
-    integer(IN)   :: cesmYMD           ! cesm model date
-    integer(IN)   :: cesmTOD           ! cesm model sec
-    integer(IN)   :: glcYMD            ! glc model date
-    integer(IN)   :: glcTOD            ! glc model sec
-    integer(IN)   :: rst_elapsed_days  ! 
-    integer(IN)   :: ptr_unit          ! unit for pointer file
-    integer(IN)   :: rst_unit          ! unit for restart file
-    integer(IN)   :: status            !
+    character(fname_length) :: filename0
+    integer(IN)             :: cesmYMD           ! cesm model date
+    integer(IN)             :: cesmTOD           ! cesm model sec
+    integer(IN)             :: glcYMD            ! glc model date
+    integer(IN)             :: glcTOD            ! glc model sec
+    integer(IN)             :: rst_elapsed_days  ! 
+    integer(IN)             :: ptr_unit          ! unit for pointer file
+    integer(IN)             :: rst_unit          ! unit for restart file
+    integer(IN)             :: status            !
 
 !-----------------------------------------------------------------------
 
