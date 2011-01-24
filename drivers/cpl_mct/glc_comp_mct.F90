@@ -16,8 +16,8 @@ module glc_comp_mct
   use seq_cdata_mod
   use seq_infodata_mod
   use seq_timemgr_mod
-  use seq_flds_indices
 
+  use glc_cpl_indices
   use glc_constants,   only : verbose, stdout, stderr, nml_in, &
                               radius,  radian, tkfrz,  glc_nec
   use glc_errormod,    only : glc_success
@@ -106,6 +106,12 @@ CONTAINS
     character(*), parameter :: subName = "(glc_init_mct) "
 !EOP
 !-------------------------------------------------------------------------------
+
+    !----------------------------------------------------------------------------
+    ! Determine attribute vector indices
+    !----------------------------------------------------------------------------
+    
+    call glc_cpl_indices_set()
 
     !----------------------------------------------------------------------------
     ! Set cdata pointers
