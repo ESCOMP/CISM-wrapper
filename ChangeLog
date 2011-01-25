@@ -11,6 +11,16 @@ One-line summary:
 
 
 ================================================================================
+Originator: fischer
+Date: Tue Jan 25, 2011
+Model: cism
+Version: cism1_110125
+One-line summary: renamed glint_smb.F90 to smb_dummy.F90
+
+A      source_glimmer-cism/smb_dummy.F90
+D      source_glimmer-cism/glint_smb.F90
+
+================================================================================
 Originator: mvertens
 Date: Mon Jan 24, 2011
 Model: cism

@@ -1,6 +1,6 @@
 ! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ! +                                                           +
-! +  glint_smb.f90 - part of the Glimmer-CISM ice model       + 
+! +  smb_dummy.f90 - part of the Glimmer-CISM ice model       + 
 ! +                                                           +
 ! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ! 
