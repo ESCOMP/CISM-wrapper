@@ -29,6 +29,7 @@
    use glc_constants, only: nml_in, nml_filename, stdout, glc_nec
    use glc_io,        only: glc_io_read_restart_time
    use glc_exit_mod
+   use shr_kind_mod,  only: CL=>SHR_KIND_CL
    use shr_sys_mod, only: shr_sys_flush
 
    implicit none
@@ -82,6 +83,7 @@
    use glc_global_grid, only: init_glc_grid, glc_grid
    use glc_constants
    use glc_communicate, only: init_communicate
+   use glc_io, only: history_vars
    use glc_time_management, only: init_time1, init_time2, dtt, ihour
    use glimmer_log
    use glc_global_grid, only: glc_landmask
@@ -110,6 +112,10 @@
   character(fname_length) ::  &
       cesm_restart_file  ! Name of the hotstart file to be used for a restart
  
+  character(CL) ::  &
+      cesm_history_vars  ! Name of the CISM variables to be output in cesm
+                         ! history files
+
   ! Scalars which hold information about the global grid --------------
  
   integer (i4) ::  &
@@ -142,7 +148,7 @@
 
   integer :: unit      ! fileunit passed to Glint 
 
-  namelist /cism_params/  paramfile, cism_debug
+  namelist /cism_params/  paramfile, cism_debug, cesm_history_vars
  
 !-----------------------------------------------------------------------
 !  initialize return flag
@@ -200,6 +206,7 @@
       read(nml_in, nml=cism_params,iostat=nml_error)
    end do
    if (nml_error == 0) close(nml_in)
+   history_vars = trim(cesm_history_vars)
 
    if (verbose .and. my_task==master_task) then
       write (stdout,*) 'paramfile =   ', paramfile

@@ -25,7 +25,8 @@ module glc_comp_mct
   use glc_RunMod,      only : glc_run
   use glc_FinalMod,    only : glc_final
   use glc_communicate, only : init_communicate
-  use glc_io,          only : glc_io_write_restart
+  use glc_io,          only : glc_io_write_restart, &
+                              glc_io_write_history
   use glc_time_management, only: iyear,imonth,iday,ihour,iminute,isecond, runtype
   use glc_global_fields,   only: ice_sheet
   use glc_global_grid,     only: glc_grid, glc_landmask, glc_landfrac
@@ -247,6 +248,7 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
    real(R8)      :: lon               ! longitude
    integer(IN)   :: shrlogunit, shrloglev  
    logical       :: stop_alarm        ! is it time to stop
+   logical       :: hist_alarm        ! is it time to write a history file
    logical       :: rest_alarm        ! is it time to write a restart
    logical       :: done              ! time loop logical
    logical       :: do_recv = .true.  ! turn off recv
@@ -375,6 +377,17 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
        write(stdout,F01) ' GLC  Date ',glcYMD,glcTOD
        call shr_sys_flush(stdout)
     end if
+
+    !----------------------------------------------------------------------------
+    ! if time to write history, do so
+    !----------------------------------------------------------------------------
+    hist_alarm = seq_timemgr_HistoryAlarmIsOn( EClock )
+    if (hist_alarm) then
+
+       ! TODO loop over instances
+       call glc_io_write_history(ice_sheet%instances(1), EClock)
+
+    endif
 
     !----------------------------------------------------------------------------
     ! if time to write restart, do so

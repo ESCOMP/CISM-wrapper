@@ -169,6 +169,7 @@ cat >! cism_in <<EOF
 &cism_params
   paramfile   = 'cism.config'
   cism_debug  = .false.
+  cesm_history_vars = ' acab artm thk usurf uvel vvel uflx vflx temp '
 /
 &grid_nml
   horiz_grid_opt  = 'file'
