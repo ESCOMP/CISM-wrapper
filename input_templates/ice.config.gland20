@@ -58,14 +58,3 @@ basal_tract = 2 10 10 0 1
 title: Glimmer-CISM simulation
 institution: Community Earth System Model
 
-[CF output]
-name:      ${cism_history}
-frequency: 1
-variables: acab artm thk usurf uvel vvel uflx vflx temp
-
-[CF output]
-name:      ${cism_history}ot
-frequency: 1
-xtype: double
-variables: hot
-
