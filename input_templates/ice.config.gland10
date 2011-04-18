@@ -31,7 +31,7 @@ slip_coeff = 0
 stress_calc = 0
 evolution = 0
 vertical_integration = 0
-hotstart=0
+hotstart=$hotstart
 
 [time]
 dt = 1.

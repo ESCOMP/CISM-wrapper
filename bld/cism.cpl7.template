@@ -159,9 +159,14 @@ set exedir = \$RUNDIR; cd \$exedir
 set cismgrid_input = $cisminputfile
 set cism_history = \$CASE.cism.h
 
-if ($RUN_TYPE != 'branch' && $RUN_TYPE != 'hybrid') then
+if (\$RUN_TYPE != 'branch' && \$RUN_TYPE != 'hybrid') then
 cp \$cismgrid_input \$exedir/$GLC_GRID.input.nc
 chmod 644 \$exedir/$GLC_GRID.input.nc
+endif
+
+set hotstart = 0
+if (\$RUN_TYPE == 'branch' || \$RUN_TYPE == 'hybrid') then
+set hotstart = 1
 endif
 
 # Input namelists
@@ -197,13 +202,14 @@ EOF
 cat >! cism.config <<EOF
 EOF1
 # Bring a copy of the ice.config file that the user can edit for their case
+# name: $GLC_GRID.input.nc
 cat $paramfile >> $CASEBUILD/cism.buildnml.csh
 cat            >> $CASEBUILD/cism.buildnml.csh << EOF1
 EOF
-if (\$RUN_TYPE == startup && \$CONTINUE_RUN == 'FALSE') then
+if (\$CONTINUE_RUN == 'FALSE') then
 cat >> cism.config <<EOF
 [CF input]
-name: $GLC_GRID.input.nc
+name: $cisminputfile
 EOF
 endif
 EOF1
