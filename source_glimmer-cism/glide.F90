@@ -350,6 +350,7 @@ contains
     use glide_setup
     use glide_temp
     use glide_mask
+    use glimmer_log
     use isostasy
     implicit none
 
@@ -358,6 +359,13 @@ contains
     ! ------------------------------------------------------------------------ 
     ! Calculate flow evolution by various different methods
     ! ------------------------------------------------------------------------ 
+
+!lipscomb - evolution mod
+    if (model%options%whichevol .eq. -1) then
+       return   ! no thickness evolution
+    end if
+!lipscomb - end mod
+
 #ifdef PROFILING
     call glide_prof_start(model,model%glide_prof%ice_evo)
 #endif
@@ -373,6 +381,10 @@ contains
     case(2) ! Use non-linear calculation that incorporates velocity calc -----
 
        call thck_nonlin_evolve(model,model%temper%newtemps)
+
+    case default
+
+       call write_log('Error, unhandled evolution value',GM_FATAL)
 
     end select
 #ifdef PROFILING

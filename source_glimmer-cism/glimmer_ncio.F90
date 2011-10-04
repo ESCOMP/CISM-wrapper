@@ -361,8 +361,9 @@ contains
     status = nf90_inquire_dimension(NCI%id,dimid,len=dimsize)
     call nc_errorhandle(__FILE__,__LINE__,status)
     if (dimsize.ne.model%general%ewn) then
-       write(message,*) 'Dimension x1 of file '//trim(process_path(NCI%filename))//' does not match with config dimension: ',&
-            dimsize, model%general%ewn
+!lipscomb mod - Reduced length of next line
+       write(message,*) 'Dimension x1 of file '//trim(process_path(NCI%filename))//  &
+            ' does not match with config dimension: ', dimsize, model%general%ewn
        call write_log(message,type=GM_FATAL)
     end if
     status = nf90_inq_varid(NCI%id,'x1',varid)
@@ -370,8 +371,9 @@ contains
     status = nf90_get_var(NCI%id,varid,delta)
     call nc_errorhandle(__FILE__,__LINE__,status)
     if (abs(delta(2)-delta(1) - model%numerics%dew*len0).gt.small) then
-       write(message,*) 'deltax1 of file '//trim(process_path(NCI%filename))//' does not match with config deltax: ',&
-            delta(2)-delta(1),model%numerics%dew*len0
+!lipscomb mod - Reduced length of next line
+       write(message,*) 'deltax1 of file '//trim(process_path(NCI%filename))//  &
+            ' does not match with config deltax: ', delta(2)-delta(1),model%numerics%dew*len0
        call write_log(message,type=GM_FATAL)
     end if
 
@@ -381,8 +383,9 @@ contains
     status = nf90_inquire_dimension(NCI%id,dimid,len=dimsize)
     call nc_errorhandle(__FILE__,__LINE__,status)
     if (dimsize.ne.model%general%nsn) then
-       write(message,*) 'Dimension y1 of file '//trim(process_path(NCI%filename))//' does not match with config dimension: ',&
-            dimsize, model%general%nsn
+!lipscomb mod - Reduced length of next line
+       write(message,*) 'Dimension y1 of file '//trim(process_path(NCI%filename))//  &
+            ' does not match with config dimension: ', dimsize, model%general%nsn
        call write_log(message,type=GM_FATAL)
     end if
     status = nf90_inq_varid(NCI%id,'y1',varid)
@@ -390,8 +393,9 @@ contains
     status = nf90_get_var(NCI%id,varid,delta)
     call nc_errorhandle(__FILE__,__LINE__,status)
     if (abs(delta(2)-delta(1) - model%numerics%dns*len0).gt.small) then
-       write(message,*) 'deltay1 of file '//trim(process_path(NCI%filename))//' does not match with config deltay: ',&
-            delta(2)-delta(1),model%numerics%dns*len0
+!lipscomb mod - Reduced length of next line
+       write(message,*) 'deltay1 of file '//trim(process_path(NCI%filename))//  &
+            ' does not match with config deltay: ', delta(2)-delta(1),model%numerics%dns*len0
        call write_log(message,type=GM_FATAL)
     end if
       

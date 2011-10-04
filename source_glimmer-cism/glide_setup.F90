@@ -578,7 +578,11 @@ contains
          '~basal water   ', &
          '~basal melt    ', &
          'const if T>Tpmp'/)
-    character(len=*), dimension(0:2), parameter :: evolution = (/ &
+!lipscomb - evolution mod
+!!    character(len=*), dimension(0:2), parameter :: evolution = (/ &
+    character(len=*), dimension(-1:2), parameter :: evolution = (/ &
+         'no evolution    ', &
+!lipscomb - end evolution mod
          'pseudo-diffusion', &
          'ADI scheme      ', &
          'diffusion       ' /)
@@ -618,7 +622,11 @@ contains
     end if
     write(message,*) 'slip_coeff              : ', model%options%whichbtrc, slip_coeff(model%options%whichbtrc)
     call write_log(message)
-    if (model%options%whichevol.lt.0 .or. model%options%whichevol.ge.size(evolution)) then
+!lipscomb - evolution mod
+!!    if (model%options%whichevol.lt.0 .or. model%options%whichevol.ge.size(evolution)) then
+    if (model%options%whichevol.lt.0) model%options%whichevol = -1   ! no thickness evolution
+    if (model%options%whichevol.ge.size(evolution)-1 ) then
+!lipscomb - end evolution mod
        call write_log('Error, evolution out of range',GM_FATAL)
     end if
     write(message,*) 'evolution               : ', model%options%whichevol, evolution(model%options%whichevol)
