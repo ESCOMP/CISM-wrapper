@@ -118,6 +118,8 @@ endif
 if ($RUN_TYPE == startup) then
   if ( $GLC_GRID =~ gland20 || $GLC_GRID =~ gland10 || $GLC_GRID =~ gland5) then
      set cisminputfile = \$DIN_LOC_ROOT/glc/cism/$GLC_GRID.input.nc
+  else if ( $GLC_GRID == gland5UM) then
+     set cisminputfile = \$DIN_LOC_ROOT/glc/cism/IceSheetData_UMontana/PresentDayGreenland/Greenland_5km_v1.1_SacksRev_c110629.nc
   endif
 else if ($RUN_TYPE == branch || $RUN_TYPE == hybrid) then
   set cisminputfile = ${RUN_REFCASE}.cism.r.${RUN_REFDATE}-00000.nc
@@ -128,7 +130,7 @@ endif
 # ---------------------------------------------------------------------------
 
 set paramfile = UNSET
-if ( $GLC_GRID =~ gland20 || $GLC_GRID =~ gland10 || $GLC_GRID =~ gland5) then
+if ( $GLC_GRID =~ gland20 || $GLC_GRID =~ gland10 || $GLC_GRID =~ gland5 || $GLC_GRID =~ gland5UM) then
    set paramfile = $CODEROOT/glc/cism/input_templates/ice.config.$GLC_GRID
 endif
 
