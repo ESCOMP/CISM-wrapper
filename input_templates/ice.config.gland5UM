@@ -35,7 +35,7 @@ hotstart=$hotstart
 
 [time]
 dt = 1.
-ntem = 1.
+ntem = 1000000.
 nvel = 1.
 niso = 1.
 ndiag = 1
