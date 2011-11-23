@@ -4,6 +4,45 @@ This file describes what main-trunk tags were created and why
 
 ================================================================================
 Originator: sacks
+Date: Nov 22, 2011
+Model: cism
+Version: cism1_111122
+One-line summary: Modified time manager to support longer time steps
+
+Previously, the time manager did not correctly handle time steps longer
+than one month. With the changes here, time steps as long as desired
+should be possible. However, as noted below, I have only tested this for
+daily and annual time steps so far.
+	
+M       source_glc/glc_time_management.F90
+
+pretag testing: so far I have tested this for daily and annual time steps;
+more testing is needed of other length time steps
+
+	- 10-year TG compset with daily time step (i.e., the default),
+	using gland10 and 10 years of forcing from a af19_g16 IG compset:
+	last year of cism history output identical to a similar run set up
+	using old version; cism log files also essentially identical
+
+	- Similar to the above, but with annual time step & annual
+	coupling interval. This was set up by (1) averaging the 10 years
+	of cpl history files into annual-average files; (2) explicitly
+	setting atm_cpl_dt to 31536000, and the same for other components,
+	in cpl.buildnml.csh; (3) changing dt_option from steps_per_day to
+	steps_per_year in cism.buildnml.csh. Last year of cism history
+	output identical to the daily run; cism log files also show
+	correct time stepping
+
+	- exact restart, daily time step: similar to daily time step run
+	above, but two 5-year runs; checked last year of history file
+	against the above 10-year run
+
+	- exact restart, annual time step: similar to annual time step run
+	above, but two 5-year runs; checked last year of history file
+	against the above 10-year run
+
+================================================================================
+Originator: sacks
 Date: Oct 26, 2011
 Model: cism
 Version: cism1_111026
@@ -22,7 +61,7 @@ pretag testing: NONE
 Originator: jwolfe
 Date:
 Model: cism
-Version: cism1_11XXXX
+Version: cism1_111007
 One-line summary: add support for new GLC_GRID gland5UM
 
 M       bld/cism.cpl7.template
