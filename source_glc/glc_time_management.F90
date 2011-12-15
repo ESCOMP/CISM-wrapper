@@ -98,12 +98,6 @@
    integer (int_kind)   :: &
       adjust_nyears         !   number of years that we need to increment
 
-   logical (log_kind)   :: &! the last timestep was:
-      eod_last            ,&!   at the end of the day
-      eom_last            ,&!   at the end of the month
-      eoy_last            ,&!   at the end of the year
-      midnight_last         !   at midnight
-
    logical (log_kind)   :: &! the next timestep is:
       midnight_next       ,&!   at midnight
       new_dtt_value       ,&! does restart have a new step size
@@ -267,14 +261,7 @@
       tyear00                  ,&!
       tsecond00                ,&!
       tday00                   ,&!
-      thour00                  ,&!
-      thour00_begin_this_year
-
-   real (r8), dimension(12)  :: &
-      thour00_midmonth_calendar,&! num hours to middle of calendar month
-      thour00_endmonth_calendar,&! num hours to end of calendar month
-      thour00_midmonth_equal   ,&! num hours to middle of equal-spaced month
-      thour00_endmonth_equal     ! num hours to end of equal-spaced month
+      thour00
 
 !-----------------------------------------------------------------------
 !
@@ -563,11 +550,6 @@
 !
 !-----------------------------------------------------------------------
 
-   eom_last          = .false.  
-   eod_last          = .false.  
-   eoy_last          = .false.  
-   midnight_last     = .false.  
-
    iyear        = iyear0
    imonth       = imonth0
    iday         = iday0
@@ -735,22 +717,6 @@
    cmonth3 = month3_all(imonth)
 
    nsteps_run = 0
-
-!-----------------------------------------------------------------------
-!
-!  thour00_begin_this_year, thour00_midmonth_{equal,calendar} and 
-!       thour00_endmonth_{equal,calendar} are used in forcing routines 
-!       with the 'monthly-equal' or  'monthly-calendar'  option for 
-!       forcing_data_freq, where 'monthly-equal' designates 12 equally 
-!       spaced months of length 365/12 days and 'monthly-calendar' uses 
-!       the non-leapyear calendar.
-!       
-!  thour00_midmonth_{equal,calendar} and 
-!  thour00_endmonth_{equal,calendar} 
-!       are relative to the beginning of the year, so vary between 
-!       0 and 365*24.
-!
-!-----------------------------------------------------------------------
 
 !-----------------------------------------------------------------------
 !
@@ -1051,12 +1017,6 @@
    iday_of_year_last = iday_of_year
    ihour_last        = ihour
 
-   eod_last          = eod
-   eom_last          = eom
-   eoy_last          = eoy
- 
-   midnight_last     = midnight
- 
 !-----------------------------------------------------------------------
 !
 !  set logical switches to default values
@@ -1167,14 +1127,6 @@
 
    call get_tday
    if (ihour /= ihour_last) newhour = .true.
-
-!-----------------------------------------------------------------------
-!
-!  reset thour00_begin_this_year to be the current time if new year.
-!
-!-----------------------------------------------------------------------
-
-   if (eoy) thour00_begin_this_year = thour00
 
 !-----------------------------------------------------------------------
 !
