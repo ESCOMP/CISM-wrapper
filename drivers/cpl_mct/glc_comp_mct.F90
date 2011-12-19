@@ -8,7 +8,6 @@ module glc_comp_mct
   use shr_file_mod     , only: shr_file_getunit, shr_file_getlogunit, shr_file_getloglevel, &
                                shr_file_setlogunit, shr_file_setloglevel, shr_file_setio, &
                                shr_file_freeunit
-  use shr_mpi_mod      , only: shr_mpi_bcast
   use mct_mod
   use esmf_mod
 
@@ -18,16 +17,15 @@ module glc_comp_mct
   use seq_timemgr_mod
 
   use glc_cpl_indices
-  use glc_constants,   only : verbose, stdout, stderr, nml_in, &
-                              radius,  radian, tkfrz,  glc_nec
-  use glc_errormod,    only : glc_success
-  use glc_InitMod,     only : glc_initialize
-  use glc_RunMod,      only : glc_run
-  use glc_FinalMod,    only : glc_final
-  use glc_communicate, only : init_communicate
-  use glc_io,          only : glc_io_write_restart, &
-                              glc_io_write_history
-  use glc_time_management, only: iyear,imonth,iday,ihour,iminute,isecond, runtype
+  use glc_constants,       only: verbose, stdout, stderr, nml_in, &
+                                 radius,  radian, tkfrz,  glc_nec
+  use glc_errormod,        only: glc_success
+  use glc_InitMod,         only: glc_initialize
+  use glc_RunMod,          only: glc_run
+  use glc_FinalMod,        only: glc_final
+  use glc_io,              only: glc_io_write_restart, glc_io_write_history
+  use glc_communicate,     only: init_communicate
+  use glc_time_management, only: iyear,imonth,iday,ihour,iminute,isecond,runtype
   use glc_global_fields,   only: ice_sheet
   use glc_global_grid,     only: glc_grid, glc_landmask, glc_landfrac
 
@@ -251,7 +249,9 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
    logical       :: hist_alarm        ! is it time to write a history file
    logical       :: rest_alarm        ! is it time to write a restart
    logical       :: done              ! time loop logical
-   logical       :: do_recv = .true.  ! turn off recv
+   integer           :: num 
+   character(len= 2) :: cnum
+   character(len=64) :: name
 
    character(*), parameter :: F00   = "('(glc_run_mct) ',8a)"
    character(*), parameter :: F01   = "('(glc_run_mct) ',a,8i8)"
@@ -270,39 +270,9 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
     nxg = glc_grid%nx
     nyg = glc_grid%ny
 
-    ! UNPACK
-
-!-----------------------------------------------------------------------
-!  unpack and distribute recv buffer
-!-----------------------------------------------------------------------
-
-!!    do_recv = .false.     ! tcx temporary 
-
-    if (do_recv) then
-    if (glc_nec >=  1) call glc_import_mct(x2g, 1,index_x2g_Ss_tsrf01, &
-                       index_x2g_Ss_topo01,index_x2g_Fgss_qice01)
-    if (glc_nec >=  2) call glc_import_mct(x2g, 2,index_x2g_Ss_tsrf02, &
-                       index_x2g_Ss_topo02,index_x2g_Fgss_qice02)
-    if (glc_nec >=  3) call glc_import_mct(x2g, 3,index_x2g_Ss_tsrf03, &
-                       index_x2g_Ss_topo03,index_x2g_Fgss_qice03)
-    if (glc_nec >=  4) call glc_import_mct(x2g, 4,index_x2g_Ss_tsrf04, &
-                       index_x2g_Ss_topo04,index_x2g_Fgss_qice04)
-    if (glc_nec >=  5) call glc_import_mct(x2g, 5,index_x2g_Ss_tsrf05, &
-                       index_x2g_Ss_topo05,index_x2g_Fgss_qice05)
-    if (glc_nec >=  6) call glc_import_mct(x2g, 6,index_x2g_Ss_tsrf06, &
-                       index_x2g_Ss_topo06,index_x2g_Fgss_qice06)
-    if (glc_nec >=  7) call glc_import_mct(x2g, 7,index_x2g_Ss_tsrf07, &
-                       index_x2g_Ss_topo07,index_x2g_Fgss_qice07)
-    if (glc_nec >=  8) call glc_import_mct(x2g, 8,index_x2g_Ss_tsrf08, &
-                       index_x2g_Ss_topo08,index_x2g_Fgss_qice08)
-    if (glc_nec >=  9) call glc_import_mct(x2g, 9,index_x2g_Ss_tsrf09, &
-                       index_x2g_Ss_topo09,index_x2g_Fgss_qice09)
-    if (glc_nec >= 10) call glc_import_mct(x2g,10,index_x2g_Ss_tsrf10, &
-                       index_x2g_Ss_topo10,index_x2g_Fgss_qice10)
-    endif
-
+    ! Set internal time info
+ 
     errorCode = glc_Success
-
     call seq_timemgr_EClockGetData(EClock,curr_ymd=cesmYMD, curr_tod=cesmTOD)
     stop_alarm = seq_timemgr_StopAlarmIsOn( EClock )
 
@@ -315,12 +285,23 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
        call shr_sys_flush(stdout)
     endif
 
+    ! Unpack
+
+    do num = 1,glc_nec
+       call glc_import_mct(x2g, num, &
+            index_x2g_Ss_tsrf(num), index_x2g_Ss_topo(num), index_x2g_Fgss_qice(num)) 
+    end do
+
+    ! Run 
+
     do while (.not. done) 
        if (glcYMD > cesmYMD .or. (glcYMD == cesmYMD .and. glcTOD > cesmTOD)) then
           write(stdout,*) subname,' ERROR overshot coupling time ',glcYMD,glcTOD,cesmYMD,cesmTOD
           call shr_sys_abort('glc error overshot time')
        endif
+
        call glc_run
+
        glcYMD = iyear*10000 + imonth*100 + iday
        glcTOD = ihour*3600 + iminute*60 + isecond
        if (glcYMD == cesmYMD .and. glcTOD == cesmTOD) done = .true.
@@ -334,40 +315,15 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
        call shr_sys_flush(stdout)
     endif
     
-    ! PACK
+    ! Pack
 
-    if (glc_nec >=  1) call glc_export_mct(g2x, 1,index_g2x_Sg_frac01, &
-                       index_g2x_Sg_topo01  ,index_g2x_Fsgg_rofi01, &
-                       index_g2x_Fsgg_rofl01,index_g2x_Fsgg_hflx01)
-    if (glc_nec >=  2) call glc_export_mct(g2x, 2,index_g2x_Sg_frac02, &
-                       index_g2x_Sg_topo02  ,index_g2x_Fsgg_rofi02, &
-                       index_g2x_Fsgg_rofl02,index_g2x_Fsgg_hflx02)
-    if (glc_nec >=  3) call glc_export_mct(g2x, 3,index_g2x_Sg_frac03, &
-                       index_g2x_Sg_topo03  ,index_g2x_Fsgg_rofi03, &
-                       index_g2x_Fsgg_rofl03,index_g2x_Fsgg_hflx03)
-    if (glc_nec >=  4) call glc_export_mct(g2x, 4,index_g2x_Sg_frac04, &
-                       index_g2x_Sg_topo04  ,index_g2x_Fsgg_rofi04, &
-                       index_g2x_Fsgg_rofl04,index_g2x_Fsgg_hflx04)
-    if (glc_nec >=  5) call glc_export_mct(g2x, 5,index_g2x_Sg_frac05, &
-                       index_g2x_Sg_topo05  ,index_g2x_Fsgg_rofi05, &
-                       index_g2x_Fsgg_rofl05,index_g2x_Fsgg_hflx05)
-    if (glc_nec >=  6) call glc_export_mct(g2x, 6,index_g2x_Sg_frac06, &
-                       index_g2x_Sg_topo06  ,index_g2x_Fsgg_rofi06, &
-                       index_g2x_Fsgg_rofl06,index_g2x_Fsgg_hflx06)
-    if (glc_nec >=  7) call glc_export_mct(g2x, 7,index_g2x_Sg_frac07, &
-                       index_g2x_Sg_topo07  ,index_g2x_Fsgg_rofi07, &
-                       index_g2x_Fsgg_rofl07,index_g2x_Fsgg_hflx07)
-    if (glc_nec >=  8) call glc_export_mct(g2x, 8,index_g2x_Sg_frac08, &
-                       index_g2x_Sg_topo08  ,index_g2x_Fsgg_rofi08, &
-                       index_g2x_Fsgg_rofl08,index_g2x_Fsgg_hflx08)
-    if (glc_nec >=  9) call glc_export_mct(g2x, 9,index_g2x_Sg_frac09, &
-                       index_g2x_Sg_topo09  ,index_g2x_Fsgg_rofi09, &
-                       index_g2x_Fsgg_rofl09,index_g2x_Fsgg_hflx09)
-    if (glc_nec >= 10) call glc_export_mct(g2x,10,index_g2x_Sg_frac10, &
-                       index_g2x_Sg_topo10  ,index_g2x_Fsgg_rofi10, &
-                       index_g2x_Fsgg_rofl10,index_g2x_Fsgg_hflx10)
+    do num = 1,glc_nec
+       call glc_export_mct(g2x, num, &
+            index_g2x_Sg_frac(num), index_g2x_Sg_topo(num)  ,&
+            index_g2x_Fsgg_rofi(num), index_g2x_Fsgg_rofl(num),index_g2x_Fsgg_hflx(num))
+    end do
     
-    ! log output for model date
+    ! Log output for model date
 
     if (my_task == master_task) then
        call seq_timemgr_EClockGetData(EClock,curr_ymd=cesmYMD, curr_tod=cesmTOD)
@@ -378,31 +334,24 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
        call shr_sys_flush(stdout)
     end if
 
-    !----------------------------------------------------------------------------
-    ! if time to write history, do so
-    !----------------------------------------------------------------------------
+    ! If time to write history, do so
+
     hist_alarm = seq_timemgr_HistoryAlarmIsOn( EClock )
     if (hist_alarm) then
-
        ! TODO loop over instances
        call glc_io_write_history(ice_sheet%instances(1), EClock)
-
     endif
 
-    !----------------------------------------------------------------------------
-    ! if time to write restart, do so
-    !----------------------------------------------------------------------------
+    ! If time to write restart, do so
+
     rest_alarm = seq_timemgr_RestartAlarmIsOn( EClock )
     if (rest_alarm) then
-
        ! TODO loop over instances
        call glc_io_write_restart(ice_sheet%instances(1), EClock)
-
     endif
 
-    !----------------------------------------------------------------------------
     ! Reset shr logging to original values
-    !----------------------------------------------------------------------------
+
     call shr_file_setLogUnit (shrlogunit)
     call shr_file_setLogLevel(shrloglev)
     call shr_sys_flush(stdout)
@@ -436,9 +385,7 @@ subroutine glc_final_mct()
 !
 !-------------------------------------------------------------------------------
 
-   !----------------------------------------------------------------------------
    ! Reset shr logging to my log file
-   !----------------------------------------------------------------------------
    call shr_file_getLogUnit (shrlogunit)
    call shr_file_getLogLevel(shrloglev)
    call shr_file_setLogUnit (stdout)
@@ -458,9 +405,8 @@ subroutine glc_final_mct()
       call shr_sys_flush(stdout)
    endif
 
-   !----------------------------------------------------------------------------
    ! Reset shr logging to original values
-   !----------------------------------------------------------------------------
+
    call shr_file_setLogUnit (shrlogunit)
    call shr_file_setLogLevel(shrloglev)
    call shr_sys_flush(stdout)
@@ -468,8 +414,10 @@ subroutine glc_final_mct()
  end subroutine glc_final_mct
 
 !=================================================================================
-  subroutine glc_import_mct(x2g,ndx,index_tsrf,index_topo,index_qice)
+  subroutine glc_import_mct(x2g,ndx,&
+       index_tsrf,index_topo,index_qice)
 
+    !-------------------------------------------------------------------
     use glc_global_fields, only: tsfc, topo, qsmb       ! from coupler
 
     type(mct_aVect),intent(inout) :: x2g
@@ -479,14 +427,6 @@ subroutine glc_final_mct()
     integer(IN), intent(in) :: index_qice
 
     integer(IN) :: j,jj,i,g,nxg,nyg,n
-
-    !--- formats ---
-    character(*), parameter :: F00   = "('(glc_import_mct) ',8a)"
-    character(*), parameter :: F01   = "('(glc_import_mct) ',a,8i8)"
-    character(*), parameter :: F02   = "('(glc_import_mct) ',a,4es13.6)"
-    character(*), parameter :: F03   = "('(glc_import_mct) ',a,i8,a)"
-    character(*), parameter :: F90   = "('(glc_import_mct) ',73('='))"
-    character(*), parameter :: F91   = "('(glc_import_mct) ',73('-'))"
     character(*), parameter :: subName = "(glc_import_mct) "
     !-------------------------------------------------------------------
 
@@ -513,8 +453,12 @@ subroutine glc_final_mct()
   end subroutine glc_import_mct
 
 !=================================================================================
-  subroutine glc_export_mct(g2x,ndx,index_frac,index_topo,index_rofi,index_rofl,index_hflx)
 
+  subroutine glc_export_mct(g2x,ndx,&
+       index_frac,index_topo,&
+       index_rofi,index_rofl,index_hflx)
+
+    !-------------------------------------------------------------------
     use glc_global_fields, only: gfrac, gtopo, grofi, grofl, ghflx   ! to coupler
 
     type(mct_aVect),intent(inout) :: g2x
@@ -526,14 +470,6 @@ subroutine glc_final_mct()
     integer(IN), intent(in) :: index_hflx
 
     integer(IN) :: j,jj,i,g,nxg,nyg,n
-
-    !--- formats ---
-    character(*), parameter :: F00   = "('(glc_export_mct) ',8a)"
-    character(*), parameter :: F01   = "('(glc_export_mct) ',a,8i8)"
-    character(*), parameter :: F02   = "('(glc_export_mct) ',a,4es13.6)"
-    character(*), parameter :: F03   = "('(glc_export_mct) ',a,i8,a)"
-    character(*), parameter :: F90   = "('(glc_export_mct) ',73('='))"
-    character(*), parameter :: F91   = "('(glc_export_mct) ',73('-'))"
     character(*), parameter :: subName = "(glc_export_mct) "
     !-------------------------------------------------------------------
 
@@ -542,7 +478,7 @@ subroutine glc_final_mct()
     do j = 1, nyg           ! S to N
        jj = nyg - j + 1     ! reverse j index for glint grid (N to S)
        do i = 1, nxg
-          g = (j-1)*nxg + i   ! global index (W to E, S to N)
+          g = (j-1)*nxg + i ! global index (W to E, S to N)
           g2x%rAttr(index_frac,g) = gfrac(i,jj,ndx)
           g2x%rAttr(index_topo,g) = gtopo(i,jj,ndx)
           g2x%rAttr(index_rofi,g) = grofi(i,jj,ndx)
@@ -578,12 +514,7 @@ subroutine glc_final_mct()
     integer :: ier
 
     !--- formats ---
-    character(*), parameter :: F00   = "('(glc_SetgsMap_mct) ',8a)"
-    character(*), parameter :: F01   = "('(glc_SetgsMap_mct) ',a,8i8)"
     character(*), parameter :: F02   = "('(glc_SetgsMap_mct) ',a,4es13.6)"
-    character(*), parameter :: F03   = "('(glc_SetgsMap_mct) ',a,i8,a)"
-    character(*), parameter :: F90   = "('(glc_SetgsMap_mct) ',73('='))"
-    character(*), parameter :: F91   = "('(glc_SetgsMap_mct) ',73('-'))"
     character(*), parameter :: subName = "(glc_SetgsMap_mct) "
     !-------------------------------------------------------------------
 
@@ -612,6 +543,7 @@ subroutine glc_final_mct()
 
   subroutine glc_domain_mct( lsize, gsMap_g, dom_g )
 
+    !-------------------------------------------------------------------
     integer        , intent(in)    :: lsize
     type(mct_gsMap), intent(inout) :: gsMap_g
     type(mct_ggrid), intent(out)   :: dom_g      
@@ -621,14 +553,6 @@ subroutine glc_final_mct()
     integer :: g,i,j,n,nxg,nyg    ! index
     real(r8), pointer :: data(:)  ! temporary
     integer , pointer :: idata(:) ! temporary
-
-    !--- formats ---
-    character(*), parameter :: F00   = "('(glc_domain_mct) ',8a)"
-    character(*), parameter :: F01   = "('(glc_domain_mct) ',a,8i8)"
-    character(*), parameter :: F02   = "('(glc_domain_mct) ',a,4es13.6)"
-    character(*), parameter :: F03   = "('(glc_domain_mct) ',a,i8,a)"
-    character(*), parameter :: F90   = "('(glc_domain_mct) ',73('='))"
-    character(*), parameter :: F91   = "('(glc_domain_mct) ',73('-'))"
     character(*), parameter :: subName = "(glc_domain_mct) "
     !-------------------------------------------------------------------
 

@@ -45,19 +45,15 @@
 
   logical, parameter :: verbose = .false.
 
-!lipscomb - TO DO - Set glc_smb using coupler infodata;
-!                   set to false when using PDD scheme
+  integer ::   &
+     glc_nec              ! number of elevation classes
+                          ! set in glc_cpl_indices_set - consistent with clm now
 
-  logical, parameter ::   &
-     glc_smb = .true.     ! if true, get surface mass balance from CLM via coupler
+  logical ::   &
+     glc_smb              ! if true, get surface mass balance from CLM via coupler
                           ! (in multiple elevation classes)
                           ! if false, use PDD scheme in GLIMMER
-
-!lipscomb - TO DO - Get glc_nec (and topomax) from an input file
-!                   to ensure that these values agree with CLM values
-
-  integer, parameter ::   &
-     glc_nec = 10             ! number of elevation classes
+                          ! set in glc_cpl_indices_set - based on glc_nec
 
    !-----------------------------------------------------------------
    ! physical constants
