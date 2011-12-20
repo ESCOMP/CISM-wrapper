@@ -90,20 +90,25 @@
       coupled_ts            ! time_flag id for a coupled timestep
 
    logical (log_kind)   :: &! this timestep is:
+      adjust_year         ,&!   step at which year values updated
       eod                 ,&!   at the end of the day
       eom                 ,&!   at the end of the month
       eoy                 ,&!   at the end of the year
       first_step          ,&!   first time step
       midnight              !   at midnight
-   integer (int_kind)   :: &
-      adjust_nyears         !   number of years that we need to increment
+
+   logical (log_kind)   :: &! the last timestep was:
+      eod_last            ,&!   at the end of the day
+      eom_last            ,&!   at the end of the month
+      eoy_last            ,&!   at the end of the year
+      midnight_last         !   at midnight
 
    logical (log_kind)   :: &! the next timestep is:
+      adjust_year_next    ,&!   step at which year values updated
+      eom_next            ,&!   at the end of the month
       midnight_next       ,&!   at midnight
       new_dtt_value       ,&! does restart have a new step size
       end_run_at_midnight   ! does model run end at midnight
-   integer (int_kind)   :: &
-      adjust_nyears_next    !   number of years that we need to increment
  
    real (r8)      ::       &
       steps_per_year      ,&  ! number of timesteps in one year
@@ -169,6 +174,7 @@
 
    integer (int_kind)   ::     &! number of:
       days_in_year            ,&! days in present year
+      days_in_prior_year      ,&! days in prior   year 
       elapsed_days            ,&! full days elapsed since    01-01-0000
       elapsed_days0           ,&! full days elapsed between  01-01-0000 
                                 !                   and day0 
@@ -218,6 +224,7 @@
       tsecond_old              ! tsecond from previous timestep
 
    logical (log_kind) :: &
+      newday            ,&!
       newhour           ,&!
       allow_leapyear    ,&! allow leap years?
       leapyear            ! is this a leapyear?
@@ -261,7 +268,14 @@
       tyear00                  ,&!
       tsecond00                ,&!
       tday00                   ,&!
-      thour00
+      thour00                  ,&!
+      thour00_begin_this_year
+
+   real (r8), dimension(12)  :: &
+      thour00_midmonth_calendar,&! num hours to middle of calendar month
+      thour00_endmonth_calendar,&! num hours to end of calendar month
+      thour00_midmonth_equal   ,&! num hours to middle of equal-spaced month
+      thour00_endmonth_equal     ! num hours to end of equal-spaced month
 
 !-----------------------------------------------------------------------
 !
@@ -491,13 +505,6 @@
    select case (dt_option)
  
    case('steps_per_year')
-      ! WJS (11-22-11): steps_per_year is currently incompatible with allow_leapyear=
-      ! .true., since that would require the time step (dtt) to vary each year; this
-      ! functionality doesn't exist
-      if (allow_leapyear) then
-         call exit_glc(sigAbort,'steps_per_year dt option incompatible with allow_leapyear')
-      end if
-
       steps_per_year = dt_count
       steps_per_day  = steps_per_year/days_in_norm_year
       dtt            = seconds_in_day/steps_per_day
@@ -533,22 +540,16 @@
 
 !-----------------------------------------------------------------------
 !
-!  check for incompatibility between dtt and allow_leapyear
-!
-!-----------------------------------------------------------------------
-
-   ! WJS (11-22-11): allow_leapyear = .true. doesn't work with stepsize greater than 1
-   ! year, because reduce_seconds doesn't handle this case
-   if (allow_leapyear .and. dtt > (seconds_in_day * days_in_norm_year)) then
-      call exit_glc(sigAbort,'dt > 1 year incompatible with allow_leapyear')
-   end if
-
-!-----------------------------------------------------------------------
-!
 !  set initial values; some of these may be overwritten by
 !  restart input
 !
 !-----------------------------------------------------------------------
+
+   eom_next          = .false.  
+   eom_last          = .false.  
+   eod_last          = .false.  
+   eoy_last          = .false.  
+   midnight_last     = .false.  
 
    iyear        = iyear0
    imonth       = imonth0
@@ -649,12 +650,21 @@
 
 !-----------------------------------------------------------------------
 !
-!  determine if this is a leap year; set days_in_year and 
-!  days_in_prior_months, regardless of value of allow_leapyear
+!  compute seconds_this_year and seconds_the_day for next timestep
 !
 !-----------------------------------------------------------------------
 
-   call leap_adjust
+   seconds_this_year_next =  seconds_this_year + stepsize_next
+   seconds_this_day_next  =  seconds_this_day  + stepsize_next
+
+!-----------------------------------------------------------------------
+!
+!  determine tsecond, the number of seconds elapsed since beginning
+!  of complete simulation.
+!
+!-----------------------------------------------------------------------
+
+   tsecond = elapsed_days_init_date*seconds_in_day + seconds_this_day
 
 !-----------------------------------------------------------------------
 !
@@ -672,25 +682,18 @@
 
 !-----------------------------------------------------------------------
 !
-!  compute seconds_this_year and seconds_the_day for next timestep
+!  determine if this is a leap year; set days_in_year and 
+!  days_in_prior_months, regardless of value of allow_leapyear
 !
 !-----------------------------------------------------------------------
 
-   stepsize      = dtt
-   stepsize_next = dtt
-   seconds_this_year_next =  seconds_this_year + stepsize_next
-   seconds_this_day_next  =  seconds_this_day  + stepsize_next
-   call reduce_seconds (seconds_this_day_next , &
-                        seconds_this_year_next, adjust_nyears_next)
+   call leap_adjust
 
-!-----------------------------------------------------------------------
-!
-!  determine tsecond, the number of seconds elapsed since beginning
-!  of complete simulation.
-!
-!-----------------------------------------------------------------------
-
-   tsecond = elapsed_days_init_date*seconds_in_day + seconds_this_day
+   if (iyear > 0 .and. is_leapyear(iyear-1) ) then
+      days_in_prior_year = days_in_leap_year
+   else
+      days_in_prior_year = days_in_norm_year
+   endif
 
 !-----------------------------------------------------------------------
 !
@@ -717,6 +720,22 @@
    cmonth3 = month3_all(imonth)
 
    nsteps_run = 0
+
+!-----------------------------------------------------------------------
+!
+!  thour00_begin_this_year, thour00_midmonth_{equal,calendar} and 
+!       thour00_endmonth_{equal,calendar} are used in forcing routines 
+!       with the 'monthly-equal' or  'monthly-calendar'  option for 
+!       forcing_data_freq, where 'monthly-equal' designates 12 equally 
+!       spaced months of length 365/12 days and 'monthly-calendar' uses 
+!       the non-leapyear calendar.
+!       
+!  thour00_midmonth_{equal,calendar} and 
+!  thour00_endmonth_{equal,calendar} 
+!       are relative to the beginning of the year, so vary between 
+!       0 and 365*24.
+!
+!-----------------------------------------------------------------------
 
 !-----------------------------------------------------------------------
 !
@@ -1017,6 +1036,12 @@
    iday_of_year_last = iday_of_year
    ihour_last        = ihour
 
+   eod_last          = eod
+   eom_last          = eom
+   eoy_last          = eoy
+ 
+   midnight_last     = midnight
+ 
 !-----------------------------------------------------------------------
 !
 !  set logical switches to default values
@@ -1059,36 +1084,17 @@
 
 !-----------------------------------------------------------------------
 !
-!  compute seconds_this_year and seconds_the_day for this timestep,
-!  and adjust seconds counters if necessary
+!  compute seconds_this_year and seconds_the_day for this timestep
 !
 !-----------------------------------------------------------------------
 
    if (nsteps_total == 1 .or.  new_dtt_value) then
       seconds_this_year  = seconds_this_year  + stepsize
       seconds_this_day   = seconds_this_day   + stepsize
-      call reduce_seconds (seconds_this_day      , &
-                           seconds_this_year     , adjust_nyears)
    else
       seconds_this_year  = seconds_this_year_next
       seconds_this_day   = seconds_this_day_next
-      adjust_nyears = adjust_nyears_next
    endif
-
-!-----------------------------------------------------------------------
-!
-!  if everything is working correctly, then seconds_this_year and
-!  seconds_this_day should be their reduced values, regardless of which
-!  path was followed in the above conditional; check for this
-!
-!-----------------------------------------------------------------------
-
-   if (seconds_this_day >= seconds_in_day) then
-      call exit_glc(sigAbort,'too large value of seconds_this_day in time_manager')
-   end if
-   if (seconds_this_year >= seconds_in_year) then
-      call exit_glc(sigAbort,'too large value of seconds_this_year in time_manager')
-   end if
 
 !-----------------------------------------------------------------------
 !
@@ -1096,20 +1102,33 @@
 !
 !-----------------------------------------------------------------------
 
-   stepsize_next =    dtt
+      stepsize_next =    dtt
 
 !-----------------------------------------------------------------------
 !
-!  compute seconds_this_year and seconds_the_day for next timestep,
-!  and adjust seconds counters if necessary
+!  compute seconds_this_year and seconds_the_day for next timestep
 !
 !-----------------------------------------------------------------------
 
    seconds_this_year_next =  seconds_this_year + stepsize_next
    seconds_this_day_next  =  seconds_this_day  + stepsize_next
 
-   call reduce_seconds (seconds_this_day_next , &
-                        seconds_this_year_next, adjust_nyears_next)
+!-----------------------------------------------------------------------
+!
+!  adjust seconds counters if necessary
+!
+!-----------------------------------------------------------------------
+
+   if (nsteps_total == 1 .or.  new_dtt_value) then
+      call reduce_seconds (seconds_this_day      , &
+                           seconds_this_year     , adjust_year)
+      call reduce_seconds (seconds_this_day_next , &
+                           seconds_this_year_next, adjust_year_next)
+   else
+      adjust_year = adjust_year_next
+      call reduce_seconds (seconds_this_day_next , &
+                           seconds_this_year_next, adjust_year_next)
+   endif
 
 !-----------------------------------------------------------------------
 !
@@ -1127,6 +1146,14 @@
 
    call get_tday
    if (ihour /= ihour_last) newhour = .true.
+
+!-----------------------------------------------------------------------
+!
+!  reset thour00_begin_this_year to be the current time if new year.
+!
+!-----------------------------------------------------------------------
+
+   if (eoy) thour00_begin_this_year = thour00
 
 !-----------------------------------------------------------------------
 !
@@ -1221,6 +1248,7 @@
    eom                = .false.  ! not end-of-month
    eoy                = .false.  ! not end-of-year
 
+   newday             = .false.  ! not new day
    newhour            = .false.  ! not new hour
 
    call reset_time_flag_all
@@ -1254,6 +1282,7 @@
 !-----------------------------------------------------------------------
 
    if (first_step) then 
+      newday     = .true.
       first_step = .false.
    endif
 
@@ -1970,38 +1999,25 @@
       seconds_today       ! number of seconds elapsed today
  
    integer (int_kind) :: &
-      i,                 &! counter
-      days_in_prior_years,&! total days in years whose boundaries we have crossed
-                           ! in this timestep 
-      day_inc,           &! change in the number of days elapsed between timesteps
-      month_inc,         &! change in the number of months elapsed between timesteps
-      year_inc            ! change in the number of years elapsed between timesteps
+      day_inc             ! change in the number of days elapsed
+                          !   between timesteps
 
-
-   logical (log_kind) ::       &
-      next_is_different_day,   &! true if the next timestep is a different day from the current timestep
-      next_is_different_month, &! true if the next timestep is a different month from the current timestep
-      next_is_month_plus_1      ! true if the next timestep is in the month immediately
-                                ! following the month of the current timestep 
+   logical (log_kind), save ::                 &
+      increment_elapsed_months_next = .false., &
+      increment_elapsed_years_next  = .false.
 
 !-----------------------------------------------------------------------
 !
 !  determine iyear
 !
 !-----------------------------------------------------------------------
-   
-   days_in_prior_years = 0
 
-   ! We do the following adjustment in a loop to allow the leap year adjustment to be
-   ! done properly for each year that we're incrementing (needed for correct
-   ! adjustment of days_in_prior_years)
-   do i = 1, adjust_nyears
-      days_in_prior_years = days_in_prior_years + days_in_year
+   if (adjust_year) then
       iyear = iyear + 1
-      
-      ! the following sets days_in_year appropriately, among other things
+      days_in_prior_year = days_in_year
       if (allow_leapyear) call leap_adjust
-   end do
+      adjust_year_next = .false.
+   endif
 
 !-----------------------------------------------------------------------
 !
@@ -2013,10 +2029,10 @@
    if (nsteps_run == 1) then
       call ymd_hms( seconds_this_year, seconds_this_day, &
                     iday_of_year,                        &
-                    imonth, iday   , iday_of_year_last,  &
+                    imonth, iday   , iday_last,          &
                     ihour , iminute, isecond,            &
                     rhour , rminute, rsecond,            &
-                    midnight       , adjust_nyears)
+                    midnight       , adjust_year)
    else
       iday_of_year  = iday_of_year_next
       imonth        = imonth_next
@@ -2039,10 +2055,10 @@
    call ymd_hms(seconds_this_year_next,                    &
                 seconds_this_day_next,                     &
                 iday_of_year_next,                         &
-                imonth_next  , iday_next   , iday_of_year, &
+                imonth_next  , iday_next   , iday,         &
                 ihour_next   , iminute_next, isecond_next, &
                 rhour_next   , rminute_next, rsecond_next, &
-                midnight_next, adjust_nyears_next)
+                midnight_next, adjust_year_next)
 
 !-----------------------------------------------------------------------
 !
@@ -2050,8 +2066,7 @@
 !
 !-----------------------------------------------------------------------
 
-   next_is_different_day = (adjust_nyears_next > 0 .or. iday_of_year_next /= iday_of_year)
-   if (next_is_different_day) then
+   if (iday_of_year_next /= iday_of_year) then
       if (.not. midnight_next)                     eod = .true.
       if (stepsize_next + dt_tol > seconds_in_day) eod = .true.
    endif
@@ -2060,28 +2075,53 @@
 
 !-----------------------------------------------------------------------
 !
+!  newday?   (a timestep can be both eod and newday for dt > 24hrs)
+!
+!-----------------------------------------------------------------------
+ 
+   if (iday_of_year > iday_of_year_last .and. .not. midnight) &
+      newday = .true.
+   if (eod_last ) newday = .true.
+
+!-----------------------------------------------------------------------
+!
 !  end of month?
 !
 !-----------------------------------------------------------------------
 
-   next_is_different_month = (adjust_nyears_next > 0 .or. imonth_next /= imonth)
-   if (midnight .and. iday == 1) then 
-      eom = .true.
-   
-   else if (next_is_different_month) then
-      next_is_month_plus_1 = (adjust_nyears_next == 0 .and. imonth_next == imonth+1) .or. &
-                             (adjust_nyears_next == 1 .and. imonth == 12 .and. &
-                              imonth_next == 1)
-      if (midnight_next .and. iday_next == 1 .and. next_is_month_plus_1) then
-         ! the NEXT timestep is considered to be the end of the month
-         eom = .false.
+   if (eod) then
+ 
+      if (eom_next) then
+         eom      = .true.
+         eom_next = .false.
       else
-         eom = .true.
-      end if
-   
-   else
-      eom = .false.
-   end if
+ 
+         if (imonth_next > imonth_last  .or. &
+             imonth_next == 1 .and. imonth_last == 12) then
+ 
+            if (iday <= days_in_month(imonth_last) .and. &
+                midnight_next .and. iday_next == 1 ) then
+               eom      = .false.
+               eom_next = .true.
+
+            elseif (iday <= days_in_month(imonth_last)  .and. &
+                                      iday_next >= 1 )  then
+               eom      = .true.
+               eom_next = .false.
+
+            elseif (midnight .and. midnight_next .and. &
+                                   midnight_last) then
+               eom      = .false.
+               eom_next = .true.
+            else
+               eom      = .true.
+               eom_next = .false.
+            endif
+
+         endif
+      endif
+ 
+   endif ! eod
 
 !-----------------------------------------------------------------------
 !
@@ -2089,33 +2129,27 @@
 !
 !-----------------------------------------------------------------------
 
-   month_inc = adjust_nyears*12 + imonth - imonth_last
-   elapsed_months           = elapsed_months           + month_inc
-   elapsed_months_this_run  = elapsed_months_this_run  + month_inc
-   elapsed_months_init_date = elapsed_months_init_date + month_inc
+   if ((eom .and. midnight) .or. increment_elapsed_months_next) then
+      elapsed_months           = elapsed_months           + 1
+      elapsed_months_this_run  = elapsed_months_this_run  + 1
+      elapsed_months_init_date = elapsed_months_init_date + 1
+      if (increment_elapsed_months_next) & 
+          increment_elapsed_months_next = .false.
+   else if (eom) then
+      increment_elapsed_months_next = .true.
+   else 
+      increment_elapsed_months_next = .false.
+   endif
  
+   if (eom_last) eom = .false.
+
 !-----------------------------------------------------------------------
 !
 !  end of year?
 !
 !-----------------------------------------------------------------------
 
-   if (midnight .and. iday_of_year == 1) then
-      eoy = .true.
-   else if (adjust_nyears_next == 0) then
-      eoy = .false.
-   else if (adjust_nyears_next == 1) then
-      if (midnight_next .and. iday_of_year_next == 1) then
-         ! the NEXT timestep is considered to be the end of the year
-         eoy = .false.
-      else
-         eoy = .true.
-      end if
-   else if (adjust_nyears_next > 1) then 
-      eoy = .true.
-   else
-      call exit_glc(sigAbort,'Unexpected value for adjust_nyears_next in model_date')
-   end if
+   if (eom .and. imonth_next == 1 .and. imonth_last == 12) eoy = .true.       
 
 !-----------------------------------------------------------------------
 !
@@ -2123,15 +2157,25 @@
 !
 !-----------------------------------------------------------------------
 
-   year_inc = adjust_nyears
-   elapsed_years           = elapsed_years           + year_inc
-   elapsed_years_this_run  = elapsed_years_this_run  + year_inc
-   elapsed_years_init_date = elapsed_years_init_date + year_inc
+   if ((eoy .and. midnight) .or. increment_elapsed_years_next) then
 
-   if (year_inc > 0) then
+      elapsed_years           = elapsed_years           + 1
+      elapsed_years_this_run  = elapsed_years_this_run  + 1
+      elapsed_years_init_date = elapsed_years_init_date + 1
+
       call ymd2eday (iyear , 1, 1, elapsed_days_jan1)
       elapsed_days_this_year  = elapsed_days - elapsed_days_jan1
-   end if
+
+      if (increment_elapsed_years_next) & 
+          increment_elapsed_years_next = .false.
+
+   else if (eoy) then
+      increment_elapsed_years_next = .true.
+   else 
+      increment_elapsed_years_next = .false.
+   endif
+ 
+   if (eoy_last) eoy = .false.
 
 !-----------------------------------------------------------------------
 !
@@ -2153,8 +2197,11 @@
 !  elapsed number of days (integer)
 !
 !-----------------------------------------------------------------------
-
-   day_inc = iday_of_year - iday_of_year_last + days_in_prior_years
+   if (iday_of_year >= iday_of_year_last) then
+      day_inc = iday_of_year - iday_of_year_last
+   else
+      day_inc = iday_of_year - iday_of_year_last + days_in_prior_year
+   endif
 
    elapsed_days           = elapsed_days           + day_inc
    elapsed_days_this_run  = elapsed_days_this_run  + day_inc
@@ -2236,10 +2283,10 @@
 
  subroutine ymd_hms(seconds_this_year_loc , seconds_this_day_loc, &
                     iday_of_year_loc,                             &
-                    imonth_loc  , iday_loc   , iday_of_year_compare,&
+                    imonth_loc  , iday_loc   , iday_compare,      &
                     ihour_loc   , iminute_loc, isecond_loc,       &
                     rhour_loc   , rminute_loc, rsecond_loc,       &
-                    midnight_loc, adjust_nyears_loc)
+                    midnight_loc, adjust_year_loc)
 
 ! !DESCRIPTION:
 !  Computes integer values iday\_of\_year, iyear, imonth, iday, ihour, 
@@ -2251,11 +2298,13 @@
 ! !INPUT PARAMETERS:
 
    integer  (int_kind), intent(in) :: &
-      iday_of_year_compare,           &! day of year to compare to check day change
-      adjust_nyears_loc                ! number of years that we need to increment
+      iday_compare          ! day to compare to check day change
 
 ! !INPUT/OUTPUT PARAMETERS:
 
+   logical (log_kind), intent(inout) :: &
+      adjust_year_loc           ! year adjustment flag
+ 
    real (r8), intent(inout) :: &
       seconds_this_year_loc   ,&! number of seconds in year
       seconds_this_day_loc      ! number of seconds in day
@@ -2360,31 +2409,29 @@
 
 !-----------------------------------------------------------------------
 !
-!  check for unhandled conditions
+!  if midnight, increment iday 
 !
 !-----------------------------------------------------------------------
+ 
+   if (iday_loc == iday_compare .and. midnight_loc) &
+      iday_loc =  iday_loc + 1
 
-   ! WJS (11-16-11): These conditions used to be handled, by adjusting iday_loc,
-   ! imonth_loc, adjust_year_loc and iday_of_year_loc appropriately. However, I am
-   ! concerned that the interactions between these adjustments (in particular, the
-   ! adjustment to adjust_year_loc - which is now adjust_nyears_loc) and my change of
-   ! adjust_year_loc (logical) to adjust_nyears_loc (integer) weren't being handled
-   ! correctly.  Furthermore, I can't see any situation where these conditions will be
-   ! triggered. So rather than trying to handle them properly, I am treating them as error
-   ! conditions.
-
-   ! Something similar to this condition used to increment iday_loc
-   if (iday_of_year_loc == iday_of_year_compare .and. adjust_nyears_loc == 0 .and. &
-        midnight_loc) then
-      call exit_glc(sigAbort,'Unhandled condition in ymd_hms: midnight condition')
-   end if
-
-   ! This condition used to adjust iday_loc, imonth_loc, and adjust_nyears_loc; but I
-   ! think it was only necessary because of the possible increase in iday_loc due to the
-   ! above, now-unhandled condition
+!-----------------------------------------------------------------------
+!
+!  if necessary, adjust month value and year-adjustment indicator
+!
+!-----------------------------------------------------------------------
+ 
    if (iday_loc > days_in_month(imonth_loc)) then
-      call exit_glc(sigAbort,'Unhandled condition in ymd_hms: iday > days_in_month')
-   end if
+      iday_loc = iday_loc - days_in_month(imonth_loc)
+      imonth_loc = imonth_loc + 1
+      if (imonth_loc == 13 ) then
+         imonth_loc = 1
+         adjust_year_loc = .true.
+      endif
+   endif
+
+   iday_of_year_loc = days_in_prior_months(imonth_loc) + iday_loc
 
 !-----------------------------------------------------------------------
 !EOC
@@ -2514,7 +2561,7 @@
 ! !INTERFACE:
 
  subroutine reduce_seconds (seconds_this_day_loc, &
-                            seconds_this_year_loc, adjust_nyears_loc)
+                            seconds_this_year_loc, adjust_year_loc)
 
 ! !DESCRIPTION:
 !  Reduce seconds\_this\_day and seconds\_this year, if either
@@ -2531,8 +2578,8 @@
  
 ! !OUTPUT PARAMETERS:
 
-   integer (int_kind), intent(out) :: &
-      adjust_nyears_loc         ! number of years that we need to increment
+   logical (log_kind), intent(out) :: &
+      adjust_year_loc         ! flag to signal year adjustment
 
 !EOP
 !BOC
@@ -2569,12 +2616,11 @@
 !  reset seconds_this_year
 !
 !-----------------------------------------------------------------------
-
-   adjust_nyears_loc = 0
-
-   do while (seconds_this_year_loc >= seconds_in_year - stepsize .and.     &
+    
+   if (seconds_this_year_loc >= seconds_in_year - stepsize .and.     &
        (seconds_this_year_loc >= seconds_in_year .or.                &
-        is_near(seconds_this_year_loc,seconds_in_year,dt_tol_year)))
+        is_near(seconds_this_year_loc,seconds_in_year,dt_tol_year))) &
+                                                                then
  
       seconds_this_year_loc = seconds_this_year_loc - seconds_in_year
 
@@ -2583,8 +2629,10 @@
          seconds_this_day_loc  = c0
       endif
  
-      adjust_nyears_loc = adjust_nyears_loc + 1
-   end do
+      adjust_year_loc  = .true.
+   else
+      adjust_year_loc  = .false.
+   endif
 
 !-----------------------------------------------------------------------
 !EOC
