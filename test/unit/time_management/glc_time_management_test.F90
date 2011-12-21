@@ -12,9 +12,9 @@ program glc_time_management_test
    use glc_time_management, only : time_manager
    use glimmer_paramets, only : stdout
 
-   integer :: n
-
    implicit none
+
+   integer :: n
 
    call read_time_management_test_namelist
 
