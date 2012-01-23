@@ -9,7 +9,7 @@ module glc_comp_mct
                                shr_file_setlogunit, shr_file_setloglevel, shr_file_setio, &
                                shr_file_freeunit
   use mct_mod
-  use esmf_mod
+  use esmf
 
   use seq_flds_mod
   use seq_cdata_mod
@@ -370,10 +370,18 @@ end subroutine glc_run_mct
 !
 ! !INTERFACE: ------------------------------------------------------------------
 !
-!EOP
-subroutine glc_final_mct()
+subroutine glc_final_mct( EClock, cdata, x2d, d2x)
 
-    integer(IN)                           :: shrlogunit, shrloglev  
+! !INPUT/OUTPUT PARAMETERS:
+
+   type(ESMF_Clock)            ,intent(in)    :: EClock
+   type(seq_cdata)             ,intent(inout) :: cdata
+   type(mct_aVect)             ,intent(inout) :: x2d        
+   type(mct_aVect)             ,intent(inout) :: d2x        
+
+!EOP
+
+   integer(IN)                           :: shrlogunit, shrloglev  
 
    !--- formats ---
    character(*), parameter :: F00   = "('(glc_final_mct) ',8a)"

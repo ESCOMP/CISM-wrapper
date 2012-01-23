@@ -21,7 +21,7 @@
    use glimmer_global,      only: fname_length
    use glc_constants
    use glc_kinds_mod
-   use esmf_mod,            only: ESMF_Clock
+   use esmf,            only: ESMF_Clock
    use seq_timemgr_mod,     only: seq_timemgr_EClockGetData
    use shr_sys_mod
    use shr_kind_mod,        only: CL=>SHR_KIND_CL, IN=>SHR_KIND_IN
