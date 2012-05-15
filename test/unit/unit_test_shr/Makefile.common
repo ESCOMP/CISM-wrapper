@@ -87,7 +87,7 @@ OBJS      := $(addsuffix .o, $(basename $(SOURCES)))
 CURDIR := $(shell pwd)
 
 # Set path to mkDepends script
-mkDepends := ../../../../../../scripts/ccsm_utils/Build/mkDepends
+mkDepends := ../../../../../../scripts/ccsm_utils/Machines/mkDepends
 
 # WJS (12-7-11): TODO: I think this Depends file should really be
 # remade any time a source file changes, since the dependencies

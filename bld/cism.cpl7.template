@@ -1,17 +1,36 @@
 #! /bin/csh -f
-#-------------------------------------------------------------------------------
-# Template to build scripts to create ASCII input files for CISM, and to
-# compile CISM code into a library that can be used by CCSM.
-#-------------------------------------------------------------------------------
 
 if !(-d $CASEBUILD) mkdir $CASEBUILD
-if !(-d $CASEBUILD/cismIOconf) mkdir $CASEBUILD/cismIOconf
+
+if ($NINST_GLC > 1) then
+   set inst_counter = 1
+   set inst_string = ""
+   while ($inst_counter <= $NINST_GLC)
+      set inst_string = $inst_counter
+      if ($inst_counter <= 999) set inst_string = "0$inst_string"
+      if ($inst_counter <=  99) set inst_string = "0$inst_string"
+      if ($inst_counter <=   9) set inst_string = "0$inst_string"
+      set inst_string = _${inst_string}
+      if ( ! -f "$CASEROOT/user_nl_cism${inst_string}" ) then
+         cp $CODEROOT/glc/cism/bld/user_nl_cism $CASEROOT/user_nl_cism${inst_string}
+      endif
+      @ inst_counter = $inst_counter + 1
+   end 
+else
+   if ( ! -f "$CASEROOT/user_nl_cism" ) then
+      cp $CODEROOT/glc/cism/bld/user_nl_cism $CASEROOT/user_nl_cism
+   endif
+endif
+
+cp $CODEROOT/glc/cism/bld/cism.buildnml.csh $CASEROOT/Buildconf/.
+cp $CODEROOT/glc/cism/bld/cism.buildexe.csh $CASEROOT/Buildconf/.
 
 #-------------------------------------------------------------------------------
 # stage variable definition files and related scripts and templates to
 # $CASEBUILD/cismIOconf, so users can modify easily modify IO fields
 #-------------------------------------------------------------------------------
 
+if !(-d $CASEBUILD/cismIOconf) mkdir $CASEBUILD/cismIOconf
 cp $CODEROOT/glc/cism/bld/cismIO/README.cismIO        $CASEBUILD/cismIOconf/.
 cp $CODEROOT/glc/cism/bld/cismIO/generate_ncvars.py   $CASEBUILD/cismIOconf/.
 cp $CODEROOT/glc/cism/bld/cismIO/ncdf_template.F90.in $CASEBUILD/cismIOconf/.
@@ -21,7 +40,8 @@ cp $CODEROOT/glc/cism/bld/cismIO/*_vars.def           $CASEBUILD/cismIOconf/.
 # create cism.buildIO.csh script to allow users to modify the IO fields
 #-------------------------------------------------------------------------------
 
-cat >! $CASEBUILD/cismIOconf/cism.buildIO.csh << EOF
+set buildIO_script = $CASEBUILD/cismIOconf/cism.buildIO.csh
+cat >! $buildIO_script <<EOF
 #! /bin/csh -f
 
 # -----------------------------------------------------------------------------
@@ -32,219 +52,11 @@ cat >! $CASEBUILD/cismIOconf/cism.buildIO.csh << EOF
 #         Use this script ONLY in $CASEROOT.
 # -----------------------------------------------------------------------------
 
-# -----------------------------------------------------------------------------
-# generate new glimmer _io.F90 files
-# -----------------------------------------------------------------------------
-
 set sourcemod_dir = $CASEROOT/SourceMods/src.cism
-set cism_confIOdir  = $CASEBUILD/cismIOconf; cd \$cism_confIOdir
+set cism_confIOdir  = $CASEBUILD/cismIOconf
 
-set prefix_files = (glide_lithot  glide  glint_mbal glint)
-foreach file (\$prefix_files)
-  set file_varsdef = \${file}_vars.def
-  set file_ioF90   = \${file}_io.F90
-  if (-f \${file_varsdef}) then
-# ---------------------------------------------------------------------------
-#  create new _io.F90 file using the glimmer python script
-# ---------------------------------------------------------------------------
-    \$PYTHON generate_ncvars.py \$file_varsdef ncdf_template.F90.in
-
-    if (-f \${file_ioF90}) then
-# ---------------------------------------------------------------------------
-#  compare new _io.F90 file with current version in the objdir (if it exists)
-#  if different, copy the new one to the objdir
-# ---------------------------------------------------------------------------
-      cp \${file_ioF90} \${sourcemod_dir}/\${file_ioF90}
-#jw      rm -f \${file_ioF90}
-    else
-# ---------------------------------------------------------------------------
-#  if new _io.F90 file not created for some reason, exit
-# ---------------------------------------------------------------------------
-      echo ERROR: glimmer python script failed to produce new file: \${file_ioF90}
-      exit 2
-    endif
-
-  else
-    echo ERROR: missing glimmer variable definition file: \${file_varsdef}
-    exit 2
-  endif
-end
 EOF
 
-chmod u+x $CASEBUILD/cismIOconf/cism.buildIO.csh
+cat $CODEROOT/glc/cism/bld/cismIO/cism.buildIO.template.csh >> $buildIO_script
 
-#-------------------------------------------------------------------------------
-# setup
-#-------------------------------------------------------------------------------
-
-set NX = $LND_NX
-set NY = $LND_NY
-
-set IHOUR0   = 0
-if ($RUN_TYPE == startup || $RUN_TYPE == hybrid) then
-   set IYEAR0   = `echo $RUN_STARTDATE | cut -c1-4  | sed -e 's/^0*//'`
-   set IMONTH0  = `echo $RUN_STARTDATE | cut -c6-7  | sed -e 's/^0*//'`
-   set IDAY0    = `echo $RUN_STARTDATE | cut -c9-10 | sed -e 's/^0*//'`
-else if ($RUN_TYPE == branch) then
-   set IYEAR0   = `echo $RUN_REFDATE | cut -c1-4  | sed -e 's/^0*//'`
-   set IMONTH0  = `echo $RUN_REFDATE | cut -c6-7  | sed -e 's/^0*//'`
-   set IDAY0    = `echo $RUN_REFDATE | cut -c9-10 | sed -e 's/^0*//'`
-endif
-
-# ---------------------------------------------------------------------------
-#  Figure out the gridfile
-# ---------------------------------------------------------------------------
-
-set gridfile  = UNSET
-if ( $ATM_GRID =~ 48x96   )then
-   set gridfile  = \$DIN_LOC_ROOT/glc/cism/fracdata/fracdata_48x96_gx3v7_c090915.glc.nc
-endif
-if ( $ATM_GRID =~ 0.9x1.25)then
-   set gridfile  = \$DIN_LOC_ROOT/glc/cism/fracdata/fracdata_0.9x1.25_gx1v6_c090317.glc.nc
-endif
-if ( $ATM_GRID =~ 1.9x2.5 )then
-   set gridfile  = \$DIN_LOC_ROOT/glc/cism/fracdata/fracdata_1.9x2.5_gx1v6_c090206.glc.nc
-endif
-
-if ( $gridfile  == "UNSET" )then
-   echo "ERROR: unsupported grid = $ATM_GRID"
-   exit -1
-endif
-
-# ---------------------------------------------------------------------------
-#  Figure out the cisminputfile
-# ---------------------------------------------------------------------------
-
-if ($RUN_TYPE == startup) then
-  if ( $GLC_GRID =~ gland20 || $GLC_GRID =~ gland10 || $GLC_GRID =~ gland5) then
-     set cisminputfile = \$DIN_LOC_ROOT/glc/cism/$GLC_GRID.input.nc
-  else if ( $GLC_GRID == gland5UM) then
-     set cisminputfile = \$DIN_LOC_ROOT/glc/cism/IceSheetData_UMontana/PresentDayGreenland/Greenland_5km_v1.1_SacksRev_c110629.nc
-  endif
-else if ($RUN_TYPE == branch || $RUN_TYPE == hybrid) then
-  set cisminputfile = ${RUN_REFCASE}.cism.r.${RUN_REFDATE}-00000.nc
-endif
-
-# ---------------------------------------------------------------------------
-#  Figure out the paramfile
-# ---------------------------------------------------------------------------
-
-set paramfile = UNSET
-if ( $GLC_GRID =~ gland20 || $GLC_GRID =~ gland10 || $GLC_GRID =~ gland5 || $GLC_GRID =~ gland5UM) then
-   set paramfile = $CODEROOT/glc/cism/input_templates/ice.config.$GLC_GRID
-endif
-
-if ( $paramfile == "UNSET" ) then
-   echo "ERROR: unsupported ice grid = $GLC_GRID"
-   exit -1
-endif
-
-# ---------------------------------------------------------------------------
-#  Create list of input files
-# ---------------------------------------------------------------------------
-
-cat >! $CASEBUILD/cism.input_data_list << EOF
-gridfile       = $gridfile
-cismgrid_input = $cisminputfile
-EOF
-
-# ---------------------------------------------------------------------------
-#  Create namelist build script
-# ---------------------------------------------------------------------------
-cat >! $CASEBUILD/cism.buildnml.csh << EOF1
-#! /bin/csh -f 
-# ---------------------------------------------------------------------------
-#  Create input text files to run CISM
-# ---------------------------------------------------------------------------
-
-set exedir = \$RUNDIR; cd \$exedir
-set cismgrid_input = $cisminputfile
-set cism_history = \$CASE.cism.h
-
-if (\$RUN_TYPE != 'branch' && \$RUN_TYPE != 'hybrid') then
-cp \$cismgrid_input \$exedir/$GLC_GRID.input.nc
-chmod 644 \$exedir/$GLC_GRID.input.nc
-endif
-
-set hotstart = 0
-if (\$RUN_TYPE == 'branch' || \$RUN_TYPE == 'hybrid') then
-set hotstart = 1
-endif
-
-# Input namelists
-cat >! cism_in <<EOF
-&cism_params
-  paramfile   = 'cism.config'
-  cism_debug  = .false.
-  cesm_history_vars = ' acab artm thk usurf uvel vvel uflx vflx temp '
-/
-&grid_nml
-  horiz_grid_opt  = 'file'
-  horiz_grid_file = '$gridfile'
-  mask_varname    = 'LANDMASK'
-  frac_varname    = 'LANDFRAC'
-/
-&time_manager_nml
-  runid             = '\$CASE'
-  dt_option         = 'steps_per_day'
-  dt_count          = 1
-  allow_leapyear    = .false.
-  iyear0            = $IYEAR0
-  imonth0           = $IMONTH0
-  iday0             = $IDAY0
-  ihour0            = $IHOUR0
-  iminute0          = 0
-  isecond0          = 0
-  date_separator    = '-'
-  stop_option       = 'never'
-/
-EOF
-
-# Input configuration file
-cat >! cism.config <<EOF
-EOF1
-# Bring a copy of the ice.config file that the user can edit for their case
-# name: $GLC_GRID.input.nc
-cat $paramfile >> $CASEBUILD/cism.buildnml.csh
-cat            >> $CASEBUILD/cism.buildnml.csh << EOF1
-EOF
-if (\$CONTINUE_RUN == 'FALSE') then
-cat >> cism.config <<EOF
-[CF input]
-name: $cisminputfile
-EOF
-endif
-EOF1
-
-# ---------------------------------------------------------------------------
-#  Create script to build CISM model
-# ---------------------------------------------------------------------------
-
-cat >! $CASEBUILD/cism.buildexe.csh << EOF2
-#! /bin/csh -f 
-
-set objdir        = \$OBJROOT/glc/obj
-set sourcemod_dir = \$CASEROOT/SourceMods/src.cism
-
-# ---------------------------------------------------------------------------
-#  Create script to build CISM model
-# ---------------------------------------------------------------------------
-
-cd \$objdir
-
-#------------------------------------------------------------------------------
-# Build the library
-#------------------------------------------------------------------------------
-cat >! Filepath << EOF
-\$CASEROOT/SourceMods/src.cism
-\$CODEROOT/glc/cism/drivers/cpl_share
-\$CODEROOT/glc/cism/drivers/cpl_mct
-\$CODEROOT/glc/cism/source_glc
-\$CODEROOT/glc/cism/source_glimmer-cism
-\$CODEROOT/glc/cism/source_slap
-\$CODEROOT/glc/cism/mpi
-EOF
-
-gmake complib -j \$GMAKE_J MODEL=cism COMPLIB=\$LIBROOT/libglc.a -f \$CASETOOLS/Makefile MACFILE=\$CASEROOT/Macros.\$MACH || exit 2
-
-EOF2
+chmod u+x $buildIO_script

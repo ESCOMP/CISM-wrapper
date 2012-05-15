@@ -3,6 +3,187 @@ This file describes what main-trunk tags were created and why
 ================================================================================
 
 ================================================================================
+Originator: mvertens, sacks
+Date: May 15, 2012
+Model: cism
+Version: cism1_120512
+One-line summary: New build-namelist functionality
+
+Purpose of changes:
+
+- New build-namelist functionality to make cism consistent with other CESM
+  components. Makes cism.buildnml.csh just a thin wrapper to
+  build-namelist. Namelist defaults now set in an xml file. 
+
+- Set dt_option and dt_count automatically to match the coupling interval.
+
+- Multi-instance capability in the build scripts (create multiple cism_in &
+  cism.config files).
+
+
+Changes answers relative to previous tag: No
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/):
+
+List all modified files, and describe the changes:
+
+*** Major rework of build
+D       bld/configure
+D       bld/config_definition.xsl
+D       bld/namelist_defaults_overall.xml
+D       bld/namelist_definition_overall.xml
+D       bld/namelist_defaults.xsl
+D       bld/namelist_definition.xsl
+D       bld/config_definition.xml
+D       bld/namelist_defaults_cism.xml
+D       bld/namelist_definition_cism.xml
+A       bld/user_nl_cism
+A       bld/cismIO/cism.buildIO.template.csh
+A       bld/README.build-namelist
+A       bld/cism.buildexe.csh
+M       bld/build-namelist
+M       bld/cism.cpl7.template
+A       bld/cism.buildnml.csh
+M       bld/README
+A       bld/namelist_files/namelist_defaults_cism.xml
+A       bld/namelist_files/namelist_definition_cism.xml
+A       bld/namelist_files
+
+*** Remove now-unnecessary input templates (replaced by
+*** namelist_files/namelist_defaults_cism.xml)
+D       input_templates
+
+*** Add unit test for 2-year time step
+M       test/unit/time_management/restart_testlist
+A       test/unit/time_management/inputs/twoyear/time_management_test_in
+A       test/unit/time_management/inputs/twoyear/cism_in
+A       test/unit/time_management/inputs/twoyear
+M       test/unit/time_management/inputs/README
+A       test/unit/time_management/inputs/twoyear.restart1/time_management_test_in
+A       test/unit/time_management/inputs/twoyear.restart1/cism_in
+A       test/unit/time_management/inputs/twoyear.restart1
+A       test/unit/time_management/inputs/twoyear.restart2/time_management_test_in
+A       test/unit/time_management/inputs/twoyear.restart2/cism_in
+A       test/unit/time_management/inputs/twoyear.restart2
+M       test/unit/time_management/testlist
+
+*** Fix path
+M       test/unit/unit_test_shr/Makefile.common
+
+*** Remove redundant README file
+D       README
+
+*** Remove "Known bugs" section
+M       ChangeLog_template
+
+
+Summary of testing:
+
+CESM Tests (implemented change off of cesm1_1_beta13, compared with baseline
+cesm1_1_beta13):
+
+- bluefire.glc.auxtest: All tests passed except:
+
+CFAIL ERS.T31_g37.IGRCP85CN.bluefire_ibm.C.215553 
+FAIL  SMS.T31_T31.FG20TRCN.bluefire_ibm 
+BFAIL SMS.T31_T31.FG20TRCN.bluefire_ibm.compare_hist.cesm1_1_beta13 
+FAIL  SMS.T31_g37.TG.bluefire_ibm 
+BFAIL SMS.T31_g37.TG.bluefire_ibm.compare_hist.cesm1_1_beta13 
+
+These were all expected failures (also failed in cesm1_1_beta13)
+
+- ERS.f19_g16.IGCN.bluefire_ibm: PASS
+  - ran this because of failure in ERS.T31_g37.IGRCP85CN.bluefire_ibm
+
+
+Main testing of new build: Unless otherwise noted, the following tests were done
+with a 10-year TG compset, f09_g16, GLC_GRID=gland20. I compared (1) cism_in
+input file, (2) cism.config input file, (3) year 10 cism history output (using
+cprnc). The comparison cases were generated from cesm1_1_beta13.
+
+- startup run
+  - Also made sure that list of files in run directory is the same as before
+
+- startup run at f19_g16
+
+- startup run with gland5UM
+
+- startup run with gland5
+  - just checked cism_in and cism.config -- didn't actually do the run
+
+- startup run with gland10
+  - just checked cism_in and cism.config -- didn't actually do the run
+
+- hybrid run; 1 year (continuing the above startup run)
+
+- branch run; 1 year (continuing the above startup run)
+
+- continue run; 1 year -- continuing the above startup run
+
+- continue run; 1 year -- continuing the above branch run
+
+- IG: 1-year test at f19_g16, continuing an older run that had run for
+  10 years (hybrid)
+  - main point of this was to make sure 1-day coupling still works right
+
+
+
+Testing automatic setting of dt_option and dt_count, and making sure that it
+works to use values more general than what we have been using before:
+
+- New time manager unit tests, to make sure it works to have fractional dt_count
+  with steps_per_year (as we could get with NCPL_BASE_PERIOD='decade'):
+  - twoyear
+    - looked through output manually (briefly)
+    - compared with output from using dt_option='seconds', dt_count=63072000
+  - restart_test twoyear
+
+- Checked dt_option & dt_count in cism_in for the following:
+  - out-of-the-box TG
+  - out-of-the-box IG
+  - various values of NCPL_BASE_PERIOD & GLC_NCPL
+  - values overridden by user_nl_cism
+
+- TG run with NCPL_BASE_PERIOD='year', GLC_NCPL=2 (i.e., two time steps per
+  year): confirmed that there is one cism time step per coupling interval
+
+- TG run with NCPL_BASE_PERIOD='decade', GLC_NCPL=5 (i.e., 2-year time step),
+  with mass balance time step = 2 years (requires source mod in glint_mbal.F90),
+  ice dynamics time step = 2 years (dt=2.): confirmed that there is one cism
+  time step per coupling interval
+
+- Compared log files in two 1-year TG runs, which have the same time step but
+  specified in different ways: one with NCPL_BASE_PERIOD=day, GLC_NCPL=48
+  (results in dt_option=steps_per_day, dt_count=48); the other with
+  NCPL_BASE_PERIOD=hour, GLC_NCPL=2 (results in dt_option=seconds,
+  dt_count=1800): glc log files essentially identical (with verbose=.true.)  
+  - Note that these runs both died just before the end, with "Unexpected calling
+    of GLINT at time 8759", but I don't think that's a problem that I caused
+    (but it meant I could not compare hist files)
+
+
+Other tests:
+
+- modifications via user_nl_cism: just checked the generated cism_in and
+  cism.config files to make sure the modifications are picked up
+  - changed a cism_in variable: cism_debug
+  - changed a cism.config variable: basal_tract
+
+- multi-instance test: 4 instances, with no modifications in user_nl_cism_000*:
+  just checked the generated cism_in and cism.config files: paramfile set
+  correctly in cism_in_000*; everything else matches a single-instance case
+
+- multi-instance test: 4 instances, with modifications to ihour0 and evolution
+  in user_nl_cism_0001 & 0003 (but no changes in 0002 or 0004): just checked the
+  generated cism_in and cism.config files
+
+- cism.buildIO.csh:
+  - confirmed that the generated script is essentially the same as before
+  - added a variable in glide_vars.def, confirmed that all F90 files
+    created by cism.buildIO.csh are identical to those from an old
+    case with the same change in glide_vars.def
+
+================================================================================
 Originator: sacks
 Date: March 22, 2012
 Model: cism

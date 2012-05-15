@@ -102,6 +102,15 @@ portion of run
 
 - 511day_leap: Test with 511-day time step, with leap years
 
+- twoyear: Test 2-year time step, specified as 0.5 steps_per_year
+  (purpose is to test fractional steps_per_year)
+
+- twoyear.restart1: Test 2-year time step with restart: first portion
+  of run
+
+- twoyear.restart2: Test 2-year time step with restart: second portion
+  of run
+
 - threeyear: Test 3-year time step
 
 - threeyear_leap: Test 1095-day time step, with leap years
