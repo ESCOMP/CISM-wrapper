@@ -3,6 +3,54 @@ This file describes what main-trunk tags were created and why
 ================================================================================
 
 ================================================================================
+Originator: mvertens
+Date: May 21, 2012
+Model: cism
+Version: cism1_120521
+One-line summary: Support removal of env_conf.xml
+
+Purpose of changes:
+
+Changes to build-namelist to support removal of env_conf.xml, and related
+cleanup
+
+
+Changes answers relative to previous tag: No
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/):
+
+List all modified files, and describe the changes:
+
+M       bld/build-namelist
+
+
+Summary of testing:
+
+(All tests except the ERI IGCN test were conducted by Bill S)
+
+Main testing: Unless otherwise noted, the following tests were done with a
+10-year TG compset, f09_g16, GLC_GRID=gland20. I compared (1) cism_in input
+file, (2) cism.config input file, (3) year 10 cism history output (using
+cprnc). The comparison cases were generated from cesm1_1_beta14.
+
+- startup run
+
+- startup run at f19_g16
+
+- startup run with gland5UM
+
+- branch run; 1 year (continuing the above startup run)
+
+
+Other tests:
+
+- ERI.T31_g37.IGCN.bluefire_ibm
+  - comparison with cesm1_1_alpha14a
+
+- Checked dt_option & dt_count in cism in for the following:
+  - NCPL_BASE_PERIOD=decade, GLC_NCPL=5 (dt_option=steps_per_year, dt_count=0.5)
+
+================================================================================
 Originator: mvertens, sacks
 Date: May 15, 2012
 Model: cism

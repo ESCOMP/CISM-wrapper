@@ -315,8 +315,9 @@ if (defined $opts{'infile'}) {
 ####################################
 
 my %xmlvars = ();
-foreach my $file qw(env_case.xml env_conf.xml env_run.xml env_build.xml) {
-    my $xml  = XML::Lite->new( "${CASEROOT}/$file" );
+my @files = <${CASEROOT}/*xml>;
+foreach my $file (@files) {
+    my $xml = XML::Lite->new($file);
     my @e = $xml->elements_by_name('entry');
     while ( my $e = shift @e ) {
 	my %a = $e->get_attributes();
@@ -829,18 +830,9 @@ sub expand_env_xml {
 
     my $value = shift;
 
-    my $DIN_LOC_ROOT = $xmlvars{'DIN_LOC_ROOT_CSMDATA'}; 
-
-    if ( $value =~ m/\$/ ) {
-	$value =~ s/\$//g;
-	foreach my $attr (keys %xmlvars) {
-	    if ($xmlvars{$attr} =~ m/^\$DIN_LOC_ROOT_CSMDATA/) {
-		$xmlvars{$attr} =~ s/^\$DIN_LOC_ROOT_CSMDATA/${DIN_LOC_ROOT}/;
-	    }
-	    if ($value =~ /.*($attr).*/) {
-		$value =~ s/${1}/$xmlvars{$attr}/g;
-	    }
-	}
+    if ($value =~ /\$([\w_]+)(.*)$/) {
+	my $subst = $xmlvars{$1};
+	$value =~ s/\$${1}/$subst/g;
     }
     return $value; 
 }	 
