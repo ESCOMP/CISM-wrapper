@@ -1,7 +1,5 @@
 #! /bin/csh -f
 
-if !(-d $CASEBUILD) mkdir $CASEBUILD
-
 if ($NINST_GLC > 1) then
    set inst_counter = 1
    set inst_string = ""
@@ -21,9 +19,6 @@ else
       cp $CODEROOT/glc/cism/bld/user_nl_cism $CASEROOT/user_nl_cism
    endif
 endif
-
-cp $CODEROOT/glc/cism/bld/cism.buildnml.csh $CASEROOT/Buildconf/.
-cp $CODEROOT/glc/cism/bld/cism.buildexe.csh $CASEROOT/Buildconf/.
 
 #-------------------------------------------------------------------------------
 # stage variable definition files and related scripts and templates to
