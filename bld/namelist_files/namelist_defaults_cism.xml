@@ -129,10 +129,7 @@ attributes to express the dependency.
 
 <stress_calc>0</stress_calc>
 
-<evolution glc_grid="gland10" >0</evolution>
-<evolution glc_grid="gland20" >0</evolution>
-<evolution glc_grid="gland5"  >0</evolution>
-<evolution glc_grid="gland5UM">-1</evolution>
+<evolution>0</evolution>
 
 <vertical_integration>0</vertical_integration>
 
@@ -144,16 +141,25 @@ attributes to express the dependency.
 <!-- group: cism.config: time                                       -->
 <!-- =============================================================  -->
 
-<dt>1.</dt>
+<dt glc_grid="gland10" >1.</dt>
+<dt glc_grid="gland20" >1.</dt>
+<dt glc_grid="gland5"  >1.</dt>
+<dt glc_grid="gland5UM">0.05</dt>
 
 <ntem glc_grid="gland10" >1.</ntem>
 <ntem glc_grid="gland20" >1.</ntem>
 <ntem glc_grid="gland5"  >1.</ntem>
-<ntem glc_grid="gland5UM">1000000.</ntem>
+<ntem glc_grid="gland5UM">0.1</ntem>
 
-<nvel>1.</nvel>
+<nvel glc_grid="gland10" >1.</nvel>
+<nvel glc_grid="gland20" >1.</nvel>
+<nvel glc_grid="gland5"  >1.</nvel>
+<nvel glc_grid="gland5UM">0.1</nvel>
 
-<niso>1.</niso>
+<niso glc_grid="gland10" >1.</niso>
+<niso glc_grid="gland20" >1.</niso>
+<niso glc_grid="gland5"  >1.</niso>
+<niso glc_grid="gland5UM">0.1</niso>
 
 <ndiag>1</ndiag>
 
