@@ -74,12 +74,6 @@
    !-----------------------------------------------------------------
    !  common formats for formatted output
    !-----------------------------------------------------------------
- 
-   character (7), parameter, public :: &
-      nml_filename = 'cism_in'  ! namelist input file name
-
-   character (12), parameter, public :: &
-      ptr_filename = 'rpointer.glc'  ! restart pointer file name
 
    integer (i4), public :: &
       nml_in,            &! reserved unit for namelist input

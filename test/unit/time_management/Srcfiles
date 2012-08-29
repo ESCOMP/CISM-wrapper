@@ -5,6 +5,7 @@ glc_time_management.F90
 glc_communicate.F90
 glc_kinds_mod.F90
 glc_constants.F90
+glc_files.F90
 glc_exit_mod.F90
 glimmer_paramets.F90
 glimmer_global.F90

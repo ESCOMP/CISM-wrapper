@@ -26,8 +26,9 @@
                                   iyear,  imonth,  iday,  elapsed_days,   &
                                   ihour,  iminute, isecond, nsteps_total, &
                                   ymd2eday, eday2ymd, runtype
-   use glc_constants, only: nml_in, nml_filename, stdout, glc_nec
+   use glc_constants, only: nml_in, stdout, glc_nec
    use glc_io,        only: glc_io_read_restart_time
+   use glc_files,     only: nml_filename
    use glc_exit_mod
    use shr_kind_mod,  only: CL=>SHR_KIND_CL
    use shr_sys_mod, only: shr_sys_flush

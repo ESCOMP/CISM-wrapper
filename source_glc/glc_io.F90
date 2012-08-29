@@ -34,8 +34,7 @@
 
 ! !PUBLIC MEMBER FUNCTIONS:
 
-   public :: glc_io_create_suffix_cesm, &
-             glc_io_read_restart_time,  &
+   public :: glc_io_read_restart_time,  &
              glc_io_write_history,      &
              glc_io_write_restart
 
@@ -59,53 +58,12 @@
 
 !***********************************************************************
 !BOP
-! !IROUTINE: glc_io_create_suffix_cesm
-! !INTERFACE:
-
-   subroutine glc_io_create_suffix_cesm(model)
-
-    use glide_types
-    implicit none
-    type(glide_global_type), intent(inout) :: model
-
-    ! local variables
-    type(glimmer_nc_output), pointer :: oc
-
-    character (char_len) :: &
-      char_temp,            &! temp character space
-      cesm_date_string,     &
-      file_suffix
-!-----------------------------------------------------------------------
-
-
-!-----------------------------------------------------------------------
-!   clear character strings
-!-----------------------------------------------------------------------
-
-    file_suffix = char_blank
-    char_temp   = char_blank
-
-    char_temp   = 'ymds'
-
-    call cesm_date_stamp (cesm_date_string, char_temp)
-
-    file_suffix = trim(cesm_date_string)//'.nc'
-
-    oc=>model%funits%out_first
-    do
-       oc%nc%filename=trim(oc%nc%filename)//'.'//trim(file_suffix)
-       if (.not.associated(oc%next)) exit
-       oc => oc%next
-    end do
-
-  end subroutine glc_io_create_suffix_cesm
-
-!***********************************************************************
-!BOP
 ! !IROUTINE: glc_io_read_restart_time
 ! !INTERFACE:
 
    subroutine glc_io_read_restart_time(nhour_glint, filename)
+
+    use glc_files, only : ptr_filename
 
     implicit none
     integer(IN),             intent(inout) :: nhour_glint
@@ -261,6 +219,7 @@
 
    subroutine glc_io_write_restart(instance, EClock)
 
+    use glc_files, only : ptr_filename
     use glint_type
     use glide_io
     use glint_io
@@ -366,8 +325,8 @@
 !
 ! !DESCRIPTION: Create a filename from a filename specifier. Interpret filename specifier
 ! string with:
-! %c for case,
-! %t for optional number argument sent into function
+! %c for case
+! %i for instance suffix
 ! %y for year
 ! %m for month
 ! %d for day
@@ -378,6 +337,7 @@
 !
 ! !USES:
     use glc_time_management, only: runid
+    use glc_ensemble       , only: get_inst_suffix
 !
 ! !INPUT/OUTPUT PARAMETERS:
   integer,      intent(in)  :: yr_spec         ! Simulation year
@@ -403,9 +363,9 @@
 
   filename_spec = ' '
   if (file_type.eq.'history') then
-     filename_spec = '%c.cism.h.%y-%m-%d-%s'
+     filename_spec = '%c.cism%i.h.%y-%m-%d-%s'
   else if (file_type.eq.'restart') then
-     filename_spec = '%c.cism.r.%y-%m-%d-%s'
+     filename_spec = '%c.cism%i.r.%y-%m-%d-%s'
   else
      call shr_sys_abort ('glc_filename: file_type specifier is invalid')
   endif
@@ -437,6 +397,8 @@
         select case( filename_spec(i:i) )
         case( 'c' )   ! runid
            string = trim(runid)
+        case( 'i' )   ! instance suffix
+           call get_inst_suffix(string)
         case( 'y' )   ! year
            if ( year > 99999   ) then
               format = '(i6.6)'

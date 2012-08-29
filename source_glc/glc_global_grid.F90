@@ -81,6 +81,9 @@
 ! !DESCRIPTION:
 !  Initialize grid quantities
 !
+! !USES:
+   use glc_files, only : nml_filename
+!
 ! !REVISION HISTORY:
 !  same as module
 

@@ -360,6 +360,9 @@
 !  and sets time step.  Remaining time manager variables are 
 !  initialized after restart files are read.
 !
+! !USES:
+   use glc_files, only : nml_filename
+!
 ! !REVISION HISTORY:
 !  same as module
 

@@ -4,6 +4,150 @@ This file describes what main-trunk tags were created and why
 
 ================================================================================
 Originator: sacks
+Date: Aug 29, 2012
+Model: cism
+Version: cism1_120829
+One-line summary: enable ensemble capabilities
+
+Purpose of changes:
+
+Enable ensemble capabilities for cism. These were already implemented
+in drv & scripts, but required some changes in the cism code.
+
+Also, change flow_factor to real rather than integer.
+
+Changes answers relative to previous tag: No
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/):
+
+List all modified files, and describe the changes:
+
+*** New modules to handle variables that differ between ensemble members
+A       source_glc/glc_ensemble.F90
+A       source_glc/glc_files.F90
+A       test/unit/unit_test_replacements/glc_files.F90
+        - simplified version needed because the time management unit test
+          doesn't know anything about ensemble number
+
+*** Add ensemble capability
+M       drivers/cpl_mct/glc_comp_mct.F90
+M       source_glc/glc_io.F90
+        - Also deleted unused glc_io_create_suffix_cesm, because I think it
+          would have been broken with ensemble capabilities
+M       source_glc/glc_constants.F90
+        - Move file names that are no longer constant
+
+*** Change use statements to reflect movement of some file name variables
+M       source_glc/glc_InitMod.F90
+M       source_glc/glc_global_grid.F90
+M       source_glc/glc_time_management.F90
+
+*** Add use of glc_files.F90
+M       test/unit/time_management/Srcfiles
+
+*** Change flow_factor to real rather than integer
+M       bld/namelist_files/namelist_definition_cism.xml
+
+*** Updated changeLog template to give more testing details
+M       ChangeLog_template
+
+Summary of testing:
+
+- bluefire.glc.auxtest: main test results: 
+
+All PASS except the following (other than throughput tests, these are all expected failures):
+
+FAIL  ERS20y.f09_g16.TG1850.bluefire_ibm.tputcomp.cesm1_1_alpha17c 
+COMMENT   tput_decr = 1694.229 tput_percent_decr = 44.5
+BFAIL ERS20y_N2_P2.f09_g16.TGG10.bluefire_ibm.compare_hist.cesm1_1_alpha17c 
+BFAIL NCK_P2.f09_g16.TG.bluefire_ibm.compare_hist.cesm1_1_alpha17c 
+FAIL  SMS_PL.T31_g37.IGLONG.bluefire_ibm.tputcomp.cesm1_1_alpha17c 
+COMMENT   tput_decr = 3.6440000 tput_percent_decr = 2.08
+FAIL  SMS.f19_f19.FG20TRCN.bluefire_ibm.tputcomp.cesm1_1_alpha17c 
+COMMENT   tput_decr = 1.627 tput_percent_decr = 13.5
+
+(Note: test list was that in scripts4_120828, plus
+ERS20y.f09_g16.TGG10.bluefire_ibm [which was included in the baseline test
+suite, but has now been replaced by a _N2 version of this test])
+
+- bluefire.glc.auxtest: results of component_gen_comp -model cism:
+
+All PASS except the following (these are expected failures):
+
+BFAIL ERS20y_N2_P2.f09_g16.TGG10.bluefire_ibm.compare_hist.cesm1_1_alpha17c.cism (baseline directory does not exist)
+BFAIL NCK_P2.f09_g16.TG.bluefire_ibm.compare_hist.cesm1_1_alpha17c.cism (baseline directory does not exist)
+
+- Other tests:
+
+  - 4-instance TG run with differences in flow_factor: startup with one
+    continue run; compared instances #1 and #3 with analogous
+    single-instance runs (comparisons included cism hist, cism rest & cpl
+    hist files)
+
+  - as above, but 16 PE run with glc on PEs 4-7: compared with above run to
+    make sure results don't depend on PE location
+
+  - 4-instance IGLONG test with differences in the albice CLM parameter;
+    compared instance #3 with analogous single-instance run (comparisons
+    included clm hist, cism hist & cpl hist files)
+
+Externals used for testing:
+
+    scripts                         https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_120828
+
+    scripts/ccsm_utils/Machines     https://svn-ccsm-models.cgd.ucar.edu/Machines/trunk_tags/Machines_120826
+
+    mapping                                 https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_120816
+
+    models/drv                      https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq4_1_26
+
+    models/csm_share                https://svn-ccsm-models.cgd.ucar.edu/csm_share/trunk_tags/share3_120803
+
+    models/atm/cam                  https://svn-ccsm-models.cgd.ucar.edu/cam1/branch_tags/exe_cam5_1_33_tags/exe01_cam5_1_33/models/atm/cam
+    models/atm/wrf                  https://svn-ccsm-models.cgd.ucar.edu/wrf/trunk_tags/wrf32_ccsm120726
+
+    models/lnd/clm                  https://svn-ccsm-models.cgd.ucar.edu/clm2/trunk_tags/clm4_0_46/models/lnd/clm 
+
+    models/ice/cice                 https://svn-ccsm-models.cgd.ucar.edu/cice/trunk_tags/cice4_0_20120825
+
+    models/glc/cism                 https://svn-ccsm-models.cgd.ucar.edu/glc/branches/ensemble
+
+    models/ocn/pop2/                https://svn-ccsm-models.cgd.ucar.edu/pop2/trunk_tags/cesm_pop_2_1_20120824
+
+    models/atm/datm                 https://svn-ccsm-models.cgd.ucar.edu/datm7/trunk_tags/datm8_120626
+    models/lnd/dlnd                 https://svn-ccsm-models.cgd.ucar.edu/dlnd7/trunk_tags/dlnd8_120626
+    models/ice/dice                 https://svn-ccsm-models.cgd.ucar.edu/dice7/trunk_tags/dice8_120626
+    models/ocn/docn                 https://svn-ccsm-models.cgd.ucar.edu/docn7/trunk_tags/docn8_120626
+
+    models/atm/xatm                 https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_6_05/xatm
+    models/lnd/xlnd                 https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_6_05/xlnd
+    models/ice/xice                 https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_6_05/xice
+    models/ocn/xocn                 https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_6_05/xocn
+    models/glc/xglc                 https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_6_05/xglc
+    models/dead_share               https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_6_05/dead_share
+
+    models/atm/satm                 https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_3_05/satm
+    models/lnd/slnd                 https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_3_05/slnd
+    models/ice/sice                 https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_3_05/sice
+    models/ocn/socn                 https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_3_05/socn
+    models/glc/sglc                 https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_3_05/sglc
+
+    models/utils/timing             https://svn-ccsm-models.cgd.ucar.edu/timing/trunk_tags/timing_120731
+    models/utils/esmf_wrf_timemgr   https://svn-ccsm-models.cgd.ucar.edu/esmf_wrf_timemgr/trunk_tags/esmf_wrf_timemgr_120427
+
+    models/utils/mct                https://github.com/MCSclimate/MCT/tags/MCT_2.8.0
+
+    models/utils/pio                http://parallelio.googlecode.com/svn/trunk_tags/pio1_5_3/pio
+
+
+cism tag used for baseline comparisons: cism1_120823
+
+Any other externals that differed in baseline: 
+
+- scripts4_120727d: only diff is in bluefire.glc.auxtest list
+
+================================================================================
+Originator: sacks
 Date: Aug 23, 2012
 Model: cism
 Version: cism1_120823

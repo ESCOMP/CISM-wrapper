@@ -52,7 +52,6 @@ module glc_comp_mct
   !--- other ---
   integer(IN)   :: errorcode            ! glc error code
   
-  character(CS) :: myModelName = 'glc'   ! user defined model name
   integer(IN)   :: my_task               ! my task in mpi communicator mpicom 
   integer(IN)   :: master_task=0         ! task number of master task
 
@@ -74,6 +73,11 @@ CONTAINS
 
   subroutine glc_init_mct( EClock, cdata, x2g, g2x, NLFilename )
 
+! !USES:
+
+    use glc_ensemble, only : set_inst_vars, write_inst_vars, get_inst_name
+    use glc_files   , only : set_filenames, ionml_filename
+
 ! !INPUT/OUTPUT PARAMETERS:
 
     type(ESMF_Clock)         , intent(in)    :: EClock
@@ -94,6 +98,7 @@ CONTAINS
     type(seq_infodata_type), pointer :: infodata   ! Input init object
     integer(IN)              :: shrlogunit, shrloglev  
     character(CL)            :: starttype
+    character(CS)            :: myModelName
 
     !--- formats ---
     character(*), parameter :: F00   = "('(glc_init_mct) ',8a)"
@@ -122,6 +127,14 @@ CONTAINS
     call mpi_comm_rank(mpicom, my_task, ierr)
 
     !---------------------------------------------------------------------------
+    ! set variables that depend on ensemble index
+    !---------------------------------------------------------------------------
+
+    call set_inst_vars(COMPID)
+    call get_inst_name(myModelName)
+    call set_filenames()
+
+    !---------------------------------------------------------------------------
     ! use infodata to determine type of run
     !---------------------------------------------------------------------------
 
@@ -144,7 +157,7 @@ CONTAINS
     !--- open log file ---
     if (my_task == master_task) then
        stdout = shr_file_getUnit()
-       call shr_file_setIO('glc_modelio.nml',stdout)
+       call shr_file_setIO(ionml_filename,stdout)
     else
        stdout = 6
     endif
@@ -158,6 +171,8 @@ CONTAINS
     errorCode = glc_Success
     if (verbose .and. my_task == master_task) then
        write(stdout,F00) ' Starting'
+       write(stdout,*) subname, 'COMPID: ', COMPID
+       call write_inst_vars
        call shr_sys_flush(stdout)
     endif
     call init_communicate(mpicom)
@@ -372,6 +387,10 @@ end subroutine glc_run_mct
 !
 subroutine glc_final_mct( EClock, cdata, x2d, d2x)
 
+! !USES:
+
+    use glc_ensemble, only : get_inst_name
+
 ! !INPUT/OUTPUT PARAMETERS:
 
    type(ESMF_Clock)            ,intent(in)    :: EClock
@@ -381,7 +400,9 @@ subroutine glc_final_mct( EClock, cdata, x2d, d2x)
 
 !EOP
 
-   integer(IN)                           :: shrlogunit, shrloglev  
+   integer(IN)             :: shrlogunit, shrloglev  
+   character(CS)           :: myModelName
+
 
    !--- formats ---
    character(*), parameter :: F00   = "('(glc_final_mct) ',8a)"
@@ -397,6 +418,8 @@ subroutine glc_final_mct( EClock, cdata, x2d, d2x)
    call shr_file_getLogUnit (shrlogunit)
    call shr_file_getLogLevel(shrloglev)
    call shr_file_setLogUnit (stdout)
+
+   call get_inst_name(myModelName)
 
    if (my_task == master_task) then
       write(stdout,F91) 
