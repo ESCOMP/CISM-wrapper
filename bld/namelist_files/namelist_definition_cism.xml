@@ -474,7 +474,7 @@ group="cism_config_parameters" >
 
 <entry 
 id="basal_tract"
-type="integer(10)" 
+type="real(10)" 
 category="cism_config"
 group="cism_config_parameters" >
 </entry>
