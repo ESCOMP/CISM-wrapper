@@ -3,6 +3,151 @@ This file describes what main-trunk tags were created and why
 ================================================================================
 
 ================================================================================
+Originator: mvertens, tcraig
+Date: Sept 21, 2012
+Model: cism
+Version: cism1_120921
+One-line summary: add esmf interface
+
+Purpose of changes: Add esmf interface
+
+Changes answers relative to previous tag: No
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/):
+
+List all modified files, and describe the changes:
+
+M       bld/cism.buildexe.csh
+A       drivers/cpl_esmf/glc_comp_mct.F90
+A       drivers/cpl_esmf/glc_comp_esmf.F90
+
+Summary of testing:
+
+(testing performed by Bill Sacks)
+
+*** Full test suite NOT run: Since the changes were isolated to the
+*** esmf interface, the full test suite seemed unnecessary
+
+- bluefire.glc.auxtest: main test results: NOT DONE
+  
+- bluefire.glc.auxtest: results of component_gen_comp -model cism: NOT DONE
+
+- Other tests:
+
+PASS  CME10y.f09_g16.TG1850.bluefire_ibm 
+PASS  CME10y_N2_P2_D.f09_g16.TG1850.bluefire_ibm 
+PASS  CME10y_N2_P2.f09_g16.TG1850.bluefire_ibm 
+PASS  ERS20y_E.f09_g16.TG20TR.bluefire_ibm 
+PASS  ERS20y_E.f09_g16.TG20TR.bluefire_ibm.memleak
+PASS  CME5y_PL.T31_g37.IG.bluefire_ibm 
+PASS  SMS_D.f09_g16.BGRCP45CN.bluefire_ibm 
+PASS  SMS_D.f09_g16.BGRCP45CN.bluefire_ibm.memleak
+PASS  SMS_DE.f09_g16.BGRCP45CN.bluefire_ibm 
+PASS  SMS_DE.f09_g16.BGRCP45CN.bluefire_ibm.memleak
+PASS  NCK_E.T31_g37.BG1850CN.bluefire_ibm 
+
+Ran shortlist.glc.auxtest, with comparison to cesm1_1_alpha18a:
+
+PASS  SMS_D.f09_g16.TG.bluefire_ibm 
+PASS  SMS_D.f09_g16.TG.bluefire_ibm.memleak
+PASS  SMS_D.f09_g16.TG.bluefire_ibm.compare_hist.cesm1_1_alpha18a 
+PASS  SMS_D.f09_g16.TG.bluefire_ibm.memcomp.cesm1_1_alpha18a 
+FAIL  SMS_D.f09_g16.TG.bluefire_ibm.tputcomp.cesm1_1_alpha18a 
+COMMENT   tput_decr = 79.75 tput_percent_decr = 13.8
+PASS  ERS20y.f09_g16.TG1850.bluefire_ibm 
+PASS  ERS20y.f09_g16.TG1850.bluefire_ibm.memleak
+PASS  ERS20y.f09_g16.TG1850.bluefire_ibm.compare_hist.cesm1_1_alpha18a 
+PASS  ERS20y.f09_g16.TG1850.bluefire_ibm.memcomp.cesm1_1_alpha18a 
+PASS  ERS20y.f09_g16.TG1850.bluefire_ibm.tputcomp.cesm1_1_alpha18a PASS  SMS_D.T31_g37.IG.bluefire_ibm 
+PASS  SMS_D.T31_g37.IG.bluefire_ibm.memleak
+FAIL  SMS_D.T31_g37.IG.bluefire_ibm.compare_hist.cesm1_1_alpha18a 
+PASS  SMS_D.T31_g37.IG.bluefire_ibm.memcomp.cesm1_1_alpha18a 
+FAIL  SMS_D.T31_g37.IG.bluefire_ibm.tputcomp.cesm1_1_alpha18a 
+COMMENT   tput_decr = 2.949 tput_percent_decr = 12.1
+
+The failure in compare_hist with the IG case seems just due to runoff
+changes:
+
+[be1105en:/ptmp/sacks/tests/SMS_D.T31_g37.IG.bluefire_ibm.C.111836]$ grep RMS cprnc.out 
+ RMS r2x_Forr 1.3464E-06
+[be1105en:/ptmp/sacks/tests/SMS_D.T31_g37.IG.bluefire_ibm.C.111836]$ grep FILLDIFF cprnc.out 
+ FILLDIFF domr_lat
+ FILLDIFF domr_lon
+ FILLDIFF domr_are
+ FILLDIFF domr_are
+ FILLDIFF domr_mas
+ FILLDIFF domr_fra
+ FILLDIFF r2x_Forr
+ FILLDIFF r2x_Forr
+
+So I'm not worried about this
+
+Related component_gen_comp:
+
+PASS  ERS20y.f09_g16.TG1850.bluefire_ibm.compare_hist.cesm1_1_alpha18a.cism 
+PASS  SMS_D.T31_g37.IG.bluefire_ibm.compare_hist.cesm1_1_alpha18a.cism 
+PASS  SMS_D.f09_g16.TG.bluefire_ibm.compare_hist.cesm1_1_alpha18a.cism 
+
+
+Externals used for testing:
+
+    scripts                         https://svn-ccsm-models.cgd.ucar.edu/scripts/branch_tags/rtmcomp_tags/rtmcomp07_scripts4_120828
+
+    scripts/ccsm_utils/Machines     https://svn-ccsm-models.cgd.ucar.edu/Machines/branch_tags/rtmcomp_tags/rtmcomp03_Machines_120829
+
+    mapping                                 https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_120816
+
+    models/drv                      https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/branch_tags/rtmcomp_tags/rtmcomp15_drvseq4_1_26
+
+    models/csm_share                https://svn-ccsm-models.cgd.ucar.edu/csm_share/branch_tags/rtmcomp_tags/rtmcomp02_share3_120803
+
+    models/atm/cam                  https://svn-ccsm-models.cgd.ucar.edu/cam1/branch_tags/exe_cam5_1_33_tags/exe01_cam5_1_33/models/atm/cam
+    models/atm/wrf                  https://svn-ccsm-models.cgd.ucar.edu/wrf/trunk_tags/wrf32_ccsm120726
+
+    models/lnd/clm                  https://svn-ccsm-models.cgd.ucar.edu/clm2/branch_tags/rtmcomp_tags/rtmcomp14_clm4_0_46/models/lnd/clm
+
+    models/rof/rtm                  https://svn-ccsm-models.cgd.ucar.edu/rivrtm/trunk_tags/rtm1_0_04
+
+    models/ice/cice                 https://svn-ccsm-models.cgd.ucar.edu/cice/trunk_tags/cice4_0_20120825
+
+    models/glc/cism                 https://svn-ccsm-models.cgd.ucar.edu/glc/branches/rtmcomp
+
+    models/ocn/pop2/                https://svn-ccsm-models.cgd.ucar.edu/pop2/trunk_tags/cesm_pop_2_1_20120824
+
+    models/atm/datm                 https://svn-ccsm-models.cgd.ucar.edu/datm7/trunk_tags/datm8_120626
+    models/lnd/dlnd                 https://svn-ccsm-models.cgd.ucar.edu/dlnd7/branch_tags/rtmcomp_tags/rtmcomp02_dlnd8_120626
+    models/ice/dice                 https://svn-ccsm-models.cgd.ucar.edu/dice7/trunk_tags/dice8_120626
+    models/ocn/docn                 https://svn-ccsm-models.cgd.ucar.edu/docn7/trunk_tags/docn8_120626
+    models/rof/drof                 https://svn-ccsm-models.cgd.ucar.edu/drof/trunk_tags/drof8_120827
+
+    models/atm/xatm                 https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_7_04/xatm
+    models/lnd/xlnd                 https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_7_04/xlnd
+    models/ice/xice                 https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_7_04/xice
+    models/ocn/xocn                 https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_7_04/xocn
+    models/glc/xglc                 https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_7_04/xglc
+    models/rof/xrof                 https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_7_04/xrof
+    models/dead_share               https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_7_04/dead_share
+
+    models/atm/satm                 https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_4_01/satm
+    models/lnd/slnd                 https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_4_01/slnd
+    models/ice/sice                 https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_4_01/sice
+    models/ocn/socn                 https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_4_01/socn
+    models/glc/sglc                 https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_4_01/sglc
+    models/rof/srof                 https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_4_01/srof
+
+    models/utils/timing             https://svn-ccsm-models.cgd.ucar.edu/timing/trunk_tags/timing_120731
+    models/utils/esmf_wrf_timemgr   https://svn-ccsm-models.cgd.ucar.edu/esmf_wrf_timemgr/trunk_tags/esmf_wrf_timemgr_120427
+
+    models/utils/mct                https://github.com/MCSclimate/MCT/tags/MCT_2.8.0
+
+    models/utils/pio                http://parallelio.googlecode.com/svn/trunk_tags/pio1_5_3/pio
+
+cism tag used for baseline comparisons: cism1_120905
+
+Any other externals that differed in baseline: Used cesm1_1_alpha18a
+for baselines; this involves many differences in externals
+
+================================================================================
 Originator: sacks
 Date: Sept 5, 2012
 Model: cism
