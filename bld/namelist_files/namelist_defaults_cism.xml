@@ -83,7 +83,8 @@ attributes to express the dependency.
 <!-- group: cism.config: sigma                                      -->
 <!-- =============================================================  -->
 
-<sigma_levels>0.00 0.10 0.20 0.30 0.40 0.50 0.60 0.70 0.80 0.90 1.00</sigma_levels>
+<!-- These levels focus resolution at the bottom -->
+<sigma_levels>0.00 0.15 0.30 0.45 0.60 0.75 0.83 0.90 0.95 0.98 1.00</sigma_levels>
 
 <!-- =============================================================  -->
 <!-- group: cism.config: climate                                    -->
@@ -115,7 +116,7 @@ attributes to express the dependency.
 
 <temperature>1</temperature>
 
-<flow_law>1</flow_law>
+<flow_law>0</flow_law>
 
 <isostasy>0</isostasy>
 
@@ -149,17 +150,17 @@ attributes to express the dependency.
 <ntem glc_grid="gland10" >1.</ntem>
 <ntem glc_grid="gland20" >1.</ntem>
 <ntem glc_grid="gland5"  >1.</ntem>
-<ntem glc_grid="gland5UM">0.1</ntem>
+<ntem glc_grid="gland5UM">1.</ntem>
 
 <nvel glc_grid="gland10" >1.</nvel>
 <nvel glc_grid="gland20" >1.</nvel>
 <nvel glc_grid="gland5"  >1.</nvel>
-<nvel glc_grid="gland5UM">0.1</nvel>
+<nvel glc_grid="gland5UM">1.</nvel>
 
 <niso glc_grid="gland10" >1.</niso>
 <niso glc_grid="gland20" >1.</niso>
 <niso glc_grid="gland5"  >1.</niso>
-<niso glc_grid="gland5UM">0.1</niso>
+<niso glc_grid="gland5UM">1.</niso>
 
 <ndiag>1</ndiag>
 

@@ -396,6 +396,7 @@ id="ntem"
 type="real" 
 category="cism_config"
 group="cism_config_time" >
+Multiplier of ice sheet timestep, dt
 </entry>
 
 <entry 
@@ -403,6 +404,7 @@ id="nvel"
 type="real" 
 category="cism_config"
 group="cism_config_time" >
+Multiplier of ice sheet timestep, dt
 </entry>
 
 <entry 
@@ -410,6 +412,7 @@ id="niso"
 type="real" 
 category="cism_config"
 group="cism_config_time" >
+Multiplier of ice sheet timestep, dt
 </entry>
 
 <entry 

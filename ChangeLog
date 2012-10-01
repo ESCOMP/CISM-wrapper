@@ -3,6 +3,124 @@ This file describes what main-trunk tags were created and why
 ================================================================================
 
 ================================================================================
+Originator: sacks
+Date: Oct 1, 2012
+Model: cism
+Version: cism1_121001
+One-line summary: change parameter defaults
+
+Purpose of changes:
+
+Change some parameters to give better results, based on suggestions from
+Jeremy Fyke and Bill Lipscomb:
+
+- sigma_levels: focus resolution at the bottom
+
+- flow_law = 0
+
+- ntem=nvel=niso=1, because we realized these are multipliers, and values <
+  1 don't make sense
+
+Changes answers relative to previous tag: YES!
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/):
+
+List all modified files, and describe the changes:
+
+*** Change parameters
+M       bld/namelist_files/namelist_defaults_cism.xml
+
+*** Document that ntemp, nvel & niso are multipliers
+M       bld/namelist_files/namelist_definition_cism.xml
+
+
+Summary of testing:
+
+Note: baseline comparisons not done: I know this changes answers substantially
+
+- bluefire.glc.auxtest: main test results:
+
+All pass except the following:
+
+FAIL  ERS_Ly20.f09_g16.TG1850.bluefire_ibm.G.140709 
+BFAIL ERS_Ly20.f09_g16.TG1850.bluefire_ibm.G.140709.generate.cesm1_1_alpha18f_scripts4_120930_cism1_120930 
+FAIL  ERS_Ly20_E.f09_g16.TG20TR.bluefire_ibm.G.140709 
+BFAIL ERS_Ly20_E.f09_g16.TG20TR.bluefire_ibm.G.140709.generate.cesm1_1_alpha18f_scripts4_120930_cism1_120930 
+  
+These failures reveal an old problem which has just come to the surface:
+under certain circumstatnces, cism isn't restarting exactly. The problem is
+in the temp field, and this only affects the cpl fields once we set
+flow_law=0. With flow_law=1 (the old default), there is still a problem,
+but it is only apparent in the cism history files, so doesn't trigger a
+failure in the ERS test. I confirmed that the same problem existed in
+cism1_110418, if you set parameters appropriately (in particular: gland5UM
+with evolution=0, dt=0.05).
+
+- bluefire.glc.auxtest: results of component_gen_comp -model cism:
+
+(Just did -generate, not -compare; all PASS)
+
+- Other tests:
+
+Externals used for testing:
+
+    scripts                         https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_120930
+
+    scripts/ccsm_utils/Machines     https://svn-ccsm-models.cgd.ucar.edu/Machines/trunk_tags/Machines_120921
+
+    mapping             			https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_120816
+
+    models/drv                      https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq4_2_02
+
+    models/csm_share                https://svn-ccsm-models.cgd.ucar.edu/csm_share/trunk_tags/share3_120918
+
+    models/atm/cam                  https://svn-ccsm-models.cgd.ucar.edu/cam1/trunk_tags/cam5_1_42/models/atm/cam
+    models/atm/wrf                  https://svn-ccsm-models.cgd.ucar.edu/wrf/trunk_tags/wrf32_ccsm120726
+
+    models/lnd/clm                  https://svn-ccsm-models.cgd.ucar.edu/clm2/branch_tags/new_glacier_data2_tags/new_glacier_data2_06_clm4_0_52/models/lnd/clm
+
+    models/rof/rtm                  https://svn-ccsm-models.cgd.ucar.edu/rivrtm/trunk_tags/rtm1_0_08
+
+    models/ice/cice                 https://svn-ccsm-models.cgd.ucar.edu/cice/trunk_tags/cice4_0_20120927
+
+    models/glc/cism                 https://svn-ccsm-models.cgd.ucar.edu/glc/trunk
+
+    models/ocn/pop2                 https://svn-ccsm-models.cgd.ucar.edu/pop2/trunk_tags/cesm_pop_2_1_20120927
+
+    models/atm/datm                 https://svn-ccsm-models.cgd.ucar.edu/datm7/trunk_tags/datm8_120925b
+    models/lnd/dlnd                 https://svn-ccsm-models.cgd.ucar.edu/dlnd7/trunk_tags/dlnd8_120918
+    models/rof/drof                 https://svn-ccsm-models.cgd.ucar.edu/drof/trunk_tags/drof8_120924
+    models/ice/dice                 https://svn-ccsm-models.cgd.ucar.edu/dice7/trunk_tags/dice8_120925
+    models/ocn/docn                 https://svn-ccsm-models.cgd.ucar.edu/docn7/trunk_tags/docn8_120921
+
+    models/atm/xatm                 https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_7_04/xatm
+    models/lnd/xlnd                 https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_7_04/xlnd
+    models/rof/xrof                 https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_7_04/xrof
+    models/ice/xice                 https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_7_04/xice
+    models/ocn/xocn                 https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_7_04/xocn
+    models/glc/xglc                 https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_7_04/xglc
+    models/dead_share               https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_7_04/dead_share
+
+    models/atm/satm                 https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_4_01/satm
+    models/lnd/slnd                 https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_4_01/slnd
+    models/rof/srof                 https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_4_01/srof
+    models/ice/sice                 https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_4_01/sice
+    models/ocn/socn                 https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_4_01/socn
+    models/glc/sglc                 https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_4_01/sglc
+
+    models/utils/timing             https://svn-ccsm-models.cgd.ucar.edu/timing/trunk_tags/timing_120731
+    models/utils/esmf_wrf_timemgr   https://svn-ccsm-models.cgd.ucar.edu/esmf_wrf_timemgr/trunk_tags/esmf_wrf_timemgr_120427
+
+    models/utils/mct                https://github.com/MCSclimate/MCT/tags/MCT_2.8.2
+
+    models/utils/pio                http://parallelio.googlecode.com/svn/trunk_tags/pio1_5_4/pio
+
+
+cism tag used for baseline comparisons: N/A
+
+Any other externals that differed in baseline: N/A
+
+================================================================================
 Originator: mvertens, tcraig
 Date: Sept 21, 2012
 Model: cism
