@@ -147,22 +147,26 @@ attributes to express the dependency.
 <dt glc_grid="gland5"  >1.</dt>
 <dt glc_grid="gland5UM">0.05</dt>
 
-<ntem glc_grid="gland10" >1.</ntem>
-<ntem glc_grid="gland20" >1.</ntem>
-<ntem glc_grid="gland5"  >1.</ntem>
-<ntem glc_grid="gland5UM">1.</ntem>
+<ntem>1</ntem>
 
-<nvel glc_grid="gland10" >1.</nvel>
-<nvel glc_grid="gland20" >1.</nvel>
-<nvel glc_grid="gland5"  >1.</nvel>
-<nvel glc_grid="gland5UM">1.</nvel>
+<nvel>1</nvel>
 
-<niso glc_grid="gland10" >1.</niso>
-<niso glc_grid="gland20" >1.</niso>
-<niso glc_grid="gland5"  >1.</niso>
-<niso glc_grid="gland5UM">1.</niso>
+<!-- To get diagnostic once per year, set this to 1/dt -->
+<ndiag glc_grid="gland10" >1</ndiag>
+<ndiag glc_grid="gland20" >1</ndiag>
+<ndiag glc_grid="gland5"  >1</ndiag>
+<ndiag glc_grid="gland5UM">20</ndiag>
 
-<ndiag>1</ndiag>
+<!-- 5-km idiag & jdiag chosen by Jeremy Fyke, as a point prone to CFL instability -->
+<idiag glc_grid="gland10" >30</idiag>
+<idiag glc_grid="gland20" >30</idiag>
+<idiag glc_grid="gland5"  >76</idiag>
+<idiag glc_grid="gland5UM">76</idiag>
+
+<jdiag glc_grid="gland10" >50</jdiag>
+<jdiag glc_grid="gland20" >50</jdiag>
+<jdiag glc_grid="gland5"  >228</jdiag>
+<jdiag glc_grid="gland5UM">228</jdiag>
 
 <!-- =============================================================  -->
 <!-- group: cism.config: parameters                                 -->

@@ -470,8 +470,9 @@ print $fh "\n[time]\n";
 add_default($nl, 'dt');
 add_default($nl, 'ntem');
 add_default($nl, 'nvel');
-add_default($nl, 'niso');
 add_default($nl, 'ndiag');
+add_default($nl, 'idiag');
+add_default($nl, 'jdiag');
 $nl->write_cism_config($fh, "cism_config_time");
 
 print $fh "\n[parameters]\n";

@@ -56,8 +56,6 @@ module glimmer_paramets
                   jjtest = 97 - jtest,  &  ! reversed for N to S indexing (FV2, ny = 96)
       itest_local = 60, jtest_local = 54   ! Greenland 20 deg grid, initial usrf = 491 m
 
-   integer, parameter :: idiag = 30, jdiag = 50  ! point for diagnostic output
-
 ! logical flag to turn on special DEBUG output (related to test points), false by default
    logical :: GLC_DEBUG = .false.
 

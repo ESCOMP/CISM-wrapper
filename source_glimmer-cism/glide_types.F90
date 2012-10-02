@@ -392,7 +392,8 @@ module glide_types
                                                      !*FD model levels
     integer :: profile_period = 100            !*FD profile frequency
     integer :: ndiag = 1000                    !*FD diagnostic frequency
-
+    integer :: idiag = 1                       !*FD grid indices for diagnostic point
+    integer :: jdiag = 1
   end type glide_numerics
 
 

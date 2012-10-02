@@ -495,7 +495,8 @@ contains
     call GetValue(section,'nvel',model%numerics%nvel)
     call GetValue(section,'profile',model%numerics%profile_period)
     call GetValue(section,'ndiag',model%numerics%ndiag)
-
+    call GetValue(section,'idiag',model%numerics%idiag)
+    call GetValue(section,'jdiag',model%numerics%jdiag)
   end subroutine handle_time
   
   subroutine print_time(model)

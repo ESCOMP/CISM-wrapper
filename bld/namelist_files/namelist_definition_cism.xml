@@ -89,7 +89,7 @@ Variable name for fraction
 
 <entry id="runid" 
 type="char*128" 
-category="cism"
+category="time"
 group="time_manager_nml" 
 valid_values="">
 Simulation identifier (ie case name)
@@ -97,7 +97,7 @@ Simulation identifier (ie case name)
 
 <entry id="dt_option" 
 type="char*80" 
-category="cism"
+category="time"
 group="time_manager_nml" 
 valid_values="steps_per_year,steps_per_day,seconds,hours,">
 time-step units
@@ -105,7 +105,7 @@ time-step units
 
 <entry id="dt_count" 
 type="real" 
-category="cism"
+category="time"
 group="time_manager_nml" 
 valid_values="">
 Time step, in units given by dt_option
@@ -114,7 +114,7 @@ Time step, in units given by dt_option
 <entry 
 id="allow_leapyear"
 type="logical"
-category="calendar"
+category="time"
 group="time_manager_nml"
 valid_values="" >
 Default: .false.
@@ -122,7 +122,7 @@ Default: .false.
 
 <entry id="iyear0" 
 type="integer" 
-category="start-time"
+category="time"
 group="time_manager_nml" 
 valid_values="">
 Starting year number
@@ -130,7 +130,7 @@ Starting year number
 
 <entry id="imonth0" 
 type="integer" 
-category="start-time"
+category="time"
 group="time_manager_nml" 
 valid_values="1,2,3,4,5,6,7,8,9,10,11,12">
 Starting month number
@@ -138,7 +138,7 @@ Starting month number
 
 <entry id="iday0" 
 type="integer" 
-category="start-time"
+category="time"
 group="time_manager_nml" 
 valid_values="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31">
 Starting day number in month
@@ -146,7 +146,7 @@ Starting day number in month
 
 <entry id="ihour0" 
 type="integer" 
-category="start-time"
+category="time"
 group="time_manager_nml" 
 valid_values="0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23">
 Starting hour of the day
@@ -154,7 +154,7 @@ Starting hour of the day
 
 <entry id="iminute0" 
 type="integer" 
-category="start-time"
+category="time"
 group="time_manager_nml" 
 valid_values="0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59">
 Starting minute of the day
@@ -162,7 +162,7 @@ Starting minute of the day
 
 <entry id="isecond0" 
 type="integer" 
-category="start-time"
+category="time"
 group="time_manager_nml" 
 valid_values="0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59">
 Starting second of the minute
@@ -251,6 +251,49 @@ id="acab_mode"
 type="integer" 
 category="cism_config"
 group="cism_config_climate" >
+</entry>
+
+<entry 
+id="ice_albedo" 
+type="real" 
+category="cism_config"
+group="cism_config_climate" >
+</entry>
+
+<entry 
+id="lapse_rate" 
+type="real" 
+category="cism_config"
+group="cism_config_climate" >
+</entry>
+
+<entry 
+id="data_lapse_rate" 
+type="real" 
+category="cism_config"
+group="cism_config_climate" >
+</entry>
+
+<entry 
+id="mbal_accum_time" 
+type="real" 
+category="cism_config"
+group="cism_config_climate" >
+</entry>
+
+<entry 
+id="ice_tstep_multiply" 
+type="integer" 
+category="cism_config"
+group="cism_config_climate" >
+</entry>
+
+<entry 
+id="mean_preserving" 
+type="integer" 
+category="cism_config"
+group="cism_config_climate"
+valid_values="0,1" >
 </entry>
 
 <!-- =============================================================  -->
@@ -374,6 +417,22 @@ group="cism_config_options" >
 </entry>
 
 <entry 
+id="topo_is_relaxed"
+type="integer" 
+category="cism_config"
+group="cism_config_options"
+valid_values="0,1,2" >
+</entry>
+
+<entry 
+id="basal_mass_balance"
+type="integer" 
+category="cism_config"
+group="cism_config_options"
+valid_values="0,1" >
+</entry>
+
+<entry 
 id="hotstart"
 type="integer" 
 category="cism_config"
@@ -393,26 +452,22 @@ group="cism_config_time" >
 
 <entry 
 id="ntem"
-type="real" 
+type="integer" 
 category="cism_config"
 group="cism_config_time" >
 Multiplier of ice sheet timestep, dt
+(in theory, can be real-valued, but values less than 1 are not handled properly,
+so restricted to being an integer)
 </entry>
 
 <entry 
 id="nvel"
-type="real" 
+type="integer" 
 category="cism_config"
 group="cism_config_time" >
 Multiplier of ice sheet timestep, dt
-</entry>
-
-<entry 
-id="niso"
-type="real" 
-category="cism_config"
-group="cism_config_time" >
-Multiplier of ice sheet timestep, dt
+(in theory, can be real-valued, but values less than 1 are not handled properly,
+so restricted to being an integer)
 </entry>
 
 <entry 
@@ -420,6 +475,22 @@ id="ndiag"
 type="integer" 
 category="cism_config"
 group="cism_config_time" >
+</entry>
+
+<entry 
+id="idiag"
+type="integer" 
+category="cism_config"
+group="cism_config_time" >
+x coordinate of point for diagnostic output
+</entry>
+
+<entry 
+id="jdiag"
+type="integer" 
+category="cism_config"
+group="cism_config_time" >
+y coordinate of point for diagnostic output
 </entry>
 
 <!-- =============================================================  -->
@@ -442,6 +513,13 @@ group="cism_config_parameters" >
 
 <entry 
 id="marine_limit"
+type="real" 
+category="cism_config"
+group="cism_config_parameters" >
+</entry>
+
+<entry 
+id="calving_fraction"
 type="real" 
 category="cism_config"
 group="cism_config_parameters" >
@@ -477,7 +555,14 @@ group="cism_config_parameters" >
 
 <entry 
 id="basal_tract"
-type="real(10)" 
+type="real(5)" 
+category="cism_config"
+group="cism_config_parameters" >
+</entry>
+
+<entry 
+id="basal_water_smoothing"
+type="real" 
 category="cism_config"
 group="cism_config_parameters" >
 </entry>

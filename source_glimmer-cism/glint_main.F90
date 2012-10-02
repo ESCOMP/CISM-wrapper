@@ -41,7 +41,6 @@ module glint_main
   use glint_global_grid
   use glint_constants
   use glimmer_anomcouple
-  use glimmer_paramets, only: idiag, jdiag
   use glide_diagnostics
   use glimmer_paramets, only: itest, jtest, jjtest, stdout  
 
@@ -473,7 +472,9 @@ contains
        if (GLC_DEBUG) then
           write(stdout,*) 'Write model diagnostics, time =', timeyr
        endif
-       call glide_write_diag(params%instances(i)%model, timeyr, idiag, jdiag)
+       call glide_write_diag(params%instances(i)%model, timeyr, &
+                             params%instances(i)%model%numerics%idiag, &
+                             params%instances(i)%model%numerics%jdiag)
 
        ! Initialise anomaly coupling
        if (.not.anomaly_check) then 
@@ -1105,7 +1106,9 @@ contains
              if (GLC_DEBUG) then
                 write(stdout,*) 'Write diagnostics, time (yr)=', timeyr     
              endif
-             call glide_write_diag(params%instances(i)%model, timeyr, idiag, jdiag)
+             call glide_write_diag(params%instances(i)%model, timeyr, &
+                                   params%instances(i)%model%numerics%idiag, &
+                                   params%instances(i)%model%numerics%jdiag)
           endif
 
        enddo
