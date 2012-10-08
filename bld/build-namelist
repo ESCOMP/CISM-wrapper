@@ -486,6 +486,39 @@ add_default($nl, 'isos_time');
 add_default($nl, 'basal_tract');
 $nl->write_cism_config($fh, "cism_config_parameters");
 
+# Some code in cism keys off of whether the [GTHF] section is present
+# (even if it's empty), thus we only want to add this section if it's
+# really desired by the user
+add_default($nl, 'do_gthf');
+if ($nl->get_value('do_gthf') eq '.true.') {
+    print $fh "\n[GTHF]\n";
+    $nl->write_cism_config($fh, "cism_config_gthf");
+}
+else {
+    confirm_empty("cism_config_gthf", "items in gthf section can only be set if do_gthf is set to .true.");
+}
+
+# Some code in cism keys off of whether the [isostasy] section is present
+# (even if it's empty), thus we only want to add this section if it's
+# really desired by the user
+add_default($nl, 'do_isostasy');
+if ($nl->get_value('do_isostasy') eq '.true.') {
+    print $fh "\n[isostasy]\n";
+    $nl->write_cism_config($fh, "cism_config_isostasy");
+}
+else {
+    confirm_empty("cism_config_isostasy", "items in isostasy section can only be set if do_isostasy is set to .true.");
+}
+
+# The elastic lithosphere section only applies if lithosphere=1
+if ($nl->get_value('lithosphere') eq 1) {
+    print $fh "\n[elastic lithosphere]\n";
+    $nl->write_cism_config($fh, "cism_config_elastic_lithosphere");
+}
+else {
+    confirm_empty("cism_config_elastic_lithosphere", "ERROR: items in elastic lithosphere section can only be set if lithosphere is set to 1");
+}
+    
 
 print $fh <<"EOF";
 
@@ -637,6 +670,29 @@ sub get_default_value {
     # Check in the namelist defaults
     return $defaults->get_value($var_name, $usr_att_ref);
 
+}
+
+#-----------------------------------------------------------------------------------------------
+
+sub confirm_empty {
+
+# Confirm that a namelist group is empty (i.e., has no defined
+# namelist items).
+# Die if it isn't empty
+#
+# Usage: confirm_empty(group, errmsg)
+#
+# - group: name of namelist group
+# - errmsg: error message to print if group is not empty
+
+    my $group = shift;
+    my $errmsg = shift;
+
+    my ($numvars, $varnames) = $nl->get_defined_vars_in_group($group);
+    if ($numvars > 0) {
+	print "ERROR: $errmsg\n";
+	die "ERROR: This applies to: $varnames\n";
+    }
 }
 
 #-----------------------------------------------------------------------------------------------

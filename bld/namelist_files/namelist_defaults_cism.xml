@@ -54,6 +54,14 @@ attributes to express the dependency.
 <allow_leapyear>.false.</allow_leapyear>
 
 <!-- =============================================================  -->
+<!-- group: cism.config: control parameters                         -->
+<!-- =============================================================  -->
+
+<do_gthf>.false.</do_gthf>
+
+<do_isostasy>.false.</do_isostasy>
+
+<!-- =============================================================  -->
 <!-- group: cism.config: grid                                       -->
 <!-- =============================================================  -->
 

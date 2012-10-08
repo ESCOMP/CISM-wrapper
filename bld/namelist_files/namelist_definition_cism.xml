@@ -185,6 +185,32 @@ Stop option -- always let the coupler stop the model so use never.
 </entry>
 
 <!-- =============================================================  -->
+<!-- group: cism.config: control parameters                         -->
+<!-- =============================================================  -->
+
+<!-- This section contains parameters that control whether certain
+     sections are output to cism.config. This is needed becasue some
+     variables in cism key off of the mere presence of a section in
+     the config file -->
+
+<entry id="do_gthf"
+type="logical"
+category="cism_config"
+group="cism_config_control" >
+Determines whether the GTHF (geothermal heat flux) section is output
+to the cism.config file.
+Default: false
+</entry>
+
+<entry id="do_isostasy"
+type="logical"
+category="cism_config"
+group="cism_config_control" >
+Determines whether the isostasy section is output to the cism.config file.
+Default: false
+</entry>
+
+<!-- =============================================================  -->
 <!-- group: cism.config: grid                                       -->
 <!-- =============================================================  -->
 
@@ -249,34 +275,6 @@ group="cism_config_climate" >
 <entry 
 id="acab_mode" 
 type="integer" 
-category="cism_config"
-group="cism_config_climate" >
-</entry>
-
-<entry 
-id="ice_albedo" 
-type="real" 
-category="cism_config"
-group="cism_config_climate" >
-</entry>
-
-<entry 
-id="lapse_rate" 
-type="real" 
-category="cism_config"
-group="cism_config_climate" >
-</entry>
-
-<entry 
-id="data_lapse_rate" 
-type="real" 
-category="cism_config"
-group="cism_config_climate" >
-</entry>
-
-<entry 
-id="mbal_accum_time" 
-type="real" 
 category="cism_config"
 group="cism_config_climate" >
 </entry>
@@ -566,5 +564,162 @@ type="real"
 category="cism_config"
 group="cism_config_parameters" >
 </entry>
+
+<!-- =============================================================  -->
+<!-- group: cism.config: GTHF (geothermal heat flux)                -->
+<!-- =============================================================  -->
+
+<!-- This group is only relevant if do_gthf is .true. -->
+
+<entry 
+id="num_dim"
+type="integer" 
+category="cism_config"
+group="cism_config_gthf"
+valid_values="1,3" >
+can be either 1 for 1D calculations or 3 for 3D calculations
+Only relevant if do_gthf is .true.
+</entry>
+
+<entry 
+id="nlayer"
+type="integer" 
+category="cism_config"
+group="cism_config_gthf" >
+number of vertical layers
+default: 20
+Only relevant if do_gthf is .true.
+</entry>
+
+<entry 
+id="surft"
+type="real" 
+category="cism_config"
+group="cism_config_gthf" >
+initial surface temperature (degrees C)
+default: 2 degrees C
+Only relevant if do_gthf is .true.
+</entry>
+
+<entry 
+id="rock_base"
+type="real" 
+category="cism_config"
+group="cism_config_gthf" >
+depth below sea-level at which geothermal heat gradient is applied (m)
+default: -5000 m
+Only relevant if do_gthf is .true.
+</entry>
+
+<entry 
+id="numt"
+type="integer" 
+category="cism_config"
+group="cism_config_gthf" >
+number of time steps for spinning up GTHF calculations
+default: 0
+Only relevant if do_gthf is .true.
+</entry>
+
+<entry 
+id="rho"
+type="real" 
+category="cism_config"
+group="cism_config_gthf" >
+Density of lithosphere (kg m-3)
+default: 3300 kg m-3
+Only relevant if do_gthf is .true.
+</entry>
+
+<entry 
+id="shc"
+type="real" 
+category="cism_config"
+group="cism_config_gthf" >
+specific heat capacity of lithosphere (J kg-1 K-1)
+default: 1000 J kg-1 K-1
+Only relevant if do_gthf is .true.
+</entry>
+
+<entry 
+id="con"
+type="real" 
+category="cism_config"
+group="cism_config_gthf" >
+thermal conductivity of lithosphere (W m-1 K-1)
+default: 3.3 W m-1 K-1
+Only relevant if do_gthf is .true.
+</entry>
+
+
+<!-- =============================================================  -->
+<!-- group: cism.config: isostasy                                   -->
+<!-- =============================================================  -->
+
+<!-- This group is only relevant if do_isostasy is .true. -->
+
+<entry 
+id="lithosphere"
+type="integer" 
+category="cism_config"
+group="cism_config_isostasy"
+valid_values="0,1" >
+0: local lithosphere, equilibrium bedrock depression is found using
+Archimedes' principle
+1: elastic lithosphere, flexural rigidity is taken into account
+Default: 0
+Only relevant if do_isostasy is .true.
+</entry>
+
+<entry 
+id="asthenosphere"
+type="integer" 
+category="cism_config"
+group="cism_config_isostasy"
+valid_values="0,1" >
+0: fluid mantle, isostatic adjustment happens instantaneously
+1: relaxing mantle, mantle is approximated by a half-space
+Default: 0
+Only relevant if do_isostasy is .true.
+</entry>
+
+<entry 
+id="relaxed_tau"
+type="real" 
+category="cism_config"
+group="cism_config_isostasy" >
+characteristic time constant of relaxing mantle
+Default: 4000.a
+Only relevant if do_isostasy is .true.
+</entry>
+
+<entry 
+id="update"
+type="real" 
+category="cism_config"
+group="cism_config_isostasy" >
+lithosphere update period
+Default: 500.a
+Only relevant if do_isostasy is .true.
+</entry>
+
+
+<!-- =============================================================  -->
+<!-- group: cism.config: elastic lithosphere                        -->
+<!-- =============================================================  -->
+
+<!-- This group is only relevant if lithosphere = 1 -->
+
+<entry 
+id="flexural_rigidity"
+type="real" 
+category="cism_config"
+group="cism_config_elastic_lithosphere" >
+flexural rigidity of the lithosphere
+default: 0.24e25
+Only relevant if 'lithosphere' is set to 1
+</entry>
+
+
 
 </namelist_definition>
