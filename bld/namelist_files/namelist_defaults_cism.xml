@@ -150,9 +150,9 @@ attributes to express the dependency.
 <!-- group: cism.config: time                                       -->
 <!-- =============================================================  -->
 
-<dt glc_grid="gland10" >1.</dt>
-<dt glc_grid="gland20" >1.</dt>
-<dt glc_grid="gland5"  >1.</dt>
+<dt glc_grid="gland10" >0.1</dt>
+<dt glc_grid="gland20" >0.1</dt>
+<dt glc_grid="gland5"  >0.05</dt>
 <dt glc_grid="gland5UM">0.05</dt>
 
 <ntem>1</ntem>
@@ -160,9 +160,9 @@ attributes to express the dependency.
 <nvel>1</nvel>
 
 <!-- To get diagnostic once per year, set this to 1/dt -->
-<ndiag glc_grid="gland10" >1</ndiag>
-<ndiag glc_grid="gland20" >1</ndiag>
-<ndiag glc_grid="gland5"  >1</ndiag>
+<ndiag glc_grid="gland10" >10</ndiag>
+<ndiag glc_grid="gland20" >10</ndiag>
+<ndiag glc_grid="gland5"  >20</ndiag>
 <ndiag glc_grid="gland5UM">20</ndiag>
 
 <!-- 5-km idiag & jdiag chosen by Jeremy Fyke, as a point prone to CFL
