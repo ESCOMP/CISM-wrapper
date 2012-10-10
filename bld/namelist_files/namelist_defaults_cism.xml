@@ -165,7 +165,8 @@ attributes to express the dependency.
 <ndiag glc_grid="gland5"  >1</ndiag>
 <ndiag glc_grid="gland5UM">20</ndiag>
 
-<!-- 5-km idiag & jdiag chosen by Jeremy Fyke, as a point prone to CFL instability -->
+<!-- 5-km idiag & jdiag chosen by Jeremy Fyke, as a point prone to CFL
+     instability (in trunk of Jakobshavn) -->
 <idiag glc_grid="gland10" >30</idiag>
 <idiag glc_grid="gland20" >30</idiag>
 <idiag glc_grid="gland5"  >76</idiag>

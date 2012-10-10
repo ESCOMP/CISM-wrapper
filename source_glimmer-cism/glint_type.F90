@@ -62,7 +62,7 @@ module glint_type
                                                             !*FD (defaults to ice time-step)
      integer                          :: ice_tstep_multiply=1 !*FD Ice time multiplier (non-dimensional)
      integer                          :: n_icetstep         !*FD Number of ice time-steps per mass-balance accumulation
-     real(rk)                         :: glide_time         !*FD Time as seen by glide (years)
+     real(dp)                         :: glide_time         !*FD Time as seen by glide (years)
      integer                          :: next_time          !*FD The next time we expect to be called (hours)
 
      ! Climate inputs from global model --------------------------
@@ -322,7 +322,7 @@ contains
     ! setup outputs
     call GetSection(config,section,'GLINT output')
     do while(associated(section))
-       output => handle_output(section,output,0.0,configstring)
+       output => handle_output(section,output,0.d0,configstring)
        if (.not.associated(instance%out_first)) then
           instance%out_first => output
        end if

@@ -730,6 +730,7 @@ contains
 
   !> get double value
   subroutine GetValueDouble(section,name,val)
+
     implicit none
     type(ConfigSection), pointer :: section !< the section from which the value is loaded
     character(len=*),intent(in) :: name     !< the name of the key
@@ -737,8 +738,9 @@ contains
 
     ! local variables
     character(len=valuelen) :: value
-    real temp
-    integer ios
+
+    real(kind=dp) :: temp
+    integer :: ios
 
     value=''
     call GetValueChar(section,name,value)
@@ -747,6 +749,7 @@ contains
     if (ios==0) then
        val = temp
     end if
+
   end subroutine GetValueDouble
 
   !> get integer value

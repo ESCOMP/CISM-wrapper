@@ -262,7 +262,7 @@ contains
                gfrac_temp, gtopo_temp, grofi_temp, grofl_temp, ghflx_temp    ! Temporary output arrays
     integer :: n
     integer :: nec       ! number of elevation classes
-    real(rk):: timeyr    ! time in years
+    real(dp):: timeyr    ! time in years
     integer :: j, ii, jj
 
     if (present(gcm_debug)) then
@@ -468,7 +468,7 @@ contains
        where (params%total_cov_orog > 0.0) params%cov_norm_orog = params%cov_norm_orog + 1.0
 
        ! Write initial diagnostics for this instance
-       timeyr = real(params%start_time/8760.)
+       timeyr = params%start_time/8760.d0
        if (GLC_DEBUG) then
           write(stdout,*) 'Write model diagnostics, time =', timeyr
        endif
@@ -757,7 +757,7 @@ contains
     real(rk),dimension(:,:),pointer :: precip
     real(rk),dimension(:,:),pointer :: temp
     real(rk) :: yearfrac
-    real(rk) :: timeyr   ! time in years
+    real(dp) :: timeyr   ! time in years
     integer :: j, ig, jg
 
     real(rk), dimension(:,:,:), allocatable ::   &
@@ -768,11 +768,12 @@ contains
        ghflx_temp      ! ghflx for a single instance
 
     if (GLC_DEBUG) then
-!       write (stdout,*) 'In subroutine glint, current time (hr) =', time
-!       write (stdout,*) 'av_start_time =', params%av_start_time
-!       write (stdout,*) 'next_av_start =', params%next_av_start
-!       write (stdout,*) 'new_av =', params%new_av
-!       write (stdout,*) 'tstep_mbal =', params%tstep_mbal
+       write (stdout,*) ' '
+       write (stdout,*) 'In subroutine glint, current time (hr) =', time
+       write (stdout,*) 'av_start_time =', params%av_start_time
+       write (stdout,*) 'next_av_start =', params%next_av_start
+       write (stdout,*) 'new_av =', params%new_av
+       write (stdout,*) 'tstep_mbal =', params%tstep_mbal
     endif
 
     ! Check we're expecting a call now --------------------------------------------------------------
@@ -1100,9 +1101,12 @@ contains
           endif   ! gcm_smb
 
           ! write ice sheet diagnostics
+
+!WHL - This will not write diagnostics every timestep if timesteps are < 1 yr
+!      To be fixed in the next  release.
           if (mod(params%instances(i)%model%numerics%timecounter,  &
                   params%instances(i)%model%numerics%ndiag)==0)  then
-             timeyr = time / (days_in_year*24.d0) 
+             timeyr = params%instances(i)%model%numerics%time
              if (GLC_DEBUG) then
                 write(stdout,*) 'Write diagnostics, time (yr)=', timeyr     
              endif

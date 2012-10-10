@@ -38,7 +38,7 @@ module glimmer_ncparams
   !*FD read netCDF I/O related configuration files
   !*FD written by Magnus Hagdorn, May 2004
   use glimmer_ncdf, only: glimmer_nc_meta
-    
+  
   private
   public :: glimmer_nc_readparams, default_metadata, handle_output, handle_input, configstring
 
@@ -138,11 +138,13 @@ contains
     use glimmer_ncdf
     use glimmer_config
     use glimmer_log
+    use glimmer_global, only: dp
+  
     implicit none
     type(ConfigSection), pointer :: section
     type(glimmer_nc_output), pointer :: output
     type(glimmer_nc_output), pointer :: handle_output
-    real, intent(in) :: start_yr
+    real(dp), intent(in) :: start_yr
     character(*),intent(in) :: configstring
     character(10) :: mode_str,xtype_str
 

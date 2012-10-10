@@ -42,7 +42,7 @@ module glide
   use glide_lithot
   use glide_profile
   use glimmer_config
-  use glimmer_paramets, only: itest, jtest, thk0, GLC_DEBUG
+  use glimmer_paramets, only: itest, jtest, thk0, GLC_DEBUG, stdout
 
   integer, private, parameter :: dummyunit=99
 
@@ -161,8 +161,9 @@ contains
     call glimmap_printproj(model%projection)
 
     if (GLC_DEBUG) then
-       write(6,*) 'Opened input files'
-       write(6,*) 'i, j, thck, thck(m):', itest, jtest, &
+       write(stdout,*) 'Opened input files'
+       write(stdout,*) 'tstart =', model%numerics%tstart
+       write(stdout,*) 'i, j, thck, thck(m):', itest, jtest, &
                model%geometry%thck(itest,jtest), model%geometry%thck(itest,jtest)*thk0
     endif
 
@@ -224,18 +225,16 @@ contains
 #endif
 
     if (GLC_DEBUG) then
-       write(6,*) ' '
-       write(6,*) 'End of glide_init'
        i = itest
        j = jtest
-       write(6,*) 'i, j, thck =', i, j, model%geometry%thck(i,j)
-       write(6,300) k, model%geometry%thck(i,j)
-       write(6,*) ' '
-       write(6,*) 'k, temperature'
+       write(stdout,*) 'i, j, thck =', i, j, model%geometry%thck(i,j)
+       write(stdout,300) k, model%geometry%thck(i,j)
+       write(stdout,*) ' '
+       write(stdout,*) 'k, temperature'
        do k = 1, model%general%upn
-            write(6,300) k, model%temper%temp(k,i,j)
+            write(stdout,300) k, model%temper%temp(k,i,j)
        enddo
-  300  format(i3, Z24.20)
+  300  format(i3, f24.16)
     endif
 
   end subroutine glide_initialise
@@ -243,7 +242,7 @@ contains
   subroutine glide_tstep_p1(model,time)
     !*FD Performs first part of time-step of an ice model instance.
     !*FD Calculate temperature evolution
-    use glimmer_global, only : rk
+    use glimmer_global, only : dp
     use glide_thck
     use glide_velo
     use glide_setup
@@ -253,10 +252,11 @@ contains
     use glimmer_paramets, only: tim0
     use glimmer_physcon, only: scyr
 
+
     implicit none
 
     type(glide_global_type) :: model        !*FD model instance
-    real(rk),  intent(in)   :: time         !*FD Current time in years
+    real(dp),  intent(in)   :: time         !*FD Current time in years
 
     ! Update internal clock
     model%numerics%time = time  
@@ -265,10 +265,10 @@ contains
     model%thckwk%oldtime = model%numerics%time - (model%numerics%dt * tim0/scyr)
 
     if (GLC_DEBUG) then
-       write(6,*) ' '
-       write(6,*) 'time =', model%numerics%time
-       write(6,*) 'tinc =', model%numerics%tinc
-       write(6,*) 'oldtime =', model%thckwk%oldtime
+       write(stdout,*) ' '
+       write(stdout,*) 'numerics%time =', model%numerics%time
+       write(stdout,*) 'numerics%tinc =', model%numerics%tinc
+       write(stdout,*) 'thckwk%oldtime =', model%thckwk%oldtime
     endif
 
     ! ------------------------------------------------------------------------ 
@@ -325,6 +325,7 @@ contains
 #ifdef PROFILING
     call glide_prof_start(model,model%glide_prof%temperature)
 #endif
+
     if ( model%numerics%tinc >  mod(model%numerics%time,model%numerics%ntem)) then
        call timeevoltemp(model, model%options%whichtemp)
        model%temper%newtemps = .true.
@@ -456,11 +457,10 @@ contains
 
     if (GLC_DEBUG) then
        upn = model%general%upn
-
        i = itest
        j = jtest
-       write(6,*) ' '
-       write(6,*) 'Starting tstep_p3, i, j, thck =', i, j, model%geometry%thck(i,j)
+       write(stdout,*) ' '
+       write(stdout,*) 'Starting tstep_p3, i, j, thck =', i, j, model%geometry%thck(i,j)
     endif
 
     ! ------------------------------------------------------------------------ 
@@ -515,15 +515,14 @@ contains
        if (GLC_DEBUG) then
           i = itest
           j = jtest
-          write(6,*) ' '
-          write(6,*) 'Before restart write, i, j, thck =', i, j, model%geometry%thck(i,j)
-          write(6,300) k, model%geometry%thck(i,j)
-          write(6,*) ' '
-          write(6,*) 'k, temperature'
-          do k = 1, upn
-               write(6,300) k, model%temper%temp(k,i,j)
+          write(stdout,*) ' '
+          write(stdout,*) 'Before restart write, i, j, thck =', i, j, model%geometry%thck(i,j)
+          write(stdout,*) k, model%geometry%thck(i,j)
+          write(stdout,*) ' '
+          write(stdout,*) 'k, temperature, wgrd'
+          do k = 1, model%general%upn
+               write(stdout,*) k, model%temper%temp(k,i,j), model%velocity%wgrd(k,i,j)
           enddo
-  300     format(i3, Z24.20)
        endif
 
     ! ------------------------------------------------------------------------ 

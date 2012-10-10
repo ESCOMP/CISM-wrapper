@@ -200,7 +200,7 @@
     
     call glide_nc_filldvars(oc, instance%model)
     call glimmer_nc_checkwrite(oc, instance%model, forcewrite=.true., &
-                               time=real(instance%glide_time))
+                               time=instance%glide_time)
     call glide_io_write(oc, instance%model)
     call glint_io_write(oc, instance)
 
@@ -294,7 +294,7 @@
     
     call glide_nc_filldvars(oc, instance%model)
     call glimmer_nc_checkwrite(oc, instance%model, forcewrite=.true., &
-                               time=real(instance%glide_time))
+                               time=instance%glide_time)
     call glide_io_write(oc, instance%model)
     call glint_io_write(oc, instance)
 

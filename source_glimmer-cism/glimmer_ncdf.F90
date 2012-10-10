@@ -40,12 +40,12 @@
 !! \date 2004
 module glimmer_ncdf  
 
-  use glimmer_global, only: fname_length
+  use glimmer_global, only: fname_length, dp
   use netcdf
 
   integer, parameter :: glimmer_nc_meta_len = 100 !< maximum length for meta data
   character(len=*), parameter :: glimmer_nc_mapvarname = 'mapping' !< name of the grid mapping variable
-  real, parameter :: glimmer_nc_max_time=1.e10 !< maximum time that can be written
+  real(dp), parameter :: glimmer_nc_max_time=1.d10 !< maximum time that can be written
 
   !> Data structure holding netCDF file description
   type glimmer_nc_stat
@@ -82,14 +82,13 @@ module glimmer_ncdf
      !NO_RESTART previous
 
      type(glimmer_nc_stat) :: nc                          !< structure containg file info
-     real :: freq=1000                                    !< frequency at which data is written to file
-     real :: next_write=0                                 !< next time step at which data is dumped
-     real :: end_write=glimmer_nc_max_time                !< stop writing after this year
+     real(dp) :: freq = 1000.d0                           !< frequency at which data is written to file
+     real(dp) :: next_write = 0.d0                        !< next time step at which data is dumped
+     real(dp) :: end_write = glimmer_nc_max_time          !< stop writing after this year
      integer :: timecounter=1                             !< time counter
-     real :: total_time = 0.0                             !< accumulate time steps (used for taking time averages)
+     real(dp) :: total_time = 0.d0                        !< accumulate time steps (used for taking time averages)
 
      integer :: default_xtype = NF90_REAL                 !< the default external type for storing flointing point values
-
      logical :: do_averages = .False.                     !< set to .True. if we need to handle averages
      
      type(glimmer_nc_meta) :: metadata                    !< structure holding metadata
@@ -102,10 +101,10 @@ module glimmer_ncdf
   !> element of linked list describing netCDF input file
   type glimmer_nc_input
      !NO_RESTART previous
-     type(glimmer_nc_stat) :: nc                          !< structure containg file info
-     integer, pointer, dimension(:) :: times => NULL()    !< pointer to array holding times
-     integer                        :: nt, current_time=1 !< number of elements in times and current time index
-     integer                        :: get_time_slice = 1 !< -1 if all times should be loaded, > 0 to load particular slice and then close file
+     type(glimmer_nc_stat) :: nc                           !< structure containg file info
+     real(dp), pointer, dimension(:) :: times => NULL()    !< pointer to array holding times
+     integer                         :: nt, current_time=1 !< number of elements in times and current time index
+     integer                         :: get_time_slice = 1 !< -1 if all times should be loaded, > 0 to load particular slice and then close file
 
      type(glimmer_nc_input), pointer :: next=>NULL()      !< next element in list
      type(glimmer_nc_input), pointer :: previous=>NULL()  !< previous element in list

@@ -158,6 +158,7 @@ contains
     if (present(grofl)) grofl(:,:,:) = 0._rk
     if (present(ghflx)) ghflx(:,:,:) = 0._rk
 
+
     if (GLC_DEBUG) then
        write(stdout,*) ' '
        write(stdout,*) 'In glint_i_tstep, time =', time
@@ -285,6 +286,7 @@ contains
        do i = 1, instance%n_icetstep
 
           if (GLC_DEBUG) then
+             write (stdout,*) ' '
              write (stdout,*) 'GLIDE timestep, iteration =', i
           endif
 
@@ -323,10 +325,10 @@ contains
           call glide_set_acab(instance%model, instance%acab*real(rhow/rhoi))
           call glide_set_artm(instance%model, instance%artm)
 
+
           if (GLC_DEBUG) then
              il = itest_local
              jl = jtest_local
-             write (stdout,*) ' '
              write (stdout,*) 'After glide_set_acab, glide_set_artm: i, j =', il, jl
              write (stdout,*) 'acab (m/y), artm (C) =', instance%acab(il,jl), instance%artm(il,jl)
           endif
@@ -338,7 +340,12 @@ contains
              instance%ablt =  thck_temp
           end where
 
-          instance%glide_time=instance%glide_time+instance%model%numerics%tinc
+          instance%glide_time = instance%glide_time + instance%model%numerics%tinc
+
+          if (GLC_DEBUG) then
+             write (stdout,*) 'Call glide_tstep, glide_time =', instance%glide_time
+          endif
+
           call glide_tstep_p1(instance%model,instance%glide_time)
           call glide_tstep_p2(instance%model)
           call glide_tstep_p3(instance%model,no_write=.true.)
@@ -465,7 +472,7 @@ contains
 
     call glint_mbal_io_writeall(instance, instance%model,       &
                                 outfiles = instance%out_first,  &
-                                time = real(time*hours2years,sp))
+                                time = time*hours2years)
 
     ! ------------------------------------------------------------------------ 
     ! Upscaling of output

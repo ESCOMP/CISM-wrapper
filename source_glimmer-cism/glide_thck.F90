@@ -574,14 +574,14 @@ contains
     type(glide_thckwk) :: thckwk    !*FD Derived-type containing work data
     real(dp), intent(out), dimension(:,:) :: opvr  !*FD Input field
     real(dp), intent(in),  dimension(:,:) :: ipvr  !*FD Output (derivative) field
-    real(sp), intent(in)                  :: time  !*FD current time
+    real(dp), intent(in)                  :: time  !*FD current time
     integer,  intent(in),  dimension(:,:) :: mask  !*FD mask for calculation
     integer,  intent(in)                  :: which !*FD selector for stored field
 
-    real(sp) :: factor
+    real(dp) :: factor
 
     factor = (time - thckwk%oldtime)
-    if (factor .eq.0) then
+    if (factor .eq. 0.d0) then
        opvr = 0.0d0
     else
        factor = 1./factor

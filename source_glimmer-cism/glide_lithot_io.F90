@@ -91,7 +91,7 @@ contains
     type(glide_global_type) :: model
     logical, optional :: atend
     type(glimmer_nc_output),optional,pointer :: outfiles
-    real(sp),optional :: time
+    real(dp),optional :: time
 
     ! local variables
     type(glimmer_nc_output), pointer :: oc
@@ -218,13 +218,13 @@ contains
     !*FD the model instance
 
     ! local variables
-    real tavgf
+    real(dp) :: tavgf
     integer status, varid
     integer up
      
     tavgf = outfile%total_time
-    if (tavgf.ne.0.) then
-       tavgf = 1./tavgf
+    if (tavgf.ne.0.d0) then
+       tavgf = 1.d0/tavgf
     end if
 
     ! write variables
@@ -342,7 +342,7 @@ contains
     type(glide_global_type) :: data
 
     ! local variables
-    real :: factor
+    real(dp) :: factor
     integer status, varid
 
     ! increase total time

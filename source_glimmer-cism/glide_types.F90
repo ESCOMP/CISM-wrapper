@@ -93,8 +93,8 @@ module glide_types
 
     !*FD Method for calculating flow factor $A$:
     !*FD \begin{description} 
-    !*FD \item[0] \emph{Patterson and Budd} relationship 
-    !*FD \item[1] \emph{Patterson and Budd} relationship, 
+    !*FD \item[0] \emph{Paterson and Budd} relationship 
+    !*FD \item[1] \emph{Paterson and Budd} relationship, 
     !*FD with temperature set to $-10^{\circ}\mathrm{C}$ 
     !*FD \item[2] Set equal to $1\times 10^{-16}\,\mathrm{yr}^{-1}
     !*FD \,\mathrm{Pa}^{-n}$
@@ -362,26 +362,25 @@ module glide_types
   end type glide_funits
 
   !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
   type glide_numerics
 
     !*FD Parameters relating to the model numerics.
-    real(sp) :: tstart = 0.0      !*FD starting time
-    real(sp) :: tend   = 20000.0  !*FD end time
-    real(sp) :: time   =    0.0   !*FD main loop counter in years
-    real(sp) :: tinc   =   20.0   !*FD time step of main loop in years 
-    real(sp) :: ntem   =    1.0   !*FD temperature time step (multiplier of main time step)
-    real(sp) :: nvel   =    1.0   !*FD velocity time step (multiplier of main time step)
-    real(dp) :: alpha  =    0.5d0 !*FD richard suggests 1.5 - was a parameter in original
-    real(dp) :: alphas =    0.5d0 !*FD was a parameter in the original
-    real(dp) :: thklim =  100.0   
-    real(dp) :: mlimit = -200.0d0
+    real(dp) :: tstart =    0.d0   !*FD starting time
+    real(dp) :: tend   = 1000.d0   !*FD end time
+    real(dp) :: time   =    0.d0   !*FD main loop counter in years
+    real(dp) :: tinc   =    1.d0   !*FD time step of main loop in years 
+    real(dp) :: ntem   =    1.d0   !*FD temperature time step (multiplier of main time step)
+    real(dp) :: nvel   =    1.d0   !*FD velocity time step (multiplier of main time step)
+    real(dp) :: alpha  =    0.5d0  !*FD richard suggests 1.5 - was a parameter in original
+    real(dp) :: alphas =    0.5d0  !*FD was a parameter in the original
+    real(dp) :: thklim =  100.d0   
+    real(dp) :: mlimit = -200.d0
     real(dp) :: calving_fraction = 0.8d0
     real(dp) :: dew    =   20.0d3
     real(dp) :: dns    =   20.0d3
-    real(dp) :: dt     =    0.0
-    real(dp) :: dttem  =    0.0
-    real(sp) :: nshlf  =    0.0
+    real(dp) :: dt     =    0.d0
+    real(dp) :: dttem  =    0.d0
+    real(sp) :: nshlf  =    0.d0
 
     integer  :: timecounter = 0   !*FD count time steps
     
@@ -443,7 +442,7 @@ module glide_types
      real(dp),dimension(:,:),pointer :: float => null()
      real(dp),dimension(:,:,:),pointer :: olds      => null()
      integer  :: nwhich  = 2
-     real(sp) :: oldtime = 0.0
+     real(dp) :: oldtime = 0.d0
      
      real(dp), dimension(:), pointer :: alpha => null()
      real(dp), dimension(:), pointer :: beta  => null()
@@ -826,7 +825,7 @@ contains
   function get_tstart(model)
     !*FD return start time
     implicit none
-    real(sp) :: get_tstart
+    real(dp) :: get_tstart
     type(glide_global_type) :: model
     
     get_tstart = model%numerics%tstart
@@ -835,7 +834,7 @@ contains
   function get_tend(model)
     !*FD return end time
     implicit none
-    real(sp) :: get_tend
+    real(dp) :: get_tend
     type(glide_global_type) :: model
     
     get_tend = model%numerics%tend
@@ -844,7 +843,7 @@ contains
   function get_tinc(model)
     !*FD return time increment
     implicit none
-    real(sp) :: get_tinc
+    real(dp) :: get_tinc
     type(glide_global_type) :: model
     
     get_tinc = model%numerics%tinc
@@ -873,9 +872,9 @@ contains
     !*FD fractional year output
     implicit none
     type(glide_global_type) :: model
-    real :: time
+    real(dp) :: time
 
-    model%numerics%time=time
+    model%numerics%time = time
   end subroutine set_time
 
 end module glide_types
