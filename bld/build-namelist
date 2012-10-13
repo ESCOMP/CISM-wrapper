@@ -363,7 +363,7 @@ my $iday0   = `echo $startdate | cut -c9-10 | sed -e 's/^0*//'`;
 $iday0 =~ s/\n/ /g; # remove imbedded newline   
 my $ihour0  = 0;
 
-my ($dt_option, $dt_count) = get_dt($NCPL_BASE_PERIOD, $GLC_NCPL);
+my ($dt_option, $dt_count) = get_glc_dt($NCPL_BASE_PERIOD, $GLC_NCPL);
 
 add_default($nl, 'runid', 'val'=>"$CASE");
 add_default($nl, 'dt_option', 'val'=>$dt_option);
@@ -455,12 +455,9 @@ $nl->write_cism_config($fh, "cism_config_projection");
 print $fh "\n[options]\n";
 add_default($nl, 'temperature');
 add_default($nl, 'flow_law');
-add_default($nl, 'isostasy');
-add_default($nl, 'sliding_law');
 add_default($nl, 'basal_water');
 add_default($nl, 'marine_margin');
 add_default($nl, 'slip_coeff');
-add_default($nl, 'stress_calc');
 add_default($nl, 'evolution');
 add_default($nl, 'vertical_integration');
 add_default($nl, 'hotstart', 'runtype'=>"$RUN_TYPE");
@@ -468,6 +465,7 @@ $nl->write_cism_config($fh, "cism_config_options");
 
 print $fh "\n[time]\n";
 add_default($nl, 'dt');
+check_cism_dt($nl->get_value('dt'));
 add_default($nl, 'ntem');
 add_default($nl, 'nvel');
 add_default($nl, 'ndiag');
@@ -482,7 +480,6 @@ add_default($nl, 'marine_limit');
 add_default($nl, 'geothermal');
 add_default($nl, 'flow_factor');
 add_default($nl, 'hydro_time');
-add_default($nl, 'isos_time');
 add_default($nl, 'basal_tract');
 $nl->write_cism_config($fh, "cism_config_parameters");
 
@@ -690,8 +687,8 @@ sub confirm_empty {
 
     my ($numvars, $varnames) = $nl->get_defined_vars_in_group($group);
     if ($numvars > 0) {
-	print "ERROR: $errmsg\n";
-	die "ERROR: This applies to: $varnames\n";
+	print "$ProgName: ERROR: $errmsg\n";
+	die "$ProgName: ERROR: This applies to: $varnames\n";
     }
 }
 
@@ -896,12 +893,13 @@ sub expand_env_xml {
 
 #-------------------------------------------------------------------------------
 
-sub get_dt {
+sub get_glc_dt {
 
-# Usage: ($dt_option, $dt_count) = get_dt($ncpl_base_period, $glc_ncpl)
+# Usage: ($dt_option, $dt_count) = get_glc_dt($ncpl_base_period, $glc_ncpl)
 #
 # Given the number of coupling intervals for GLC and the coupling base period,
-# returns appropriate values of dt_option and dt_count for CISM's namelist.
+# returns appropriate values of dt_option and dt_count for CISM's namelist. Note
+# that this gives the dt values in cism_in - NOT the values in cism.config.
 #
 # This assumes that we want one timestep per coupling interval.
 
@@ -930,3 +928,30 @@ sub get_dt {
   return ($dt_option, $dt_count);
 }
   
+#-------------------------------------------------------------------------------
+
+sub check_cism_dt {
+
+# Usage: check_cism_dt($dt)
+#
+# Checks cism's dt value: i.e., the dt variable in the time section of
+# cism.config. Dies if dt is an inappropriate value.
+
+  my $dt = shift;
+
+
+# Ensure that dt translates into an integer number of hours
+
+  my $dt_hours = $dt * 365. * 24.;
+  # round to nearest integer:
+  my $dt_hours_int = sprintf("%.0f", $dt_hours);
+  
+  # make sure difference is basically 0, by comparing relative difference with a value near machine epsilon
+  if (abs($dt_hours - $dt_hours_int)/$dt_hours > 1.e-15) {
+    print "$ProgName: ERROR: dt (in years) must translate into an integer number of hours\n";
+    print "dt = $dt\n";
+    print "dt (hours) = $dt_hours\n";
+    die;
+  }
+}
+

@@ -285,7 +285,7 @@ This directory contains all the required perl files:
 --- Creation of $nl ---
 
 Additions to the namelist object, $nl, are made via calls to the
-build-namelist method add_defaults(), which adds a value for the specified
+build-namelist method add_default(), which adds a value for the specified
 variable to the specified namelist object.  This method checks the
 definition file and adds the variable to the correct namelist group. The
 value can be provided by using the optional argument key 'val' in the
@@ -300,6 +300,12 @@ will be used to match attributes in the defaults file.
 The variables already in the object have the higher precedence, so if the
 specified variable is already defined in the object it does not get
 overwritten.
+
+In some cases, a namelist variable only appears in the namelist if its value
+is given by the user in user_nl_cism. For these variables, the default value
+is given in the code rather than in namelist_defaults_cism.xml. This is
+achieved by NOT putting an add_default call for this variable in
+build-namelist.
 
 --- Examples ---
 
@@ -415,6 +421,11 @@ overwritten.
 
         add_default($nl, $var, 'noprepend'=>1)
 
+  5. Only include the namelist variable 'asthenosphere' in cism.config if a
+     value is given by the user in user_nl_cism; otherwise, use default
+     value given in the code
+
+     (No references to asthenosphere in build-namelist)
 
 ============================================================================
 Handling multiple instances

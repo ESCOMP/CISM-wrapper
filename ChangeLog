@@ -4,6 +4,89 @@ This file describes what main-trunk tags were created and why
 
 ================================================================================
 Originator: sacks
+Date: Oct 12, 2012
+Model: cism
+Version: cism1_121012
+One-line summary: add namelist documentation, validation of dt,
+                  add/remove namelist items
+
+Purpose of changes:
+
+Main purpose is adding namelist documentation. Also added validation of dt in
+build-namelist (can't add this through simple valid_values).
+
+Also added / removed a few namelist parameters: Add scale_factor in cism.config:
+projection section. Removed namelist parameters which seem not to be used
+anywhere: isostasy, sliding_law, stress_calc, isos_time
+
+Changes answers relative to previous tag: NO
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/):
+
+List all modified files, and describe the changes:
+
+*** Add lots of documentation & valid_values; 
+*** add scale_factor namelist parameter;
+*** remove isostasy, sliding_law, stress_calc, isos_time;
+*** change standard_parallel to length-2 array
+*** change categories for html documentation
+M       bld/namelist_files/namelist_definition_cism.xml
+
+*** Add validation of dt; remove isostasy, sliding_law, stress_calc, isos_time
+M       bld/build-namelist
+
+*** remove isostasy, sliding_law, stress_calc, isos_time
+M       bld/namelist_files/namelist_defaults_cism.xml
+
+*** Mostly unrelated: Add documentation
+M       bld/README.build-namelist
+
+*** Update ChangeLog entry for cism1_121009: document some more careful
+*** checks of the reasons for differences from baseline
+M       ChangeLog
+
+Summary of testing:
+
+- bluefire.glc.auxtest: main test results: All PASS except:
+
+(Ignoring failures in NLComp & tputcomp)
+
+***** Test not run in baseline case (this test was deleted in a recent scripts tag)
+BFAIL ERS_Ly20_E.f09_g16_gl10.TG20TR.bluefire_ibm.C.161152.compare_hist.cesm1_1_alpha18h_cism_smallerDT 
+
+***** Diffs just in x2a dust fluxes, due to externals change compared to baseline
+FAIL  SMS.f19_f19.FG20TRCN.bluefire_ibm.GC.063931.compare_hist.cesm1_1_alpha18f_scripts4_121008_clm_newGlacierData2_dlnd_121001_cism_changeTimeToDouble 
+FAIL  SMS_D.T31_g37.BG1850CN.bluefire_ibm.GC.063931.compare_hist.cesm1_1_alpha18f_scripts4_121008_clm_newGlacierData2_dlnd_121001_cism_changeTimeToDouble 
+
+So none of these failures are worrisome
+  
+- bluefire.glc.auxtest: results of component_gen_comp -model cism: All PASS except:
+
+***** Test not run in baseline case (this test was deleted in a recent scripts tag)
+BFAIL ERS_Ly20_E.f09_g16_gl10.TG20TR.bluefire_ibm.compare_hist.cesm1_1_alpha18h_cism_smallerDT.cism (baseline directory does not exist)
+
+
+- Other tests:
+
+  - out-of-the-box TG compset cism_in & cism.config identical to old
+    case, except for the 4 removed parameters (and runid in cism_in)
+
+Externals used for testing:
+
+https://svn-ccsm-models.cgd.ucar.edu/cesm1/tags/cesm1_1_alpha18g except:
+
+    scripts                         https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_121008
+
+    models/lnd/clm                  https://svn-ccsm-models.cgd.ucar.edu/clm2/trunk_tags/clm4_0_54/models/lnd/clm
+
+cism tag used for baseline comparisons: cism1_121009 for most tests;
+cism1_121010 for _gl10 tests
+
+Any other externals that differed in baseline: MANY! (used baselines generated
+from cism1_121009 and cism1_121010, using externals as listed below)
+
+================================================================================
+Originator: sacks
 Date: Oct 10, 2012
 Model: cism
 Version: cism1_121010
@@ -129,6 +212,8 @@ this just refers to the time variables that are specified as
 fractional years: time variables that give number of hours are still
 integers.
 
+Also: Fix GetValueDouble to read in value as double precision
+
 Note that Bill L has also implemented these fixes in the seacism
 branch of cism2.
 
@@ -142,9 +227,22 @@ Changes answers relative to previous tag: YES
     of this, but needed to make this tag before that investigation is
     complete. 
 
+        - update 10-12-12: diffs in first year are less, then diffs
+          increase. From looking quickly at maps of diffs in first year,
+          I'm not too concerned about this - I can believe that these diffs
+          are really due to single vs double precision, with initial small
+          differences expanding over time due to feedbacks in the system.
+
     Also, there are differences in a gland10 run, too; I did not expect
     these differences, since dt=1 there. This is also undergoing additional
     investigation.
+
+        - update 10-11-12: note that geothermal heat flux is now read as
+          double rather than single precision. That could be the
+          explanation. Another explanation could be that time is used in
+          calculations that are now done in double rather than single
+          precision. I'm not too concerned because diffs in first year are
+          very small.
 
 Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/):
 

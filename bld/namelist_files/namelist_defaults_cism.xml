@@ -126,17 +126,11 @@ attributes to express the dependency.
 
 <flow_law>0</flow_law>
 
-<isostasy>0</isostasy>
-
-<sliding_law>1</sliding_law>
-
 <basal_water>2</basal_water>
 
 <marine_margin>1</marine_margin>
 
 <slip_coeff>0</slip_coeff>
-
-<stress_calc>0</stress_calc>
 
 <evolution>0</evolution>
 
@@ -192,8 +186,6 @@ attributes to express the dependency.
 <flow_factor>3</flow_factor>
 
 <hydro_time>1000.</hydro_time>
-
-<isos_time>3000.</isos_time>
 
 <basal_tract>2 10 10 0 1</basal_tract>
 
