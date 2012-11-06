@@ -1,3 +1,7 @@
-The file glimmer_doc.pdf is the documentation for GLIMMER version 1.0.
-Later we will add some documentation for the CCSM implementation.
+The file cism_doc.pdf is the documentation for the version of CISM
+included in the CESM1.1 release. This also includes documentation of
+other aspects of CESM relevant to ice sheet modeling.
 
+The file glimmer_doc.pdf is the documentation for GLIMMER version
+1.5.1. This is similar, but not identical, to the version that is
+included in the CESM1.1 release.

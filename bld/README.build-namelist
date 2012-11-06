@@ -601,3 +601,64 @@ A: You can pass values through the add_default() function. As above, suppose
  
      $varname =~ s/ //g;
     
+----------------------------------------------------------------------------
+
+Q: How do I add an optional section in the cism.config file? There are some
+   CISM settings that depend on the mere presence / absence of a certain
+   section.
+
+A: An existing example of this is the [GTHF] section. If this section is
+   present in the config file, then certain code is enabled, controlled by
+   the variables in this section. The following changes were needed to
+   create this optional section; this is also what you'll have to do to
+   create a new optional section:
+
+   1. Added a do_gthf variable in
+      namelist_files/namelist_definition_cism.xml, with
+      group="cism_config_control":
+
+        <entry id="do_gthf"
+        type="logical"
+        category="cism_config_gthf"
+        group="cism_config_control" >
+        Determines whether the GTHF (geothermal heat flux) section is output to the cism.config file.
+        Default: false
+        </entry>
+
+      Also added a corresponding default value in
+      namelist_files/namelist_defaults_cism.xml:
+
+        <do_gthf>.false.</do_gthf>
+
+   2. Added a new section in namelist_files/namelist_definition_cism.xml
+      that lists all of the possible variables that might appear in that
+      section. See the section with the heading "group: cism.config: GTHF
+      (geothermal heat flux)".
+
+      Note that the variables in this section do NOT appear in
+      namelist_defaults_cism.xml. Thus, if a user sets do_gthf to
+      .true. without specifying the values of any of these variables, they
+      will take their values from the hard-coded defaults in the cism code.
+
+   3. Added some code in build-namelist that controls whether to print the
+      [GTHF] section in the cism.config file:
+
+        # Some code in cism keys off of whether the [GTHF] section is present
+        # (even if it's empty), thus we only want to add this section if it's
+        # really desired by the user
+        add_default($nl, 'do_gthf');
+        if ($nl->get_value('do_gthf') eq '.true.') {
+            print $fh "\n[GTHF]\n";
+            $nl->write_cism_config($fh, "cism_config_gthf");
+        }
+        else {
+            confirm_empty("cism_config_gthf", "items in gthf section can only be set if do_gthf is set to .true.");
+        }
+
+
+      Note that, if defaults were desired (specified in
+      namelist_defaults_cism.xml), add_default lines could be added in the
+      'if' block of the above conditional, before the call to
+      write_cism_config.
+
+   
