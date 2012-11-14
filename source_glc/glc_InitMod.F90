@@ -22,6 +22,7 @@
    use glc_kinds_mod
    use glc_ErrorMod
    use glc_communicate, only: my_task, master_task
+   use glc_broadcast,   only: broadcast_scalar, broadcast_array
    use glc_time_management, only: iyear0, imonth0, iday0, elapsed_days0,  &
                                   iyear,  imonth,  iday,  elapsed_days,   &
                                   ihour,  iminute, isecond, nsteps_total, &
@@ -142,6 +143,7 @@
 
   real(rk), dimension(:), allocatable ::  &    
       glint_lats     ,&! lats on glint grid (N to S indexing, instead of S to N as on glc_grid)  
+      glint_lons     ,&! lons on glint grid
       glint_latb       ! lat_bound on glint grid
 
   integer, dimension(:,:), allocatable ::  &    
@@ -197,16 +199,26 @@
 
    paramfile  = 'unknown_paramfile'
 
-   open (nml_in, file=nml_filename, status='old',iostat=nml_error)
-   if (nml_error /= 0) then
-      nml_error = -1
-   else
-      nml_error =  1
+   if (my_task == master_task) then
+      open (nml_in, file=nml_filename, status='old',iostat=nml_error)
+      if (nml_error /= 0) then
+         nml_error = -1
+      else
+         nml_error =  1
+      endif
+      do while (nml_error > 0)
+         read(nml_in, nml=cism_params,iostat=nml_error)
+      end do
+      if (nml_error == 0) close(nml_in)
    endif
-   do while (nml_error > 0)
-      read(nml_in, nml=cism_params,iostat=nml_error)
-   end do
-   if (nml_error == 0) close(nml_in)
+   call broadcast_scalar(nml_error, master_task)
+   if (nml_error /= 0) then
+      call exit_glc(sigAbort,'ERROR reading cism_params nml')
+   endif
+
+   call broadcast_scalar(paramfile,         master_task)
+   call broadcast_scalar(cism_debug,        master_task)
+   call broadcast_scalar(cesm_history_vars, master_task)
    history_vars = trim(cesm_history_vars)
 
    if (verbose .and. my_task==master_task) then
@@ -223,14 +235,28 @@
    ! switch latitude indices for sending info to Glint
    ! latitude is S to N on glc_grid, N to S on glint grid
 
-   nx = glc_grid%nx
-   ny = glc_grid%ny
+   !JW only necessary if the master is the only task containing the glc_grid
+   if (my_task == master_task) then
+      nx = glc_grid%nx
+      ny = glc_grid%ny
+   endif
 
+   call broadcast_scalar(nx, master_task)
+   call broadcast_scalar(ny, master_task)
+
+   allocate(glint_lons(nx))    !JW necessary to initialize glint w/o glc_grid
    allocate(glint_lats(ny))
 
-   do j = 1, ny
-      glint_lats(j) = glc_grid%lats(ny-j+1)
-   enddo
+   if (my_task == master_task) then
+      do j = 1, nx
+         glint_lons(j) = glc_grid%lons(j)
+      enddo
+      do j = 1, ny
+         glint_lats(j) = glc_grid%lats(ny-j+1)
+      enddo
+   endif
+   call broadcast_array(glint_lats, master_task)
+   call broadcast_array(glint_lons, master_task)
 
    allocate(glint_landmask(nx,ny))
 
@@ -253,6 +279,7 @@
 
   ! Set glimmer_unit for diagnostic output from Glimmer. (Log file is already open)
 !  call open_log(unit=101)
+
   call set_glimmer_unit(stdout)
  
   ! Allocate global arrays
@@ -310,7 +337,7 @@
 
   call initialise_glint (ice_sheet,                            &
                          glint_lats,                           &   ! indexing is N to S for Glint
-                         glc_grid%lons,                        &
+                         glint_lons,                           &
                          climate%climate_tstep,                &
                          (/paramfile/),                        &
                          daysinyear = climate%days_in_year,    &

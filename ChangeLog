@@ -3,6 +3,49 @@ This file describes what main-trunk tags were created and why
 ================================================================================
 
 ================================================================================
+Originator: jwolfe
+Date: Nov 13, 2012
+Model: cism
+Version: cism1_121113
+One-line summary: Add parallel support in source_glc code
+
+Purpose of changes:
+
+In preparation for bringing cism2 in, some modifications were needed
+in source_glc so that this interface layer could operate in a parallel
+environment.
+
+Changes answers relative to previous tag: No
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/):
+
+List all modified files, and describe the changes:
+
+A       mpi/glc_broadcast.F90
+M       source_glc/glc_InitMod.F90
+M       source_glc/glc_global_grid.F90
+M       source_glc/glc_io.F90
+M       source_glc/glc_time_management.F90
+
+Summary of testing: (Testing done by Bill Sacks)
+
+- bluefire.glc.auxtest: main test results: All PASS
+
+  Note: I made a mistake in running the baseline comparisons, so ran
+  them after the fact with component_gen_comp -model cpl
+  
+- bluefire.glc.auxtest: results of component_gen_comp -model cism: All PASS
+
+- Other tests: Jon Wolfe ran some tests specific to the new
+  functionality
+
+Externals used for testing: cesm1_1_beta18
+
+cism tag used for baseline comparisons: cism1_121012
+
+Any other externals that differed in baseline: None
+
+================================================================================
 Originator: sacks
 Date: Nov 6, 2012
 Model: cism

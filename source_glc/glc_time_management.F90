@@ -19,6 +19,7 @@
    use glc_kinds_mod
    use glc_constants
    use glc_communicate, only: my_task, master_task
+   use glc_broadcast,   only: broadcast_scalar
    use glc_exit_mod
    use shr_sys_mod
 
@@ -391,7 +392,7 @@
       message
 
    namelist /time_manager_nml/                                   &
-               runid,           dt_count,       dt_option,         &          
+               runid,           dt_count,       dt_option,       &
                iyear0,          imonth0,        iday0,           &
                ihour0,          iminute0,       isecond0,        &
                stop_option,     stop_count,     date_separator,  &
@@ -452,7 +453,8 @@
       if (nml_error == 0) close(nml_in)
    endif
 
-!!   call broadcast_scalar(nml_error, master_task)
+   call broadcast_scalar(nml_error, master_task)
+
    if (nml_error /= 0) then
       call exit_glc(sigAbort,'ERROR reading time_manager_nml')
    endif
@@ -469,19 +471,19 @@
       write(stdout,blank_fmt)
    endif
 
-!!   call broadcast_scalar (runid           , master_task)
-!!   call broadcast_scalar (iyear0          , master_task)
-!!   call broadcast_scalar (imonth0         , master_task)
-!!   call broadcast_scalar (iday0           , master_task)
-!!   call broadcast_scalar (ihour0          , master_task)
-!!   call broadcast_scalar (iminute0        , master_task)
-!!   call broadcast_scalar (isecond0        , master_task)
-!!   call broadcast_scalar (dt_option       , master_task)
-!!   call broadcast_scalar (dt_count        , master_task)
-!!   call broadcast_scalar (stop_option     , master_task)
-!!   call broadcast_scalar (stop_count      , master_task)
-!!   call broadcast_scalar (allow_leapyear  , master_task)
-!!   call broadcast_scalar (date_separator  , master_task)
+   call broadcast_scalar (runid           , master_task)
+   call broadcast_scalar (iyear0          , master_task)
+   call broadcast_scalar (imonth0         , master_task)
+   call broadcast_scalar (iday0           , master_task)
+   call broadcast_scalar (ihour0          , master_task)
+   call broadcast_scalar (iminute0        , master_task)
+   call broadcast_scalar (isecond0        , master_task)
+   call broadcast_scalar (dt_option       , master_task)
+   call broadcast_scalar (dt_count        , master_task)
+   call broadcast_scalar (stop_option     , master_task)
+   call broadcast_scalar (stop_count      , master_task)
+   call broadcast_scalar (allow_leapyear  , master_task)
+   call broadcast_scalar (date_separator  , master_task)
  
 
 !-----------------------------------------------------------------------

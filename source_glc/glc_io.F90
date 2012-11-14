@@ -15,6 +15,7 @@
    use glc_time_management, only: iyear, imonth, iday, ihour, iminute, isecond, &
                                   runtype, cesm_date_stamp, elapsed_days, elapsed_days0
    use glc_communicate,     only: my_task, master_task
+   use glc_broadcast,       only: broadcast_scalar
    use glimmer_ncdf,        only: add_output, delete_output
    use glimmer_ncio,        only: glimmer_nc_checkwrite, &
                                   glimmer_nc_createfile
@@ -93,7 +94,7 @@
             'glc_io_read_restart_time: using dumpfile for restart = ', filename
        call shr_sys_flush(stdout)
     endif
-!!    call broadcast_scalar(filename, master_task)
+    call broadcast_scalar(filename, master_task)
     call shr_file_freeunit(ptr_unit)
 
     ! read time from the restart file, since glimmer needs this to initialize

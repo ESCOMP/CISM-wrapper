@@ -24,6 +24,7 @@
 
    use glc_kinds_mod
    use glc_communicate
+   use glc_broadcast
    use glc_constants
    use glc_exit_mod
    use glint_global_grid
@@ -124,6 +125,7 @@
       if (nml_error == 0) close(nml_in)
    endif
 
+   call broadcast_scalar(nml_error, master_task)
    if (nml_error /= 0) then
       call exit_glc(sigAbort,'ERROR reading grid_nml')
    endif
@@ -139,6 +141,12 @@
       write(stdout, grid_nml)
    endif
 
+   call broadcast_scalar(horiz_grid_opt,     master_task)
+   call broadcast_scalar(horiz_grid_file,    master_task)
+   call broadcast_scalar(mask_varname,       master_task)
+   call broadcast_scalar(frac_varname,       master_task)
+
+   write(*,*) my_task, frac_varname
 !-----------------------------------------------------------------------
 !
 !  output grid setup options to log file
@@ -168,7 +176,7 @@
       if (my_task == master_task) then
          write(stdout,*) 'Reading horizontal grid from file:', &
                           trim(horiz_grid_file)
-      call shr_sys_flush(stdout)
+         call shr_sys_flush(stdout)
       endif
       call read_horiz_grid(horiz_grid_file, mask_varname, frac_varname)
    case default
@@ -275,33 +283,44 @@
 
    ! Initialize the grid and masks
 
-   call read_ncdf_ggrid(horiz_grid_file, glc_grid)
+   if (my_task==master_task) then
+      call read_ncdf_ggrid(horiz_grid_file, glc_grid)
 
-   call read_ncdf(horiz_grid_file, mask_varname, landmask)
-   call read_ncdf(horiz_grid_file, frac_varname, landfrac)
-
-   nx = glc_grid%nx
-   ny = glc_grid%ny
+      call read_ncdf(horiz_grid_file, mask_varname, landmask)
+      call read_ncdf(horiz_grid_file, frac_varname, landfrac)
+      nx = glc_grid%nx
+      ny = glc_grid%ny
 
 !lipscomb - GLINT assumes the grid is indexed N to S and automatically sets
 !            lat_bound(1) = 90, lat_bound(ny+1) = -90.
 !           Reverse that convention here.
 
-   glc_grid%lat_bound(1)    = -90._r8
-   glc_grid%lat_bound(ny+1) =  90._r8
+      glc_grid%lat_bound(1)    = -90._r8
+      glc_grid%lat_bound(ny+1) =  90._r8
 
-   do i = 1, nx
-      if (glc_grid%lon_bound(i) < 0._r8)   &
-          glc_grid%lon_bound(i) = glc_grid%lon_bound(i) + 360._r8
-   enddo
+      do i = 1, nx
+         if (glc_grid%lon_bound(i) < 0._r8)   &
+             glc_grid%lon_bound(i) = glc_grid%lon_bound(i) + 360._r8
+      enddo
+   endif
  
+   ! not clear if we really need to have a copy of the grid on each task, but try...
+   call broadcast_scalar(nx, master_task)
+   call broadcast_scalar(ny, master_task)
+
    ! Set glc_landmask and glc_landfrac
 
    allocate(glc_landmask(nx,ny))
-   glc_landmask(:,:) = nint(landmask(:,:))
-
    allocate(glc_landfrac(nx,ny))
-   glc_landfrac(:,:) = landfrac(:,:)
+
+   if (my_task==master_task) then
+      glc_landmask(:,:) = nint(landmask(:,:))
+
+      glc_landfrac(:,:) = landfrac(:,:)
+   endif
+
+   call broadcast_array(glc_landmask, master_task)
+   call broadcast_array(glc_landfrac, master_task)
 
    ! Make sure glc_landmask and glc_landfrac have expected values.
 
@@ -325,37 +344,39 @@
    ! Note: Global grid is indexed from south to north, so the south edge of cell (i,j+1)
    !       is the north edge of cell (i,j)
 
-   allocate(glc_grid%box_areas(nx,ny))
+   if (my_task==master_task) then
+      allocate(glc_grid%box_areas(nx,ny))
 
-   do j = 1, ny
-   do i = 1, nx
+      do j = 1, ny
+      do i = 1, nx
 
-      latn = glc_grid%lat_bound(j+1) * pi/180._r8   ! degrees to radians
-      lats = glc_grid%lat_bound(j)   * pi/180._r8
-      latn = pi/2._r8 - latn  ! so lat = 0 at NP, = pi at SP
-      lats = pi/2._r8 - lats  
-      lone = glc_grid%lon_bound(i+1) * pi/180._r8
-      lonw = glc_grid%lon_bound(i)   * pi/180._r8
-      if (lone < lonw) lone = lone + 2._r8*pi
-      glc_grid%box_areas(i,j) = radius**2 * (cos(latn)-cos(lats)) * (lone-lonw)
+         latn = glc_grid%lat_bound(j+1) * pi/180._r8   ! degrees to radians
+         lats = glc_grid%lat_bound(j)   * pi/180._r8
+         latn = pi/2._r8 - latn  ! so lat = 0 at NP, = pi at SP
+         lats = pi/2._r8 - lats  
+         lone = glc_grid%lon_bound(i+1) * pi/180._r8
+         lonw = glc_grid%lon_bound(i)   * pi/180._r8
+         if (lone < lonw) lone = lone + 2._r8*pi
+         glc_grid%box_areas(i,j) = radius**2 * (cos(latn)-cos(lats)) * (lone-lonw)
 
-      ! Make sure area is positive
-      if (glc_grid%box_areas(i,j) <= 0._r8) then
-         if (verbose) then
-            write(stdout,*) 'Negative area: i, j, area =', i, j, glc_grid%box_areas(i,j)
-            write(stdout,*) 'latn, lats =', latn, lats
-            write(stdout,*) 'cos(latn), cos(lats) =', cos(latn), cos(lats)
-            write(stdout,*) 'lone, lonw =', lone, lonw
-            write(stdout,*) 'latb(j), latb(j+1) =', glc_grid%lat_bound(j), &
-                                                    glc_grid%lat_bound(j+1)
-            write(stdout,*) 'lonb(i), lonb(i+1) =', glc_grid%lon_bound(i), &
-                                                    glc_grid%lon_bound(i+1)
+         ! Make sure area is positive
+         if (glc_grid%box_areas(i,j) <= 0._r8) then
+            if (verbose) then
+               write(stdout,*) 'Negative area: i, j, area =', i, j, glc_grid%box_areas(i,j)
+               write(stdout,*) 'latn, lats =', latn, lats
+               write(stdout,*) 'cos(latn), cos(lats) =', cos(latn), cos(lats)
+               write(stdout,*) 'lone, lonw =', lone, lonw
+               write(stdout,*) 'latb(j), latb(j+1) =', glc_grid%lat_bound(j), &
+                                                       glc_grid%lat_bound(j+1)
+               write(stdout,*) 'lonb(i), lonb(i+1) =', glc_grid%lon_bound(i), &
+                                                       glc_grid%lon_bound(i+1)
+            endif
+            call exit_glc(sigAbort, 'Negative gridcell area on glc grid')
          endif
-         call exit_glc(sigAbort, 'Negative gridcell area on glc grid')
-      endif
 
-   enddo
-   enddo
+      enddo
+      enddo
+   endif
 
    if (verbose .and. my_task==master_task) then
       write(stdout,*) ''
