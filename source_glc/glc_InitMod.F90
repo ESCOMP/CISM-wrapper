@@ -235,28 +235,18 @@
    ! switch latitude indices for sending info to Glint
    ! latitude is S to N on glc_grid, N to S on glint grid
 
-   !JW only necessary if the master is the only task containing the glc_grid
-   if (my_task == master_task) then
-      nx = glc_grid%nx
-      ny = glc_grid%ny
-   endif
-
-   call broadcast_scalar(nx, master_task)
-   call broadcast_scalar(ny, master_task)
+   nx = glc_grid%nx
+   ny = glc_grid%ny
 
    allocate(glint_lons(nx))    !JW necessary to initialize glint w/o glc_grid
    allocate(glint_lats(ny))
 
-   if (my_task == master_task) then
-      do j = 1, nx
-         glint_lons(j) = glc_grid%lons(j)
-      enddo
-      do j = 1, ny
-         glint_lats(j) = glc_grid%lats(ny-j+1)
-      enddo
-   endif
-   call broadcast_array(glint_lats, master_task)
-   call broadcast_array(glint_lons, master_task)
+   do j = 1, nx
+      glint_lons(j) = glc_grid%lons(j)
+   enddo
+   do j = 1, ny
+      glint_lats(j) = glc_grid%lats(ny-j+1)
+   enddo
 
    allocate(glint_landmask(nx,ny))
 

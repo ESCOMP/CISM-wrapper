@@ -227,6 +227,15 @@ Default: 'never'
      are handled separately, and are not directly output to the
      cism.config file -->
 
+<entry id="user_defined_sigma"
+type="logical"
+category="cism_config_sigma"
+group="cism_config_control" >
+Determines whether the sigma section, allowing user-defined sigma_levels,
+is output to the cism.config file.
+Default: true for cism1, false for cism2
+</entry>
+
 <entry id="do_gthf"
 type="logical"
 category="cism_config_gthf"
@@ -292,10 +301,26 @@ Node spacing in y-direction (m)
 Default: resolution-dependent
 </entry>
 
+<entry
+id="sigma_builtin"
+type="integer"
+category="cism_config_grid"
+group="cism_config_grid"
+valid_values="0,1,2" >
+If Glimmer generates the sigma coordinates, selects which built-in sigma to use
+0: standard Glimmer setup
+1: evenly spaced levels
+2: Pattyn's sigma levels
+Only relevant if user_defined_sigma is .false.
+Default: 1
+</entry>
+
 
 <!-- =============================================================  -->
 <!-- group: cism.config: sigma                                      -->
 <!-- =============================================================  -->
+
+<!-- This group is only relevant if user_defined_sigma is .true. -->
 
 <entry 
 id="sigma_levels" 
@@ -304,6 +329,7 @@ category="cism_config_sigma"
 group="cism_config_sigma" >
 List of sigma levels, in ascending order, separated by spaces
 These run between 0.0 (at top surface) and 1.0 (at lower surface)
+Only relevant if user_defined_sigma is .true.
 Default: 0.00 0.15 0.30 0.45 0.60 0.75 0.83 0.90 0.95 0.98 1.00
 </entry>
 
@@ -430,16 +456,31 @@ Default: 0.0
 <!-- group: cism.config: options                                    -->
 <!-- =============================================================  -->
 
+<entry
+id="dycore"
+type="integer"
+category="cism_config_options"
+group="cism_config_options"
+valid_values="0,1,2" >
+Which dycore to use
+0: glide dycore (SIA, serial only)
+1: glam dycore (HO, FDM, serial or parallel)
+2: glissade dycore (HO, FEM, serial or parallel)
+Default: 0 for cism1, 1 for cism2
+</entry>
+
 <entry 
 id="temperature"
 type="integer" 
 category="cism_config_options"
 group="cism_config_options"
-valid_values="0,1" >
+valid_values="0,1,2,3" >
 Determines the temperature solution method
 0: isothermal: set column to surface air temperature
 1: full temperature solution
-Default: 1
+2: do NOTHING: hold temperatures steady at initial value
+3: use remapping to advect temperature (no advection by glide_temp)
+Default: 1 for cism1, 3 for cism2
 </entry>
 
 <entry 
@@ -459,11 +500,13 @@ id="basal_water"
 type="integer" 
 category="cism_config_options"
 group="cism_config_options"
-valid_values="0,1,2" >
+valid_values="0,1,2,3,4" >
 Determines the treatment of basal water
-0: local water balance
-1: local water balance plus constant flux
-2: no basal water (any basal water is instantly removed and does not affect the dynamics)
+0: Calculated from local water balance
+1: Compute the basal water flux, then find depth via calculation
+2: Set to zero everywhere
+3: Calculated from till water content, in the basal processes module
+4: Set to constant everywhere (10m)
 Default: 2
 </entry>
 
@@ -502,12 +545,14 @@ id="evolution"
 type="integer" 
 category="cism_config_options"
 group="cism_config_options"
-valid_values="-1,0,1,2" >
+valid_values="-1,0,2,3,4" >
 -1: no evolution
 0: pseudo-diffusion
-1: ADI scheme
+1: ADI scheme [CANNOT BE USED: RESTARTS ARE NOT EXACT]
 2: diffusion
-Default: 0
+3: remap thickness
+4: 1st order upwind
+Default: 2 for cism1, 3 for cism2
 </entry>
 
 <entry 
@@ -567,7 +612,7 @@ category="cism_config_time"
 group="cism_config_time" >
 Ice sheet timestep (years)
 Must translate into an integer number of hours
-Default: 0.05 years for 5km, 0.1 years for 10km and 20km
+Default: 0.05 years for 5km, 0.025 years for 10km, 0.1 years for 20km
 </entry>
 
 <entry 
@@ -677,7 +722,7 @@ category="cism_config_parameters"
 group="cism_config_parameters" >
 The flow law is enhanced with this factor.
 The greater the value, the lower the viscosity and the faster the ice will flow.
-Default: 3
+Default: 3 for cism1, 1 for cism2
 </entry>
 
 <entry 
@@ -709,6 +754,109 @@ category="cism_config_parameters"
 group="cism_config_parameters" >
 Basal water field smoothing strength
 Default: 0.01
+</entry>
+
+<!-- =============================================================  -->
+<!-- group: cism.config: ho_options (higher-order options)          -->
+<!-- =============================================================  -->
+
+<!-- This group is only relevant if dycore is not 0 -->
+
+<entry
+id="which_ho_babc"
+type="integer"
+category="cism_config_ho_options"
+group="cism_config_ho_options"
+valid_values="0,1,2,3,4,5,6,7" >
+Basal boundary condition for Payne/Price dynamical core
+0: constant value (hardcoded in, useful for debugging)
+1: simple pattern (hardcoded in, useful for debugging)
+2: use till yield stress (Picard-type iteration)
+3: circular ice shelf
+4: no slip everywhere (using stress basal bc and large value for B^2)
+5: beta^2 field passed in from CISM
+6: no slip everywhere (using Dirichlet, no slip basal bc)
+7: use till yield stress (Newton-type iteration)
+Default: 5
+</entry>
+
+<entry
+id="which_ho_efvs"
+type="integer"
+category="cism_config_ho_options"
+group="cism_config_ho_options"
+valid_values="0,1" >
+How effective viscosity is computed for Payne/Price dynamical core
+0: compute from effective strain rate
+1: constant value
+Default: 0
+</entry>
+
+<entry
+id="which_ho_resid"
+type="integer"
+category="cism_config_ho_options"
+group="cism_config_ho_options"
+valid_values="0,1,2,3" >
+Method for computing residual in Payne/Price dynamical core
+0: maxval
+1: maxval ignoring basal velocity
+2: mean value
+3: L2 norm of system residual, Ax-b=resid
+Default: 3
+</entry>
+
+<entry
+id="which_disp"
+type="integer"
+category="cism_config_ho_options"
+group="cism_config_ho_options"
+valid_values="0,1,2" >
+Method for computing the dissipation during the temperature calculation
+0: 0-order SIA approx.
+1: 1st order solution (e.g., Blatter-Pattyn)
+2: 1st order depth-integrated solution (SSA)
+Default: 0
+</entry>
+
+<entry
+id="which_bmelt"
+type="integer"
+category="cism_config_ho_options"
+group="cism_config_ho_options"
+valid_values="0,1,2" >
+Method for computing the frictional melt rate terms during temperature calculation
+0: 0-order SIA approx.
+1: 1st order solution (e.g., Blatter-Pattyn)
+2: 1st order depth-integrated solution (SSA)
+Default: 0
+</entry>
+
+<entry
+id="which_ho_sparse"
+type="integer"
+category="cism_config_ho_options"
+group="cism_config_ho_options"
+valid_values="0,1,2,3,4" >
+Method for solving the sparse linear system that arises from the higher-order solver
+0: Biconjugate gradient, incomplete LU preconditioner
+1: GMRES, incomplete LU preconditioner
+2: Conjugate gradient, incomplete LU preconditioner
+3: Conjugate gradient, structured grid, parallel-enabled
+4: standalone interface to Trilinos
+Default: 4 when building with trilinos, 1 otherwise
+</entry>
+
+<entry
+id="which_ho_nonlinear"
+type="integer"
+category="cism_config_ho_options"
+group="cism_config_ho_options"
+valid_values="0,1" >
+Method for solving the nonlinear iteration when solving the first-order momentum balance
+0: use the standard Picard iteration
+1: use Jacobian Free Newton Krylov (JFNK) method
+Default: 1
 </entry>
 
 <!-- =============================================================  -->

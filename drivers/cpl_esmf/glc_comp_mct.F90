@@ -191,7 +191,6 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
    integer                          :: rc, urc, COMPID
    type(ESMF_State)                 :: import_state, export_state
    type(ESMF_GridComp)              :: glc_comp
-   type(ESMF_GridComp)              :: glc_comp
    integer                          :: GLCID
    !----------------------------------------------------------------------------
 

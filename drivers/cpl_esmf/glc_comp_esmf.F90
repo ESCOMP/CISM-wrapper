@@ -25,7 +25,7 @@ module glc_comp_esmf
   use glc_RunMod,          only: glc_run
   use glc_FinalMod,        only: glc_final
   use glc_io,              only: glc_io_write_restart, glc_io_write_history
-  use glc_communicate,     only: init_communicate
+  use glc_communicate,     only: init_communicate, my_task, master_task
   use glc_time_management, only: iyear,imonth,iday,ihour,iminute,isecond,runtype
   use glc_global_fields,   only: ice_sheet, &
                                  tsfc, topo, qsmb, &                 ! from coupler
@@ -56,8 +56,11 @@ module glc_comp_esmf
   !--- other ---
   integer(IN)   :: errorcode            ! glc error code
   
-  integer(IN)   :: my_task               ! my task in mpi communicator mpicom 
-  integer(IN)   :: master_task=0         ! task number of master task
+  ! my_task_local and master_task_local are needed for some checks that are done before
+  ! init_communicate is called (although, it's possible that init_communicate could be
+  ! moved to earlier to prevent the need for these copies)
+  integer(IN)   :: my_task_local         ! my task in mpi communicator mpicom 
+  integer(IN)   :: master_task_local=0   ! task number of master task
 
   private :: glc_export_esmf
   private :: glc_import_esmf
@@ -117,7 +120,8 @@ CONTAINS
     type(ESMF_Array)         :: dom, g2x, x2g
     type(ESMF_VM)            :: vm
     integer(IN)              :: ierr 
-    integer(IN)              :: i,j,n,nxg,nyg
+    integer(IN)              :: i,j,n
+    integer(IN)              :: nxg_tot, nyg_tot  ! total nx & ny points across all tasks
     integer(IN)              :: lsize
     integer(IN)              :: shrlogunit, shrloglev  
     character(CL)            :: starttype
@@ -155,7 +159,7 @@ CONTAINS
     if(rc /= 0) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
 
     ! Get id of this task
-    call MPI_Comm_rank(mpicom_loc, my_task, ierr)
+    call MPI_Comm_rank(mpicom_loc, my_task_local, ierr)
     
     ! Initialize glc id
     
@@ -192,7 +196,7 @@ CONTAINS
     ! Initialize glc
     !----------------------------------------------------------------------------
 
-    if (my_task == master_task) then
+    if (my_task_local == master_task_local) then
        stdout = shr_file_getUnit()
        call shr_file_setIO(ionml_filename,stdout)
     else
@@ -206,7 +210,7 @@ CONTAINS
     call shr_file_setLogUnit (stdout)
 
     errorCode = glc_Success
-    if (verbose .and. my_task == master_task) then
+    if (verbose .and. my_task_local == master_task_local) then
        write(stdout,F00) ' Starting'
        write(stdout,*) subname, 'COMPID: ', COMPID
        call write_inst_vars
@@ -222,18 +226,13 @@ CONTAINS
        call shr_sys_flush(stdout)
     endif
 
-    nxg = glc_grid%nx
-    nyg = glc_grid%ny
-    lsize = nxg*nyg
-    gsize = nxg*nyg
-
     !---------------------------------------------------------------------------
     ! Initialize distgrids, domains, and arrays
     !---------------------------------------------------------------------------
 
     ! Initialize glc distgrid
 
-    distgrid = glc_DistGrid_esmf(gsize, rc=rc)
+    distgrid = glc_DistGrid_esmf(gsize, nxg_tot, nyg_tot, rc=rc)
     if(rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
 
     call ESMF_AttributeSet(export_state, name="gsize", value=gsize, rc=rc)
@@ -281,10 +280,10 @@ CONTAINS
     call ESMF_AttributeSet(export_state, name="glc_prognostic", value=.true., rc=rc)
     if(rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
 
-    call ESMF_AttributeSet(export_state, name="glc_nx", value=nxg, rc=rc)
+    call ESMF_AttributeSet(export_state, name="glc_nx", value=nxg_tot, rc=rc)
     if(rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
 
-    call ESMF_AttributeSet(export_state, name="glc_ny", value=nyg, rc=rc)
+    call ESMF_AttributeSet(export_state, name="glc_ny", value=nyg_tot, rc=rc)
     if(rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
 
     convCIM  = "CIM"
@@ -547,12 +546,16 @@ CONTAINS
   
 !=================================================================================
 
-  function glc_DistGrid_esmf(gsize, rc)
+  function glc_DistGrid_esmf(gsize, nxg_tot, nyg_tot, rc)
+
+  use glc_broadcast, only: broadcast_scalar
 
   !-------------------------------------------------------------------
   ! Arguments
   implicit none
-  integer, intent(in) :: gsize
+  integer, intent(out):: gsize    ! global total number of points
+  integer, intent(out):: nxg_tot  ! total nx points across all tasks
+  integer, intent(out):: nyg_tot  ! total ny points across all tasks
   integer, intent(out):: rc
 
   ! Return:
@@ -560,8 +563,8 @@ CONTAINS
   
   ! Local Variables
   integer,allocatable :: gindex(:)
-  integer :: i, j, n, nxg, nyg
-  integer :: lsize
+  integer :: i, j, n
+  integer :: nxg, nyg, lsize      ! number of points that this task is responsible for
   integer :: ier
   
   !--- formats ---
@@ -569,25 +572,52 @@ CONTAINS
   character(*), parameter :: subName = "(glc_DistGrid_esmf) "
   !-------------------------------------------------------------------
   
-  nxg = glc_grid%nx
-  nyg = glc_grid%ny
-  lsize = nxg*nyg
-  
-  ! Initialize global index space array
-  
-  allocate(gindex(lsize))
-  do j = 1,nyg
-     do i = 1,nxg
-        n = (j-1)*nxg + i
-        gindex(n) = n
+  ! Note that the following assumes that the master task is responsible for all points
+
+  if (my_task == master_task) then
+
+     nxg = glc_grid%nx
+     nyg = glc_grid%ny
+     lsize = nxg*nyg
+
+     ! Initialize global index space array (the simple method used here only works
+     ! because the master task is responsible for all points)
+     allocate(gindex(lsize))
+     do j = 1,nyg
+        do i = 1,nxg
+           n = (j-1)*nxg + i
+           gindex(n) = n
+        enddo
      enddo
-  enddo
+
+  else
+     
+     nxg = 0
+     nyg = 0
+     lsize = 0
+     allocate(gindex(lsize))
+
+  end if
   
   glc_DistGrid_esmf = mct2esmf_init(gindex, rc=rc)
   if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
   
   deallocate(gindex)
-  
+
+
+  ! Determine other output arguments, relating to the total grid size (across all tasks)
+  ! The following assumes that the master task is responsible for all points
+
+  if (my_task == master_task) then
+     nxg_tot = nxg
+     nyg_tot = nyg
+     gsize = nxg_tot * nyg_tot
+  end if
+
+  call broadcast_scalar(nxg_tot, master_task)
+  call broadcast_scalar(nyg_tot, master_task)
+  call broadcast_scalar(gsize  , master_task)
+
 end function glc_DistGrid_esmf
 
 !====================================================================================
@@ -619,7 +649,7 @@ subroutine glc_import_esmf(fptr, ndx, index_tsrf, index_topo, index_qice)
        enddo
     enddo
 
-    if (verbose) then
+    if (verbose .and. my_task==master_task) then
        write(stdout,*) ' '
        write(stdout,*) subname,' x2g tsrf ',ndx,minval(fptr(index_tsrf,:)),maxval(fptr(index_tsrf,:))
        write(stdout,*) subname,' x2g topo ',ndx,minval(fptr(index_topo,:)),maxval(fptr(index_topo,:))
@@ -661,7 +691,7 @@ subroutine glc_export_esmf(fptr, ndx, index_frac,index_topo, index_rofi,index_ro
        enddo
     enddo
 
-    if (verbose) then
+    if (verbose .and. my_task==master_task) then
        write(stdout,*) subname,' g2x frac ',ndx,minval(fptr(index_frac,:)),maxval(fptr(index_frac,:))
        write(stdout,*) subname,' g2x topo ',ndx,minval(fptr(index_topo,:)),maxval(fptr(index_topo,:))
        write(stdout,*) subname,' g2x rofi ',ndx,minval(fptr(index_rofi,:)),maxval(fptr(index_rofi,:))

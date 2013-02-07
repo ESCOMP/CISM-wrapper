@@ -24,7 +24,7 @@ module glc_comp_mct
   use glc_RunMod,          only: glc_run
   use glc_FinalMod,        only: glc_final
   use glc_io,              only: glc_io_write_restart, glc_io_write_history
-  use glc_communicate,     only: init_communicate
+  use glc_communicate,     only: init_communicate, my_task, master_task
   use glc_time_management, only: iyear,imonth,iday,ihour,iminute,isecond,runtype
   use glc_global_fields,   only: ice_sheet
   use glc_global_grid,     only: glc_grid, glc_landmask, glc_landfrac
@@ -52,9 +52,11 @@ module glc_comp_mct
   !--- other ---
   integer(IN)   :: errorcode            ! glc error code
   
-  integer(IN)   :: my_task               ! my task in mpi communicator mpicom 
-  integer(IN)   :: master_task=0         ! task number of master task
-
+  ! my_task_local and master_task_local are needed for some checks that are done before
+  ! init_communicate is called (although, it's possible that init_communicate could be
+  ! moved to earlier to prevent the need for these copies)
+  integer(IN)           :: my_task_local        ! my task in mpi communicator mpicom 
+  integer(IN),parameter :: master_task_local=0  ! task number of master task
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CONTAINS
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -124,7 +126,7 @@ CONTAINS
     call seq_cdata_setptrs(cdata, ID=COMPID, mpicom=mpicom, &
          gsMap=gsMap, dom=dom, infodata=infodata)
 
-    call mpi_comm_rank(mpicom, my_task, ierr)
+    call mpi_comm_rank(mpicom, my_task_local, ierr)
 
     !---------------------------------------------------------------------------
     ! set variables that depend on ensemble index
@@ -155,7 +157,7 @@ CONTAINS
     ! Reset shr logging to my log file
     !----------------------------------------------------------------------------
     !--- open log file ---
-    if (my_task == master_task) then
+    if (my_task_local == master_task_local) then
        stdout = shr_file_getUnit()
        call shr_file_setIO(ionml_filename,stdout)
     else
@@ -169,7 +171,7 @@ CONTAINS
     call shr_file_setLogUnit (stdout)
 
     errorCode = glc_Success
-    if (verbose .and. my_task == master_task) then
+    if (verbose .and. my_task_local == master_task_local) then
        write(stdout,F00) ' Starting'
        write(stdout,*) subname, 'COMPID: ', COMPID
        call write_inst_vars
@@ -473,7 +475,7 @@ subroutine glc_final_mct( EClock, cdata, x2d, d2x)
        enddo
     enddo
 
-    if (verbose) then
+    if (verbose .and. my_task==master_task) then
        write(stdout,*) ' '
        write(stdout,*) subname,' x2g tsrf ',ndx,minval(x2g%rAttr(index_tsrf,:)),maxval(x2g%rAttr(index_tsrf,:))
        write(stdout,*) subname,' x2g topo ',ndx,minval(x2g%rAttr(index_topo,:)),maxval(x2g%rAttr(index_topo,:))
@@ -518,7 +520,7 @@ subroutine glc_final_mct( EClock, cdata, x2d, d2x)
        enddo
     enddo
 
-    if (verbose) then
+    if (verbose .and. my_task==master_task) then
        write(stdout,*) subname,' g2x frac ',ndx,minval(g2x%rAttr(index_frac,:)),maxval(g2x%rAttr(index_frac,:))
        write(stdout,*) subname,' g2x topo ',ndx,minval(g2x%rAttr(index_topo,:)),maxval(g2x%rAttr(index_topo,:))
        write(stdout,*) subname,' g2x rofi ',ndx,minval(g2x%rAttr(index_rofi,:)),maxval(g2x%rAttr(index_rofi,:))
@@ -541,7 +543,7 @@ subroutine glc_final_mct( EClock, cdata, x2d, d2x)
 
     integer,allocatable :: gindex(:)
     integer :: i, j, n, nxg, nyg
-    integer :: lsize,gsize
+    integer :: lsize
     integer :: ier
 
     !--- formats ---
@@ -549,22 +551,35 @@ subroutine glc_final_mct( EClock, cdata, x2d, d2x)
     character(*), parameter :: subName = "(glc_SetgsMap_mct) "
     !-------------------------------------------------------------------
 
-    nxg = glc_grid%nx
-    nyg = glc_grid%ny
-    lsize = nxg*nyg
-    gsize = nxg*nyg
+    ! Note that the following assumes that the master task is responsible for all points
 
-    ! Initialize MCT global seg map
+    if (my_task == master_task) then
 
-    allocate(gindex(lsize))
-    do j = 1,nyg
-    do i = 1,nxg
-       n = (j-1)*nxg + i
-       gindex(n) = n
-    enddo
-    enddo
+       nxg = glc_grid%nx
+       nyg = glc_grid%ny
+       lsize = nxg*nyg
 
-    call mct_gsMap_init( gsMap_g, gindex, mpicom_g, GLCID, lsize, gsize )
+       ! Initialize MCT global seg map (the simple method used here only works because the
+       ! master task is responsible for all points)
+
+       allocate(gindex(lsize))
+       do j = 1,nyg
+          do i = 1,nxg
+             n = (j-1)*nxg + i
+             gindex(n) = n
+          enddo
+       enddo
+
+    else
+       
+       nxg = 0
+       nyg = 0
+       lsize = 0
+       allocate(gindex(lsize))
+
+    end if
+
+    call mct_gsMap_init( gsMap_g, gindex, mpicom_g, GLCID, lsize )
 
     deallocate(gindex)
 
@@ -656,7 +671,7 @@ subroutine glc_final_mct( EClock, cdata, x2d, d2x)
     deallocate(data)
     deallocate(idata)
 
-    if (verbose) then
+    if (verbose .and. my_task==master_task) then
        i = mct_aVect_nIattr(dom_g%data)
        do n = 1,i
           write(stdout,*) subname,' dom_g ',n,minval(dom_g%data%iAttr(n,:)),maxval(dom_g%data%iAttr(n,:))

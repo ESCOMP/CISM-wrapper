@@ -4,6 +4,322 @@ This file describes what main-trunk tags were created and why
 
 ================================================================================
 Originator: sacks
+Date: Feb 7, 2013
+Model: cism
+Version: cism1_130207
+One-line summary: bring cism2 to trunk
+
+Purpose of changes:
+
+Bring cism2 to trunk (merge changes from cism2_cesm_bld_wjs branch). This
+inovles:
+
+- bringing in the new glimmer-cism code base as an svn external, rather than
+  using copies of the source files
+
+- updating the build system to handle building glimmer-cism as a standalone
+  library, using its native cmake-based build system
+
+- modifying some source code so GLC works properly in a parallel environment
+  (see README.parallelization for details)
+
+- adding namelist options to support cism2
+
+
+Changes answers relative to previous tag: YES. 
+
+There are currently big answer changes (orders of magnitude differences), even
+for cism1 compsets that are supposed to give roughly the same answer. Bill
+Lipscomb is looking into this, and a new tag will be made once these changes are
+resolved.
+
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/): None
+
+List all modified files, and describe the changes:
+
+*** Bring in new glimmer-cism code base as an svn external, delete old copies of
+*** source files
+A       SVN_EXTERNAL_DIRECTORIES
+D       source_glimmer-cism
+D       source_glimmer-cism/glide.F90
+D       source_glimmer-cism/glimmer_scales.F90
+D       source_glimmer-cism/glint_timestep.F90
+D       source_glimmer-cism/smb_dummy.F90
+D       source_glimmer-cism/glide_thck.F90
+D       source_glimmer-cism/isostasy_setup.F90
+D       source_glimmer-cism/isostasy_el.F90
+D       source_glimmer-cism/glide_nc_custom.F90
+D       source_glimmer-cism/glide_lithot_io.F90
+D       source_glimmer-cism/glint_mbal_io.F90
+D       source_glimmer-cism/glimmer_ts.F90
+D       source_glimmer-cism/isostasy_types.F90
+D       source_glimmer-cism/glimmer_searchcircle.F90
+D       source_glimmer-cism/glimmer_routing.F90
+D       source_glimmer-cism/glimmer_daily_pdd.F90
+D       source_glimmer-cism/xls.F90
+D       source_glimmer-cism/glint_mbal.F90
+D       source_glimmer-cism/glide_temp.F90
+D       source_glimmer-cism/glint_climate.F90
+D       source_glimmer-cism/glimmer_utils.F90
+D       source_glimmer-cism/glimmer_map_init.F90
+D       source_glimmer-cism/glimmer_anomcouple.F90
+D       source_glimmer-cism/glimmer_filenames.F90
+D       source_glimmer-cism/glimmer_ncparams.F90
+D       source_glimmer-cism/glimmer_writestats.F90
+D       source_glimmer-cism/glimmer_restart_gcm.F90
+D       source_glimmer-cism/glint_initialise.F90
+D       source_glimmer-cism/glimmer_paramets.F90
+D       source_glimmer-cism/glimmer_vers.F90
+D       source_glimmer-cism/glide_lithot1d.F90
+D       source_glimmer-cism/glimmer_map_CFproj.F90
+D       source_glimmer-cism/glide_mask.F90
+D       source_glimmer-cism/glint_io.F90
+D       source_glimmer-cism/glide_setup.F90
+D       source_glimmer-cism/glide_profile.F90
+D       source_glimmer-cism/glimmer_map_proj4.F90
+D       source_glimmer-cism/glide_types.F90
+D       source_glimmer-cism/glide_velo.F90
+D       source_glimmer-cism/glimmer_global.F90
+D       source_glimmer-cism/glimmer_map_types.F90
+D       source_glimmer-cism/glimmer_deriv.F90
+D       source_glimmer-cism/glimmer_coordinates.F90
+D       source_glimmer-cism/glimmer_ncdf.F90
+D       source_glimmer-cism/kelvin.F90
+D       source_glimmer-cism/glide_stop.F90
+D       source_glimmer-cism/ncdf_utils.F90
+D       source_glimmer-cism/glint_example_clim.F90
+D       source_glimmer-cism/glimmer_log.F90
+D       source_glimmer-cism/glimmer_integrate.F90
+D       source_glimmer-cism/glint_precip_param.F90
+D       source_glimmer-cism/glint_global_grid.F90
+D       source_glimmer-cism/glint_constants.F90
+D       source_glimmer-cism/glimmer_sparse.F90
+D       source_glimmer-cism/glide_diagnostics.F90
+D       source_glimmer-cism/isostasy.F90
+D       source_glimmer-cism/glint_global_interp.F90
+D       source_glimmer-cism/glint_main.F90
+D       source_glimmer-cism/glimmer_config.F90
+D       source_glimmer-cism/glimmer_pdd.F90
+D       source_glimmer-cism/glint_mpinterp.F90
+D       source_glimmer-cism/glint_interp.F90
+D       source_glimmer-cism/glide_lithot3d.F90
+D       source_glimmer-cism/glimmer_physcon.F90
+D       source_glimmer-cism/glimmer_map_trans.F90
+D       source_glimmer-cism/profile.F90
+D       source_glimmer-cism/glimmer_ncio.F90
+D       source_glimmer-cism/glide_lithot.F90
+D       source_glimmer-cism/glint_mbal_coupling.F90
+D       source_glimmer-cism/glide_io.F90
+D       source_glimmer-cism/glint_type.F90
+D       source_slap
+D       source_slap/dmset.F
+D       source_slap/dlaputil.F
+D       source_slap/xersla.F
+D       source_slap/dcgs.F
+D       source_slap/blas.F
+D       source_slap/dmvops.F
+D       source_slap/mach.F
+
+*** Add xml files giving trilinos options; the correct one (based on resolution)
+*** is copied to the run directory
+A       bld/trilinosOptions
+A       bld/trilinosOptions/trilinosOptions_gland10.xml
+A       bld/trilinosOptions/trilinosOptions_gland20.xml
+A       bld/trilinosOptions/trilinosOptions_gland5.xml
+A       bld/trilinosOptions/trilinosOptions_gland5UM.xml
+A       bld/trilinosOptions/README
+M       bld/cism.buildnml.csh
+M       bld/README
+
+*** New build system for cism2, which includes building a separate glimmer-cism
+*** library using a cmake-based build system
+M       bld/cism.buildexe.csh
+
+*** Support new config options for cism2, including new xml variables
+*** "CISM_PHYS" and "CISM_USE_TRILINOS". Also change a few defaults for cism1:
+*** evolution=2 rather than 0, and dt=0.025 rather than 0.1 for 10km (to achieve
+*** stability when using evolution=2)
+M       bld/build-namelist
+M       bld/README.build-namelist
+M       bld/namelist_files/namelist_definition_cism.xml
+M       bld/namelist_files/namelist_defaults_cism.xml
+
+*** Use new sourceMods directory for glimmer-cism-specific code
+*** (src.cism/glimmer-cism)
+M       bld/cism.cpl7.template
+
+*** Support operation in a parallel environment
+M       mpi/glc_communicate.F90
+M       source_glc/glc_InitMod.F90
+M       source_glc/glc_global_grid.F90
+M       source_glc/glc_io.F90 --------- also, minor changes for new glimmer-cism
+                                        i/o interface
+M       drivers/cpl_mct/glc_comp_mct.F90
+M       drivers/cpl_esmf/glc_comp_mct.F90
+M       drivers/cpl_esmf/glc_comp_esmf.F90
+A       README.parallelization
+
+Summary of testing:
+
+------------------------------------------------------------------------
+Core testing
+------------------------------------------------------------------------
+
+Ran the following from https://svn-ccsm-models.cgd.ucar.edu/cesm1/exp_tags/cism2_bld_tags/cism2_bld_21_cesm1_2_beta01
+
+For each machine, I first give failures, then passes. All of these
+failures should be resolved at some point (except the titan failures,
+which basically duplicate the hopper failures: no need to rerun titan
+tests in the future).
+
+Yellowstone: yellowstone_intel.glc.auxtest & yellowstone_pgi.glc.auxtest
+
+***** Restarts currently are not bfb
+FAIL  ERS_Ly20.f09_g16.TG1850.yellowstone_intel
+FAIL  ERI_Ly44.f09_g16.TGRCP85.yellowstone_intel
+FAIL  ERS_Ly20_E.f09_g16.TG20TR.yellowstone_intel
+FAIL  ERS_Ly20_N2_P2.f09_g16_gl10.TG.yellowstone_pgi
+***** Hangs in initialization of the last run (the continue run)
+***** (similar to the ERS IS2 run that fails on hopper)
+RUN   ERI_Ly15.f09_g16_gl10.TG20TRIS2.yellowstone_intel
+***** No ESMF library for PGI
+CFAIL ERS_Ly20_E.f09_g16.TG20TR.yellowstone_pgi
+
+PASS  SMS_D.f09_g16.TG.yellowstone_intel
+PASS  SMS_D_Ly1.f09_g16_gl10.TGIS2.yellowstone_intel
+PASS  PEA_P1_M.f09_g16.TG20TR.yellowstone_intel
+PASS  PEA_P1_M_Ly2.f09_g16_gl10.TGIS2S.yellowstone_intel
+PASS  NCK.f09_g16.TG.yellowstone_intel
+PASS  NCK_Ly3.f09_g16_gl10.TGRCP85IS2.yellowstone_intel
+PASS  CME_Ly10_N2_P2_D.f09_g16.TG1850.yellowstone_intel
+PASS  CME_Ly5.T31_g37.IG.yellowstone_intel
+PASS  SMS.f19_f19.FG20TRCN.yellowstone_intel
+PASS  SMS_D.T31_g37.BG1850CN.yellowstone_intel
+PASS  SMS_Ly3.T31_g37_gl10.IGIS2.yellowstone_intel
+PASS  SMS_D.f09_g16_gl10.TG.yellowstone_pgi
+PASS  SMS_D.f09_g16.IG20TR.yellowstone_pgi
+PASS  ERI.f19_g16.IGRCP85CN.yellowstone_pgi
+
+
+Hopper: hopper_gnu.glc.auxtest & hopper_pgi.glc.auxtest
+
+***** Hangs in initialization of GLC for the restart run
+RUN   ERS_Ly11.f09_g16_gl10.TG1850IS2.hopper_gnu
+***** Dies while writing history file: subscript out of range (Dies
+***** while trying to write uflx: The problem is that it's trying to
+***** write 1:local_ewn, but for uflx, values only go 1:18, since it's
+***** on the flux grid. I think this is due to glint using some glide
+***** init routines rather than glissade, so nhalo has the wrong
+***** value)
+FAIL  SMS_D_Ly1.f09_g16_gl10.TGIS2.hopper_pgi
+***** Dies as follows:
+***** (shr_mct_sMatReaddnc) reading mapping matrix data decomposed...
+***** (shr_mct_sMatReaddnc) * file name                  : idmap
+***** (shr_sys_abort) ERROR: (shr_mct_sMatReaddnc)No such file or directory
+***** I believe I have fixed this with a drv change, and have tested 
+***** SMS.T31_g37_gl10.BGCNIS2.yellowstone_intel, but haven't rerun
+***** this exact test
+FAIL  SMS_D.T31_g37_gl10.BGCNIS2.hopper_pgi
+
+PASS  SMS_D_Ly1.f09_g16_gl10.TGIS2.hopper_gnu
+PASS  SMS.f19_f19_gl10.FGCNIS2.hopper_gnu
+PASS  CME_Ly3.f09_g16_gl10.TGRCP85IS2.hopper_pgi
+
+
+
+Titan: titan.glc.auxtest:
+
+***** See notes for the similar hopper_pgi test
+FAIL  SMS_D_Ly1.f09_g16_gl10.TGIS2.titan_pgi
+***** See notes for the similar hopper_gnu test
+RUN   ERS_Ly11.f09_g16_gl10.TG1850IS2.titan_pgi
+***** See notes for the similar hopper_pgi test
+FAIL  SMS_D.T31_g37_gl10.BGCNIS2.titan_pgi
+
+PASS  CME_Ly3.f09_g16_gl10.TGRCP85IS2.titan_pgi
+PASS  SMS.f19_f19_gl10.FGCNIS2.titan_pgi
+
+
+
+------------------------------------------------------------------------
+Additional CISM1 testing on multiple machines/compilers
+------------------------------------------------------------------------
+
+Ran the following test list:
+[SMS_Ly5 test is just in case the CME test fails because of lack of an esmf library]
+[B is to test a NON-GLC compset, to make sure I haven't broken that]
+
+SMS_D_Ly2.f09_g16.TGIS1
+SMS_D.f09_g16.IG20TRIS1
+SMS_Ly5.f09_g16_gl10.TG1850IS1
+CME_Ly5.f09_g16_gl10.TG1850IS1
+SMS.T31_g37.B
+
+on the following machines & compilers:
+
+- hopper
+  - pgi
+- frankfurt
+  - intel
+  - pgi
+- yellowstone
+  - pgi
+  - intel
+  - gnu
+- titan
+  - pgi
+- intrepid
+  - ibm
+
+(I did NOT run on Janus, assuming it's close enough to
+yellowstone. However, I DID test a TG build on Janus)
+
+In general, used: https://svn-ccsm-models.cgd.ucar.edu/cesm1/exp_tags/cism2_bld_tags/cism2_bld_17_cesm1_2_beta01
+(on yellowstone, used the following for the B compset test; this updates POP: 
+https://svn-ccsm-models.cgd.ucar.edu/cesm1/exp_tags/cism2_bld_tags/cism2_bld_18_cesm1_2_beta01)
+(on yellowstone, used the following for the gnu tests:
+https://svn-ccsm-models.cgd.ucar.edu/cesm1/exp_tags/cism2_bld_tags/cism2_bld_19_cesm1_2_beta01)
+
+IMPORTANT TEST FAILURES (I want to resolve these at some point):
+
+FAIL  SMS_D_Ly2.f09_g16.TGIS1.frankfurt_intel
+FAIL  SMS_Ly5.f09_g16_gl10.TG1850IS1.frankfurt_intel
+
+UNIMPORTANT TEST FAILURES:
+
+***** I think these are just because there are no ESMF libraries for these machines/compilers:
+CFAIL CME_Ly5.f09_g16_gl10.TG1850IS1.frankfurt_intel
+CFAIL CME_Ly5.f09_g16_gl10.TG1850IS1.frankfurt_pgi
+CFAIL CME_Ly5.f09_g16_gl10.TG1850IS1.yellowstone_pgi
+CFAIL CME_Ly5.f09_g16_gl10.TG1850IS1.yellowstone_gnu
+CFAIL CME_Ly5.f09_g16_gl10.TG1850IS1.intrepid_ibm
+
+***** Dies in lnd init. Sheri says no I compsets are being tested on
+***** intrepid, so I'm not going to worry about this. The following
+***** two additional tests passed on intrepid:
+***** ERS.f09_f09.FG1850CN.intrepid_ibm and ERS_Ld7.f09_g16.BGRCP26CN
+FAIL  SMS_D.f09_g16.IG20TRIS1.intrepid_ibm
+
+***** Also, Sheri said that she could only get glc to build if she set
+***** NTHRDS_GLC=1 (weird!) -- otherwise xlf hung while compiling
+***** glide_thck.F90. For now I have changed the PE layouts to set
+***** NTHRDS_GLC=1 by default on intrepid, as a workaround.
+
+
+------------------------------------------------------------------------
+
+Externals used for testing: See above
+
+cism tag used for baseline comparisons: N/A -- no baseline comparisons done,
+because big answer changes were expected (at some point, once some bugs are
+fixed, we should probably do baseline comparisons against cism1_121114 to
+confirm that cism1 compsets give [nearly] identical answers)
+
+Any other externals that differed in baseline: N/A
+
+================================================================================
+Originator: sacks
 Date: Nov 14, 2012
 Model: cism
 Version: cism1_121114

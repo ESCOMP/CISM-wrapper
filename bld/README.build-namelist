@@ -17,6 +17,7 @@ OPTIONS
      -inst_string          INST_STRING variable
      -lnd_grid             LND_GRID variable
      -glc_grid             GLC_GRID variable
+     -cism_phys            CISM_PHYS variable
 
 The precedence for setting the values of namelist variables is (highest to
 lowest): 
@@ -181,10 +182,10 @@ The file namelist_defaults_cism.xml is located in the directory
 $CODEROOT/glc/cism/bld/namelist_files/. It provides default values for
 variables contained in the input namelist definition file. 
 
-The build-namelist script is passed the glc_grid and lnd_grid attributes as
-command-line arguments. These attributes, along with optional user-specified
-attributes, are used in build-namelist to find the best match when looking
-for default values of variables.
+The build-namelist script is passed the glc_grid, lnd_grid and cism_phys
+attributes as command-line arguments. These attributes, along with optional
+user-specified attributes, are used in build-namelist to find the best match
+when looking for default values of variables.
 
 In build-namelist the namelist defaults file appears as follows
 
@@ -238,7 +239,7 @@ build-namelist has four perl objects that it uses
        my $defaults = Build::NamelistDefaults->new($nl_defaults_file, $cfg);
 
      Note that both $nl_defaults_file and $cfg are passed - this is why the
-     glc_grid and lnd_grid attributes do not need to be passed to
+     glc_grid, lnd_grid and cism_phys attributes do not need to be passed to
      add_defaults() (see "Examples" subsection below)
 
   4. $nl

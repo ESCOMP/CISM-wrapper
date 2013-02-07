@@ -40,6 +40,9 @@
 
 ! !PUBLIC DATA MEMBERS:
 
+   ! Note that glc_grid, glc_landmask and glc_landfrac only have valid data on the master task
+   ! On other tasks, these variables are allocated, but with size 0
+   
    type(global_grid) ::   &
       glc_grid        ! info (nx, ny, lat, lon, area) for coupling grid (indexed S to N)
 
@@ -236,6 +239,8 @@
 
 ! !DESCRIPTION:
 !  Reads horizontal grid, landmask, and landfrac from input grid file
+!  Note that the data are only valid on the master task - other tasks still create a
+!  glc_grid, glc_landmask and glc_landfrac, but with size 0
 !
 ! !REVISION HISTORY:
 !  same as module
@@ -283,31 +288,34 @@
 
    ! Initialize the grid and masks
 
+   ! Master task gets full grid, others get 0-size grid
    if (my_task==master_task) then
       call read_ncdf_ggrid(horiz_grid_file, glc_grid)
 
       call read_ncdf(horiz_grid_file, mask_varname, landmask)
       call read_ncdf(horiz_grid_file, frac_varname, landfrac)
-      nx = glc_grid%nx
-      ny = glc_grid%ny
+  
+   else
+      call create_empty_grid
+   end if
+
+   nx = glc_grid%nx
+   ny = glc_grid%ny
 
 !lipscomb - GLINT assumes the grid is indexed N to S and automatically sets
 !            lat_bound(1) = 90, lat_bound(ny+1) = -90.
 !           Reverse that convention here.
 
+   if (ny > 0) then
       glc_grid%lat_bound(1)    = -90._r8
       glc_grid%lat_bound(ny+1) =  90._r8
+   end if
 
-      do i = 1, nx
-         if (glc_grid%lon_bound(i) < 0._r8)   &
-             glc_grid%lon_bound(i) = glc_grid%lon_bound(i) + 360._r8
-      enddo
-   endif
+   do i = 1, nx
+      if (glc_grid%lon_bound(i) < 0._r8)   &
+           glc_grid%lon_bound(i) = glc_grid%lon_bound(i) + 360._r8
+   enddo
  
-   ! not clear if we really need to have a copy of the grid on each task, but try...
-   call broadcast_scalar(nx, master_task)
-   call broadcast_scalar(ny, master_task)
-
    ! Set glc_landmask and glc_landfrac
 
    allocate(glc_landmask(nx,ny))
@@ -318,9 +326,6 @@
 
       glc_landfrac(:,:) = landfrac(:,:)
    endif
-
-   call broadcast_array(glc_landmask, master_task)
-   call broadcast_array(glc_landfrac, master_task)
 
    ! Make sure glc_landmask and glc_landfrac have expected values.
 
@@ -344,39 +349,37 @@
    ! Note: Global grid is indexed from south to north, so the south edge of cell (i,j+1)
    !       is the north edge of cell (i,j)
 
-   if (my_task==master_task) then
-      allocate(glc_grid%box_areas(nx,ny))
+   allocate(glc_grid%box_areas(nx,ny))
 
-      do j = 1, ny
-      do i = 1, nx
+   do j = 1, ny
+   do i = 1, nx
 
-         latn = glc_grid%lat_bound(j+1) * pi/180._r8   ! degrees to radians
-         lats = glc_grid%lat_bound(j)   * pi/180._r8
-         latn = pi/2._r8 - latn  ! so lat = 0 at NP, = pi at SP
-         lats = pi/2._r8 - lats  
-         lone = glc_grid%lon_bound(i+1) * pi/180._r8
-         lonw = glc_grid%lon_bound(i)   * pi/180._r8
-         if (lone < lonw) lone = lone + 2._r8*pi
-         glc_grid%box_areas(i,j) = radius**2 * (cos(latn)-cos(lats)) * (lone-lonw)
+      latn = glc_grid%lat_bound(j+1) * pi/180._r8   ! degrees to radians
+      lats = glc_grid%lat_bound(j)   * pi/180._r8
+      latn = pi/2._r8 - latn  ! so lat = 0 at NP, = pi at SP
+      lats = pi/2._r8 - lats  
+      lone = glc_grid%lon_bound(i+1) * pi/180._r8
+      lonw = glc_grid%lon_bound(i)   * pi/180._r8
+      if (lone < lonw) lone = lone + 2._r8*pi
+      glc_grid%box_areas(i,j) = radius**2 * (cos(latn)-cos(lats)) * (lone-lonw)
 
-         ! Make sure area is positive
-         if (glc_grid%box_areas(i,j) <= 0._r8) then
-            if (verbose) then
-               write(stdout,*) 'Negative area: i, j, area =', i, j, glc_grid%box_areas(i,j)
-               write(stdout,*) 'latn, lats =', latn, lats
-               write(stdout,*) 'cos(latn), cos(lats) =', cos(latn), cos(lats)
-               write(stdout,*) 'lone, lonw =', lone, lonw
-               write(stdout,*) 'latb(j), latb(j+1) =', glc_grid%lat_bound(j), &
-                                                       glc_grid%lat_bound(j+1)
-               write(stdout,*) 'lonb(i), lonb(i+1) =', glc_grid%lon_bound(i), &
-                                                       glc_grid%lon_bound(i+1)
-            endif
-            call exit_glc(sigAbort, 'Negative gridcell area on glc grid')
+      ! Make sure area is positive
+      if (glc_grid%box_areas(i,j) <= 0._r8) then
+         if (verbose) then
+            write(stdout,*) 'Negative area: i, j, area =', i, j, glc_grid%box_areas(i,j)
+            write(stdout,*) 'latn, lats =', latn, lats
+            write(stdout,*) 'cos(latn), cos(lats) =', cos(latn), cos(lats)
+            write(stdout,*) 'lone, lonw =', lone, lonw
+            write(stdout,*) 'latb(j), latb(j+1) =', glc_grid%lat_bound(j), &
+                                                    glc_grid%lat_bound(j+1)
+            write(stdout,*) 'lonb(i), lonb(i+1) =', glc_grid%lon_bound(i), &
+                                                    glc_grid%lon_bound(i+1)
          endif
+         call exit_glc(sigAbort, 'Negative gridcell area on glc grid')
+      endif
 
-      enddo
-      enddo
-   endif
+   enddo
+   enddo
 
    if (verbose .and. my_task==master_task) then
       write(stdout,*) ''
@@ -404,6 +407,53 @@
 !EOC
 
  end subroutine read_horiz_grid
+
+
+!***********************************************************************
+!BOP
+! !IROUTINE: create_empty_grid
+! !INTERFACE:
+
+ subroutine create_empty_grid
+
+! !DESCRIPTION:
+!  Sets up glc_grid as a 0-size grid
+!
+! !REVISION HISTORY:
+!  Created by Bill Sacks, Jan 18, 2013
+
+! !USES:
+
+   use glint_global_grid, only : new_global_grid
+
+!EOP
+!BOC
+!-----------------------------------------------------------------------
+!
+!  local variables
+!
+!-----------------------------------------------------------------------
+
+   real(r8), dimension(:), allocatable :: lons, lats
+
+!-----------------------------------------------------------------------
+!
+!  begin code
+!
+!-----------------------------------------------------------------------
+
+   allocate(lons(0))
+   allocate(lats(0))
+
+   call new_global_grid(glc_grid, lons, lats)
+
+   deallocate(lons)
+   deallocate(lats)
+
+!-----------------------------------------------------------------------
+!EOC
+
+ end subroutine create_empty_grid
 
 !***********************************************************************
 

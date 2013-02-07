@@ -33,7 +33,8 @@ $CODEROOT/glc/cism/bld/build-namelist \
     -scriptsroot $SCRIPTSROOT \
     -inst_string "$inst_string" \
     -paramfile "$cism_config_filename" \
-    -lnd_grid $LND_GRID -glc_grid $GLC_GRID || exit -2
+    -lnd_grid $LND_GRID -glc_grid $GLC_GRID \
+    -cism_phys $CISM_PHYS || exit -2
 
 if (-d ${RUNDIR}) then
    cp $CASEBUILD/cismconf/cism_in     ${RUNDIR}/$cism_in_filename || exit -3
@@ -44,5 +45,20 @@ endif
 
 end
 
+if ($CISM_USE_TRILINOS == "TRUE") then
+   set sourcemod_dir=$CASEROOT/SourceMods/src.cism
+   if (-e ${sourcemod_dir}/trilinosOptions.xml) then
+      cp ${sourcemod_dir}/trilinosOptions.xml ${RUNDIR} || exit -5
+   else
+      set trilinos_options_dir=$CODEROOT/glc/cism/bld/trilinosOptions
+      set trilinos_file=trilinosOptions_${GLC_GRID}.xml
+      if (-e ${trilinos_options_dir}/$trilinos_file) then
+         cp ${trilinos_options_dir}/$trilinos_file ${RUNDIR}/trilinosOptions.xml || exit -6
+      else
+         echo "ERROR: no trilinosOptions file found in $trilinos_options_dir for GLC_GRID=$GLC_GRID"
+	 exit -7
+      endif
+   endif
+endif
 
 

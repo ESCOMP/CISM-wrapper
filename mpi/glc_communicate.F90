@@ -8,6 +8,15 @@
 !  This module contains the necessary routines and variables for
 !  communicating between processors.
 !
+!  WJS (11-19-12): some information here is redundant with information in glimmer-cism's
+!  parallel module - e.g., my_task (redundant with this_rank) and the get_num_procs
+!  routine. However, I am keeping this redundant information here, looking to the future:
+!  When we have multiple instances of cism, and/or GIC, all within a single GLC: the
+!  information here will tell us about the MPI information relative to the whole GLC
+!  communicator, whereas the information in CISM's parallel module will tell us about the
+!  MPI information relative to CISM's MPI communicator, which could theoretically be a
+!  sub-communicator of MPI_COMM_GLC.
+!
 ! !REVISION HISTORY:
 !  SVN:$Id: ice_communicate.F90 66 2007-05-02 16:52:51Z dbailey $
 !
@@ -63,10 +72,13 @@
 !
 ! !REVISION HISTORY:
 !  same as module
+!
+! !USES:
+   use parallel, only : parallel_set_info
 
 ! !INPUT PARAMETERS:
  
-   integer (int_kind), intent(in) :: mpicom   ! MPI error flag
+   integer (int_kind), intent(in) :: mpicom   ! MPI communicator
 
 !EOP
 !BOC
@@ -90,6 +102,8 @@
    MPI_COMM_GLC = mpicom
    master_task = 0
    call MPI_COMM_RANK  (MPI_COMM_GLC, my_task, ierr)
+
+   call parallel_set_info(MPI_COMM_GLC, master_task)
 
 !-----------------------------------------------------------------------
 !

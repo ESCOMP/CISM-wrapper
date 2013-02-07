@@ -4,6 +4,7 @@ Scripts and datasets to create input text files to run the model with CCSM
    cism.buildexe.csh -------------- Script to build cism
    cism.buildnml.csh -------------- Wrapper to build-namelist, doing some initial setup, etc.
    cism.cpl7.template ------------- Script to copy necessary files from CODEROOT to the CASE directory
+   trilinosOptions ---------------- Directory containing resolution-dependent trilinosOptions.xml files, used when running with trilinos solver
    user_nl_cism ------------------- Template into which users can put namelist modifications
 
 XML namelist description files, in namelist_files:

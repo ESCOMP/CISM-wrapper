@@ -47,7 +47,7 @@ cat >! $buildIO_script <<EOF
 #         Use this script ONLY in $CASEROOT.
 # -----------------------------------------------------------------------------
 
-set sourcemod_dir = $CASEROOT/SourceMods/src.cism
+set sourcemod_dir = $CASEROOT/SourceMods/src.cism/glimmer-cism
 set cism_confIOdir  = $CASEBUILD/cismIOconf
 
 EOF

@@ -15,8 +15,8 @@
    use glc_time_management, only: iyear, imonth, iday, ihour, iminute, isecond, &
                                   runtype, cesm_date_stamp, elapsed_days, elapsed_days0
    use glc_communicate,     only: my_task, master_task
+   use glimmer_ncdf,        only: add_output, delete_output, nc_errorhandle
    use glc_broadcast,       only: broadcast_scalar
-   use glimmer_ncdf,        only: add_output, delete_output
    use glimmer_ncio,        only: glimmer_nc_checkwrite, &
                                   glimmer_nc_createfile
    use glimmer_global,      only: fname_length
@@ -83,9 +83,10 @@
 
 !-----------------------------------------------------------------------
 
-    ! get restart filename from rpointer file
-    ptr_unit = shr_file_getUnit()
     if (my_task == master_task) then
+       
+       ! get restart filename from rpointer file
+       ptr_unit = shr_file_getUnit()
        open(ptr_unit,file=ptr_filename)
        read(ptr_unit,'(a)') filename0
        filename = trim(filename0)
@@ -93,26 +94,32 @@
        write(stdout,*) &
             'glc_io_read_restart_time: using dumpfile for restart = ', filename
        call shr_sys_flush(stdout)
-    endif
-    call broadcast_scalar(filename, master_task)
-    call shr_file_freeunit(ptr_unit)
+       call shr_file_freeunit(ptr_unit)
 
-    ! read time from the restart file, since glimmer needs this to initialize
-    rst_unit = shr_file_getUnit()
-    status = nf90_open(filename,0,rst_unit)
-    call nc_errorhandle(__FILE__,__LINE__,status)
-    status = nf90_get_att(rst_unit, NF90_GLOBAL, 'cesmYMD', cesmYMD)
-    call nc_errorhandle(__FILE__,__LINE__,status)
-    status = nf90_get_att(rst_unit, NF90_GLOBAL, 'cesmTOD', cesmTOD)
-    call nc_errorhandle(__FILE__,__LINE__,status)
-    status = nf90_get_att(rst_unit, NF90_GLOBAL, 'glcYMD', glcYMD)
-    call nc_errorhandle(__FILE__,__LINE__,status)
-    status = nf90_get_att(rst_unit, NF90_GLOBAL, 'glcTOD', glcTOD)
-    call nc_errorhandle(__FILE__,__LINE__,status)
-    status = nf90_get_att(rst_unit, NF90_GLOBAL, 'elapsed_days', rst_elapsed_days)
-    call nc_errorhandle(__FILE__,__LINE__,status)
-    status = nf90_close(rst_unit)
-    call nc_errorhandle(__FILE__,__LINE__,status)
+       ! read time from the restart file, since glimmer needs this to initialize
+       rst_unit = shr_file_getUnit()
+       status = nf90_open(filename,0,rst_unit)
+       call nc_errorhandle(__FILE__,__LINE__,status)
+       status = nf90_get_att(rst_unit, NF90_GLOBAL, 'cesmYMD', cesmYMD)
+       call nc_errorhandle(__FILE__,__LINE__,status)
+       status = nf90_get_att(rst_unit, NF90_GLOBAL, 'cesmTOD', cesmTOD)
+       call nc_errorhandle(__FILE__,__LINE__,status)
+       status = nf90_get_att(rst_unit, NF90_GLOBAL, 'glcYMD', glcYMD)
+       call nc_errorhandle(__FILE__,__LINE__,status)
+       status = nf90_get_att(rst_unit, NF90_GLOBAL, 'glcTOD', glcTOD)
+       call nc_errorhandle(__FILE__,__LINE__,status)
+       status = nf90_get_att(rst_unit, NF90_GLOBAL, 'elapsed_days', rst_elapsed_days)
+       call nc_errorhandle(__FILE__,__LINE__,status)
+       status = nf90_close(rst_unit)
+       call nc_errorhandle(__FILE__,__LINE__,status)
+
+    end if
+
+    call broadcast_scalar (cesmYMD         , master_task)
+    call broadcast_scalar (cesmTOD         , master_task)
+    call broadcast_scalar (glcYMD          , master_task)
+    call broadcast_scalar (glcTOD          , master_task)
+    call broadcast_scalar (rst_elapsed_days, master_task)
 
     ! calculate nhour_glint for return
     nhour_glint = rst_elapsed_days * 24
@@ -127,8 +134,8 @@
    subroutine glc_io_write_history(instance, EClock)
 
     use glint_type
-    use glide_io
-    use glint_io
+    use glide_io, only : glide_io_create, glide_io_write
+    use glint_io, only : glint_io_create, glint_io_write
     use glide_nc_custom, only: glide_nc_filldvars
     implicit none
     type(glint_instance), intent(inout) :: instance
@@ -169,7 +176,6 @@
     oc%nc%filename   = trim(filename)
 !jw    oc%nc%vars       = ' acab artm thk usurf uvel vvel uflx vflx temp '
     oc%nc%vars       = trim(history_vars)
-    oc%nc%hotstart   = .false.
     oc%nc%vars_copy  = oc%nc%vars
 !jw TO DO: fill out the rest of the metadata
 !jw    oc%metadata%title =
@@ -184,20 +190,22 @@
     call glide_io_create(oc, instance%model)
     call glint_io_create(oc, instance%model)
 
-    ! write time to the file
-    glcYMD = iyear*10000 + imonth*100 + iday
-    glcTOD = ihour*3600 + iminute*60 + isecond
-    status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'cesmYMD', cesmYMD)
-    call nc_errorhandle(__FILE__,__LINE__,status)
-    status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'cesmTOD', cesmTOD)
-    call nc_errorhandle(__FILE__,__LINE__,status)
-    status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'glcYMD', glcYMD)
-    call nc_errorhandle(__FILE__,__LINE__,status)
-    status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'glcTOD', glcTOD)
-    call nc_errorhandle(__FILE__,__LINE__,status)
-    rst_elapsed_days = elapsed_days - elapsed_days0
-    status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'elapsed_days', rst_elapsed_days)
-    call nc_errorhandle(__FILE__,__LINE__,status)
+    if (my_task == master_task) then
+       ! write time to the file
+       glcYMD = iyear*10000 + imonth*100 + iday
+       glcTOD = ihour*3600 + iminute*60 + isecond
+       status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'cesmYMD', cesmYMD)
+       call nc_errorhandle(__FILE__,__LINE__,status)
+       status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'cesmTOD', cesmTOD)
+       call nc_errorhandle(__FILE__,__LINE__,status)
+       status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'glcYMD', glcYMD)
+       call nc_errorhandle(__FILE__,__LINE__,status)
+       status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'glcTOD', glcTOD)
+       call nc_errorhandle(__FILE__,__LINE__,status)
+       rst_elapsed_days = elapsed_days - elapsed_days0
+       status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'elapsed_days', rst_elapsed_days)
+       call nc_errorhandle(__FILE__,__LINE__,status)
+    end if
     
     call glide_nc_filldvars(oc, instance%model)
     call glimmer_nc_checkwrite(oc, instance%model, forcewrite=.true., &
@@ -205,8 +213,11 @@
     call glide_io_write(oc, instance%model)
     call glint_io_write(oc, instance)
 
-    status = nf90_close(oc%nc%id)
-    call nc_errorhandle(__FILE__,__LINE__,status)
+    if (my_task == master_task) then
+       status = nf90_close(oc%nc%id)
+       call nc_errorhandle(__FILE__,__LINE__,status)
+    end if
+
     oc => null()
 !jw TO DO: figure out why deallocate statement crashes the code
 !jw    deallocate(oc)
@@ -222,8 +233,8 @@
 
     use glc_files, only : ptr_filename
     use glint_type
-    use glide_io
-    use glint_io
+    use glide_io, only : glide_io_create, glide_io_write
+    use glint_io, only : glint_io_create, glint_io_write
     use glide_nc_custom, only: glide_nc_filldvars
     implicit none
     type(glint_instance), intent(inout) :: instance
@@ -262,8 +273,7 @@
     oc%default_xtype = NF90_DOUBLE
     oc%nc%filename   = ''
     oc%nc%filename   = trim(filename)
-    oc%nc%vars       = ' hot '
-    oc%nc%hotstart   = .true.
+    oc%nc%vars       = ' restart '
     oc%nc%vars_copy  = oc%nc%vars
 !jw TO DO: fill out the rest of the metadata
 !jw    oc%metadata%title =
@@ -278,20 +288,22 @@
     call glide_io_create(oc, instance%model)
     call glint_io_create(oc, instance%model)
 
-    ! write time to the file
-    glcYMD = iyear*10000 + imonth*100 + iday
-    glcTOD = ihour*3600 + iminute*60 + isecond
-    status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'cesmYMD', cesmYMD)
-    call nc_errorhandle(__FILE__,__LINE__,status)
-    status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'cesmTOD', cesmTOD)
-    call nc_errorhandle(__FILE__,__LINE__,status)
-    status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'glcYMD', glcYMD)
-    call nc_errorhandle(__FILE__,__LINE__,status)
-    status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'glcTOD', glcTOD)
-    call nc_errorhandle(__FILE__,__LINE__,status)
-    rst_elapsed_days = elapsed_days - elapsed_days0
-    status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'elapsed_days', rst_elapsed_days)
-    call nc_errorhandle(__FILE__,__LINE__,status)
+    if (my_task == master_task) then
+       ! write time to the file
+       glcYMD = iyear*10000 + imonth*100 + iday
+       glcTOD = ihour*3600 + iminute*60 + isecond
+       status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'cesmYMD', cesmYMD)
+       call nc_errorhandle(__FILE__,__LINE__,status)
+       status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'cesmTOD', cesmTOD)
+       call nc_errorhandle(__FILE__,__LINE__,status)
+       status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'glcYMD', glcYMD)
+       call nc_errorhandle(__FILE__,__LINE__,status)
+       status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'glcTOD', glcTOD)
+       call nc_errorhandle(__FILE__,__LINE__,status)
+       rst_elapsed_days = elapsed_days - elapsed_days0
+       status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'elapsed_days', rst_elapsed_days)
+       call nc_errorhandle(__FILE__,__LINE__,status)
+    end if
     
     call glide_nc_filldvars(oc, instance%model)
     call glimmer_nc_checkwrite(oc, instance%model, forcewrite=.true., &
@@ -299,20 +311,23 @@
     call glide_io_write(oc, instance%model)
     call glint_io_write(oc, instance)
 
-    status = nf90_close(oc%nc%id)
-    call nc_errorhandle(__FILE__,__LINE__,status)
+    if (my_task == master_task) then
+       status = nf90_close(oc%nc%id)
+       call nc_errorhandle(__FILE__,__LINE__,status)
+    end if
+
     oc => null()
 !jw TO DO: figure out why deallocate statement crashes the code
 !jw    deallocate(oc)
 
     ! write pointer to restart file
-    ptr_unit = shr_file_getUnit()
     if (my_task == master_task) then
+       ptr_unit = shr_file_getUnit()
        open(ptr_unit,file=ptr_filename)
        write(ptr_unit,'(a)') filename
        close(ptr_unit)
+       call shr_file_freeunit(ptr_unit)
     endif
-    call shr_file_freeunit(ptr_unit)
 
   end subroutine glc_io_write_restart
 
