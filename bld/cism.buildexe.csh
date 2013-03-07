@@ -59,10 +59,30 @@ else
 endif
 
 # ----------------------------------------------------------------------
+# Set mkDepends to append libglimmercismfortran.a to the end of each
+# .o dependency line.
+#
+# Rationale: Some of the source files in the cesm-specific code depend
+# on files included in this library. Ideally, we would be able to
+# determine the actual dependencies, but that's not easy with the
+# current tools and the fact that we build the glimmer-cism code using
+# a different build system than the cesm-specific code. So for now, we
+# just rebuild all the cesm-specific code whenever anything in the
+# libglimmercismfortran.a library changes.
+#
+# WJS (3-6-13): I thought we would just need to include these options
+# in the call to make the complib target. But for some reason that I
+# can't determine, mkDepends is called when we make $glc_dir/Makefile,
+# so we also need to include these options there.
+# ----------------------------------------------------------------------
+
+set mkdepends_opts="-d $cism_libdir/libglimmercismfortran.a"
+
+# ----------------------------------------------------------------------
 # create the glimmer-cism makefile by running cmake (done via a rule
 # in the system-level makefile)
 # ----------------------------------------------------------------------
-$GMAKE $glc_dir/Makefile MODEL=cism USER_CMAKE_OPTS="$cmake_opts" GLC_DIR=$glc_dir -f $CASETOOLS/Makefile || exit 1
+$GMAKE $glc_dir/Makefile MODEL=cism USER_CMAKE_OPTS="$cmake_opts" USER_MKDEPENDS_OPTS="$mkdepends_opts" GLC_DIR=$glc_dir -f $CASETOOLS/Makefile || exit 1
 
 # ----------------------------------------------------------------------
 # create the glimmer-cism library (or libraries), using the makefile
@@ -73,40 +93,9 @@ $GMAKE -j $GMAKE_J || exit 2
 popd
 
 # ----------------------------------------------------------------------
-# Create dependency file needed for building the cesm-specific portion
-# of glc
-#
-# Note: This generally doesn't need to be done explicitly (it is done
-# automatically via CESM's makefile). But we do it explicitly so we
-# can add stuff to the dependency file
-# ----------------------------------------------------------------------
-$GMAKE $glc_obj_dir/Depends MODEL=cism -f $CASETOOLS/Makefile || exit 3
-
-# Append 'libglimmercismfortran.a' to the end of each line in the
-# Depends file that does not already contain it.
-# 
-# Rationale: Some of the source files in the cesm-specific code depend
-# on files included in this library. Ideally, we would be able to
-# determine the actual dependencies, but that's not easy with the
-# current tools and the fact that we build the glimmer-cism code using
-# a different build system than the cesm-specific code. So for now, we
-# just rebuild all the cesm-specific code whenever anything in the
-# libglimmercismfortran.a library changes.
-#
-# (We only add libglimmercismfortran.a to lines not already containing
-# this string so that when we rebuild we don't get an ever-growing
-# string of instances of 'libglimmercismfortran.a'.)
-cat >! $glc_obj_dir/Depends.awk <<EOF
-/libglimmercismfortran\.a/ {print \$0; next}
-{print \$0 " $cism_libdir/libglimmercismfortran.a"}
-EOF
-awk -f $glc_obj_dir/Depends.awk $glc_obj_dir/Depends > $glc_obj_dir/Depends.temp || exit 4
-mv $glc_obj_dir/Depends.temp $glc_obj_dir/Depends || exit 5
-
-# ----------------------------------------------------------------------
 # create the cesm-specific portion of the glc library using cesm's makefile
 # ----------------------------------------------------------------------
-$GMAKE complib -j $GMAKE_J MODEL=cism COMPLIB=$LIBROOT/libglc.a GLC_DIR=$glc_dir -f $CASETOOLS/Makefile || exit 6
+$GMAKE complib -j $GMAKE_J MODEL=cism COMPLIB=$LIBROOT/libglc.a USER_MKDEPENDS_OPTS="$mkdepends_opts" GLC_DIR=$glc_dir -f $CASETOOLS/Makefile || exit 6
 
 exit 0
 
