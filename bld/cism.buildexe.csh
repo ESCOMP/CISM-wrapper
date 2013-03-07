@@ -98,7 +98,7 @@ $GMAKE $glc_obj_dir/Depends MODEL=cism -f $CASETOOLS/Makefile || exit 3
 # string of instances of 'libglimmercismfortran.a'.)
 cat >! $glc_obj_dir/Depends.awk <<EOF
 /libglimmercismfortran\.a/ {print \$0; next}
-{print \$0 "$cism_libdir/libglimmercismfortran.a"}
+{print \$0 " $cism_libdir/libglimmercismfortran.a"}
 EOF
 awk -f $glc_obj_dir/Depends.awk $glc_obj_dir/Depends > $glc_obj_dir/Depends.temp || exit 4
 mv $glc_obj_dir/Depends.temp $glc_obj_dir/Depends || exit 5
