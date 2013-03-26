@@ -45,7 +45,7 @@ OPTIONS
      -inst_string          INST_STRING variable
      -paramfile            name of top-level configuration file
      -lnd_grid             LND_GRID variable
-     -glc_grid             GLC_GRID variable
+     -glc_grid             CISM_GRID variable
      -cism_phys            CISM_PHYS variable
 
 NOTE: The precedence for setting the values of namelist variables is (highest to lowest):

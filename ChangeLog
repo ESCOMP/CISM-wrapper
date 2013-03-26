@@ -3,6 +3,38 @@ This file describes what main-trunk tags were created and why
 ================================================================================
 
 ================================================================================
+Originator: tcraig
+Date: March 25, 2013
+Model: cism
+Version: cism1_130325
+One-line summary: updates for new CISM_GRID env variable
+
+the scripts env variable GLC_GRID was renamed to CISM_GRID and a few changes
+were needed in cism scripts.
+
+Changes answers relative to previous tag: No
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/):
+
+List all modified files, and describe the changes:
+
+M       models/glc/cism/bld/trilinosOptions/README
+M       models/glc/cism/bld/README.build-namelist
+M       models/glc/cism/bld/build-namelist
+M       models/glc/cism/bld/cism.buildnml.csh
+
+Summary of testing: Ran a handful of yellowstone prealpha/beta tests
+
+Externals used for testing: cesm1_2_alpha04a+
+
+cism tag used for baseline comparisons: cism1_130315
+
+Any other externals that differed in baseline: Several including a
+ dependency on scripts changes and everything else in alpha05a.  This
+ tag does depends on the scripts tag in cesm1_2_alpha05a and that
+ scripts tag depends on everything else in alpha05a (add wave model).
+
+================================================================================
 Originator: sacks
 Date: March 15, 2013
 Model: cism

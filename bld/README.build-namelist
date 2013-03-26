@@ -16,7 +16,7 @@ OPTIONS
      -scriptsroot          SCRIPTSROOT directory variable
      -inst_string          INST_STRING variable
      -lnd_grid             LND_GRID variable
-     -glc_grid             GLC_GRID variable
+     -glc_grid             CISM_GRID variable
      -cism_phys            CISM_PHYS variable
 
 The precedence for setting the values of namelist variables is (highest to
@@ -514,7 +514,7 @@ A: Yes, you can modify the namelist_defaults_cism.xml file in
         ntem = 2.
         ...
 
-      for any runs with GLC_GRID=gland5, while not changing the value for
+      for any runs with CISM_GRID=gland5, while not changing the value for
       other grids.
 
 ----------------------------------------------------------------------------
