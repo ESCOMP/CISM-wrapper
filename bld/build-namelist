@@ -348,6 +348,7 @@ my $CONTINUE_RUN           = $xmlvars{'CONTINUE_RUN'};
 my $NCPL_BASE_PERIOD       = $xmlvars{'NCPL_BASE_PERIOD'};
 my $GLC_NCPL               = $xmlvars{'GLC_NCPL'};
 my $CISM_USE_TRILINOS      = $xmlvars{'CISM_USE_TRILINOS'};
+my $CISM_OBSERVED_IC       = $xmlvars{'CISM_OBSERVED_IC'};
 
 (-d $DIN_LOC_ROOT)  or  die <<"EOF";
 ** $ProgName - CCSM inputdata root is not a directory: \"$DIN_LOC_ROOT\" **
@@ -402,11 +403,26 @@ add_default($nl, 'cism_debug');
 add_default($nl, 'cesm_history_vars');
 
 
+my $hotstart;
 if ($RUN_TYPE eq 'startup') {
-    add_default($nl, 'cisminputfile'); 
+   add_default($nl, 'cisminputfile'); 
+   $hotstart = 0;
 } 
-if ($RUN_TYPE eq 'branch' || $RUN_TYPE eq 'hybrid') {
-    add_default($nl, 'cisminputfile', 'val'=>"${RUN_REFCASE}.cism.r.${RUN_REFDATE}-00000.nc", 'noprepend'=>'1');
+elsif ($CISM_OBSERVED_IC eq 'TRUE') {
+   if ($RUN_TYPE eq 'branch') {
+      die "$ProgName - ERROR: CISM_OBSERVED_IC=TRUE not allowed for branch runs - only for hybrid runs\n";
+   }
+
+   add_default($nl, 'cisminputfile'); 
+   $hotstart = 0;
+}
+elsif ($RUN_TYPE eq 'branch' || $RUN_TYPE eq 'hybrid') {
+   add_default($nl, 'cisminputfile',
+               'val'=>"${RUN_REFCASE}.cism.r.${RUN_REFDATE}-00000.nc", 'noprepend'=>'1');
+   $hotstart = 1;
+}
+else {
+   die "$ProgName - ERROR: Unknown RUN_TYPE: $RUN_TYPE\n";
 }
 
 ####################################
@@ -478,7 +494,7 @@ add_default($nl, 'marine_margin');
 add_default($nl, 'slip_coeff');
 add_default($nl, 'evolution');
 add_default($nl, 'vertical_integration');
-add_default($nl, 'hotstart', 'runtype'=>"$RUN_TYPE");
+add_default($nl, 'hotstart', 'val'=>$hotstart);
 $nl->write_cism_config($fh, "cism_config_options");
 
 print $fh "\n[time]\n";

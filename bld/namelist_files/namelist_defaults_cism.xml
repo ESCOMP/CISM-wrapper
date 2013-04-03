@@ -169,10 +169,6 @@ now, it gives reasonable enough results for testing purposes. -->
 
 <vertical_integration>0</vertical_integration>
 
-<hotstart runtype="startup">0</hotstart>
-<hotstart runtype="hybrid" >1</hotstart>
-<hotstart runtype="branch" >1</hotstart>
-
 <!-- =============================================================  -->
 <!-- group: cism.config: time                                       -->
 <!-- =============================================================  -->

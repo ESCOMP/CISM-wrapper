@@ -16,8 +16,10 @@ input_pathname="abs"
 group="derived" 
 valid_values="">
 Input file
-Default: For startup runs, a resolution-dependent initial conditions file (e.g., gland10.input.nc)
-         For branch/hybrid runs, a restart file name built based on RUN_REFCASE and RUN_REFDATE
+Default: For startup runs or hybrid runs with CISM_OBSERVED_IC=TRUE, a resolution-dependent
+         initial conditions file (e.g., gland10.input.nc).
+         For branch/hybrid runs with CISM_OBSERVED_IC=FALSE, a restart file name
+         built based on RUN_REFCASE and RUN_REFDATE.
 </entry>
 
 <!-- =============================================================  -->
@@ -598,7 +600,7 @@ group="cism_config_options"
 valid_values="0,1" >
 Hotstart the model if set to 1. 
 This option only affects the way the initial temperature and flow factor distribution is calculated.
-Default: 0 for startup, 1 for hybrid/branch
+Default: 0 for startup or hybrid with CISM_OBSERVED_IC=TRUE, 1 for hybrid/branch with CISM_OBSERVED_IC=FALSE
 </entry>
 
 <!-- =============================================================  -->
