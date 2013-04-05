@@ -164,7 +164,7 @@ now, it gives reasonable enough results for testing purposes. -->
 
 <slip_coeff>0</slip_coeff>
 
-<evolution cism_phys="cism1">2</evolution>
+<evolution cism_phys="cism1">0</evolution>
 <evolution cism_phys="cism2">3</evolution>
 
 <vertical_integration>0</vertical_integration>
@@ -173,9 +173,7 @@ now, it gives reasonable enough results for testing purposes. -->
 <!-- group: cism.config: time                                       -->
 <!-- =============================================================  -->
 
-<!-- Counter-intuitively, gland10 seems to require a smaller time step
-     than gland5, at least for evolution=2 (as of 1-23-13) -->
-<dt glc_grid="gland10"  cism_phys="cism1">0.025</dt>
+<dt glc_grid="gland10"  cism_phys="cism1">0.1</dt>
 <dt glc_grid="gland20"  cism_phys="cism1">0.1</dt>
 <dt glc_grid="gland5"   cism_phys="cism1">0.05</dt>
 <dt glc_grid="gland5UM" cism_phys="cism1">0.05</dt>
@@ -193,7 +191,7 @@ now, it gives reasonable enough results for testing purposes. -->
 <nvel>1</nvel>
 
 <!-- To get diagnostic once per year, set this to 1/dt -->
-<ndiag glc_grid="gland10"  cism_phys="cism1">40</ndiag>
+<ndiag glc_grid="gland10"  cism_phys="cism1">10</ndiag>
 <ndiag glc_grid="gland20"  cism_phys="cism1">10</ndiag>
 <ndiag glc_grid="gland5"   cism_phys="cism1">20</ndiag>
 <ndiag glc_grid="gland5UM" cism_phys="cism1">20</ndiag>
