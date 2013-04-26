@@ -25,7 +25,8 @@
    use esmf,            only: ESMF_Clock
    use seq_timemgr_mod,     only: seq_timemgr_EClockGetData
    use shr_sys_mod
-   use shr_kind_mod,        only: CL=>SHR_KIND_CL, IN=>SHR_KIND_IN
+   use shr_kind_mod,        only: CL=>SHR_KIND_CL, CX=>SHR_KIND_CX, &
+                                  IN=>SHR_KIND_IN
    use shr_file_mod,        only: shr_file_getunit, shr_file_freeunit
    use netcdf
 
@@ -369,7 +370,7 @@
   integer       :: month          ! Simulation month
   integer       :: day            ! Simulation day
   integer       :: ncsec          ! Seconds into current simulation day
-  character(CL) :: string         ! Temporary character string
+  character(CX) :: string         ! Temporary character string
   character(CL) :: format         ! Format character string
   character(CL) :: filename_spec  ! cism filename specifier
 

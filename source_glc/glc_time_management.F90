@@ -73,9 +73,11 @@
 
    character (char_len) :: &
       stop_option         ,&! specify how to determine stopping time
-      runid               ,&! an identifier for the run
       runtype             ,&! type of cesm run (initial, continue, branch or hybrid)
       dt_option             ! method to determine tracer timestep size
+
+   character (char_len_long) :: &
+      runid                 ! an identifier for the run
 
    integer (int_kind) :: &
       stop_count        ,&! num of stop_option intervals before stop
@@ -83,8 +85,7 @@
       stop_iopt         ,&! integer value for stop_option
       nsteps_total      ,&! steps (full&half) since beginning of run sequence
       nsteps_run        ,&! steps taken since beginning of this run
-      nsteps_per_day    ,&! integer number of steps per day
-      len_runid           ! length of character runid
+      nsteps_per_day      ! integer number of steps per day
 
    integer (int_kind), private :: &
       stop_now            ,&! time_flag id for stopping
@@ -492,7 +493,11 @@
 !
 !-----------------------------------------------------------------------
 
-   len_runid = len_trim(runid)
+   ! If the trimmed runid takes up the entire allowed length, there is a good chance that
+   ! the intended runid was longer than the allowed length, so abort
+   if (len_trim(runid) >= len(runid)) then
+      call exit_glc(sigAbort,'runid exceeds max length: '//runid)
+   end if
 
 !-----------------------------------------------------------------------
 !

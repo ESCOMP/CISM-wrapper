@@ -4,6 +4,49 @@ This file describes what main-trunk tags were created and why
 
 ================================================================================
 Originator: sacks
+Date: April 25, 2013
+Model: cism
+Version: cism1_130425
+One-line summary: Allow longer case names, and error-check too-long case names
+
+Changes answers relative to previous tag: NO
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/):
+
+List all modified files, and describe the changes:
+
+M       source_glc/glc_io.F90
+M       source_glc/glc_time_management.F90
+
+Summary of testing:
+
+   Ran standard cism1 tests on yellowstone, from glc aux test lists (for intel &
+   pgi); took these test lists from an older scripts tag from before the
+   conversion to xml, since the xml list has some problems. 
+
+   All tests PASSed, except the following expected failures:
+
+   *** No esmf library for pgi
+   CFAIL ERS_Ly20_E.f09_g16.TG20TR.yellowstone_pgi.GC.145755
+
+   *** PIO broken for mpi-serial
+   RUN   PEA_P1_M.f09_g16.TG20TR.yellowstone_intel.GC.145802 
+
+   All baseline comparisons, including component_gen_comp, PASSed or BFAILed in
+   an expected way.
+
+
+   Also ran an ERI_Ly44 test with a long testid that resulted in a > 160
+   character case name (old limit was 80, new is 256 characters).
+
+Externals used for testing: cesm1_2_beta06
+
+cism tag used for baseline comparisons: cism1_130405
+
+Any other externals that differed in baseline: None
+
+================================================================================
+Originator: sacks
 Date: April 5, 2013
 Model: cism
 Version: cism1_130405
