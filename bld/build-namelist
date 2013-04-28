@@ -57,6 +57,20 @@ EOF
 }
 
 #-----------------------------------------------------------------------------------------------
+# Set some important constants, such as important values of certain config file parameters
+
+# value of 'sigma' that signifies that values are read from a sigma section
+my $SIGMA_IN_CONFIG_FILE = 2;
+
+# value of 'gthf' signifying that we should calculate gthf, and thus
+# we should have a 'gthf' section
+my $GTHF_CALCULATE = 2;
+
+# value of 'isostasy' signifying that isostasy is enabled, and thus we
+# should have an 'isostasy' section
+my $ISOSTASY_ON = 1;
+
+#-----------------------------------------------------------------------------------------------
 # Set the directory that contains the CISM configuration scripts.  If the command was
 # issued using a relative or absolute path, that path is in $ProgDir.  Otherwise assume the
 # command was issued from the current working directory.
@@ -454,24 +468,10 @@ add_default($nl, 'nsn');
 add_default($nl, 'upn');
 add_default($nl, 'dew');
 add_default($nl, 'dns');
-add_default($nl, 'sigma_builtin');
 $nl->write_cism_config($fh, "cism_config_grid");
 
-# Some code in cism keys off of whether the [sigma] section is
-# present, thus we only want to add this section if we're using
-# user-defined sigma levels
-add_default($nl, 'user_defined_sigma');
-if ($nl->get_value('user_defined_sigma') eq '.true.') {
-    print $fh "\n[sigma]\n";
-    add_default($nl, 'sigma_levels');
-    $nl->write_cism_config($fh, "cism_config_sigma");
-}
-else {
-    confirm_empty("cism_config_sigma", "items in sigma section can only be set if user_defined_sigma is set to .true.");
-}
-  
-
 print $fh "\n[GLINT climate]\n";
+add_default($nl, 'evolve_ice');
 add_default($nl, 'precip_mode');
 add_default($nl, 'acab_mode');
 $nl->write_cism_config($fh, "cism_config_climate");
@@ -488,20 +488,38 @@ $nl->write_cism_config($fh, "cism_config_projection");
 print $fh "\n[options]\n";
 add_default($nl, 'dycore');
 add_default($nl, 'temperature');
+add_default($nl, 'temp_init');
 add_default($nl, 'flow_law');
 add_default($nl, 'basal_water');
+add_default($nl, 'basal_mass_balance');
+add_default($nl, 'gthf');
+add_default($nl, 'isostasy');
 add_default($nl, 'marine_margin');
 add_default($nl, 'slip_coeff');
 add_default($nl, 'evolution');
 add_default($nl, 'vertical_integration');
+add_default($nl, 'sigma');
 add_default($nl, 'hotstart', 'val'=>$hotstart);
 $nl->write_cism_config($fh, "cism_config_options");
+
+# Some code in cism keys off of whether the [sigma] section is
+# present, thus we only want to add this section if we're using
+# user-defined sigma levels
+if ($nl->get_value('sigma') == $SIGMA_IN_CONFIG_FILE) {
+    print $fh "\n[sigma]\n";
+    add_default($nl, 'sigma_levels');
+    $nl->write_cism_config($fh, "cism_config_sigma");
+}
+else {
+    confirm_empty("cism_config_sigma", "items in sigma section can only be set if sigma is set to $SIGMA_IN_CONFIG_FILE");
+}
+  
 
 print $fh "\n[time]\n";
 add_default($nl, 'dt');
 add_default($nl, 'ntem');
 add_default($nl, 'nvel');
-add_default($nl, 'ndiag');
+add_default($nl, 'dt_diag');
 add_default($nl, 'idiag');
 add_default($nl, 'jdiag');
 $nl->write_cism_config($fh, "cism_config_time");
@@ -513,7 +531,7 @@ add_default($nl, 'marine_limit');
 add_default($nl, 'geothermal');
 add_default($nl, 'flow_factor');
 add_default($nl, 'hydro_time');
-add_default($nl, 'basal_tract');
+add_default($nl, 'basal_tract_const');
 $nl->write_cism_config($fh, "cism_config_parameters");
 
 # The ho_options section only applies if dycore is not 0
@@ -523,7 +541,6 @@ if ($nl->get_value('dycore') != 0) {
     add_default($nl, 'which_ho_efvs');
     add_default($nl, 'which_ho_resid');
     add_default($nl, 'which_disp');
-    add_default($nl, 'which_bmelt');
     add_default($nl, 'which_ho_sparse', 'cism_use_trilinos'=>"$CISM_USE_TRILINOS");
     add_default($nl, 'which_ho_nonlinear');
     $nl->write_cism_config($fh, "cism_config_ho_options");
@@ -535,36 +552,25 @@ else {
 # Some code in cism keys off of whether the [GTHF] section is present
 # (even if it's empty), thus we only want to add this section if it's
 # really desired by the user
-add_default($nl, 'do_gthf');
-if ($nl->get_value('do_gthf') eq '.true.') {
+if ($nl->get_value('gthf') == $GTHF_CALCULATE) {
     print $fh "\n[GTHF]\n";
     $nl->write_cism_config($fh, "cism_config_gthf");
 }
 else {
-    confirm_empty("cism_config_gthf", "items in gthf section can only be set if do_gthf is set to .true.");
+    confirm_empty("cism_config_gthf", "items in gthf section can only be set if gthf is set to $GTHF_CALCULATE");
 }
 
 # Some code in cism keys off of whether the [isostasy] section is present
 # (even if it's empty), thus we only want to add this section if it's
 # really desired by the user
-add_default($nl, 'do_isostasy');
-if ($nl->get_value('do_isostasy') eq '.true.') {
+if ($nl->get_value('isostasy') == $ISOSTASY_ON) {
     print $fh "\n[isostasy]\n";
     $nl->write_cism_config($fh, "cism_config_isostasy");
 }
 else {
-    confirm_empty("cism_config_isostasy", "items in isostasy section can only be set if do_isostasy is set to .true.");
+    confirm_empty("cism_config_isostasy", "items in isostasy section can only be set if isostasy is set to $ISOSTASY_ON");
 }
 
-# The elastic lithosphere section only applies if lithosphere=1
-if ($nl->get_value('lithosphere') == 1) {
-    print $fh "\n[elastic lithosphere]\n";
-    $nl->write_cism_config($fh, "cism_config_elastic_lithosphere");
-}
-else {
-    confirm_empty("cism_config_elastic_lithosphere", "ERROR: items in elastic lithosphere section can only be set if lithosphere is set to 1");
-}
-    
 
 print $fh <<"EOF";
 

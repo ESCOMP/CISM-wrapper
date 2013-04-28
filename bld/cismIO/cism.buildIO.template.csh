@@ -17,7 +17,7 @@
 # -----------------------------------------------------------------------------
 cd $cism_confIOdir
 
-foreach file (glide_lithot glide glint_mbal glint)
+foreach file (glide glint glint_mbal)
   set file_varsdef = ${file}_vars.def
   set file_ioF90 = ${file}_io.F90
   if (-f ${file_varsdef}) then

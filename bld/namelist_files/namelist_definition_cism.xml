@@ -45,12 +45,12 @@ Default: false
 </entry>
 
 <entry id="cesm_history_vars" 
-type="char*256" 
+type="char*1024" 
 category="cism" 
 group="cism_params" 
 valid_values="">
 Space-delimited list of variables output to history file
-Default: 'acab artm thk usurf uvel vvel uflx vflx temp'
+Default: 'acab artm thk usurf topg uvel vvel uflx vflx temp bmlt bwat'
 </entry>
 
 <!-- =============================================================  -->
@@ -215,46 +215,6 @@ Default: 'never'
 </entry>
 
 <!-- =============================================================  -->
-<!-- group: cism.config: control parameters                         -->
-<!-- =============================================================  -->
-
-<!-- This section contains parameters that control whether certain
-     sections are output to cism.config. This is needed becasue some
-     variables in cism key off of the mere presence of a section in
-     the config file -->
-
-<!-- Note that the category (used for documentation) puts these in the
-     section that they control, but the group (used for namelist
-     generation) puts them in their own 'control' group, so that they
-     are handled separately, and are not directly output to the
-     cism.config file -->
-
-<entry id="user_defined_sigma"
-type="logical"
-category="cism_config_sigma"
-group="cism_config_control" >
-Determines whether the sigma section, allowing user-defined sigma_levels,
-is output to the cism.config file.
-Default: true for cism1, false for cism2
-</entry>
-
-<entry id="do_gthf"
-type="logical"
-category="cism_config_gthf"
-group="cism_config_control" >
-Determines whether the GTHF (geothermal heat flux) section is output to the cism.config file.
-Default: false
-</entry>
-
-<entry id="do_isostasy"
-type="logical"
-category="cism_config_isostasy"
-group="cism_config_control" >
-Determines whether the isostasy section is output to the cism.config file.
-Default: false
-</entry>
-
-<!-- =============================================================  -->
 <!-- group: cism.config: grid                                       -->
 <!-- =============================================================  -->
 
@@ -303,21 +263,6 @@ Node spacing in y-direction (m)
 Default: resolution-dependent
 </entry>
 
-<entry
-id="sigma_builtin"
-type="integer"
-category="cism_config_grid"
-group="cism_config_grid"
-valid_values="0,1,2" >
-If Glimmer generates the sigma coordinates, selects which built-in sigma to use
-0: standard Glimmer setup
-1: evenly spaced levels
-2: Pattyn's sigma levels
-Only relevant if user_defined_sigma is .false.
-Default: 1
-</entry>
-
-
 <!-- =============================================================  -->
 <!-- group: cism.config: sigma                                      -->
 <!-- =============================================================  -->
@@ -338,6 +283,17 @@ Default: 0.00 0.15 0.30 0.45 0.60 0.75 0.83 0.90 0.95 0.98 1.00
 <!-- =============================================================  -->
 <!-- group: cism.config: climate                                    -->
 <!-- =============================================================  -->
+
+<entry 
+id="evolve_ice"
+type="integer" 
+category="cism_config_climate"
+group="cism_config_climate"
+valid_values="0,1" >
+0: Do not let the ice sheet evolve (hold ice state fixed at initial condition)
+1: Let the ice sheet evolve
+Default: 1
+</entry>
 
 <entry 
 id="precip_mode" 
@@ -476,13 +432,25 @@ id="temperature"
 type="integer" 
 category="cism_config_options"
 group="cism_config_options"
-valid_values="0,1,2,3" >
+valid_values="0,1,2" >
 Determines the temperature solution method
 0: isothermal: set column to surface air temperature
-1: full temperature solution
+1: full prognostic temperature solution
 2: do NOTHING: hold temperatures steady at initial value
-3: use remapping to advect temperature (no advection by glide_temp)
-Default: 1 for cism1, 3 for cism2
+Default: 1
+</entry>
+
+<entry 
+id="temp_init"
+type="integer" 
+category="cism_config_options"
+group="cism_config_options"
+valid_values="0,1,2" >
+Temperature initialization method
+0: Initialize temperature to 0 C
+1: Initialize temperature to surface air temperature
+2: Initialize temperature with a linear profile in each column
+Default: 1
 </entry>
 
 <entry 
@@ -491,10 +459,10 @@ type="integer"
 category="cism_config_options"
 group="cism_config_options"
 valid_values="0,1,2" >
-0: Paterson-Budd temperature-dependent relationship
-1: uniform value equal to the Paterson-Budd value at -5 deg C
-2: constant value, taken from default_flwa
-Default: 0
+0: constant value, taken from default_flwa
+1: uniform value equal to the Paterson-Budd value at -10 deg C
+2: Paterson-Budd temperature-dependent relationship
+Default: 2
 </entry>
 
 <entry 
@@ -504,12 +472,12 @@ category="cism_config_options"
 group="cism_config_options"
 valid_values="0,1,2,3,4" >
 Determines the treatment of basal water
-0: Calculated from local water balance
-1: Compute the basal water flux, then find depth via calculation
-2: Set to zero everywhere
-3: Calculated from till water content, in the basal processes module
-4: Set to constant everywhere (10m)
-Default: 2
+0: Set to zero everywhere
+1: Calculated from local water balance
+2: Compute the basal water flux, then find depth via calculation
+3: Set to constant everywhere (10m)
+4: Calculated from till water content, in the basal processes module
+Default: 0
 </entry>
 
 <entry 
@@ -520,8 +488,8 @@ group="cism_config_options"
 valid_values="0,1,2,3,4" >
 0: ignore marine margin
 1: set thickness to zero if floating
-2: set thickness to zero if relaxed bedrock is below a given depth (marine_limit)
-3: lose a specified fraction of floating ice
+2: lose a specified fraction of floating ice
+3: set thickness to zero if relaxed bedrock is below a given depth (marine_limit)
 4: set thickness to zero if current bedrock is below a given depth (marine_limit)
 Default: 1
 </entry>
@@ -536,9 +504,9 @@ Basal traction parameter
 0: no basal sliding
 1: constant basal traction coefficient
 2: constant coefficient where basal water is present, else no sliding
-3: coefficient is a linear function of basal water depth
+3: constant coefficient where the basal temperature is at the pressure melting point, else no sliding
 4: coefficient is proportional to basal melt rate
-5: constant coefficient where the basal temperature is at the pressure melting point, else no sliding
+5: coefficient is a linear function of basal water depth
 Default: 0
 </entry>
 
@@ -547,14 +515,14 @@ id="evolution"
 type="integer" 
 category="cism_config_options"
 group="cism_config_options"
-valid_values="-1,0,2,3,4" >
--1: no evolution
+valid_values="0,2,3,4,5" >
 0: pseudo-diffusion
 1: ADI scheme [CANNOT BE USED: RESTARTS ARE NOT EXACT]
 2: diffusion
 3: remap thickness
 4: 1st order upwind
-Default: 2 for cism1, 3 for cism2
+5: no thickness evolution
+Default: 0 for cism1, 3 for cism2
 </entry>
 
 <entry 
@@ -593,6 +561,42 @@ Default: 0
 </entry>
 
 <entry 
+id="gthf"
+type="integer" 
+category="cism_config_options"
+group="cism_config_options"
+valid_values="0,1,2" >
+0: prescribed uniform geothermal heat flux
+1: read 2D geothermal flux field from input file (if present)
+2: calculate geothermal flux using 3d diffusion
+Default: 0
+</entry>
+
+<entry 
+id="isostasy"
+type="integer" 
+category="cism_config_options"
+group="cism_config_options"
+valid_values="0,1" >
+0: no isostasy
+1: compute isostasy
+Default: 0
+</entry>
+
+<entry
+id="sigma"
+type="integer"
+category="cism_config_options"
+group="cism_config_options"
+valid_values="0,2" >
+How to determine sigma values
+0: compute
+2: read from config file
+Default: 2 for cism1, 0 for cism2
+</entry>
+
+
+<entry 
 id="hotstart"
 type="integer" 
 category="cism_config_options"
@@ -614,7 +618,7 @@ category="cism_config_time"
 group="cism_config_time" >
 Ice sheet timestep (years)
 Must translate into an integer number of hours
-Default: 0.05 years for 5km, 0.025 years for 10km, 0.1 years for 20km
+Default: Depends on resolution and physics option
 </entry>
 
 <entry 
@@ -638,12 +642,13 @@ Default: 1
 </entry>
 
 <entry 
-id="ndiag"
-type="integer" 
+id="dt_diag"
+type="real" 
 category="cism_config_time"
 group="cism_config_time" >
-Number of ice sheet timesteps between each diagnostic output to log file
-Default: Set so that there is one diagnostic print per year
+Diagnostic frequency (years)
+Set to 0 for no diagnostic output; set to dt for diagnostic output every time step
+Default: 1
 </entry>
 
 <entry 
@@ -728,6 +733,15 @@ Default: 3 for cism1, 1 for cism2
 </entry>
 
 <entry 
+id="default_flwa"
+type="real" 
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Glen's A to use in isothermal case
+Default: (use hard-coded default)
+</entry>
+
+<entry 
 id="hydro_time"
 type="real" 
 category="cism_config_parameters"
@@ -738,24 +752,42 @@ Default: 1000.
 </entry>
 
 <entry 
-id="basal_tract"
-type="real(5)" 
-category="cism_config_parameters"
-group="cism_config_parameters" >
-Array of five values corresponding to various basal traction parameters.
-Currently, only the first value is used, and this only applies in the case where slip_coeff = 1, 2 or 5.
-This first value has units of (m yr-1 Pa-1), and is the inverse of beta-squared in the linear relationship:
-    tauB = -1*(beta-squared)*u
-Default: 2 10 10 0 1
-</entry>
-
-<entry 
-id="basal_water_smoothing"
+id="basal_tract_const"
 type="real" 
 category="cism_config_parameters"
 group="cism_config_parameters" >
-Basal water field smoothing strength
-Default: 0.01
+(m yr-1 Pa-1)
+Default: 1.e-4
+</entry>
+
+<entry 
+id="basal_tract_max"
+type="real" 
+category="cism_config_parameters"
+group="cism_config_parameters" >
+(m yr-1 Pa-1)
+(Only used for slip_coeff = BTRC_LINEAR_BMLT)
+Default: (use hard-coded default)
+</entry>
+
+<entry 
+id="basal_tract_slope"
+type="real" 
+category="cism_config_parameters"
+group="cism_config_parameters" >
+(Pa-1)
+(Only used for slip_coeff = BTRC_LINEAR_BMLT)
+Default: (use hard-coded default)
+</entry>
+
+<entry 
+id="basal_tract_tanh"
+type="real(5)" 
+category="cism_config_parameters"
+group="cism_config_parameters" >
+5-element list of values
+(Only used for slip_coeff = BTRC_TANH_BWAT)
+Default: (use hard-coded default)
 </entry>
 
 <!-- =============================================================  -->
@@ -787,11 +819,12 @@ id="which_ho_efvs"
 type="integer"
 category="cism_config_ho_options"
 group="cism_config_ho_options"
-valid_values="0,1" >
+valid_values="0,1,2" >
 How effective viscosity is computed for Payne/Price dynamical core
-0: compute from effective strain rate
-1: constant value
-Default: 0
+0: constant value
+1: multiple of flow factor
+2: compute from effective strain rate
+Default: 2
 </entry>
 
 <entry
@@ -815,19 +848,6 @@ category="cism_config_ho_options"
 group="cism_config_ho_options"
 valid_values="0,1,2" >
 Method for computing the dissipation during the temperature calculation
-0: 0-order SIA approx.
-1: 1st order solution (e.g., Blatter-Pattyn)
-2: 1st order depth-integrated solution (SSA)
-Default: 0
-</entry>
-
-<entry
-id="which_bmelt"
-type="integer"
-category="cism_config_ho_options"
-group="cism_config_ho_options"
-valid_values="0,1,2" >
-Method for computing the frictional melt rate terms during temperature calculation
 0: 0-order SIA approx.
 1: 1st order solution (e.g., Blatter-Pattyn)
 2: 1st order depth-integrated solution (SSA)
@@ -865,7 +885,7 @@ Default: 1
 <!-- group: cism.config: GTHF (geothermal heat flux)                -->
 <!-- =============================================================  -->
 
-<!-- This group is only relevant if do_gthf is .true. -->
+<!-- This group is only relevant if gthf = 2 (calculate using 3d diffusion) -->
 
 <entry 
 id="num_dim"
@@ -875,7 +895,7 @@ group="cism_config_gthf"
 valid_values="1,3" >
 1: 1D calculations
 3: 3D calculations
-Only relevant if do_gthf is .true.
+Only relevant if gthf = 2
 Default: 1
 </entry>
 
@@ -885,7 +905,7 @@ type="integer"
 category="cism_config_gthf"
 group="cism_config_gthf" >
 Number of vertical layers
-Only relevant if do_gthf is .true.
+Only relevant if gthf = 2
 Default: 20
 </entry>
 
@@ -895,7 +915,7 @@ type="real"
 category="cism_config_gthf"
 group="cism_config_gthf" >
 Initial surface temperature (degrees C)
-Only relevant if do_gthf is .true.
+Only relevant if gthf = 2
 Default: 2
 </entry>
 
@@ -905,7 +925,7 @@ type="real"
 category="cism_config_gthf"
 group="cism_config_gthf" >
 Depth below sea-level at which geothermal heat gradient is applied (m)
-Only relevant if do_gthf is .true.
+Only relevant if gthf = 2
 Default: -5000
 </entry>
 
@@ -915,7 +935,7 @@ type="integer"
 category="cism_config_gthf"
 group="cism_config_gthf" >
 Number of time steps for spinning up GTHF calculations
-Only relevant if do_gthf is .true.
+Only relevant if gthf = 2
 Default: 0
 </entry>
 
@@ -925,7 +945,7 @@ type="real"
 category="cism_config_gthf"
 group="cism_config_gthf" >
 Density of lithosphere (kg m-3)
-Only relevant if do_gthf is .true.
+Only relevant if gthf = 2
 Default: 3300
 </entry>
 
@@ -935,7 +955,7 @@ type="real"
 category="cism_config_gthf"
 group="cism_config_gthf" >
 Specific heat capacity of lithosphere (J kg-1 K-1)
-Only relevant if do_gthf is .true.
+Only relevant if gthf = 2
 Default: 1000
 </entry>
 
@@ -945,7 +965,7 @@ type="real"
 category="cism_config_gthf"
 group="cism_config_gthf" >
 thermal conductivity of lithosphere (W m-1 K-1)
-Only relevant if do_gthf is .true.
+Only relevant if gthf = 2
 Default: 3.3
 </entry>
 
@@ -954,7 +974,7 @@ Default: 3.3
 <!-- group: cism.config: isostasy                                   -->
 <!-- =============================================================  -->
 
-<!-- This group is only relevant if do_isostasy is .true. -->
+<!-- This group is only relevant if isostasy = 1 -->
 
 <entry 
 id="lithosphere"
@@ -964,7 +984,7 @@ group="cism_config_isostasy"
 valid_values="0,1" >
 0: local lithosphere, equilibrium bedrock depression is found using Archimedes' principle
 1: elastic lithosphere, flexural rigidity is taken into account
-Only relevant if do_isostasy is .true.
+Only relevant if isostasy = 1
 Default: 0
 </entry>
 
@@ -976,7 +996,7 @@ group="cism_config_isostasy"
 valid_values="0,1" >
 0: fluid mantle, isostatic adjustment happens instantaneously
 1: relaxing mantle, mantle is approximated by a half-space
-Only relevant if do_isostasy is .true.
+Only relevant if isostasy = 1
 Default: 0
 </entry>
 
@@ -986,7 +1006,7 @@ type="real"
 category="cism_config_isostasy"
 group="cism_config_isostasy" >
 Characteristic time constant of relaxing mantle (years)
-Only relevant if do_isostasy is .true.
+Only relevant if isostasy = 1
 Default: 4000.
 </entry>
 
@@ -996,22 +1016,15 @@ type="real"
 category="cism_config_isostasy"
 group="cism_config_isostasy" >
 Lithosphere update period (years)
-Only relevant if do_isostasy is .true.
+Only relevant if isostasy = 1
 Default: 500.
 </entry>
-
-
-<!-- =============================================================  -->
-<!-- group: cism.config: elastic lithosphere                        -->
-<!-- =============================================================  -->
-
-<!-- This group is only relevant if lithosphere = 1 -->
 
 <entry 
 id="flexural_rigidity"
 type="real" 
-category="cism_config_elastic_lithosphere"
-group="cism_config_elastic_lithosphere" >
+category="cism_config_isostasy"
+group="cism_config_isostasy" >
 Flexural rigidity of the lithosphere
 Only relevant if 'lithosphere' is set to 1
 Default: 0.24e25

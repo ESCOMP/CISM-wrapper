@@ -4,6 +4,121 @@ This file describes what main-trunk tags were created and why
 
 ================================================================================
 Originator: sacks
+Date: April 28, 2013
+Model: cism
+Version: cism1_130428
+One-line summary: Cleanup of glimmer-cism external code, with focus on cleaning
+                  up config options
+
+Purpose of changes:
+
+- Bring in latest glimmer-cism external, which cleans up config options, as well
+  as a number of other changes from Bill L
+
+- Get cismIO generation working
+
+- Run some tests to make sure that new code gives the same answers as the
+  cesm1.1.1 release
+
+
+Changes answers relative to previous tag: YES
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/):
+
+List all modified files, and describe the changes:
+
+M       SVN_EXTERNAL_DIRECTORIES
+
+*** Get cismIO generation working. This includes getting files from glimmer-cism
+    external rather than maintaining copies of them
+D       bld/cismIO/glide_lithot_vars.def
+D       bld/cismIO/glint_mbal_vars.def
+D       bld/cismIO/glint_vars.def
+D       bld/cismIO/ncdf_template.F90.in
+D       bld/cismIO/glide_vars.def
+D       bld/cismIO/generate_ncvars.py
+M       bld/cismIO/cism.buildIO.template.csh
+M       bld/cism.cpl7.template
+
+*** Handle Bill L's changes to config options
+M       bld/build-namelist
+M       bld/namelist_files/namelist_defaults_cism.xml
+M       bld/namelist_files/namelist_definition_cism.xml
+
+*** Add blank line
+M       bld/user_nl_cism
+
+
+Summary of testing:
+
+   (1) Yellowstone intel & pgi test lists. I used the plain text test lists as
+       they existed before the conversion of test lists to xml, because there
+       were some missing tests in the xml
+
+       All PASS except:
+
+       *** Missing ESMF library
+       CFAIL ERS_Ly20_E.f09_g16.TG20TR.yellowstone_pgi.GC.194914
+
+       *** CISM2 failures
+       FAIL  ERI_Ly15.f09_g16_gl10.TG20TRIS2.yellowstone_intel.GC.194923 
+       FAIL  NCK_Ly3.f09_g16_gl10.TGRCP85IS2.yellowstone_intel.GC.194923 
+       FAIL  PEA_P1_M_Ly2.f09_g16_gl10.TGIS2S.yellowstone_intel.GC.194923 
+       FAIL  SMS_D_Ly1.f09_g16_gl10.TGIS2.yellowstone_intel.GC.194923 
+       FAIL  SMS_Ly3.T31_g37_gl10.IGIS2.yellowstone_intel.GC.194923 
+
+
+   (2) Comparisons of latest code base with cesm1.1.1 release code. Expect CISM1
+       compsets to be the same within roundoff, once some code mods were made to
+       the new and old code to correct for known differences (put in place by
+       Bill L). For each of these, I ran one-year TG compsets from the new code
+       base and from cesm1.1.1; I compared log files (first few time steps, and
+       last time step of the year-long run), looked at cprnc results, and did a
+       visual comparison of history files for any fields with large differences
+       according to cprnc.
+
+       (a) baseline, out-of-the-box settings (done by Bill L, reproduced by me)
+
+       (b) basal sliding on (done by Bill L)
+
+       (c) 10 km
+
+       (d) 20 km
+
+       (e) evolution=2
+
+       (f) basal_water=1
+
+       (g) flow_law: 0 in new, 2 in old
+
+       (h) sigma=0 (in old code, implemented this by commenting out the call to
+           glide_read_sigma)
+
+       (i) use Jeremy Fyke's initial conditions, which have been copied to
+           bg40.1850.track1.1deg.006b.cism.r.0863-01-01-00000.nc; along with
+           hotstart=1
+
+       (j) slip_coeff: 5 in old, 3 in new; also, use initial conditions as in
+           (i)
+
+       All of these appeared to differ only by single-precision roundoff, EXCEPT
+       (i) was questionable and (j) had big differences (in cesm1.1.1, (j) was
+       unstable in the old code). The differences in (i) suggest that old cism1
+       restart files MAY not be compatible with the new code base. The
+       differences in (j) might be connected to the use of initial conditions in
+       this run, rather than a problem with slip_coeff per se. For example, it
+       seems that the old code, with Bill L's mods to make the old & new more
+       similar, didn't read bheatflx from the restart file.
+       
+
+Externals used for testing: cesm1_2_beta06, but PIO @ pio1_6_8
+
+cism tag used for baseline comparisons: N/A
+
+Any other externals that differed in baseline: N/A
+
+================================================================================
+Originator: sacks
 Date: April 25, 2013
 Model: cism
 Version: cism1_130425

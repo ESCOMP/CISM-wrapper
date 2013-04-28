@@ -42,7 +42,7 @@ now, it gives reasonable enough results for testing purposes. -->
 
 <cism_debug>.false.</cism_debug>
 
-<cesm_history_vars>'acab artm thk usurf uvel vvel uflx vflx temp'</cesm_history_vars>
+<cesm_history_vars>'acab artm thk usurf topg uvel vvel uflx vflx temp bmlt bwat'</cesm_history_vars>
 
 <!-- =============================================================  -->
 <!-- group: grid_nml                                                -->
@@ -67,17 +67,6 @@ now, it gives reasonable enough results for testing purposes. -->
 <stop_option>never</stop_option>
 
 <allow_leapyear>.false.</allow_leapyear>
-
-<!-- =============================================================  -->
-<!-- group: cism.config: control parameters                         -->
-<!-- =============================================================  -->
-
-<user_defined_sigma cism_phys="cism1">.true.</user_defined_sigma>
-<user_defined_sigma cism_phys="cism2">.false.</user_defined_sigma>
-
-<do_gthf>.false.</do_gthf>
-
-<do_isostasy>.false.</do_isostasy>
 
 <!-- =============================================================  -->
 <!-- group: cism.config: grid                                       -->
@@ -110,14 +99,11 @@ now, it gives reasonable enough results for testing purposes. -->
 <dns glc_grid="gland5"  >5000.</dns>
 <dns glc_grid="gland5UM">5000.</dns>
 
-<!-- note that sigma_builtin is only relevant if user_defined_sigma is false -->
-<sigma_builtin>1</sigma_builtin>
-
 <!-- =============================================================  -->
 <!-- group: cism.config: sigma                                      -->
 <!-- =============================================================  -->
 
-<!-- This group is only relevant if user_defined_sigma is .true. -->
+<!-- This group is only relevant if sigma=2 -->
 
 <!-- These levels focus resolution at the bottom -->
 <sigma_levels>0.00 0.15 0.30 0.45 0.60 0.75 0.83 0.90 0.95 0.98 1.00</sigma_levels>
@@ -125,6 +111,8 @@ now, it gives reasonable enough results for testing purposes. -->
 <!-- =============================================================  -->
 <!-- group: cism.config: climate                                    -->
 <!-- =============================================================  -->
+
+<evolve_ice>1</evolve_ice>
 
 <precip_mode>1</precip_mode>
 
@@ -153,12 +141,19 @@ now, it gives reasonable enough results for testing purposes. -->
 <dycore cism_phys="cism1">0</dycore>
 <dycore cism_phys="cism2">1</dycore>
 
-<temperature cism_phys="cism1">1</temperature>
-<temperature cism_phys="cism2">3</temperature>
+<temperature>1</temperature>
 
-<flow_law>0</flow_law>
+<temp_init>1</temp_init>
 
-<basal_water>2</basal_water>
+<flow_law>2</flow_law>
+
+<basal_water>0</basal_water>
+
+<basal_mass_balance>0</basal_mass_balance>
+
+<gthf>0</gthf>
+
+<isostasy>0</isostasy>
 
 <marine_margin>1</marine_margin>
 
@@ -168,6 +163,9 @@ now, it gives reasonable enough results for testing purposes. -->
 <evolution cism_phys="cism2">3</evolution>
 
 <vertical_integration>0</vertical_integration>
+
+<sigma cism_phys="cism1">2</sigma>
+<sigma cism_phys="cism2">0</sigma>
 
 <!-- =============================================================  -->
 <!-- group: cism.config: time                                       -->
@@ -183,7 +181,6 @@ now, it gives reasonable enough results for testing purposes. -->
 <dt glc_grid="gland20"  cism_phys="cism2">1.0</dt>
 
 <!-- Use 0.25 for initial testing of cism2 gland10... will probably be reduced later -->
-<!-- (when I change this, change ndiag, too -->
 <dt glc_grid="gland10"  cism_phys="cism2">0.25</dt>
 
 <ntem>1</ntem>
@@ -191,13 +188,7 @@ now, it gives reasonable enough results for testing purposes. -->
 <nvel>1</nvel>
 
 <!-- To get diagnostic once per year, set this to 1/dt -->
-<ndiag glc_grid="gland10"  cism_phys="cism1">10</ndiag>
-<ndiag glc_grid="gland20"  cism_phys="cism1">10</ndiag>
-<ndiag glc_grid="gland5"   cism_phys="cism1">20</ndiag>
-<ndiag glc_grid="gland5UM" cism_phys="cism1">20</ndiag>
-
-<ndiag glc_grid="gland20"  cism_phys="cism2"> 1</ndiag>
-<ndiag glc_grid="gland10"  cism_phys="cism2"> 4</ndiag>
+<dt_diag>1.</dt_diag>
 
 <!-- 5-km idiag & jdiag chosen by Jeremy Fyke, as a point prone to CFL
      instability (in trunk of Jakobshavn) -->
@@ -223,12 +214,12 @@ now, it gives reasonable enough results for testing purposes. -->
 
 <geothermal>-5.e-2</geothermal>
 
-<flow_factor cism_phys="cism1">3</flow_factor>
-<flow_factor cism_phys="cism2">1</flow_factor>
+<flow_factor cism_phys="cism1">3.</flow_factor>
+<flow_factor cism_phys="cism2">1.</flow_factor>
 
 <hydro_time>1000.</hydro_time>
 
-<basal_tract>2 10 10 0 1</basal_tract>
+<basal_tract_const>1.e-4</basal_tract_const>
 
 <!-- =============================================================  -->
 <!-- group: cism.config: ho_options                                 -->
@@ -241,13 +232,11 @@ now, it gives reasonable enough results for testing purposes. -->
      Price-->
 <which_ho_babc>5</which_ho_babc>
 
-<which_ho_efvs>0</which_ho_efvs>
+<which_ho_efvs>2</which_ho_efvs>
 
 <which_ho_resid>3</which_ho_resid>
 
 <which_disp>0</which_disp>
-
-<which_bmelt>0</which_bmelt>
 
 <which_ho_sparse cism_use_trilinos="FALSE">1</which_ho_sparse>
 <which_ho_sparse cism_use_trilinos="TRUE" >4</which_ho_sparse>
