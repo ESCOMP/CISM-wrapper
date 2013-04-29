@@ -143,13 +143,13 @@ now, it gives reasonable enough results for testing purposes. -->
 
 <temperature>1</temperature>
 
-<temp_init>1</temp_init>
+<temp_init>2</temp_init>
 
 <flow_law>2</flow_law>
 
 <basal_water>0</basal_water>
 
-<basal_mass_balance>0</basal_mass_balance>
+<basal_mass_balance>1</basal_mass_balance>
 
 <gthf>0</gthf>
 
@@ -164,8 +164,7 @@ now, it gives reasonable enough results for testing purposes. -->
 
 <vertical_integration>0</vertical_integration>
 
-<sigma cism_phys="cism1">2</sigma>
-<sigma cism_phys="cism2">0</sigma>
+<sigma>0</sigma>
 
 <!-- =============================================================  -->
 <!-- group: cism.config: time                                       -->

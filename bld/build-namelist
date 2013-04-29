@@ -502,9 +502,8 @@ add_default($nl, 'sigma');
 add_default($nl, 'hotstart', 'val'=>$hotstart);
 $nl->write_cism_config($fh, "cism_config_options");
 
-# Some code in cism keys off of whether the [sigma] section is
-# present, thus we only want to add this section if we're using
-# user-defined sigma levels
+# The [sigma] section only applies if we're using user-defined sigma
+# levels -- if not, leave it out to avoid confusion
 if ($nl->get_value('sigma') == $SIGMA_IN_CONFIG_FILE) {
     print $fh "\n[sigma]\n";
     add_default($nl, 'sigma_levels');
@@ -549,9 +548,8 @@ else {
     confirm_empty("cism_config_ho_options", "items in ho_options_section can only be set if dycore is not 0");
 }
 
-# Some code in cism keys off of whether the [GTHF] section is present
-# (even if it's empty), thus we only want to add this section if it's
-# really desired by the user
+# The [GTHF] section only applies if the 'gthf' option is set to
+# GTHF_CALCULATE -- if not, we leave it out to avoid confusion
 if ($nl->get_value('gthf') == $GTHF_CALCULATE) {
     print $fh "\n[GTHF]\n";
     $nl->write_cism_config($fh, "cism_config_gthf");
@@ -560,9 +558,8 @@ else {
     confirm_empty("cism_config_gthf", "items in gthf section can only be set if gthf is set to $GTHF_CALCULATE");
 }
 
-# Some code in cism keys off of whether the [isostasy] section is present
-# (even if it's empty), thus we only want to add this section if it's
-# really desired by the user
+# The [isostasy] section only applies if the 'isostasy' option is
+# turned on -- if not, we leave it out to avoid confusion
 if ($nl->get_value('isostasy') == $ISOSTASY_ON) {
     print $fh "\n[isostasy]\n";
     $nl->write_cism_config($fh, "cism_config_isostasy");
