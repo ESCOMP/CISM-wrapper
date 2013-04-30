@@ -91,7 +91,7 @@
    use glc_global_grid, only: glc_landmask
    use shr_file_mod, only : shr_file_getunit, shr_file_freeunit
 
-!lipscomb - TO DO - probably not needed; commented out for now
+     !TODO - probably not needed; commented out for now
 !!   use glc_global_fields, only: albedo, lats_orog, lons_orog, orog_out
 !!   use glc_global_fields, only: time, coverage, cov_orog  ! to be removed?
 
@@ -159,7 +159,7 @@
 
    ErrorCode = glc_Success
 
-!lipscomb - TO DO - Write version info?
+! TODO - Write version info?
 !-----------------------------------------------------------------------
 !  write version information to output log after output redirection
 !-----------------------------------------------------------------------
@@ -250,6 +250,7 @@
 
    allocate(glint_landmask(nx,ny))
 
+   ! Reverse j index for glint_landmask, which assumes increasing index from N to S
    do j = 1, ny
    do i = 1, nx
       glint_landmask(i,j) = glc_landmask(i,ny-j+1)
@@ -257,7 +258,6 @@
    enddo
 
    ! set values of climate derived type
-   !lipscomb - TO DO - Are other values needed?
 
    climate%climate_tstep = nint(dtt/3600._r8)   ! convert from sec to integer hours
 
@@ -287,9 +287,7 @@
   precip(:,:)   = 0._r8
   orog(:,:)     = 0._r8
 
-!lipscomb - TO DO - These arrays probably are not needed; comment out for now.
-!!  albedo(:,:)   = 0._r8
-!!  orog_out(:,:) = 0._r8
+! This array probably is not needed; comment out for now.
 !!  orog = real(climate%orog_clim)     
 
   ! Initialize the ice sheet model
@@ -323,27 +321,26 @@
 
   unit = shr_file_getUnit()
 
-!lipscomb - TO DO - Implement PDD option (gcm_smb = F)
+  call initialise_glint_gcm(ice_sheet,                            &
+                            glint_lats,                           &   ! indexing is N to S for Glint
+                            glint_lons,                           &
+                            climate%climate_tstep,                &
+                            (/paramfile/),                        &
+                            daysinyear = climate%days_in_year,    &
+                            start_time = nhour_glint,             &
+                            glc_nec = glc_nec,                    &
+                            gfrac = gfrac,                        &
+                            gtopo = gtopo,                        &
+                            grofi = grofi,                        &
+                            grofl = grofl,                        &
+                            ghflx = ghflx,                        &
+                            gmask = glint_landmask,               &
+                            gcm_restart = cesm_restart,           &
+                            gcm_restart_file = cesm_restart_file, &
+                            gcm_debug = cism_debug,               &
+                            gcm_fileunit = unit)
 
-  call initialise_glint (ice_sheet,                            &
-                         glint_lats,                           &   ! indexing is N to S for Glint
-                         glint_lons,                           &
-                         climate%climate_tstep,                &
-                         (/paramfile/),                        &
-                         daysinyear = climate%days_in_year,    &
-                         start_time = nhour_glint,             &
-                         gcm_nec = glc_nec,                    &
-                         gcm_smb = .true.,                     &
-                         gfrac = gfrac,                        &
-                         gtopo = gtopo,                        &
-                         grofi = grofi,                        &
-                         grofl = grofl,                        &
-                         ghflx = ghflx,                        &
-                         gmask = glint_landmask,               &
-                         gcm_restart = cesm_restart,           &
-                         gcm_restart_file = cesm_restart_file, &
-                         gcm_debug = cism_debug,               &
-                         gcm_fileunit = unit)
+!TODO - Implement PDD option
  
    call shr_file_freeunit(unit)
 

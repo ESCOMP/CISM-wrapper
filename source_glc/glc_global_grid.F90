@@ -248,7 +248,6 @@
 ! !USES:
 
    use glint_example_clim, only: read_ncdf, read_ncdf_ggrid
-   use glimmer_paramets,   only: itest, jtest
    use glint_global_grid
 
 ! !INPUT PARAMETERS:
@@ -391,14 +390,16 @@
 !      write(stdout,*) 'lat_bound =', glc_grid%lat_bound(:)
 !      write(stdout,*) 'lon_bound =', glc_grid%lon_bound(:)
       write(stdout,*) ''
-      i = itest
-      j = jtest
-      write(stdout,*) 'Test point, i, j, =', itest, jtest
-      write(stdout,*) 'lat, lon =', glc_grid%lats(j), glc_grid%lons(i)
-      write(stdout,*) 'area =', glc_grid%box_areas(i,j)
-      write(stdout,*) 'landmask =', glc_landmask(i,j)
-      write(stdout,*) 'landfrac =', glc_landfrac(i,j)
-      write(stdout,*) 'frac of earth =', glc_grid%box_areas(i,j) / (4._r8*pi*radius*radius)
+      !TODO - Make sure iglint_global and jglint_global are defined appropriately for the global grid
+      !      (Currently hardwired in glint_type)
+      ! i = iglint_global
+      ! j = jglint_global   ! N to S global indexing as in Glint
+      ! write(stdout,*) 'Test point, i, j, =', i, j
+      ! write(stdout,*) 'lat, lon =', glc_grid%lats(j), glc_grid%lons(i)
+      ! write(stdout,*) 'area =', glc_grid%box_areas(i,j)
+      ! write(stdout,*) 'landmask =', glc_landmask(i,j)
+      ! write(stdout,*) 'landfrac =', glc_landfrac(i,j)
+      ! write(stdout,*) 'frac of earth =', glc_grid%box_areas(i,j) / (4._r8*pi*radius*radius)
       write(stdout,*) 'Leaving read_horiz_grid'
       call shr_sys_flush(stdout)
    endif

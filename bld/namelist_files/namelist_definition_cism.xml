@@ -267,7 +267,7 @@ Default: resolution-dependent
 <!-- group: cism.config: sigma                                      -->
 <!-- =============================================================  -->
 
-<!-- This group is only relevant if user_defined_sigma is .true. -->
+<!-- This group is only relevant if sigma = 2 -->
 
 <entry 
 id="sigma_levels" 
@@ -276,7 +276,7 @@ category="cism_config_sigma"
 group="cism_config_sigma" >
 List of sigma levels, in ascending order, separated by spaces
 These run between 0.0 (at top surface) and 1.0 (at lower surface)
-Only relevant if user_defined_sigma is .true.
+Only relevant if sigma = 2
 Default: 0.00 0.15 0.30 0.45 0.60 0.75 0.83 0.90 0.95 0.98 1.00
 </entry>
 
@@ -450,7 +450,7 @@ Temperature initialization method
 0: Initialize temperature to 0 C
 1: Initialize temperature to surface air temperature
 2: Initialize temperature with a linear profile in each column
-Default: 1
+Default: 2
 </entry>
 
 <entry 
@@ -485,12 +485,13 @@ id="marine_margin"
 type="integer" 
 category="cism_config_options"
 group="cism_config_options"
-valid_values="0,1,2,3,4" >
+valid_values="0,1,2,3,4,5" >
 0: ignore marine margin
 1: set thickness to zero if floating
 2: lose a specified fraction of floating ice
 3: set thickness to zero if relaxed bedrock is below a given depth (marine_limit)
 4: set thickness to zero if current bedrock is below a given depth (marine_limit)
+5: Huybrechts grounding line scheme for Greenland initialization
 Default: 1
 </entry>
 
@@ -557,7 +558,7 @@ group="cism_config_options"
 valid_values="0,1" >
 0: not in continuity equation
 1: in continuity equation
-Default: 0
+Default: 1
 </entry>
 
 <entry 
@@ -592,7 +593,7 @@ valid_values="0,2" >
 How to determine sigma values
 0: compute
 2: read from config file
-Default: 2 for cism1, 0 for cism2
+Default: 0
 </entry>
 
 
@@ -709,7 +710,7 @@ type="real"
 category="cism_config_parameters"
 group="cism_config_parameters" >
 Fraction of ice lost to calving
-Default: 0.8
+Default: (use hard-coded default)
 </entry>
 
 <entry 
@@ -729,7 +730,7 @@ category="cism_config_parameters"
 group="cism_config_parameters" >
 The flow law is enhanced with this factor.
 The greater the value, the lower the viscosity and the faster the ice will flow.
-Default: 3 for cism1, 1 for cism2
+Default: 3.0 for cism1, 1.0 for cism2
 </entry>
 
 <entry 

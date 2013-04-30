@@ -67,8 +67,6 @@
    use glint_example_clim
    use glc_global_fields 
 
-   use glimmer_paramets, only: itest, jjtest
-
 !EOP
 !BOC
 !-----------------------------------------------------------------------
@@ -91,6 +89,7 @@
 
   ! Scalar model outputs
  
+  !TODO - These are needed only for PDD option (not yet implemented)
   real(r8) ::      & 
      twin         ,&! Timestep-integrated input water flux (kg) 
      twout        ,&! Timestep-integrated output water flux (kg) 
@@ -98,12 +97,13 @@
  
   ! Other variables
  
+  !TODO - Remove?  Currently not used
   logical ::  &
-     l_ice_tstep  ,&! true if ice timestep was done
-     out            ! output flag
+     ice_tstep    ,&! true if ice timestep was done
+     outflag        ! output flag
 
   integer (i4) ::  & 
-     i,j,n          ! index counters 
+     i,j,n          ! indices 
 
 !-----------------------------------------------------------------------
 !  things to do on first call
@@ -133,47 +133,48 @@
             write(stdout,*) ' '
             write(stdout,*) 'Call glint, thour =', thour
             write(stdout,*) ' '
-            write(stdout,*) 'Global fields from CLM to GLINT'
-            do n = 1, glc_nec
-               i = itest
-               j = jjtest   ! N to S global indexing as in GLINT
-               write(stdout,*) ' '
-               write(stdout,*) 'i, j, n =', i, j, n
-               write(stdout,*) 'tsfc(n) =', tsfc(i,j,n)
-               write(stdout,*) 'topo(n) =', topo(i,j,n)
-               write(stdout,*) 'qsmb(n) =', qsmb(i,j,n)
-            enddo
+             !TODO - Make sure iglint_global and jglint_global are defined appropriately for the global grid
+             !      (Currently hardwired in glint_type)
+!            write(stdout,*) 'Global fields from CLM to Glint'
+!            do n = 1, glc_nec
+!               i = iglint_global
+!               j = jglint_global   ! N to S global indexing as in Glint
+!               write(stdout,*) ' '
+!               write(stdout,*) 'i, j, n =', i, j, n
+!               write(stdout,*) 'tsfc(n) =', tsfc(i,j,n)
+!               write(stdout,*) 'topo(n) =', topo(i,j,n)
+!               write(stdout,*) 'qsmb(n) =', qsmb(i,j,n)
+!            enddo
          endif
 
-         call glint (ice_sheet,       nint(thour),   &
-                     temp,            precip,  &     ! temp, precip, orog are set to zero
-                     orog,                     &
-                     ice_tstep = l_ice_tstep,  & 
-                     tsfc  = tsfc,     qsmb  = qsmb,    &
-                     topo  = topo,                      &
-                     gfrac = gfrac,    gtopo = gtopo,   &
-                     grofi = grofi,    grofl = grofl,   &
-                     ghflx = ghflx)
+         call glint_gcm (ice_sheet,        nint(thour),     &
+                         qsmb,             tsfc,            &
+                         topo,                              &
+                         ice_tstep = ice_tstep,             & 
+                         gfrac = gfrac,    gtopo = gtopo,   &
+                         grofi = grofi,    grofl = grofl,   &
+                         ghflx = ghflx)
 
          if (verbose .and. my_task==master_task) then
-            write(stdout,*) ' '
-            write(stdout,*) 'Global fields from GLINT to CLM:'
-            do n = 1, glc_nec
-               i = itest
-               j = jjtest   ! N to S global indexing as in GLINT
-               write(stdout,*) ' '
-               write(stdout,*) 'i, j, n =', i, j, n
-               write(stdout,*) 'gfrac(n) =', gfrac(i,j,n)
-               write(stdout,*) 'gtopo(n) =', gtopo(i,j,n)
+!            write(stdout,*) ' '
+!            write(stdout,*) 'Global fields from GLINT to CLM:'
+             !TODO - Make sure iglint_global and jglint_global are defined appropriately for the global grid
+!            do n = 1, glc_nec
+!               i = iglint_global
+!               j = jglint_global   ! N to S global indexing as in GLINT
+!               write(stdout,*) ' '
+!               write(stdout,*) 'i, j, n =', i, j, n
+!               write(stdout,*) 'gfrac(n) =', gfrac(i,j,n)
+!               write(stdout,*) 'gtopo(n) =', gtopo(i,j,n)
 !               write(stdout,*) 'grofi(n) =', grofi(i,j,n)
 !               write(stdout,*) 'grofl(n) =', grofl(i,j,n)
 !               write(stdout,*) 'ghflx(n) =', ghflx(i,j,n)
-            enddo
+!            enddo
          endif
 
      else    ! use PDD scheme
 
-!lipscomb - TO DO - Need to test PDD option
+!TODO - Implement and test PDD option
          write(stdout,*) 'Using positive-degree-day scheme'
          write(stdout,*) 'WARNING: This has not been tested!'
 
@@ -182,7 +183,7 @@
                      tsfc(:,:,1),                &  ! 2-m air temp
                      qsmb(:,:,1),                &  ! precip
                      orog,                       &
-                     output_flag     = out,      &
+                     output_flag     = outflag,  &
                      ice_frac        = ice_frac, &
                      water_out       = fw,       &
                      water_in        = fw_in,    &
