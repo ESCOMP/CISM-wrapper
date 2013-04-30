@@ -596,6 +596,18 @@ How to determine sigma values
 Default: 0
 </entry>
 
+<entry
+id="periodic_ew"
+type="integer"
+category="cism_config_options"
+group="cism_config_options"
+valid_values="0,1">
+0: no periodic EW boundary conditions
+1: periodic EW boundary conditions
+(This is a Glimmer serial option. The parallel code enforces periodic
+EW and NS boundary conditions by default.)
+Default: 0
+</entry>
 
 <entry 
 id="hotstart"
@@ -640,6 +652,24 @@ group="cism_config_time" >
 Multiplier of ice sheet timestep, dt
 (in theory, can be real-valued, but values less than 1 are not handled properly, so restricted to being an integer)
 Default: 1
+</entry>
+
+<entry
+id="subcyc"
+type="integer"
+category="cism_config_time"
+group="cism_config_time" >
+Subcycling for glissade
+Default: 1
+</entry>
+
+<entry
+id="profile"
+type="integer"
+category="cism_config_time"
+group="cism_config_time" >
+Profile period (number of time steps between profiles)
+Default: 100
 </entry>
 
 <entry 
@@ -789,6 +819,28 @@ group="cism_config_parameters" >
 5-element list of values
 (Only used for slip_coeff = BTRC_TANH_BWAT)
 Default: (use hard-coded default)
+</entry>
+
+<entry
+id="periodic_offset_ew"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Optional periodic offset for ismip-hom and similar tests
+May be needed to ensure continuous ice geometry at the edges of the
+global domain
+Default: 0.
+</entry>
+
+<entry
+id="periodic_offset_ns"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Optional periodic offset for ismip-hom and similar tests
+May be needed to ensure continuous ice geometry at the edges of the
+global domain
+Default: 0.
 </entry>
 
 <!-- =============================================================  -->
