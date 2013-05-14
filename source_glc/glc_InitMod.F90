@@ -141,7 +141,7 @@
       cism_debug   = .false. ! Logical flag to pass to glimmer, telling it to output extra
                              ! debug diagnostics
 
-  real(rk), dimension(:), allocatable ::  &    
+  real(dp), dimension(:), allocatable ::  &    
       glint_lats     ,&! lats on glint grid (N to S indexing, instead of S to N as on glc_grid)  
       glint_lons     ,&! lons on glint grid
       glint_latb       ! lat_bound on glint grid
