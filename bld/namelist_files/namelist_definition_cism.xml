@@ -589,10 +589,13 @@ id="sigma"
 type="integer"
 category="cism_config_options"
 group="cism_config_options"
-valid_values="0,2" >
+valid_values="0,2,3,4" >
 How to determine sigma values
-0: compute
-2: read from config file
+0: compute standard Glimmer sigma coordinates
+1: sigma coordinates are given in external file [NOT ALLOWED WHEN RUNNING CISM IN CESM]
+2: read sigma coordinates from config file (from sigma_levels)
+3: evenly spaced levels, as required for glam dycore
+4: compute Pattyn sigma coordinates
 Default: 0
 </entry>
 
@@ -615,8 +618,8 @@ type="integer"
 category="cism_config_options"
 group="cism_config_options"
 valid_values="0,1" >
-Hotstart the model if set to 1. 
-This option only affects the way the initial temperature and flow factor distribution is calculated.
+Hotstart (restart) the model if set to 1. 
+This allows for exact restarts from previous initial conditions
 Default: 0 for startup or hybrid with CISM_OBSERVED_IC=TRUE, 1 for hybrid/branch with CISM_OBSERVED_IC=FALSE
 </entry>
 
@@ -748,7 +751,7 @@ id="geothermal"
 type="real" 
 category="cism_config_parameters"
 group="cism_config_parameters" >
-Constant geothermal heat flux (W m-2)
+Constant geothermal heat flux (W m-2; sign convention is positive down)
 (May be overwritten by a spatially-varying field in input file [bheatflx])
 Default: -0.05
 </entry>
@@ -873,7 +876,7 @@ type="integer"
 category="cism_config_ho_options"
 group="cism_config_ho_options"
 valid_values="0,1,2" >
-How effective viscosity is computed for Payne/Price dynamical core
+How effective viscosity is computed for higher-order dynamical core
 0: constant value
 1: multiple of flow factor
 2: compute from effective strain rate
@@ -969,7 +972,7 @@ category="cism_config_gthf"
 group="cism_config_gthf" >
 Initial surface temperature (degrees C)
 Only relevant if gthf = 2
-Default: 2
+Default: (use hard-coded default)
 </entry>
 
 <entry 
@@ -979,7 +982,7 @@ category="cism_config_gthf"
 group="cism_config_gthf" >
 Depth below sea-level at which geothermal heat gradient is applied (m)
 Only relevant if gthf = 2
-Default: -5000
+Default: (use hard-coded default)
 </entry>
 
 <entry 
@@ -999,7 +1002,7 @@ category="cism_config_gthf"
 group="cism_config_gthf" >
 Density of lithosphere (kg m-3)
 Only relevant if gthf = 2
-Default: 3300
+Default: (use hard-coded default)
 </entry>
 
 <entry 
@@ -1009,7 +1012,7 @@ category="cism_config_gthf"
 group="cism_config_gthf" >
 Specific heat capacity of lithosphere (J kg-1 K-1)
 Only relevant if gthf = 2
-Default: 1000
+Default: (use hard-coded default)
 </entry>
 
 <entry 
@@ -1019,7 +1022,7 @@ category="cism_config_gthf"
 group="cism_config_gthf" >
 thermal conductivity of lithosphere (W m-1 K-1)
 Only relevant if gthf = 2
-Default: 3.3
+Default: (use hard-coded default)
 </entry>
 
 
@@ -1060,7 +1063,7 @@ category="cism_config_isostasy"
 group="cism_config_isostasy" >
 Characteristic time constant of relaxing mantle (years)
 Only relevant if isostasy = 1
-Default: 4000.
+Default: (use hard-coded default)
 </entry>
 
 <entry 
@@ -1070,7 +1073,7 @@ category="cism_config_isostasy"
 group="cism_config_isostasy" >
 Lithosphere update period (years)
 Only relevant if isostasy = 1
-Default: 500.
+Default: (use hard-coded default)
 </entry>
 
 <entry 
@@ -1080,7 +1083,7 @@ category="cism_config_isostasy"
 group="cism_config_isostasy" >
 Flexural rigidity of the lithosphere
 Only relevant if 'lithosphere' is set to 1
-Default: 0.24e25
+Default: (use hard-coded default)
 </entry>
 
 
