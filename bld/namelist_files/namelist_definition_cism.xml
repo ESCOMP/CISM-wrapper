@@ -432,11 +432,12 @@ id="temperature"
 type="integer" 
 category="cism_config_options"
 group="cism_config_options"
-valid_values="0,1,2" >
+valid_values="0,1,2,3" >
 Determines the temperature solution method
 0: isothermal: set column to surface air temperature
-1: full prognostic temperature solution
+1: prognostic temperature solution
 2: do NOTHING: hold temperatures steady at initial value
+3: prognostic enthalpy solution
 Default: 1
 </entry>
 
@@ -859,14 +860,14 @@ category="cism_config_ho_options"
 group="cism_config_ho_options"
 valid_values="0,1,2,3,4,5,6,7" >
 Basal boundary condition for Payne/Price dynamical core
-0: constant value (hardcoded in, useful for debugging)
-1: simple pattern (hardcoded in, useful for debugging)
-2: use till yield stress (Picard-type iteration)
-3: circular ice shelf
-4: no slip everywhere (using stress basal bc and large value for B^2)
-5: beta^2 field passed in from CISM
-6: no slip everywhere (using Dirichlet, no slip basal bc)
-7: use till yield stress (Newton-type iteration)
+0: constant value of 10 Pa/yr (useful for debugging)
+1: simple hard-coded pattern (useful for debugging)
+2: treat betasquared value as a till yield stress (in Pa) using Picard iteration
+3: linear (inverse) function of bwat
+4: very large value for betasquared to enforce no slip everywhere
+5: betasquared field passed in from .nc input file as part of standard i/o
+6: no slip everywhere (using Dirichlet BC rather than large betasquared)
+7: treat betasquared value as till yield stress (in Pa) using Newton-type iteration (in devel.)
 Default: 5
 </entry>
 
