@@ -8,6 +8,7 @@ module glc_comp_mct
   use shr_file_mod     , only: shr_file_getunit, shr_file_getlogunit, shr_file_getloglevel, &
                                shr_file_setlogunit, shr_file_setloglevel, shr_file_setio, &
                                shr_file_freeunit
+  use shr_assert_mod   , only: shr_assert
   use mct_mod
   use esmf
 
@@ -77,12 +78,13 @@ CONTAINS
 
 ! !USES:
 
-    use glc_ensemble, only : set_inst_vars, write_inst_vars, get_inst_name
-    use glc_files   , only : set_filenames, ionml_filename
+    use glc_ensemble       , only : set_inst_vars, write_inst_vars, get_inst_name
+    use glc_files          , only : set_filenames, ionml_filename
+    use glc_coupling_flags , only : has_ocn_coupling, has_ice_coupling
 
 ! !INPUT/OUTPUT PARAMETERS:
 
-    type(ESMF_Clock)         , intent(in)    :: EClock
+    type(ESMF_Clock)         , intent(inout) :: EClock
     type(seq_cdata)          , intent(inout) :: cdata
     type(mct_aVect)          , intent(inout) :: x2g, g2x
     character(len=*), optional  , intent(in) :: NLFilename ! Namelist filename
@@ -200,6 +202,9 @@ CONTAINS
     ! Set flags in infodata
 
     call seq_infodata_PutData(infodata, glc_present=.true., &
+       glclnd_present = .true., &
+       glcocn_present=has_ocn_coupling(), &
+       glcice_present=has_ice_coupling(), &
        glc_prognostic = .true., glc_nx=nxg, glc_ny=nyg)
 
     ! Initialize MCT attribute vectors
@@ -243,7 +248,7 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
 
 ! !INPUT/OUTPUT PARAMETERS:
 
-   type(ESMF_Clock)            ,intent(in)    :: EClock
+   type(ESMF_Clock)            ,intent(inout) :: EClock
    type(seq_cdata)             ,intent(inout) :: cdata
    type(mct_aVect)             ,intent(inout) :: x2g        ! driver -> glc
    type(mct_aVect)             ,intent(inout) :: g2x        ! glc    -> driver
@@ -304,10 +309,8 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
 
     ! Unpack
 
-    do num = 1,glc_nec
-       call glc_import_mct(x2g, num, &
-            index_x2g_Ss_tsrf(num), index_x2g_Ss_topo(num), index_x2g_Fgss_qice(num)) 
-    end do
+    call glc_import_mct(x2g, glc_nec, &
+         index_x2g_Sl_tsrf, index_x2g_Sl_topo, index_x2g_Flgl_qice) 
 
     ! Run 
 
@@ -334,11 +337,10 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
     
     ! Pack
 
-    do num = 1,glc_nec
-       call glc_export_mct(g2x, num, &
-            index_g2x_Sg_frac(num), index_g2x_Sg_topo(num)  ,&
-            index_g2x_Fsgg_rofi(num), index_g2x_Fsgg_rofl(num),index_g2x_Fsgg_hflx(num))
-    end do
+    call glc_export_mct(g2x, glc_nec, &
+         index_g2x_Sg_frac, index_g2x_Sg_topo, index_g2x_Flgg_hflx, &
+         index_g2x_Fogg_rofi, index_g2x_Figg_rofi, &
+         index_g2x_Fogg_rofl)
     
     ! Log output for model date
 
@@ -395,7 +397,7 @@ subroutine glc_final_mct( EClock, cdata, x2d, d2x)
 
 ! !INPUT/OUTPUT PARAMETERS:
 
-   type(ESMF_Clock)            ,intent(in)    :: EClock
+   type(ESMF_Clock)            ,intent(inout) :: EClock
    type(seq_cdata)             ,intent(inout) :: cdata
    type(mct_aVect)             ,intent(inout) :: x2d        
    type(mct_aVect)             ,intent(inout) :: d2x        
@@ -447,21 +449,25 @@ subroutine glc_final_mct( EClock, cdata, x2d, d2x)
  end subroutine glc_final_mct
 
 !=================================================================================
-  subroutine glc_import_mct(x2g,ndx,&
-       index_tsrf,index_topo,index_qice)
+  subroutine glc_import_mct(x2g, glc_nec, &
+       index_tsrf, index_topo, index_qice)
 
     !-------------------------------------------------------------------
     use glc_global_fields, only: tsfc, topo, qsmb       ! from coupler
 
     type(mct_aVect),intent(inout) :: x2g
-    integer(IN), intent(in) :: ndx                      ! elevation class
-    integer(IN), intent(in) :: index_tsrf
-    integer(IN), intent(in) :: index_topo
-    integer(IN), intent(in) :: index_qice
+    integer(IN), intent(in) :: glc_nec
+    integer(IN), intent(in) :: index_tsrf(:)
+    integer(IN), intent(in) :: index_topo(:)
+    integer(IN), intent(in) :: index_qice(:)
 
-    integer(IN) :: j,jj,i,g,nxg,nyg,n
+    integer(IN) :: j,jj,i,g,nxg,nyg,n,elev_class
     character(*), parameter :: subName = "(glc_import_mct) "
     !-------------------------------------------------------------------
+
+    call shr_assert((size(index_tsrf) >= glc_nec), subName//' ERROR in size of index_tsrf')
+    call shr_assert((size(index_topo) >= glc_nec), subName//' ERROR in size of index_topo')
+    call shr_assert((size(index_qice) >= glc_nec), subName//' ERROR in size of index_qice')
 
     nxg = glc_grid%nx
     nyg = glc_grid%ny
@@ -469,17 +475,28 @@ subroutine glc_final_mct( EClock, cdata, x2d, d2x)
        jj = nyg - j + 1     ! reverse j index for glint grid (N to S)
        do i = 1, nxg
           g = (j-1)*nxg + i   ! global index (W to E, S to N)
-          tsfc(i,jj,ndx) = x2g%rAttr(index_tsrf,g) - tkfrz
-          topo(i,jj,ndx) = x2g%rAttr(index_topo,g)
-          qsmb(i,jj,ndx) = x2g%rAttr(index_qice,g)
+
+          do elev_class = 1, glc_nec
+             tsfc(i,jj,elev_class) = x2g%rAttr(index_tsrf(elev_class), g) - tkfrz
+             topo(i,jj,elev_class) = x2g%rAttr(index_topo(elev_class), g)
+             qsmb(i,jj,elev_class) = x2g%rAttr(index_qice(elev_class), g)
+          enddo
        enddo
     enddo
 
     if (verbose .and. my_task==master_task) then
-       write(stdout,*) ' '
-       write(stdout,*) subname,' x2g tsrf ',ndx,minval(x2g%rAttr(index_tsrf,:)),maxval(x2g%rAttr(index_tsrf,:))
-       write(stdout,*) subname,' x2g topo ',ndx,minval(x2g%rAttr(index_topo,:)),maxval(x2g%rAttr(index_topo,:))
-       write(stdout,*) subname,' x2g qice ',ndx,minval(x2g%rAttr(index_qice,:)),maxval(x2g%rAttr(index_qice,:))
+       do elev_class = 1, glc_nec
+          write(stdout,*) ' '
+          write(stdout,*) subname,' x2g tsrf ',elev_class, &
+               minval(x2g%rAttr(index_tsrf(elev_class),:)), &
+               maxval(x2g%rAttr(index_tsrf(elev_class),:))
+          write(stdout,*) subname,' x2g topo ',elev_class, &
+               minval(x2g%rAttr(index_topo(elev_class),:)), &
+               maxval(x2g%rAttr(index_topo(elev_class),:))
+          write(stdout,*) subname,' x2g qice ',elev_class, &
+               minval(x2g%rAttr(index_qice(elev_class),:)), &
+               maxval(x2g%rAttr(index_qice(elev_class),:))
+       end do
        call shr_sys_flush(stdout)
     endif
 
@@ -487,24 +504,31 @@ subroutine glc_final_mct( EClock, cdata, x2d, d2x)
 
 !=================================================================================
 
-  subroutine glc_export_mct(g2x,ndx,&
-       index_frac,index_topo,&
-       index_rofi,index_rofl,index_hflx)
+  subroutine glc_export_mct(g2x, glc_nec, &
+       index_frac, index_topo, index_hflx, &
+       index_rofi_to_ocn, index_rofi_to_ice, &
+       index_rofl)
 
     !-------------------------------------------------------------------
-    use glc_global_fields, only: gfrac, gtopo, grofi, grofl, ghflx   ! to coupler
+    use glc_global_fields   , only: gfrac, gtopo, grofi, grofl, ghflx   ! to coupler
+    use glc_route_ice_runoff, only: route_ice_runoff
 
     type(mct_aVect),intent(inout) :: g2x
-    integer(IN), intent(in) :: ndx
-    integer(IN), intent(in) :: index_frac
-    integer(IN), intent(in) :: index_topo
-    integer(IN), intent(in) :: index_rofi
+    integer(IN), intent(in) :: glc_nec
+    integer(IN), intent(in) :: index_frac(:)
+    integer(IN), intent(in) :: index_topo(:)
+    integer(IN), intent(in) :: index_hflx(:)
+    integer(IN), intent(in) :: index_rofi_to_ocn
+    integer(IN), intent(in) :: index_rofi_to_ice
     integer(IN), intent(in) :: index_rofl
-    integer(IN), intent(in) :: index_hflx
 
-    integer(IN) :: j,jj,i,g,nxg,nyg,n
+    integer(IN) :: j,jj,i,g,nxg,nyg,n,elev_class
     character(*), parameter :: subName = "(glc_export_mct) "
     !-------------------------------------------------------------------
+
+    call shr_assert((size(index_frac) >= glc_nec), subName//' ERROR in size of index_frac')
+    call shr_assert((size(index_topo) >= glc_nec), subName//' ERROR in size of index_topo')
+    call shr_assert((size(index_hflx) >= glc_nec), subName//' ERROR in size of index_hflx')
 
     nxg = glc_grid%nx
     nyg = glc_grid%ny
@@ -512,20 +536,44 @@ subroutine glc_final_mct( EClock, cdata, x2d, d2x)
        jj = nyg - j + 1     ! reverse j index for glint grid (N to S)
        do i = 1, nxg
           g = (j-1)*nxg + i ! global index (W to E, S to N)
-          g2x%rAttr(index_frac,g) = gfrac(i,jj,ndx)
-          g2x%rAttr(index_topo,g) = gtopo(i,jj,ndx)
-          g2x%rAttr(index_rofi,g) = grofi(i,jj,ndx)
-          g2x%rAttr(index_rofl,g) = grofl(i,jj,ndx)
-          g2x%rAttr(index_hflx,g) = ghflx(i,jj,ndx)
+
+          call route_ice_runoff(grofi(i,jj), &
+               rofi_to_ocn=g2x%rAttr(index_rofi_to_ocn, g), &
+               rofi_to_ice=g2x%rAttr(index_rofi_to_ice, g))
+          
+          g2x%rAttr(index_rofl, g) = grofl(i,jj)
+
+          do elev_class = 1, glc_nec
+             g2x%rAttr(index_frac(elev_class), g) = gfrac(i,jj,elev_class)
+             g2x%rAttr(index_topo(elev_class), g) = gtopo(i,jj,elev_class)
+             g2x%rAttr(index_hflx(elev_class), g) = ghflx(i,jj,elev_class)
+          enddo
        enddo
     enddo
 
     if (verbose .and. my_task==master_task) then
-       write(stdout,*) subname,' g2x frac ',ndx,minval(g2x%rAttr(index_frac,:)),maxval(g2x%rAttr(index_frac,:))
-       write(stdout,*) subname,' g2x topo ',ndx,minval(g2x%rAttr(index_topo,:)),maxval(g2x%rAttr(index_topo,:))
-       write(stdout,*) subname,' g2x rofi ',ndx,minval(g2x%rAttr(index_rofi,:)),maxval(g2x%rAttr(index_rofi,:))
-       write(stdout,*) subname,' g2x rofl ',ndx,minval(g2x%rAttr(index_rofl,:)),maxval(g2x%rAttr(index_rofl,:))
-       write(stdout,*) subname,' g2x hflx ',ndx,minval(g2x%rAttr(index_hflx,:)),maxval(g2x%rAttr(index_hflx,:))
+       do elev_class = 1, glc_nec
+          write(stdout,*) subname,' g2x frac ',elev_class, &
+               minval(g2x%rAttr(index_frac(elev_class),:)), &
+               maxval(g2x%rAttr(index_frac(elev_class),:))
+          write(stdout,*) subname,' g2x topo ',elev_class, &
+               minval(g2x%rAttr(index_topo(elev_class),:)), &
+               maxval(g2x%rAttr(index_topo(elev_class),:))
+          write(stdout,*) subname,' g2x hflx ',elev_class, &
+               minval(g2x%rAttr(index_hflx(elev_class),:)), &
+               maxval(g2x%rAttr(index_hflx(elev_class),:))
+       end do
+
+       write(stdout,*) subname,' g2x rofi to ocn ', &
+            minval(g2x%rAttr(index_rofi_to_ocn,:)), &
+            maxval(g2x%rAttr(index_rofi_to_ocn,:))
+       write(stdout,*) subname,' g2x rofi to ice ', &
+            minval(g2x%rAttr(index_rofi_to_ice,:)), &
+            maxval(g2x%rAttr(index_rofi_to_ice,:))
+       write(stdout,*) subname,' g2x rofl ', &
+            minval(g2x%rAttr(index_rofl,:)), &
+            maxval(g2x%rAttr(index_rofl,:))
+
        call shr_sys_flush(stdout)
     endif
 

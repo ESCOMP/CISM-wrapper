@@ -8,6 +8,7 @@ module glc_comp_esmf
   use shr_file_mod     , only: shr_file_getunit, shr_file_getlogunit, shr_file_getloglevel, &
                                shr_file_setlogunit, shr_file_setloglevel, shr_file_setio, &
                                shr_file_freeunit
+  use shr_assert_mod   , only: shr_assert
   use mct_mod
   use esmf
   use esmfshr_mod
@@ -100,8 +101,9 @@ CONTAINS
 
   subroutine glc_init_esmf(comp, import_state, export_state, EClock, rc)
 
-    use glc_ensemble, only : set_inst_vars, write_inst_vars, get_inst_name
-    use glc_files   , only : set_filenames, ionml_filename
+    use glc_ensemble       , only : set_inst_vars, write_inst_vars, get_inst_name
+    use glc_files          , only : set_filenames, ionml_filename
+    use glc_coupling_flags , only : has_ocn_coupling, has_ice_coupling
 
     !-----------------------------------------------------------------------
     ! !DESCRIPTION:
@@ -270,13 +272,25 @@ CONTAINS
     if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
 
     ! Send initial state to driver
-!    do num = 1,glc_nec
-!       call glc_export_esmf(fptr, num, &
-!            index_g2x_Sg_frac(num), index_g2x_Sg_topo(num)  ,&
-!            index_g2x_Fsgg_rofi(num), index_g2x_Fsgg_rofl(num), &
-!            index_g2x_Fsgg_hflx(num))
-!    end do
+    ! call glc_export_esmf(fptr, glc_nec, &
+    !      index_g2x_Sg_frac, index_g2x_Sg_topo, index_g2x_Flgg_hflx, &
+    !      index_g2x_Fogg_rofi, index_g2x_Figg_rofi, &
+    !      index_g2x_Fogg_rofl)
     
+    call ESMF_AttributeSet(export_state, name="glc_present", value=.true., rc=rc)
+    if(rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
+
+    call ESMF_AttributeSet(export_state, name="glclnd_present", value=.true., rc=rc)
+    if(rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
+
+    call ESMF_AttributeSet(export_state, name="glcocn_present", &
+         value=has_ocn_coupling(), rc=rc)
+    if(rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
+
+    call ESMF_AttributeSet(export_state, name="glcice_present", &
+         value=has_ice_coupling(), rc=rc)
+    if(rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
+
     call ESMF_AttributeSet(export_state, name="glc_prognostic", value=.true., rc=rc)
     if(rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
 
@@ -286,6 +300,7 @@ CONTAINS
     call ESMF_AttributeSet(export_state, name="glc_ny", value=nyg_tot, rc=rc)
     if(rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
 
+#ifdef USE_ESMF_METADATA
     convCIM  = "CIM"
     purpComp = "Model Component Simulation Description"
 
@@ -311,6 +326,7 @@ CONTAINS
     !                           convention=convCIM, purpose=purpComp, rc=rc)
     !    call ESMF_AttributeSet(comp, "ResponsiblePartyRole", "contact", &
     !                           convention=convCIM, purpose=purpComp, rc=rc)
+#endif
     
     if (my_task == master_task) then
        write(stdout,F91) 
@@ -393,10 +409,8 @@ CONTAINS
     call ESMF_ArrayGet(x2g, localDe=0, farrayPtr=fptr, rc=rc)
     if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
 
-    do num = 1,glc_nec
-       call glc_import_esmf(fptr, num, &
-            index_x2g_Ss_tsrf(num), index_x2g_Ss_topo(num), index_x2g_Fgss_qice(num))
-    end do
+    call glc_import_esmf(fptr, glc_nec, &
+         index_x2g_Sl_tsrf, index_x2g_Sl_topo, index_x2g_Flgl_qice)
 
     ! Run 
 
@@ -429,13 +443,11 @@ CONTAINS
     call ESMF_ArrayGet(g2x, localDe=0, farrayPtr=fptr, rc=rc)
     if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
 
-    do num = 1,glc_nec
-       call glc_export_esmf(fptr, num, &
-            index_g2x_Sg_frac(num), index_g2x_Sg_topo(num)  ,&
-            index_g2x_Fsgg_rofi(num), index_g2x_Fsgg_rofl(num), index_g2x_Fsgg_hflx(num))
-    end do
+    call glc_export_esmf(fptr, glc_nec, &
+         index_g2x_Sg_frac, index_g2x_Sg_topo, index_g2x_Flgg_hflx, &
+         index_g2x_Fogg_rofi, index_g2x_Figg_rofi, &
+         index_g2x_Fogg_rofl)
     
-
     ! Log output for model date
 
     if (my_task == master_task) then
@@ -622,20 +634,24 @@ end function glc_DistGrid_esmf
 
 !====================================================================================
 
-subroutine glc_import_esmf(fptr, ndx, index_tsrf, index_topo, index_qice)
+subroutine glc_import_esmf(fptr, glc_nec, index_tsrf, index_topo, index_qice)
 
     !-----------------------------------------------------
     implicit none
     real(R8)   , pointer    :: fptr(:,:)
-    integer(IN), intent(in) :: ndx                      ! elevation class
-    integer(IN), intent(in) :: index_tsrf
-    integer(IN), intent(in) :: index_topo
-    integer(IN), intent(in) :: index_qice
+    integer(IN), intent(in) :: glc_nec
+    integer(IN), intent(in) :: index_tsrf(:)
+    integer(IN), intent(in) :: index_topo(:)
+    integer(IN), intent(in) :: index_qice(:)
 
     ! Local Varaibles
-    integer(IN) :: j,jj,i,g,nxg,nyg,n
+    integer(IN) :: j,jj,i,g,nxg,nyg,n,elev_class
     character(*), parameter :: subName = "(glc_import_esmf) "
     !-----------------------------------------------------
+
+    call shr_assert((size(index_tsrf) >= glc_nec), subName//' ERROR in size of index_tsrf')
+    call shr_assert((size(index_topo) >= glc_nec), subName//' ERROR in size of index_topo')
+    call shr_assert((size(index_qice) >= glc_nec), subName//' ERROR in size of index_qice')
 
     nxg = glc_grid%nx
     nyg = glc_grid%ny
@@ -643,17 +659,28 @@ subroutine glc_import_esmf(fptr, ndx, index_tsrf, index_topo, index_qice)
        jj = nyg - j + 1       ! reverse j index for glint grid (N to S)
        do i = 1, nxg
           g = (j-1)*nxg + i   ! global index (W to E, S to N)
-          tsfc(i,jj,ndx) = fptr(index_tsrf,g) - tkfrz
-          topo(i,jj,ndx) = fptr(index_topo,g)
-          qsmb(i,jj,ndx) = fptr(index_qice,g)
+
+          do elev_class = 1, glc_nec
+             tsfc(i,jj,elev_class) = fptr(index_tsrf(elev_class), g) - tkfrz
+             topo(i,jj,elev_class) = fptr(index_topo(elev_class), g)
+             qsmb(i,jj,elev_class) = fptr(index_qice(elev_class), g)
+          enddo
        enddo
     enddo
 
     if (verbose .and. my_task==master_task) then
-       write(stdout,*) ' '
-       write(stdout,*) subname,' x2g tsrf ',ndx,minval(fptr(index_tsrf,:)),maxval(fptr(index_tsrf,:))
-       write(stdout,*) subname,' x2g topo ',ndx,minval(fptr(index_topo,:)),maxval(fptr(index_topo,:))
-       write(stdout,*) subname,' x2g qice ',ndx,minval(fptr(index_qice,:)),maxval(fptr(index_qice,:))
+       do elev_class = 1, glc_nec
+          write(stdout,*) ' '
+          write(stdout,*) subname,' x2g tsrf ',elev_class, &
+               minval(fptr(index_tsrf(elev_class),:)), &
+               maxval(fptr(index_tsrf(elev_class),:))
+          write(stdout,*) subname,' x2g topo ',elev_class, &
+               minval(fptr(index_topo(elev_class),:)), &
+               maxval(fptr(index_topo(elev_class),:))
+          write(stdout,*) subname,' x2g qice ',elev_class, &
+               minval(fptr(index_qice(elev_class),:)), &
+               maxval(fptr(index_qice(elev_class),:))
+       end do
        call shr_sys_flush(stdout)
     endif
 
@@ -661,21 +688,31 @@ end subroutine glc_import_esmf
 
 !====================================================================================
 
-subroutine glc_export_esmf(fptr, ndx, index_frac,index_topo, index_rofi,index_rofl,index_hflx)
+subroutine glc_export_esmf(fptr, glc_nec, &
+     index_frac, index_topo, index_hflx, &
+     index_rofi_to_ocn, index_rofi_to_ice, &
+     index_rofl)
 
     !-------------------------------------------------------------------
+    use glc_route_ice_runoff, only: route_ice_runoff
+
     implicit none
     real(R8)   , pointer    :: fptr(:,:)
-    integer(IN), intent(in) :: ndx
-    integer(IN), intent(in) :: index_frac
-    integer(IN), intent(in) :: index_topo
-    integer(IN), intent(in) :: index_rofi
+    integer(IN), intent(in) :: glc_nec
+    integer(IN), intent(in) :: index_frac(:)
+    integer(IN), intent(in) :: index_topo(:)
+    integer(IN), intent(in) :: index_hflx(:)
+    integer(IN), intent(in) :: index_rofi_to_ocn
+    integer(IN), intent(in) :: index_rofi_to_ice
     integer(IN), intent(in) :: index_rofl
-    integer(IN), intent(in) :: index_hflx
 
-    integer(IN) :: j,jj,i,g,nxg,nyg,n
+    integer(IN) :: j,jj,i,g,nxg,nyg,n,elev_class
     character(*), parameter :: subName = "(glc_export_esmf) "
     !-------------------------------------------------------------------
+
+    call shr_assert((size(index_frac) >= glc_nec), subName//' ERROR in size of index_frac')
+    call shr_assert((size(index_topo) >= glc_nec), subName//' ERROR in size of index_topo')
+    call shr_assert((size(index_hflx) >= glc_nec), subName//' ERROR in size of index_hflx')
 
     nxg = glc_grid%nx
     nyg = glc_grid%ny
@@ -683,20 +720,44 @@ subroutine glc_export_esmf(fptr, ndx, index_frac,index_topo, index_rofi,index_ro
        jj = nyg - j + 1     ! reverse j index for glint grid (N to S)
        do i = 1, nxg
           g = (j-1)*nxg + i ! global index (W to E, S to N)
-          fptr(index_frac,g) = gfrac(i,jj,ndx)
-          fptr(index_topo,g) = gtopo(i,jj,ndx)
-          fptr(index_rofi,g) = grofi(i,jj,ndx)
-          fptr(index_rofl,g) = grofl(i,jj,ndx)
-          fptr(index_hflx,g) = ghflx(i,jj,ndx)
+
+          call route_ice_runoff(grofi(i,jj), &
+               rofi_to_ocn=fptr(index_rofi_to_ocn, g), &
+               rofi_to_ice=fptr(index_rofi_to_ice, g))
+
+          fptr(index_rofl,g) = grofl(i,jj)
+          
+          do elev_class = 1, glc_nec
+             fptr(index_frac(elev_class), g) = gfrac(i,jj,elev_class)
+             fptr(index_topo(elev_class), g) = gtopo(i,jj,elev_class)
+             fptr(index_hflx(elev_class), g) = ghflx(i,jj,elev_class)
+          enddo
        enddo
     enddo
 
     if (verbose .and. my_task==master_task) then
-       write(stdout,*) subname,' g2x frac ',ndx,minval(fptr(index_frac,:)),maxval(fptr(index_frac,:))
-       write(stdout,*) subname,' g2x topo ',ndx,minval(fptr(index_topo,:)),maxval(fptr(index_topo,:))
-       write(stdout,*) subname,' g2x rofi ',ndx,minval(fptr(index_rofi,:)),maxval(fptr(index_rofi,:))
-       write(stdout,*) subname,' g2x rofl ',ndx,minval(fptr(index_rofl,:)),maxval(fptr(index_rofl,:))
-       write(stdout,*) subname,' g2x hflx ',ndx,minval(fptr(index_hflx,:)),maxval(fptr(index_hflx,:))
+       do elev_class = 1, glc_nec
+          write(stdout,*) subname,' g2x frac ',elev_class, &
+               minval(fptr(index_frac(elev_class),:)), &
+               maxval(fptr(index_frac(elev_class),:))
+          write(stdout,*) subname,' g2x topo ',elev_class, &
+               minval(fptr(index_topo(elev_class),:)), &
+               maxval(fptr(index_topo(elev_class),:))
+          write(stdout,*) subname,' g2x hflx ',elev_class, &
+               minval(fptr(index_hflx(elev_class),:)), &
+               maxval(fptr(index_hflx(elev_class),:))
+       end do
+
+       write(stdout,*) subname,' g2x rofi to ocn ', &
+            minval(fptr(index_rofi_to_ocn,:)), &
+            maxval(fptr(index_rofi_to_ocn,:))
+       write(stdout,*) subname,' g2x rofi to ice ', &
+            minval(fptr(index_rofi_to_ice,:)), &
+            maxval(fptr(index_rofi_to_ice,:))
+       write(stdout,*) subname,' g2x rofl ', &
+            minval(fptr(index_rofl,:)), &
+            maxval(fptr(index_rofl,:))
+
        call shr_sys_flush(stdout)
     endif
 

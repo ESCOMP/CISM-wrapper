@@ -51,11 +51,13 @@
 
   ! output to coupler
 
+  real(r8),dimension(:,:), allocatable :: &
+     grofi       ,&! ice runoff (calving) flux (kg/m^2/s)
+     grofl         ! ice runoff (calving) flux (kg/m^2/s)
+
   real(r8),dimension(:,:,:), allocatable ::  &   ! per elevation class
      gfrac       ,&! fractional glacier area [0,1] 
      gtopo       ,&! glacier surface elevation (m)
-     grofi       ,&! ice runoff (calving) flux (kg/m^2/s)
-     grofl       ,&! ice runoff (calving) flux (kg/m^2/s)
      ghflx         ! heat flux from glacier interior, positive down (W/m^2)
 
   type(glint_params) :: ice_sheet   ! Parameters relevant to all model instances, 
@@ -139,10 +141,10 @@
    allocate(qsmb(nx,ny,glc_nec))
 
  ! to coupler
+   allocate(grofi(nx,ny))
+   allocate(grofl(nx,ny))
    allocate(gfrac(nx,ny,glc_nec))
    allocate(gtopo(nx,ny,glc_nec))
-   allocate(grofi(nx,ny,glc_nec))
-   allocate(grofl(nx,ny,glc_nec))
    allocate(ghflx(nx,ny,glc_nec))
 
  ! Other fields

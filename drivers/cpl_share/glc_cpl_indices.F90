@@ -8,27 +8,24 @@ module glc_cpl_indices
   implicit none
 
   SAVE
-  public    ! By default make data private
+  public
 
   integer , parameter, private:: glc_nec_max = 100
 
   ! drv -> glc
 
-  integer, public :: index_x2g_Ss_tsrf(glc_nec_max)   = 0
-  integer, public :: index_x2g_Ss_topo(glc_nec_max)   = 0
-  integer, public :: index_x2g_Fgss_qice(glc_nec_max) = 0
-
-  integer :: nflds_x2g
+  integer, public :: index_x2g_Sl_tsrf(glc_nec_max)   = 0
+  integer, public :: index_x2g_Sl_topo(glc_nec_max)   = 0
+  integer, public :: index_x2g_Flgl_qice(glc_nec_max) = 0
 
   ! glc -> drv
 
+  integer, public :: index_g2x_Fogg_rofi = 0   ! frozen runoff -> ocn
+  integer, public :: index_g2x_Figg_rofi = 0   ! frozen runoff -> ice
+  integer, public :: index_g2x_Fogg_rofl = 0   ! liquid runoff -> ocn
   integer, public :: index_g2x_Sg_frac(glc_nec_max)   = 0
   integer, public :: index_g2x_Sg_topo(glc_nec_max)   = 0
-  integer, public :: index_g2x_Fsgg_rofi(glc_nec_max) = 0
-  integer, public :: index_g2x_Fsgg_rofl(glc_nec_max) = 0
-  integer, public :: index_g2x_Fsgg_hflx(glc_nec_max) = 0
-
-  integer :: nflds_g2x
+  integer, public :: index_g2x_Flgg_hflx(glc_nec_max) = 0
 
 contains
 
@@ -51,23 +48,21 @@ contains
 
     ! glc -> drv
 
+    index_g2x_Fogg_rofi = mct_avect_indexra(g2x,'Fogg_rofi',perrwith='quiet')
+    index_g2x_Figg_rofi = mct_avect_indexra(g2x,'Figg_rofi',perrwith='quiet')
+    index_g2x_Fogg_rofl = mct_avect_indexra(g2x,'Fogg_rofl',perrwith='quiet')
+
     do num = 1,glc_nec_max
        write(cnum,'(i2.2)') num
        name = 'Sg_frac' // cnum
        index_g2x_Sg_frac(num)   = mct_avect_indexra(g2x,trim(name),perrwith='quiet') 
        name = 'Sg_topo' // cnum
        index_g2x_Sg_topo(num)   = mct_avect_indexra(g2x,trim(name),perrwith='quiet')
-       name = 'Fsgg_rofi' // cnum
-       index_g2x_Fsgg_rofi(num) = mct_avect_indexra(g2x,trim(name),perrwith='quiet')
-       name = 'Fsgg_rofl' // cnum
-       index_g2x_Fsgg_rofl(num) = mct_avect_indexra(g2x,trim(name),perrwith='quiet')
-       name = 'Fsgg_hflx' // cnum
-       index_g2x_Fsgg_hflx(num) = mct_avect_indexra(g2x,trim(name),perrwith='quiet')
+       name = 'Flgg_hflx' // cnum
+       index_g2x_Flgg_hflx(num) = mct_avect_indexra(g2x,trim(name),perrwith='quiet')
        if ( index_g2x_Sg_frac(num)   == 0 .and. &
             index_g2x_Sg_topo(num)   == 0 .and. &
-            index_g2x_Fsgg_rofi(num) == 0 .and. &
-            index_g2x_fsgg_rofl(num) == 0 .and. &
-            index_g2x_Fsgg_hflx(num) == 0 ) then
+            index_g2x_Flgg_hflx(num) == 0 ) then
           exit
        end if
        glc_nec = num
@@ -81,12 +76,12 @@ contains
 
     do num = 1,glc_nec
        write(cnum,'(i2.2)') num
-       name = 'Ss_tsrf' // cnum
-       index_x2g_Ss_tsrf(num)   = mct_avect_indexra(x2g,trim(name))
-       name = 'Ss_topo' // cnum
-       index_x2g_Ss_topo(num)   = mct_avect_indexra(x2g,trim(name))
-       name = 'Fgss_qice' // cnum
-       index_x2g_Fgss_qice(num) = mct_avect_indexra(x2g,trim(name))
+       name = 'Sl_tsrf' // cnum
+       index_x2g_Sl_tsrf(num)   = mct_avect_indexra(x2g,trim(name))
+       name = 'Sl_topo' // cnum
+       index_x2g_Sl_topo(num)   = mct_avect_indexra(x2g,trim(name))
+       name = 'Flgl_qice' // cnum
+       index_x2g_Flgl_qice(num) = mct_avect_indexra(x2g,trim(name))
     end do
 
     call mct_aVect_clean(x2g)

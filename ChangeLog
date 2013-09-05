@@ -3,6 +3,135 @@ This file describes what main-trunk tags were created and why
 ================================================================================
 
 ================================================================================
+Originator: sacks, tcraig
+Date: Sept 5, 2013
+Model: cism
+Version: cism1_130905
+One-line summary: rework coupling fields, update glimmer-cism external
+
+Purpose of changes:
+
+(1) Rework the runoff coupling fields (rofi & rofl) to fit in with Tony Craig's
+    coupler changes. These fields are now routed to the ocean and/or sea ice,
+    instead of to the land. Also, these are no longer separated by elevation
+    class.
+
+(2) Update glimmer-cism external from r1936 -> r1950. This brings in a number of
+    changes. The most important are some changes from Bill Lipscomb that fix
+    some of the g2x coupling fields, and remove the elevation class dimension
+    from the g2x rofi & rofl fields.
+
+
+Changes answers relative to previous tag: YES
+   Changes all of the g2x coupling fields.
+   However, CISM history files are bfb
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/):
+
+List all modified files, and describe the changes:
+
+*** Changes to coupling fields as described above
+M       source_glc/glc_InitMod.F90
+M       source_glc/glc_RunMod.F90
+M       source_glc/glc_global_fields.F90
+M       drivers/cpl_share/glc_cpl_indices.F90
+M       drivers/cpl_mct/glc_comp_mct.F90
+M       drivers/cpl_esmf/glc_comp_esmf.F90
+
+*** Routines to determine whether to send calving flux to ocean or sea ice
+A       source_glc/glc_route_ice_runoff.F90
+A       drivers/cpl_share/glc_coupling_flags.F90
+
+*** Add a namelist option to choose where calving flux should go
+M       bld/build-namelist
+M       bld/namelist_files/namelist_defaults_cism.xml
+M       bld/namelist_files/namelist_definition_cism.xml
+
+*** Update from r1936 -> r1950
+M       SVN_EXTERNAL_DIRECTORIES
+
+
+
+Summary of testing:
+
+   Yellowstone intel & pgi test lists. Testing was done in the context of Tony
+   Craig's changes, which involved the coupler and many other components. The
+   testing documented here was done on cplupa_n03_cism1_130624.
+
+   Baseline comparisons fail for g2x fields and the derived x2l fields. CISM
+   history files are bfb according to component_gen_comp. 
+
+   Test failures are:
+
+   *** Expected failures
+   CFAIL ERS_Ly20_E.f09_g16.TG20TR.yellowstone_pgi
+   FAIL  ERI_Ly15.f09_g16_gl10.TG20TRIS2.yellowstone_intel
+   FAIL  NCK_Ly3.f09_g16_gl10.TGRCP85IS2.yellowstone_intel
+   FAIL  PEA_P1_M_Ly2.f09_g16_gl10.TGIS2S.yellowstone_intel
+   FAIL  SMS_D_Ly1.f09_g16_gl10.TGIS2.yellowstone_intel
+   FAIL  SMS_Ly3.T31_g37_gl10.IGIS2.yellowstone_intel
+
+   *** Failures in IG/FG tests that I think are expected (note: these all failed
+       in the baseline, too; also note that I have TG tests that cover the same
+       kind of functionality - e.g., a CME TG test - so this likely points to
+       problems outside of GLC; also, Tony says that the IG failures are
+       expected)
+   FAIL  ERI.f19_g16.IGRCP85CN.yellowstone_pgi
+   FAIL  SMS_D.f09_g16.IG20TR.yellowstone_pgi
+   FAIL  CME_Ly5.T31_g37.IG.yellowstone_intel
+   FAIL  SMS.f19_f19.FG20TRCN.yellowstone_intel
+
+
+Externals used for testing:
+
+   models/atm/cam                  https://svn-ccsm-models.cgd.ucar.edu/cam1/branch_tags/cesmcosp_cam5_3_xx_tags/cesmcosp_n01_cam5_3_04/models/atm/cam
+   models/atm/datm                 https://svn-ccsm-models.cgd.ucar.edu/datm7/trunk_tags/datm8_130424
+   models/atm/satm                 https://svn-ccsm-models.cgd.ucar.edu/stubs/branch_tags/cplupa_tags/cplupa_n02_stubs1_4_02/satm
+   models/atm/wrf                  https://svn-ccsm-models.cgd.ucar.edu/wrf/trunk_tags/wrf32_ccsm130325
+   models/atm/xatm                 https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_7_06/xatm
+   models/csm_share                https://svn-ccsm-models.cgd.ucar.edu/csm_share/branch_tags/cplupa_tags/cplupa_n01_share3_130528
+   models/dead_share               https://svn-ccsm-models.cgd.ucar.edu/dead7/branch_tags/cplupa_tags/cplupa_n02_dead7_7_06/dead_share
+   models/drv                      https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/branch_tags/cplupa_tags/cplupa_n02_drvseq4_2_33
+   models/glc/cism                 https://svn-ccsm-models.cgd.ucar.edu/glc/branches/cplupa
+   models/glc/sglc                 https://svn-ccsm-models.cgd.ucar.edu/stubs/branch_tags/cplupa_tags/cplupa_n02_stubs1_4_02/sglc
+   models/glc/xglc                 https://svn-ccsm-models.cgd.ucar.edu/dead7/branch_tags/cplupa_tags/cplupa_n02_dead7_7_06/xglc
+   models/ice/cice                 https://svn-ccsm-models.cgd.ucar.edu/cice/branch_tags/cplupa_tags/cplupa_n01_cice4_0_20130524
+   models/ice/dice                 https://svn-ccsm-models.cgd.ucar.edu/dice7/branch_tags/cplupa_tags/cplupa_n01_dice8_130313
+   models/ice/sice                 https://svn-ccsm-models.cgd.ucar.edu/stubs/branch_tags/cplupa_tags/cplupa_n02_stubs1_4_02/sice
+   models/ice/xice                 https://svn-ccsm-models.cgd.ucar.edu/dead7/branch_tags/cplupa_tags/cplupa_n02_dead7_7_06/xice
+   models/lnd/clm                  https://svn-ccsm-models.cgd.ucar.edu/clm2/branch_tags/cplupa_tags/cplupa_n02_clm4_5_11/models/lnd/clm
+   models/lnd/dlnd                 https://svn-ccsm-models.cgd.ucar.edu/dlnd7/branch_tags/cplupa_tags/cplupa_n01_dlnd8_130213
+   models/lnd/slnd                 https://svn-ccsm-models.cgd.ucar.edu/stubs/branch_tags/cplupa_tags/cplupa_n02_stubs1_4_02/slnd
+   models/lnd/xlnd                 https://svn-ccsm-models.cgd.ucar.edu/dead7/branch_tags/cplupa_tags/cplupa_n02_dead7_7_06/xlnd
+   models/ocn/docn                 https://svn-ccsm-models.cgd.ucar.edu/docn7/trunk_tags/docn8_130313
+   models/ocn/pop2                 https://svn-ccsm-models.cgd.ucar.edu/pop2/trunk_tags/cesm_pop_2_1_20130517
+   models/ocn/socn                 https://svn-ccsm-models.cgd.ucar.edu/stubs/branch_tags/cplupa_tags/cplupa_n02_stubs1_4_02/socn
+   models/ocn/xocn                 https://svn-ccsm-models.cgd.ucar.edu/dead7/branch_tags/cplupa_tags/cplupa_n02_dead7_7_06/xocn
+   models/ocn/aquap                https://svn-ccsm-models.cgd.ucar.edu/aquap/trunk_tags/aquap_130503
+   models/rof/drof                 https://svn-ccsm-models.cgd.ucar.edu/drof/trunk_tags/drof8_130503
+   models/rof/rtm                  https://svn-ccsm-models.cgd.ucar.edu/rivrtm/branch_tags/cplupa_tags/cplupa_n01_rtm1_0_28
+   models/rof/srof                 https://svn-ccsm-models.cgd.ucar.edu/stubs/branch_tags/cplupa_tags/cplupa_n02_stubs1_4_02/srof
+   models/rof/xrof                 https://svn-ccsm-models.cgd.ucar.edu/dead7/branch_tags/cplupa_tags/cplupa_n02_dead7_7_06/xrof
+   models/utils/esmf_wrf_timemgr   https://svn-ccsm-models.cgd.ucar.edu/esmf_wrf_timemgr/trunk_tags/esmf_wrf_timemgr_130213
+   models/utils/mct                https://github.com/quantheory/MCT/tags/compiler_fixes_n03_MCT_2.8.3
+   models/utils/pio                http://parallelio.googlecode.com/svn/trunk_tags/pio1_7_2/pio
+   models/utils/timing             https://svn-ccsm-models.cgd.ucar.edu/timing/trunk_tags/timing_130506
+   models/wav/swav                    https://svn-ccsm-models.cgd.ucar.edu/stubs/branch_tags/cplupa_tags/cplupa_n02_stubs1_4_02/swav
+   models/wav/ww3                  https://svn-ccsm-models.cgd.ucar.edu/ww3/trunk_tags/ww3_130314
+   models/wav/xwav                 https://svn-ccsm-models.cgd.ucar.edu/dead7/branch_tags/cplupa_tags/cplupa_n02_dead7_7_06/xwav
+   scripts                         https://svn-ccsm-models.cgd.ucar.edu/scripts/branch_tags/cplupa_tags/cplupa_n02_scripts4_130627
+   scripts/ccsm_utils/Machines     https://svn-ccsm-models.cgd.ucar.edu/Machines/trunk_tags/Machines_130625
+   tools/cprnc                     https://svn-ccsm-models.cgd.ucar.edu/tools/cprnc/trunk_tags/cprnc_130529
+   tools/mapping                   https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_130509
+
+
+cism tag used for baseline comparisons: cplupa_n02_cism1_130624
+   Note: I removed the rofi & rofl coupling stuff from cism so that it would
+   work in the context of the above externals
+
+Any other externals that differed in baseline: Same as above
+
+================================================================================
 Originator: sacks
 Date: June 24, 2013
 Model: cism

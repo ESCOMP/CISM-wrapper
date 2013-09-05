@@ -89,6 +89,7 @@
    use glc_time_management, only: init_time1, init_time2, dtt, ihour
    use glimmer_log
    use glc_global_grid, only: glc_landmask
+   use glc_route_ice_runoff, only: set_routing
    use shr_file_mod, only : shr_file_getunit, shr_file_freeunit
 
      !TODO - probably not needed; commented out for now
@@ -117,6 +118,9 @@
   character(CL) ::  &
       cesm_history_vars  ! Name of the CISM variables to be output in cesm
                          ! history files
+
+  character(CL) :: &
+       ice_flux_routing  ! Code for how solid ice should be routed to ocean or sea ice
 
   ! Scalars which hold information about the global grid --------------
  
@@ -151,7 +155,7 @@
 
   integer :: unit      ! fileunit passed to Glint 
 
-  namelist /cism_params/  paramfile, cism_debug, cesm_history_vars
+  namelist /cism_params/  paramfile, cism_debug, cesm_history_vars, ice_flux_routing
  
 !-----------------------------------------------------------------------
 !  initialize return flag
@@ -220,6 +224,8 @@
    call broadcast_scalar(cism_debug,        master_task)
    call broadcast_scalar(cesm_history_vars, master_task)
    history_vars = trim(cesm_history_vars)
+   call broadcast_scalar(ice_flux_routing,  master_task)
+   call set_routing(ice_flux_routing)
 
    if (verbose .and. my_task==master_task) then
       write (stdout,*) 'paramfile =   ', paramfile

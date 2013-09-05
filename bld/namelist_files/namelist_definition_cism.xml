@@ -53,6 +53,18 @@ Space-delimited list of variables output to history file
 Default: 'acab artm thk usurf topg uvel vvel uflx vflx temp bmlt bwat'
 </entry>
 
+<entry id="ice_flux_routing"
+type="char*64"
+category="cism"
+group="cism_params"
+valid_values="ocn,ice">
+Code describing how the solid ice runoff flux (i.e., calving) should
+be routed.
+ocn: all solid ice goes to the ocean component
+ice: all solid ice goes to the sea ice component
+Default: ocn
+</entry>
+
 <!-- =============================================================  -->
 <!-- group: grid_nml                                                -->
 <!-- =============================================================  -->

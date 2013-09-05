@@ -415,6 +415,7 @@ add_default($nl, 'frac_varname');
 add_default($nl, 'paramfile', 'noprepend'=>'1' );
 add_default($nl, 'cism_debug');
 add_default($nl, 'cesm_history_vars');
+add_default($nl, 'ice_flux_routing');
 
 
 my $hotstart;
