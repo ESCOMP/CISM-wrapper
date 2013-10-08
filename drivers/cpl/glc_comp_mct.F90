@@ -1,25 +1,24 @@
 module glc_comp_mct
 
-! !USES:
+  ! !uses:
 
   use shr_sys_mod
-  use shr_kind_mod     , only: IN=>SHR_KIND_IN, R8=>SHR_KIND_R8, &
-                               CS=>SHR_KIND_CS, CL=>SHR_KIND_CL
-  use shr_file_mod     , only: shr_file_getunit, shr_file_getlogunit, shr_file_getloglevel, &
-                               shr_file_setlogunit, shr_file_setloglevel, shr_file_setio, &
-                               shr_file_freeunit
-  use shr_assert_mod   , only: shr_assert
+  use shr_kind_mod,        only: IN=>SHR_KIND_IN, R8=>SHR_KIND_R8, &
+                                 CS=>SHR_KIND_CS, CL=>SHR_KIND_CL
+  use shr_file_mod,        only: shr_file_getunit, shr_file_getlogunit, shr_file_getloglevel, &
+                                 shr_file_setlogunit, shr_file_setloglevel, shr_file_setio, &
+                                 shr_file_freeunit
+  use shr_assert_mod,      only: shr_assert
   use mct_mod
   use esmf
 
-  use seq_flds_mod
-  use seq_cdata_mod
+  use seq_cdata_mod    ,   only: seq_cdata_getdata=>seq_cdata_setptrs, seq_cdata
   use seq_infodata_mod
   use seq_timemgr_mod
 
+  use glc_import_export
   use glc_cpl_indices
-  use glc_constants,       only: verbose, stdout, stderr, nml_in, &
-                                 radius,  radian, tkfrz,  glc_nec
+  use glc_constants,       only: verbose, stdout, stderr, nml_in, radius, radian, glc_nec
   use glc_errormod,        only: glc_success
   use glc_InitMod,         only: glc_initialize
   use glc_RunMod,          only: glc_run
@@ -30,22 +29,17 @@ module glc_comp_mct
   use glc_global_fields,   only: ice_sheet
   use glc_global_grid,     only: glc_grid, glc_landmask, glc_landfrac
 
-! !PUBLIC TYPES:
+  ! Public types:
   implicit none
   save
   private ! except
 
-!--------------------------------------------------------------------------
-! Public interfaces
-!--------------------------------------------------------------------------
-
+  ! Public interfaces
   public :: glc_init_mct
   public :: glc_run_mct
   public :: glc_final_mct
 
-!--------------------------------------------------------------------------
-! Private data interfaces
-!--------------------------------------------------------------------------
+  ! Private data interfaces
 
   !--- stdin input stuff ---
   character(CS) :: str                  ! cpp  defined model name
@@ -58,38 +52,28 @@ module glc_comp_mct
   ! moved to earlier to prevent the need for these copies)
   integer(IN)           :: my_task_local        ! my task in mpi communicator mpicom 
   integer(IN),parameter :: master_task_local=0  ! task number of master task
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-CONTAINS
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 !===============================================================================
-!BOP ===========================================================================
-!
-! !IROUTINE: glc_init_mct
-!
-! !DESCRIPTION:
-!     initialize glc model
-!
-! !REVISION HISTORY:
-!
-! !INTERFACE: ------------------------------------------------------------------
+CONTAINS
+!===============================================================================
 
   subroutine glc_init_mct( EClock, cdata, x2g, g2x, NLFilename )
 
-! !USES:
+    ! description:
+    ! initialize glc model
+
+    ! uses:
 
     use glc_ensemble       , only : set_inst_vars, write_inst_vars, get_inst_name
     use glc_files          , only : set_filenames, ionml_filename
     use glc_coupling_flags , only : has_ocn_coupling, has_ice_coupling
 
-! !INPUT/OUTPUT PARAMETERS:
+    ! input/output parameters:
 
     type(ESMF_Clock)         , intent(inout) :: EClock
     type(seq_cdata)          , intent(inout) :: cdata
     type(mct_aVect)          , intent(inout) :: x2g, g2x
     character(len=*), optional  , intent(in) :: NLFilename ! Namelist filename
-
-!EOP
 
     !--- local variables ---
     integer(IN)              :: ierr        ! error code
@@ -108,12 +92,9 @@ CONTAINS
     character(*), parameter :: F00   = "('(glc_init_mct) ',8a)"
     character(*), parameter :: F01   = "('(glc_init_mct) ',a,8i8)"
     character(*), parameter :: F02   = "('(glc_init_mct) ',a,4es13.6)"
-    character(*), parameter :: F03   = "('(glc_init_mct) ',a,i8,a)"
-    character(*), parameter :: F90   = "('(glc_init_mct) ',73('='))"
     character(*), parameter :: F91   = "('(glc_init_mct) ',73('-'))"
     character(*), parameter :: subName = "(glc_init_mct) "
-!EOP
-!-------------------------------------------------------------------------------
+    !-------------------------------------------------------------------------------
 
     !----------------------------------------------------------------------------
     ! Determine attribute vector indices
@@ -125,8 +106,8 @@ CONTAINS
     ! Set cdata pointers
     !----------------------------------------------------------------------------
 
-    call seq_cdata_setptrs(cdata, ID=COMPID, mpicom=mpicom, &
-         gsMap=gsMap, dom=dom, infodata=infodata)
+    call seq_cdata_getdata(cdata, &
+         id=compid, mpicom=mpicom, gsMap=gsMap, dom=dom, infodata=infodata)
 
     call mpi_comm_rank(mpicom, my_task_local, ierr)
 
@@ -142,7 +123,8 @@ CONTAINS
     ! use infodata to determine type of run
     !---------------------------------------------------------------------------
 
-    call seq_infodata_GetData( infodata, start_type=starttype)
+    call seq_infodata_GetData( infodata, &
+         start_type=starttype)
 
     if (     trim(starttype) == trim(seq_infodata_start_type_start)) then
        runtype = "initial"
@@ -309,7 +291,7 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
 
     ! Unpack
 
-    call glc_import_mct(x2g, glc_nec, &
+    call glc_import(x2g%rattr, glc_nec, &
          index_x2g_Sl_tsrf, index_x2g_Sl_topo, index_x2g_Flgl_qice) 
 
     ! Run 
@@ -337,7 +319,7 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
     
     ! Pack
 
-    call glc_export_mct(g2x, glc_nec, &
+    call glc_export(g2x%rattr, glc_nec, &
          index_g2x_Sg_frac, index_g2x_Sg_topo, index_g2x_Flgg_hflx, &
          index_g2x_Fogg_rofi, index_g2x_Figg_rofi, &
          index_g2x_Fogg_rofl)
@@ -449,139 +431,8 @@ subroutine glc_final_mct( EClock, cdata, x2d, d2x)
  end subroutine glc_final_mct
 
 !=================================================================================
-  subroutine glc_import_mct(x2g, glc_nec, &
-       index_tsrf, index_topo, index_qice)
 
-    !-------------------------------------------------------------------
-    use glc_global_fields, only: tsfc, topo, qsmb       ! from coupler
-
-    type(mct_aVect),intent(inout) :: x2g
-    integer(IN), intent(in) :: glc_nec
-    integer(IN), intent(in) :: index_tsrf(:)
-    integer(IN), intent(in) :: index_topo(:)
-    integer(IN), intent(in) :: index_qice(:)
-
-    integer(IN) :: j,jj,i,g,nxg,nyg,n,elev_class
-    character(*), parameter :: subName = "(glc_import_mct) "
-    !-------------------------------------------------------------------
-
-    call shr_assert((size(index_tsrf) >= glc_nec), subName//' ERROR in size of index_tsrf')
-    call shr_assert((size(index_topo) >= glc_nec), subName//' ERROR in size of index_topo')
-    call shr_assert((size(index_qice) >= glc_nec), subName//' ERROR in size of index_qice')
-
-    nxg = glc_grid%nx
-    nyg = glc_grid%ny
-    do j = 1, nyg           ! S to N
-       jj = nyg - j + 1     ! reverse j index for glint grid (N to S)
-       do i = 1, nxg
-          g = (j-1)*nxg + i   ! global index (W to E, S to N)
-
-          do elev_class = 1, glc_nec
-             tsfc(i,jj,elev_class) = x2g%rAttr(index_tsrf(elev_class), g) - tkfrz
-             topo(i,jj,elev_class) = x2g%rAttr(index_topo(elev_class), g)
-             qsmb(i,jj,elev_class) = x2g%rAttr(index_qice(elev_class), g)
-          enddo
-       enddo
-    enddo
-
-    if (verbose .and. my_task==master_task) then
-       do elev_class = 1, glc_nec
-          write(stdout,*) ' '
-          write(stdout,*) subname,' x2g tsrf ',elev_class, &
-               minval(x2g%rAttr(index_tsrf(elev_class),:)), &
-               maxval(x2g%rAttr(index_tsrf(elev_class),:))
-          write(stdout,*) subname,' x2g topo ',elev_class, &
-               minval(x2g%rAttr(index_topo(elev_class),:)), &
-               maxval(x2g%rAttr(index_topo(elev_class),:))
-          write(stdout,*) subname,' x2g qice ',elev_class, &
-               minval(x2g%rAttr(index_qice(elev_class),:)), &
-               maxval(x2g%rAttr(index_qice(elev_class),:))
-       end do
-       call shr_sys_flush(stdout)
-    endif
-
-  end subroutine glc_import_mct
-
-!=================================================================================
-
-  subroutine glc_export_mct(g2x, glc_nec, &
-       index_frac, index_topo, index_hflx, &
-       index_rofi_to_ocn, index_rofi_to_ice, &
-       index_rofl)
-
-    !-------------------------------------------------------------------
-    use glc_global_fields   , only: gfrac, gtopo, grofi, grofl, ghflx   ! to coupler
-    use glc_route_ice_runoff, only: route_ice_runoff
-
-    type(mct_aVect),intent(inout) :: g2x
-    integer(IN), intent(in) :: glc_nec
-    integer(IN), intent(in) :: index_frac(:)
-    integer(IN), intent(in) :: index_topo(:)
-    integer(IN), intent(in) :: index_hflx(:)
-    integer(IN), intent(in) :: index_rofi_to_ocn
-    integer(IN), intent(in) :: index_rofi_to_ice
-    integer(IN), intent(in) :: index_rofl
-
-    integer(IN) :: j,jj,i,g,nxg,nyg,n,elev_class
-    character(*), parameter :: subName = "(glc_export_mct) "
-    !-------------------------------------------------------------------
-
-    call shr_assert((size(index_frac) >= glc_nec), subName//' ERROR in size of index_frac')
-    call shr_assert((size(index_topo) >= glc_nec), subName//' ERROR in size of index_topo')
-    call shr_assert((size(index_hflx) >= glc_nec), subName//' ERROR in size of index_hflx')
-
-    nxg = glc_grid%nx
-    nyg = glc_grid%ny
-    do j = 1, nyg           ! S to N
-       jj = nyg - j + 1     ! reverse j index for glint grid (N to S)
-       do i = 1, nxg
-          g = (j-1)*nxg + i ! global index (W to E, S to N)
-
-          call route_ice_runoff(grofi(i,jj), &
-               rofi_to_ocn=g2x%rAttr(index_rofi_to_ocn, g), &
-               rofi_to_ice=g2x%rAttr(index_rofi_to_ice, g))
-          
-          g2x%rAttr(index_rofl, g) = grofl(i,jj)
-
-          do elev_class = 1, glc_nec
-             g2x%rAttr(index_frac(elev_class), g) = gfrac(i,jj,elev_class)
-             g2x%rAttr(index_topo(elev_class), g) = gtopo(i,jj,elev_class)
-             g2x%rAttr(index_hflx(elev_class), g) = ghflx(i,jj,elev_class)
-          enddo
-       enddo
-    enddo
-
-    if (verbose .and. my_task==master_task) then
-       do elev_class = 1, glc_nec
-          write(stdout,*) subname,' g2x frac ',elev_class, &
-               minval(g2x%rAttr(index_frac(elev_class),:)), &
-               maxval(g2x%rAttr(index_frac(elev_class),:))
-          write(stdout,*) subname,' g2x topo ',elev_class, &
-               minval(g2x%rAttr(index_topo(elev_class),:)), &
-               maxval(g2x%rAttr(index_topo(elev_class),:))
-          write(stdout,*) subname,' g2x hflx ',elev_class, &
-               minval(g2x%rAttr(index_hflx(elev_class),:)), &
-               maxval(g2x%rAttr(index_hflx(elev_class),:))
-       end do
-
-       write(stdout,*) subname,' g2x rofi to ocn ', &
-            minval(g2x%rAttr(index_rofi_to_ocn,:)), &
-            maxval(g2x%rAttr(index_rofi_to_ocn,:))
-       write(stdout,*) subname,' g2x rofi to ice ', &
-            minval(g2x%rAttr(index_rofi_to_ice,:)), &
-            maxval(g2x%rAttr(index_rofi_to_ice,:))
-       write(stdout,*) subname,' g2x rofl ', &
-            minval(g2x%rAttr(index_rofl,:)), &
-            maxval(g2x%rAttr(index_rofl,:))
-
-       call shr_sys_flush(stdout)
-    endif
-
-  end subroutine glc_export_mct
-
-!=================================================================================
-
-  subroutine glc_SetgsMap_mct( mpicom_g, GLCID, gsMap_g )
+  subroutine glc_setgsmap_mct( mpicom_g, GLCID, gsMap_g )
 
     integer        , intent(in)  :: mpicom_g
     integer        , intent(in)  :: GLCID

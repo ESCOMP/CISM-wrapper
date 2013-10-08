@@ -3,6 +3,60 @@ This file describes what main-trunk tags were created and why
 ================================================================================
 
 ================================================================================
+Originator: sacks, mvertens
+Date: Oct 8, 2013
+Model: cism
+Version: cism1_131008
+One-line summary: Mariana's changes to cpl infrastructure, update external
+
+Purpose of changes:
+
+(1) Bring in Mariana's refactoring of the cpl infrastructure
+
+(2) Point glimmer-cism external to new repository location
+
+(3) Small update to glimmer-cism external: Bring in Matt Hoffman's
+change to the logic for allocating isostasy variables
+
+Changes answers relative to previous tag: NO
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/):
+
+List all modified files, and describe the changes:
+
+*** (1) above
+M       bld/cism.buildexe.csh
+D       drivers/cpl_share
+D       drivers/cpl_mct
+D       drivers/cpl_esmf
+A       drivers/cpl/glc_comp_mct.F90
+A       drivers/cpl/glc_comp_esmf.F90
+A       drivers/cpl/glc_import_export.F90
+A       drivers/cpl/glc_coupling_flags.F90
+A       drivers/cpl/glc_cpl_indices.F90
+A       drivers/cpl
+
+*** (2) and (3) above
+M       SVN_EXTERNAL_DIRECTORIES
+
+
+Summary of testing:
+
+   Ran just a subset of the yellowstone intel & pgi test lists: Just the TG
+   CISM1 tests. It was not ideal to exclude the IG / FG / BG tests, but I made
+   this compromise because yellowstone is down. 
+
+   All PASS except the following expected failure:
+
+   CFAIL ERS_Ly20_E.f09_g16.TG20TR.yellowstone_pgi.GC.215132
+
+Externals used for testing: cesm1_3_alpha04c
+
+cism tag used for baseline comparisons: cism1_130924
+
+Any other externals that differed in baseline: Baseline used externals at cesm1_3_beta03
+
+================================================================================
 Originator: sacks
 Date: Sept 24, 2013
 Model: cism
