@@ -3,6 +3,56 @@ This file describes what main-trunk tags were created and why
 ================================================================================
 
 ================================================================================
+Originator: sacks
+Date: Dec 3, 2013
+Model: cism
+Version: cism1_131203
+One-line summary: call glc_export in mct initialization
+
+Purpose of changes:
+
+   With the changes in cism1_131008, the esmf side had been changed to call
+   glc_export in initialization, but the mct side had not been changed
+   similarly. This tag makes a simple change to the mct side so that CME tests
+   now pass. (This problem was missed in the testing for cism1_131008 because it
+   only shows up in IG/FG/BG compsets, which were excluded from the testing of
+   that tag.)
+
+Changes answers relative to previous tag: No
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/):
+
+List all modified files, and describe the changes:
+
+M       drivers/cpl/glc_comp_mct.F90
+
+Summary of testing: 
+
+   Yellowstone intel & pgi test lists. All PASS except the following expected
+   failures:
+
+   CFAIL ERS_Ly20_E.f09_g16.TG20TR.yellowstone_pgi.GC.103449
+   FAIL  ERI_Ly15.f09_g16_gl10.TG20TRIS2.yellowstone_intel.GC.103445 
+   FAIL  NCK_Ly3.f09_g16_gl10.TGRCP85IS2.yellowstone_intel.clm-reduceOutput.GC.103445 
+   FAIL  PEA_P1_M_Ly2.f09_g16_gl10.TGIS2S.yellowstone_intel.GC.103445 
+   FAIL  SMS_D_Ly1.f09_g16_gl10.TGIS2.yellowstone_intel.GC.103445 
+   FAIL  SMS_Ly3.T31_g37_gl10.IGIS2.yellowstone_intel.clm-reduceOutput.GC.103445 
+
+   Note that this test failed in the baseline:
+
+   CME_Ly5.T31_g37.IG.yellowstone_intel.clm-reduceOutput
+
+   However, I manually compared the cpl hist files, and they are identical in
+   the new tag compared with the baseline.
+
+Externals used for testing: cesm1_3_beta05
+
+cism tag used for baseline comparisons: cism1_131008
+
+Any other externals that differed in baseline: None (baselines also generated
+from cesm1_3_beta05)
+
+================================================================================
 Originator: sacks, mvertens
 Date: Oct 8, 2013
 Model: cism
@@ -49,6 +99,16 @@ Summary of testing:
    All PASS except the following expected failure:
 
    CFAIL ERS_Ly20_E.f09_g16.TG20TR.yellowstone_pgi.GC.215132
+
+   Update 12-2-13: Ran IG / FG / BG CISM1 tests; all pass EXCEPT:
+
+   *** Known failure; working on resolving this
+   FAIL  CME_Ly5.T31_g37.IG.yellowstone_intel.GC.100040 
+
+   *** Diffs only in x2l_Flrr_volr
+   FAIL  ERI.f19_g16.IGRCP85CN.yellowstone_pgi.GC.100111.compare_hist.cism1_130924 
+
+   (component_gen_comp: all PASS, including the two above test failures)
 
 Externals used for testing: cesm1_3_alpha04c
 

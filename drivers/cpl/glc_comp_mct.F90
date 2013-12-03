@@ -197,6 +197,13 @@ CONTAINS
     call mct_aVect_init(x2g, rList=seq_flds_x2g_fields, lsize=lsize)
     call mct_aVect_zero(x2g)
 
+    ! Create initial glc export state
+
+    call glc_export(g2x%rattr, glc_nec, &
+         index_g2x_Sg_frac, index_g2x_Sg_topo, index_g2x_Flgg_hflx, &
+         index_g2x_Fogg_rofi, index_g2x_Figg_rofi, &
+         index_g2x_Fogg_rofl)
+
    if (my_task == master_task) then
       write(stdout,F91) 
       write(stdout,F00) trim(myModelName),': start of main integration loop'
