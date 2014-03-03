@@ -83,6 +83,7 @@
                                 gfrac,   gtopo,   grofi,   grofl,  ghflx
 
    use glc_global_grid, only: init_glc_grid, glc_grid
+   use glc_override_frac, only: init_glc_frac_overrides
    use glc_constants
    use glc_communicate, only: init_communicate
    use glc_io, only: history_vars
@@ -301,6 +302,8 @@
   nhour_glint = 0     ! number of hours glint has run since start of complete simulation
                       ! must be set to correct value if reading from a restart file
  
+  call init_glc_frac_overrides()
+
   ! if this is a continuation run, then set up to read restart file and get the restart time
   if (runtype == 'continue') then
     cesm_restart = .true.

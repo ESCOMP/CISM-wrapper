@@ -227,6 +227,53 @@ Default: 'never'
 </entry>
 
 <!-- =============================================================  -->
+<!-- group: glc_override_nml                                        -->
+<!-- =============================================================  -->
+
+<entry id="enable_frac_overrides"
+type="logical"
+category="overrides"
+group="glc_override_nml" >
+Whether to enable overrides of the glc fraction sent to the coupler.
+If this is false, the other settings in this namelist group are ignored.
+ONLY MEANT FOR TESTING - SHOULD NOT BE USED FOR SCIENCE RUNS.
+Default: .false.
+</entry>
+
+<entry id="override_delay"
+type="integer"
+category="overrides"
+group="glc_override_nml" >
+Time delay before beginning any overrides (days).
+Default: 0 (start overrides at beginning of run)
+</entry>
+
+<entry id="decrease_frac"
+type="real"
+category="overrides"
+group="glc_override_nml" >
+Fractional decrease in glacier area, per day (multiplicative) (should be positive).
+Default: 0 (no decrease)
+</entry>
+
+<entry id="increase_frac"
+type="real"
+category="overrides"
+group="glc_override_nml" >
+Fractional increase in glacier area, per day (additive).
+Default: 0 (no increase)
+</entry>
+
+<entry id="rearrange_freq"
+type="integer"
+category="overrides"
+group="glc_override_nml" >
+Frequency (days) at which we flip the order of the elevation classes.
+Default: 0 (no flips ever)
+</entry>
+
+
+<!-- =============================================================  -->
 <!-- group: cism.config: grid                                       -->
 <!-- =============================================================  -->
 

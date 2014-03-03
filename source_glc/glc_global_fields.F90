@@ -55,8 +55,9 @@
      grofi       ,&! ice runoff (calving) flux (kg/m^2/s)
      grofl         ! ice runoff (calving) flux (kg/m^2/s)
 
+  real(r8),dimension(:,:,:), allocatable, target ::  &   ! per elevation class
+     gfrac         ! fractional glacier area [0,1] (needs to be a target for the sake of gfrac_to_cpl in glc_import_export)
   real(r8),dimension(:,:,:), allocatable ::  &   ! per elevation class
-     gfrac       ,&! fractional glacier area [0,1] 
      gtopo       ,&! glacier surface elevation (m)
      ghflx         ! heat flux from glacier interior, positive down (W/m^2)
 
