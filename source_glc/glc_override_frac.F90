@@ -188,6 +188,7 @@ contains
     !
     ! !LOCAL VARIABLES:
     real(r8) :: current_increase  ! additive increase
+    integer(int_kind) :: i, j     ! indices
 
     character(len=*), parameter :: subname = 'apply_increase_frac'
     !-----------------------------------------------------------------------
@@ -200,9 +201,13 @@ contains
     if (time_since_baseline() > 0) then
        current_increase = time_since_baseline() * increase_frac
        gfrac(:,:,:) = gfrac(:,:,:) + current_increase
-       where(gfrac > 1._r8)
-          gfrac = 1._r8
-       end where
+       do j = 1, size(gfrac,2)
+          do i = 1, size(gfrac,1)
+             if (sum(gfrac(i,j,:)) > 1._r8) then
+                gfrac(i,j,:) = gfrac(i,j,:) / sum(gfrac(i,j,:))
+             end if
+          end do
+       end do
     end if
 
   end subroutine apply_increase_frac
