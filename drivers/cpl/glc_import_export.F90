@@ -106,7 +106,10 @@ contains
     ! If overrides of glc fraction are enabled (for testing purposes), then apply
     ! these overrides, otherwise use the real version of gfrac
     if (frac_overrides_enabled()) then
-       allocate(gfrac_to_cpl, source=gfrac)
+       allocate(gfrac_to_cpl(lbound(gfrac,1):ubound(gfrac,1), &
+                             lbound(gfrac,2):ubound(gfrac,2), &
+                             lbound(gfrac,3):ubound(gfrac,3)))
+       gfrac_to_cpl = gfrac
        call do_frac_overrides(gfrac_to_cpl)
        gfrac_to_cpl_allocated = .true.
     else
