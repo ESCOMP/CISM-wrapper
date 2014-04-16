@@ -1,9 +1,10 @@
 module glc_import_export
 
+#include "shr_assert.h"
+
   use shr_sys_mod
   use shr_kind_mod,        only: IN=>SHR_KIND_IN, R8=>SHR_KIND_R8
   use shr_kind_mod,        only: CS=>SHR_KIND_CS, CL=>SHR_KIND_CL
-  use shr_assert_mod,      only: shr_assert
   use glc_constants,       only: verbose, stdout, stderr, tkfrz, glc_nec
   use glc_communicate,     only: my_task, master_task
   use glc_global_grid,     only: glc_grid
@@ -36,9 +37,9 @@ contains
     character(*), parameter :: subName = "(glc_import) "
     !-------------------------------------------------------------------
 
-    call shr_assert((size(index_tsrf) >= glc_nec), subName//' ERROR in size of index_tsrf')
-    call shr_assert((size(index_topo) >= glc_nec), subName//' ERROR in size of index_topo')
-    call shr_assert((size(index_qice) >= glc_nec), subName//' ERROR in size of index_qice')
+    SHR_ASSERT((size(index_tsrf) >= glc_nec), subName//' ERROR in size of index_tsrf')
+    SHR_ASSERT((size(index_topo) >= glc_nec), subName//' ERROR in size of index_topo')
+    SHR_ASSERT((size(index_qice) >= glc_nec), subName//' ERROR in size of index_qice')
 
     nxg = glc_grid%nx
     nyg = glc_grid%ny
@@ -93,15 +94,16 @@ contains
     integer(IN), intent(in)    :: index_rofi_to_ice
     integer(IN), intent(in)    :: index_rofl
 
-    real(r8), pointer :: gfrac_to_cpl(:,:,:)   ! if overriding gfrac, this is the modified version, sent to the coupler; otherwise it points to the real gfrac
+    real(r8), pointer :: gfrac_to_cpl(:,:,:)   ! if overriding gfrac, this is the modified version, 
+                                               ! sent to the coupler; otherwise it points to the real gfrac
     logical :: gfrac_to_cpl_allocated          ! whether we allocated gfrac_to_cpl
     integer(IN) :: j,jj,i,g,nxg,nyg,n,elev_class
     character(*), parameter :: subName = "(glc_export) "
     !-------------------------------------------------------------------
 
-    call shr_assert((size(index_frac) >= glc_nec), subName//' ERROR in size of index_frac')
-    call shr_assert((size(index_topo) >= glc_nec), subName//' ERROR in size of index_topo')
-    call shr_assert((size(index_hflx) >= glc_nec), subName//' ERROR in size of index_hflx')
+    SHR_ASSERT((size(index_frac) >= glc_nec), subName//' ERROR in size of index_frac')
+    SHR_ASSERT((size(index_topo) >= glc_nec), subName//' ERROR in size of index_topo')
+    SHR_ASSERT((size(index_hflx) >= glc_nec), subName//' ERROR in size of index_hflx')
 
     ! If overrides of glc fraction are enabled (for testing purposes), then apply
     ! these overrides, otherwise use the real version of gfrac

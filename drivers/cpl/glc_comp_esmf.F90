@@ -9,7 +9,6 @@ module glc_comp_esmf
   use shr_file_mod,        only: shr_file_getunit, shr_file_getlogunit, shr_file_getloglevel
   use shr_file_mod,        only: shr_file_setlogunit, shr_file_setloglevel, shr_file_setio
   use shr_file_mod,        only: shr_file_freeunit
-  use shr_assert_mod,      only: shr_assert
 
   use esmf
   use esmfshr_mod

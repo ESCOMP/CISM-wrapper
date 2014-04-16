@@ -1,5 +1,7 @@
 module glc_override_frac
 
+#include "shr_assert.h"
+
   !---------------------------------------------------------------------------
   ! !DESCRIPTION:
   ! This module provides functionality to allow overriding the ice fractions that are
@@ -154,7 +156,6 @@ contains
     ! Do all overrides of glc fraction
     !
     ! !USES:
-    use shr_assert_mod  , only : shr_assert
     use shr_log_mod     , only : errMsg => shr_log_errMsg
     use glc_constants   , only : glc_nec
     use glc_global_grid , only : glc_grid
@@ -167,7 +168,7 @@ contains
     character(len=*), parameter :: subname = 'do_frac_overrides'
     !-----------------------------------------------------------------------
     
-    call shr_assert((ubound(gfrac) == (/glc_grid%nx, glc_grid%ny, glc_nec/)), errMsg(__FILE__, __LINE__))
+    SHR_ASSERT_ALL((ubound(gfrac) == (/glc_grid%nx, glc_grid%ny, glc_nec/)), errMsg(__FILE__, __LINE__))
 
     call apply_increase_frac(gfrac)
     call apply_decrease_frac(gfrac)
