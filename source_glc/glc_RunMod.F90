@@ -153,7 +153,8 @@
                          ice_tstep = ice_tstep,             & 
                          gfrac = gfrac,    gtopo = gtopo,   &
                          grofi = grofi,    grofl = grofl,   &
-                         ghflx = ghflx)
+                         ghflx = ghflx,                     &
+                         ice_sheet_grid_mask=ice_sheet_grid_mask)
 
          if (verbose .and. my_task==master_task) then
 !            write(stdout,*) ' '

@@ -19,7 +19,7 @@ module glc_comp_esmf
 
   use glc_import_export
   use glc_cpl_indices
-  use glc_constants,       only: verbose, stdout, stderr, nml_in, radius, radian, glc_nec
+  use glc_constants,       only: verbose, stdout, stderr, nml_in, radius, radian
   use glc_errormod,        only: glc_success
   use glc_InitMod,         only: glc_initialize
   use glc_RunMod,          only: glc_run
@@ -271,9 +271,7 @@ CONTAINS
     call ESMF_ArrayGet(g2x, localDe=0, farrayPtr=fptr, rc=rc)
     if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
 
-    call glc_export(fptr, glc_nec, &
-          index_g2x_Sg_frac, index_g2x_Sg_topo, index_g2x_Flgg_hflx, &
-          index_g2x_Fogg_rofi, index_g2x_Figg_rofi, index_g2x_Fogg_rofl)
+    call glc_export(fptr)
     
     call ESMF_AttributeSet(export_state, name="glc_present", value=.true., rc=rc)
     if(rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
@@ -412,8 +410,7 @@ CONTAINS
     call ESMF_ArrayGet(x2g, localDe=0, farrayPtr=fptr, rc=rc)
     if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
 
-    call glc_import(fptr, glc_nec, &
-         index_x2g_Sl_tsrf, index_x2g_Sl_topo, index_x2g_Flgl_qice)
+    call glc_import(fptr)
 
     ! Run 
 
@@ -446,9 +443,7 @@ CONTAINS
     call ESMF_ArrayGet(g2x, localDe=0, farrayPtr=fptr, rc=rc)
     if (rc /= ESMF_SUCCESS) call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
 
-    call glc_export(fptr, glc_nec, &
-         index_g2x_Sg_frac, index_g2x_Sg_topo, index_g2x_Flgg_hflx, &
-         index_g2x_Fogg_rofi, index_g2x_Figg_rofi, index_g2x_Fogg_rofl)
+    call glc_export(fptr)
     
     ! Log output for model date
 

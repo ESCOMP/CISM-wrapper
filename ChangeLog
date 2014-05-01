@@ -3,6 +3,134 @@ This file describes what main-trunk tags were created and why
 ================================================================================
 
 ================================================================================
+Originator: jfyke, sacks
+Date: May 1, 2014
+Model: cism
+Version: cism1_140501
+One-line summary: Add an elevation class 0, for bare land SMB
+
+Purpose of changes:
+
+   Changes from Jeremy Fyke to add an elevation class 0, for bare land SMB. Also
+   adds ice_sheet_grid_mask. Also some minor, unrelated changes as noted below.
+
+   This involves extensive changes to glint, as well as some changes to the glc
+   code.
+
+   In addition, this tag pulls in an unrelated change to the glimmer-cism
+   external: a fix from Stephen Cornford for glint_mbal_io.
+
+Changes answers relative to previous tag: YES
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/):
+
+List all modified files, and describe the changes:
+
+M       SVN_EXTERNAL_DIRECTORIES
+M       source_glc/glc_InitMod.F90
+M       source_glc/glc_RunMod.F90
+M       source_glc/glc_override_frac.F90
+M       source_glc/glc_global_fields.F90
+M       drivers/cpl/glc_cpl_indices.F90
+
+*** Also, clean up interfaces for glc_import & glc_export ('use' things directly
+    rather than having them passed through the interface)
+M       drivers/cpl/glc_comp_mct.F90
+M       drivers/cpl/glc_comp_esmf.F90
+M       drivers/cpl/glc_import_export.F90
+
+*** Use some constants from shr_const_mod
+M       source_glc/glc_constants.F90
+
+*** Add an option to decrease the mass balance time step, for testing purposes
+    (currently not exercised in any tests)
+M       bld/build-namelist
+M       bld/namelist_files/namelist_defaults_cism.xml
+M       bld/namelist_files/namelist_definition_cism.xml
+
+Summary of testing:
+
+   Yellowstone intel & pgi test lists. All PASS except the following expected
+   failures (note: the GEN cases probably would have given CFAIL if I had been
+   patient):
+
+CFAIL ERI_Ly15.f09_g16_gl10.TG20TRIS2.yellowstone_intel.GC.140430-125442
+CFAIL NCK_Ly3.f09_g16_gl10.TGRCP85IS2.yellowstone_intel.clm-reduceOutput.GC.140430-125442
+FAIL  PEA_P1_M_Ly2.f09_g16_gl10.TGIS2S.yellowstone_intel.GC.140430-125442 
+GEN SMS_D_Ly1.f09_g16_gl10.TGIS2.yellowstone_intel.GC.140430-125442
+GEN SMS_Ly3.T31_g37_gl10.IGIS2.yellowstone_intel.clm-reduceOutput.GC.140430-125442
+CFAIL ERS_Ly20_E.f09_g16.TG20TR.yellowstone_pgi.GC.140430-125445
+
+   Note: I am now getting a CFAIL instead of a FAIL for the IS2 cases... seems
+   to be something having to do with the yellowstone upgrade... I'm guessing
+   it's a problem with the C++/Fortran link. I get this message:
+
+      cannot find -lmkl_rt
+
+Externals used for testing: cesm1_3_beta07, but with quite a few changes:
+
+   Index: SVN_EXTERNAL_DIRECTORIES
+   ===================================================================
+   --- SVN_EXTERNAL_DIRECTORIES	(revision 59711)
+   +++ SVN_EXTERNAL_DIRECTORIES	(working copy)
+   @@ -1,23 +1,23 @@
+   -scripts                            https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_140113
+   -scripts/ccsm_utils/Machines        https://svn-ccsm-models.cgd.ucar.edu/Machines/trunk_tags/Machines_140124
+   +scripts                            https://svn-ccsm-models.cgd.ucar.edu/scripts/branch_tags/add_dynlu_tests_tags/add_dynlu_tests_n02_scripts4_140305
+   +scripts/ccsm_utils/Machines        https://svn-ccsm-models.cgd.ucar.edu/Machines/branch_tags/arfs_tags/arfs_01_mach140218
+   tools/cprnc                        https://svn-ccsm-models.cgd.ucar.edu/tools/cprnc/trunk_tags/cprnc_131224
+   tools/mapping                      https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_131217a
+   -models/drv                         https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq5_0_08
+   -models/csm_share                   https://svn-ccsm-models.cgd.ucar.edu/csm_share/trunk_tags/share3_131231
+   +models/drv                         https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/branch_tags/bare_land_smb_tags/bare_land_smb_n02_drvseq5_0_08
+   +models/csm_share                   https://svn-ccsm-models.cgd.ucar.edu/csm_share/branch_tags/shr_assert_macro_tags/shr_assert_macro_n04_share3_140115
+   scripts/validation_testing         https://svn-ccsm-models.cgd.ucar.edu/validation_testing/trunk_tags/validation_20131108/run_CESM/
+   models/atm/cam                     https://svn-ccsm-models.cgd.ucar.edu/cam1/trunk_tags/cam5_3_23/models/atm/cam
+   -models/atm/datm                    https://svn-ccsm-models.cgd.ucar.edu/datm7/trunk_tags/datm8_131201
+   +models/atm/datm                    https://svn-ccsm-models.cgd.ucar.edu/datm7/trunk_tags/datm8_140114
+   models/atm/satm                    https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_4_04/satm
+   models/atm/xatm                    https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_7_09/xatm
+   models/dead_share                  https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_7_09/dead_share
+   -models/glc/cism                    https://svn-ccsm-models.cgd.ucar.edu/glc/trunk_tags/cism1_131213
+   +models/glc/cism                    https://svn-ccsm-models.cgd.ucar.edu/glc/branch_tags/bare_land_smb_tags/bare_land_smb_n06_cism1_140416
+   models/glc/sglc                    https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_4_04/sglc
+   models/glc/xglc                    https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_7_09/xglc
+   models/ice/cice                    https://svn-ccsm-models.cgd.ucar.edu/cice/trunk_tags/cice4_0_20131002
+   models/ice/dice                    https://svn-ccsm-models.cgd.ucar.edu/dice7/trunk_tags/dice8_131201
+   models/ice/sice                    https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_4_04/sice
+   models/ice/xice                    https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_7_09/xice
+   -models/lnd/clm                     https://svn-ccsm-models.cgd.ucar.edu/clm2/trunk_tags/clm4_5_57/models/lnd/clm
+   +models/lnd/clm                     https://svn-ccsm-models.cgd.ucar.edu/clm2/branch_tags/bare_land_smb_tags/bare_land_smb_n14_clm4_5_70/models/lnd/clm
+   models/lnd/dlnd                    https://svn-ccsm-models.cgd.ucar.edu/dlnd7/trunk_tags/dlnd8_131201
+   models/lnd/slnd                    https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_4_04/slnd
+   models/lnd/xlnd                    https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_7_09/xlnd
+   @@ -27,16 +27,16 @@
+   models/ocn/socn                    https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_4_04/socn
+   models/ocn/xocn                    https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_7_09/xocn
+   models/rof/drof                    https://svn-ccsm-models.cgd.ucar.edu/drof/trunk_tags/drof8_131201
+   -models/rof/rtm                     https://svn-ccsm-models.cgd.ucar.edu/rivrtm/trunk_tags/rtm1_0_36
+   +models/rof/rtm                     https://svn-ccsm-models.cgd.ucar.edu/rivrtm/trunk_tags/rtm1_0_37
+   models/rof/srof                    https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_4_04/srof
+   models/rof/xrof                    https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_7_09/xrof
+   models/utils/esmf_wrf_timemgr      https://svn-ccsm-models.cgd.ucar.edu/esmf_wrf_timemgr/trunk_tags/esmf_wrf_timemgr_130213
+   models/utils/mct                   https://github.com/quantheory/MCT/tags/compiler_fixes_n04_MCT_2.8.3
+   -models/utils/pio                   http://parallelio.googlecode.com/svn/trunk_tags/pio1_8_7/pio
+   +models/utils/pio                   http://parallelio.googlecode.com/svn/trunk_tags/pio1_8_11/pio
+   models/utils/timing                https://svn-ccsm-models.cgd.ucar.edu/timing/trunk_tags/timing_131108
+   models/wav/swav                    https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_4_04/swav
+   models/wav/ww3                     https://svn-ccsm-models.cgd.ucar.edu/ww3/trunk_tags/ww3_130905
+   models/wav/xwav                    https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_7_09/xwav
+   -scripts/ccsm_utils/CMake           https://github.com/quantheory/CMake_Fortran_utils/tags/CMake_Fortran_utils_140116
+   +scripts/ccsm_utils/CMake           https://github.com/quantheory/CMake_Fortran_utils/tags/CMake_Fortran_utils_140403
+   scripts/doc                        https://svn-ccsm-models.cgd.ucar.edu/doc/trunk_tags/doc_131021
+   tools/unit_testing                 https://svn-ccsm-models.cgd.ucar.edu/unit_testing/trunk_tags/unit_testing_0_04
+
+
+cism tag used for baseline comparisons: cism1_140303
+
+Any other externals that differed in baseline: See notes under cism1_140303 below
+
+================================================================================
 Originator: muszala
 Date: April 16, 2014
 Model: cism

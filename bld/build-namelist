@@ -421,7 +421,6 @@ add_default($nl, 'cism_debug');
 add_default($nl, 'cesm_history_vars');
 add_default($nl, 'ice_flux_routing');
 
-
 my $hotstart;
 if ($RUN_TYPE eq 'startup') {
    add_default($nl, 'cisminputfile'); 
@@ -491,6 +490,7 @@ print $fh "\n[GLINT climate]\n";
 add_default($nl, 'evolve_ice');
 add_default($nl, 'precip_mode');
 add_default($nl, 'acab_mode');
+add_default($nl, 'test_coupling');
 $nl->write_cism_config($fh, "cism_config_climate");
 
 print $fh "\n[projection]\n";

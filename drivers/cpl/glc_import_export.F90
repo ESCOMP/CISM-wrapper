@@ -1,7 +1,5 @@
 module glc_import_export
 
-#include "shr_assert.h"
-
   use shr_sys_mod
   use shr_kind_mod,        only: IN=>SHR_KIND_IN, R8=>SHR_KIND_R8
   use shr_kind_mod,        only: CS=>SHR_KIND_CS, CL=>SHR_KIND_CL
@@ -21,25 +19,16 @@ module glc_import_export
 contains
 !=================================================================================
 
-   subroutine glc_import(x2g, glc_nec, &
-        index_tsrf, index_topo, index_qice)
+   subroutine glc_import(x2g)
 
     !-------------------------------------------------------------------
-    use glc_global_fields, only: tsfc, topo, qsmb       ! from coupler
+    use glc_global_fields, only: tsfc, topo, qsmb 
 
     real(r8)   , intent(in) :: x2g(:,:)
-    integer(IN), intent(in) :: glc_nec
-    integer(IN), intent(in) :: index_tsrf(:)
-    integer(IN), intent(in) :: index_topo(:)
-    integer(IN), intent(in) :: index_qice(:)
 
     integer(IN) :: j,jj,i,g,nxg,nyg,n,elev_class
     character(*), parameter :: subName = "(glc_import) "
     !-------------------------------------------------------------------
-
-    SHR_ASSERT((size(index_tsrf) >= glc_nec), subName//' ERROR in size of index_tsrf')
-    SHR_ASSERT((size(index_topo) >= glc_nec), subName//' ERROR in size of index_topo')
-    SHR_ASSERT((size(index_qice) >= glc_nec), subName//' ERROR in size of index_qice')
 
     nxg = glc_grid%nx
     nyg = glc_grid%ny
@@ -47,52 +36,33 @@ contains
        jj = nyg - j + 1     ! reverse j index for glint grid (N to S)
        do i = 1, nxg
           g = (j-1)*nxg + i   ! global index (W to E, S to N)
-
-          do elev_class = 1, glc_nec
-             tsfc(i,jj,elev_class) = x2g(index_tsrf(elev_class), g) - tkfrz
-             topo(i,jj,elev_class) = x2g(index_topo(elev_class), g)
-             qsmb(i,jj,elev_class) = x2g(index_qice(elev_class), g)
+          do elev_class = 0, glc_nec
+             tsfc(i,jj,elev_class) = x2g(index_x2g_Sl_tsrf(elev_class), g) - tkfrz
+             topo(i,jj,elev_class) = x2g(index_x2g_Sl_topo(elev_class), g)
+             qsmb(i,jj,elev_class) = x2g(index_x2g_Flgl_qice(elev_class), g)
           enddo
        enddo
     enddo
-
-    if (verbose .and. my_task==master_task) then
-       do elev_class = 1, glc_nec
-          write(stdout,*) ' '
-          write(stdout,*) subname,' x2g tsrf ',elev_class, &
-               minval(x2g(index_tsrf(elev_class),:)), &
-               maxval(x2g(index_tsrf(elev_class),:))
-          write(stdout,*) subname,' x2g topo ',elev_class, &
-               minval(x2g(index_topo(elev_class),:)), &
-               maxval(x2g(index_topo(elev_class),:))
-          write(stdout,*) subname,' x2g qice ',elev_class, &
-               minval(x2g(index_qice(elev_class),:)), &
-               maxval(x2g(index_qice(elev_class),:))
-       end do
-       call shr_sys_flush(stdout)
-    endif
+    
+    !Jer hack fix: 
+    !For some land points where CLM sees ocean, and all ocean points, CLM doesn't provide a temperature,
+    !and so the incoming temperature is 0.d0.  This gets dropped to -273.15, in the above code.  So,
+    !manually reverse this, below, to set to 0C.
+    where (tsfc < -250.d0) tsfc=0.d0 
 
   end subroutine glc_import
 
 !=================================================================================
 
-  subroutine glc_export(g2x, glc_nec, &
-       index_frac, index_topo, index_hflx, &
-       index_rofi_to_ocn, index_rofi_to_ice, index_rofl)
+  subroutine glc_export(g2x)
 
     !-------------------------------------------------------------------
-    use glc_global_fields   , only: gfrac, gtopo, grofi, grofl, ghflx   ! to coupler
-    use glc_route_ice_runoff, only: route_ice_runoff
+    use glc_global_fields   , only: gfrac, gtopo, grofi, grofl, ghflx, &
+                                    ice_sheet_grid_mask   ! to coupler
+    use glc_route_ice_runoff, only: route_ice_runoff    
     use glc_override_frac   , only: frac_overrides_enabled, do_frac_overrides
-
+    
     real(r8)    ,intent(inout) :: g2x(:,:)
-    integer(IN), intent(in)    :: glc_nec
-    integer(IN), intent(in)    :: index_frac(:)
-    integer(IN), intent(in)    :: index_topo(:)
-    integer(IN), intent(in)    :: index_hflx(:)
-    integer(IN), intent(in)    :: index_rofi_to_ocn
-    integer(IN), intent(in)    :: index_rofi_to_ice
-    integer(IN), intent(in)    :: index_rofl
 
     real(r8), pointer :: gfrac_to_cpl(:,:,:)   ! if overriding gfrac, this is the modified version, 
                                                ! sent to the coupler; otherwise it points to the real gfrac
@@ -101,10 +71,6 @@ contains
     character(*), parameter :: subName = "(glc_export) "
     !-------------------------------------------------------------------
 
-    SHR_ASSERT((size(index_frac) >= glc_nec), subName//' ERROR in size of index_frac')
-    SHR_ASSERT((size(index_topo) >= glc_nec), subName//' ERROR in size of index_topo')
-    SHR_ASSERT((size(index_hflx) >= glc_nec), subName//' ERROR in size of index_hflx')
-
     ! If overrides of glc fraction are enabled (for testing purposes), then apply
     ! these overrides, otherwise use the real version of gfrac
     if (frac_overrides_enabled()) then
@@ -112,7 +78,7 @@ contains
                              lbound(gfrac,2):ubound(gfrac,2), &
                              lbound(gfrac,3):ubound(gfrac,3)))
        gfrac_to_cpl = gfrac
-       call do_frac_overrides(gfrac_to_cpl)
+       call do_frac_overrides(gfrac_to_cpl, ice_sheet_grid_mask)
        gfrac_to_cpl_allocated = .true.
     else
        gfrac_to_cpl => gfrac
@@ -127,44 +93,21 @@ contains
           g = (j-1)*nxg + i ! global index (W to E, S to N)
 
           call route_ice_runoff(grofi(i,jj), &
-               rofi_to_ocn=g2x(index_rofi_to_ocn, g), &
-               rofi_to_ice=g2x(index_rofi_to_ice, g))
+               rofi_to_ocn=g2x(index_g2x_Fogg_rofi, g), &
+               rofi_to_ice=g2x(index_g2x_Figg_rofi, g))
           
-          g2x(index_rofl, g) = grofl(i,jj)
+          g2x(index_g2x_Fogg_rofl, g) = grofl(i,jj)
 
-          do elev_class = 1, glc_nec
-             g2x(index_frac(elev_class), g) = gfrac_to_cpl(i,jj,elev_class)
-             g2x(index_topo(elev_class), g) = gtopo(i,jj,elev_class)
-             g2x(index_hflx(elev_class), g) = ghflx(i,jj,elev_class)
+          do elev_class = 0, glc_nec !Jer
+             g2x(index_g2x_Sg_frac(elev_class), g) = gfrac_to_cpl(i,jj,elev_class)
+             g2x(index_g2x_Sg_topo(elev_class), g) = gtopo(i,jj,elev_class)
+             g2x(index_g2x_Flgg_hflx(elev_class), g) = ghflx(i,jj,elev_class)
           enddo
+	  
+	  g2x(index_g2x_Sg_icemask, g) = ice_sheet_grid_mask(i,jj)
+	  
        enddo
     enddo
-
-    if (verbose .and. my_task==master_task) then
-       do elev_class = 1, glc_nec
-          write(stdout,*) subname,' g2x frac ',elev_class, &
-               minval(g2x(index_frac(elev_class),:)), &
-               maxval(g2x(index_frac(elev_class),:))
-          write(stdout,*) subname,' g2x topo ',elev_class, &
-               minval(g2x(index_topo(elev_class),:)), &
-               maxval(g2x(index_topo(elev_class),:))
-          write(stdout,*) subname,' g2x hflx ',elev_class, &
-               minval(g2x(index_hflx(elev_class),:)), &
-               maxval(g2x(index_hflx(elev_class),:))
-       end do
-
-       write(stdout,*) subname,' g2x rofi to ocn ', &
-            minval(g2x(index_rofi_to_ocn,:)), &
-            maxval(g2x(index_rofi_to_ocn,:))
-       write(stdout,*) subname,' g2x rofi to ice ', &
-            minval(g2x(index_rofi_to_ice,:)), &
-            maxval(g2x(index_rofi_to_ice,:))
-       write(stdout,*) subname,' g2x rofl ', &
-            minval(g2x(index_rofl,:)), &
-            maxval(g2x(index_rofl,:))
-
-       call shr_sys_flush(stdout)
-    endif
 
     if (gfrac_to_cpl_allocated) then
        deallocate(gfrac_to_cpl)

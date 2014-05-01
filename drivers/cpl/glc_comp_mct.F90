@@ -17,7 +17,7 @@ module glc_comp_mct
 
   use glc_import_export
   use glc_cpl_indices
-  use glc_constants,       only: verbose, stdout, stderr, nml_in, radius, radian, glc_nec
+  use glc_constants,       only: verbose, stdout, stderr, nml_in, radius, radian
   use glc_errormod,        only: glc_success
   use glc_InitMod,         only: glc_initialize
   use glc_RunMod,          only: glc_run
@@ -198,11 +198,8 @@ CONTAINS
 
     ! Create initial glc export state
 
-    call glc_export(g2x%rattr, glc_nec, &
-         index_g2x_Sg_frac, index_g2x_Sg_topo, index_g2x_Flgg_hflx, &
-         index_g2x_Fogg_rofi, index_g2x_Figg_rofi, &
-         index_g2x_Fogg_rofl)
-
+    call glc_export(g2x%rattr)
+	 
    if (my_task == master_task) then
       write(stdout,F91) 
       write(stdout,F00) trim(myModelName),': start of main integration loop'
@@ -297,8 +294,7 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
 
     ! Unpack
 
-    call glc_import(x2g%rattr, glc_nec, &
-         index_x2g_Sl_tsrf, index_x2g_Sl_topo, index_x2g_Flgl_qice) 
+    call glc_import(x2g%rattr)
 
     ! Run 
 
@@ -325,10 +321,7 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
     
     ! Pack
 
-    call glc_export(g2x%rattr, glc_nec, &
-         index_g2x_Sg_frac, index_g2x_Sg_topo, index_g2x_Flgg_hflx, &
-         index_g2x_Fogg_rofi, index_g2x_Figg_rofi, &
-         index_g2x_Fogg_rofl)
+    call glc_export(g2x%rattr)
     
     ! Log output for model date
 

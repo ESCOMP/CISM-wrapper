@@ -150,7 +150,7 @@ contains
   end function frac_overrides_enabled
 
   !-----------------------------------------------------------------------
-  subroutine do_frac_overrides(gfrac)
+  subroutine do_frac_overrides(gfrac, ice_sheet_grid_mask)
     !
     ! !DESCRIPTION:
     ! Do all overrides of glc fraction
@@ -161,7 +161,8 @@ contains
     use glc_global_grid , only : glc_grid
     !
     ! !ARGUMENTS:
-    real(r8), intent(inout) :: gfrac(:,:,:)
+    real(r8), intent(inout) :: gfrac(:, :, 0:)
+    real(r8), intent(in)    :: ice_sheet_grid_mask(:,:)
     !
     ! !LOCAL VARIABLES:
     
@@ -169,15 +170,16 @@ contains
     !-----------------------------------------------------------------------
     
     SHR_ASSERT_ALL((ubound(gfrac) == (/glc_grid%nx, glc_grid%ny, glc_nec/)), errMsg(__FILE__, __LINE__))
+    SHR_ASSERT_ALL((ubound(ice_sheet_grid_mask) == (/glc_grid%nx, glc_grid%ny/)), errMsg(__FILE__, __LINE__))
 
-    call apply_increase_frac(gfrac)
-    call apply_decrease_frac(gfrac)
-    call apply_rearrange_freq(gfrac)
+    call apply_increase_frac(gfrac, ice_sheet_grid_mask)
+    call apply_decrease_frac(gfrac, ice_sheet_grid_mask)
+    call apply_rearrange_freq(gfrac, ice_sheet_grid_mask)
 
   end subroutine do_frac_overrides
 
   !-----------------------------------------------------------------------
-  subroutine apply_increase_frac(gfrac)
+  subroutine apply_increase_frac(gfrac, ice_sheet_grid_mask)
     !
     ! !DESCRIPTION:
     ! Apply increase_frac to gfrac
@@ -185,7 +187,8 @@ contains
     ! !USES:
     !
     ! !ARGUMENTS:
-    real(r8), intent(inout) :: gfrac(:,:,:)
+    real(r8), intent(inout) :: gfrac(:, :, 0:)
+    real(r8), intent(in)    :: ice_sheet_grid_mask(:,:)
     !
     ! !LOCAL VARIABLES:
     real(r8) :: current_increase  ! additive increase
@@ -194,27 +197,34 @@ contains
     character(len=*), parameter :: subname = 'apply_increase_frac'
     !-----------------------------------------------------------------------
     
-    ! We increase gfrac globally. Currently it's not a problem to apply this increase
-    ! globally, because CLM only listens to the fraction within the icemask. But ideally
-    ! we would NOT modify gfrac outside of the icemask - but that relies on some new code
-    ! from Jeremy Fyke that isn't on the trunk yet.
-    
     if (time_since_baseline() > 0) then
        current_increase = time_since_baseline() * increase_frac
-       gfrac(:,:,:) = gfrac(:,:,:) + current_increase
+
        do j = 1, size(gfrac,2)
           do i = 1, size(gfrac,1)
-             if (sum(gfrac(i,j,:)) > 1._r8) then
-                gfrac(i,j,:) = gfrac(i,j,:) / sum(gfrac(i,j,:))
+             if (ice_sheet_grid_mask(i,j) > 0._r8) then
+                ! Increase the area of all elevation classes within the icemask
+                gfrac(i, j, 1:) = gfrac(i, j, 1:) + current_increase
+
+                ! Make sure total glacier area does not exceed 1
+                if (sum(gfrac(i, j, 1:)) > 1._r8) then
+                   gfrac(i, j, 1:) = gfrac(i, j, 1:) / sum(gfrac(i, j, 1:))
+                end if
+
+                ! Set bare land fraction to be the remainder of the grid cell
+                gfrac(i,j,0) = 1._r8 - sum(gfrac(i, j, 1:))
+                ! Correct for rounding errors:
+                gfrac(i,j,0) = max(gfrac(i,j,0), 0._r8)
              end if
           end do
        end do
+
     end if
 
   end subroutine apply_increase_frac
 
   !-----------------------------------------------------------------------
-  subroutine apply_decrease_frac(gfrac)
+  subroutine apply_decrease_frac(gfrac, ice_sheet_grid_mask)
     !
     ! !DESCRIPTION:
     ! Apply decrease_frac to gfrac
@@ -222,10 +232,12 @@ contains
     ! !USES:
     !
     ! !ARGUMENTS:
-    real(r8), intent(inout) :: gfrac(:,:,:)
+    real(r8), intent(inout) :: gfrac(:, :, 0:)
+    real(r8), intent(in)    :: ice_sheet_grid_mask(:,:)
     !
     ! !LOCAL VARIABLES:
     real(r8) :: current_decrease  ! multiplicative decrease
+    integer(int_kind) :: i, j     ! indices
     
     character(len=*), parameter :: subname = 'apply_decrease_frac'
     !-----------------------------------------------------------------------
@@ -235,13 +247,26 @@ contains
        if (current_decrease < 0._r8) then
           current_decrease = 0._r8
        end if
-       gfrac(:,:,:) = gfrac(:,:,:) * current_decrease
+
+       do j = 1, size(gfrac,2)
+          do i = 1, size(gfrac,1)
+             if (ice_sheet_grid_mask(i,j) > 0._r8) then
+                ! Decrease the area of all elevation classes within the icemask
+                gfrac(i, j, 1:) = gfrac(i, j, 1:) * current_decrease
+
+                ! Set bare land fraction to be the remainder of the grid cell
+                gfrac(i,j,0) = 1._r8 - sum(gfrac(i, j, 1:))
+                ! Correct for rounding errors:
+                gfrac(i,j,0) = max(gfrac(i,j,0), 0._r8)
+             end if
+          end do
+       end do
     end if
 
   end subroutine apply_decrease_frac
 
   !-----------------------------------------------------------------------
-  subroutine apply_rearrange_freq(gfrac)
+  subroutine apply_rearrange_freq(gfrac, ice_sheet_grid_mask)
     !
     ! !DESCRIPTION:
     ! Apply rearrange_freq to gfrac.
@@ -255,7 +280,8 @@ contains
     ! !USES:
     !
     ! !ARGUMENTS:
-    real(r8), intent(inout) :: gfrac(:,:,:)
+    real(r8), intent(inout) :: gfrac(:, :, 0:)
+    real(r8), intent(in)    :: ice_sheet_grid_mask(:,:)
     !
     ! !LOCAL VARIABLES:
     integer(int_kind) :: nec           ! number of elevation classes
@@ -276,14 +302,14 @@ contains
           allocate(gfrac_temp(size(gfrac,1), size(gfrac,2)))
 
           ! Swap elevation classes: swap first with last, second with second-to-last, etc.
-          ! Note that we start with index 1: the dummy argument gfrac will have a lower
-          ! bound of 1 even if the actual gfrac array has a lower bound of (e.g.) 0.
-          nec = size(gfrac,3)
+          nec = ubound(gfrac,3)
           do ec = 1, nec/2
              ec_swap = nec - (ec - 1)
-             gfrac_temp(:,:) = gfrac(:,:,ec)
-             gfrac(:,:,ec) = gfrac(:,:,ec_swap)
-             gfrac(:,:,ec_swap) = gfrac_temp(:,:)
+             where(ice_sheet_grid_mask > 0._r8)
+                gfrac_temp(:,:) = gfrac(:,:,ec)
+                gfrac(:,:,ec) = gfrac(:,:,ec_swap)
+                gfrac(:,:,ec_swap) = gfrac_temp(:,:)
+             end where
           end do
              
           deallocate(gfrac_temp)

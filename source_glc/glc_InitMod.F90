@@ -80,7 +80,8 @@
    use glc_global_fields, only: glc_allocate_global, climate, ice_sheet,   &
                                 temp,    precip,  orog,    ice_frac,       &
                                 tsfc,    qsmb,    topo,                    &
-                                gfrac,   gtopo,   grofi,   grofl,  ghflx
+                                gfrac,   gtopo,   grofi,   grofl,  ghflx,  &
+				ice_sheet_grid_mask
 
    use glc_global_grid, only: init_glc_grid, glc_grid
    use glc_override_frac, only: init_glc_frac_overrides
@@ -343,6 +344,7 @@
                             grofi = grofi,                        &
                             grofl = grofl,                        &
                             ghflx = ghflx,                        &
+			    ice_sheet_grid_mask=ice_sheet_grid_mask,&
                             gmask = glint_landmask,               &
                             gcm_restart = cesm_restart,           &
                             gcm_restart_file = cesm_restart_file, &

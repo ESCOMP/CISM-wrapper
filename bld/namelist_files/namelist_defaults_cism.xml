@@ -134,6 +134,8 @@ now, it gives reasonable enough results for testing purposes. -->
 
 <acab_mode>0</acab_mode>
 
+<test_coupling>.false.</test_coupling>
+
 <!-- =============================================================  -->
 <!-- group: cism.config: projection                                 -->
 <!-- =============================================================  -->
