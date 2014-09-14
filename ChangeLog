@@ -4,6 +4,123 @@ This file describes what main-trunk tags were created and why
 
 ================================================================================
 Originator: sacks
+Date: Sept 14, 2014
+Model: cism
+Version: cism1_140914
+One-line summary: Add zero_gcm_fluxes option; send icemask_coupled_fluxes field to coupler
+
+Purpose of changes:
+
+In talking with Dave Lawrence, Bill Lipscomb and Jeremy Fyke, I realized that we
+need to introduce more logic to distinguish between active icesheets and
+diagnostic-only icesheets. 
+
+One aspect of this is the ability to zero out the fluxes CISM sends to the
+coupler (currently runoff fluxes; later also the heat flux). That way, by
+zeroing out these fluxes and turning off the connection to CLM, we can continue
+to run with an evolving ice sheet in diagnostic-only mode (i.e., 1-way
+coupling). This is achieved via the new zero_gcm_fluxes option.
+
+In addition, I realized the need to distinguish between areas of active
+icesheets and areas of either no icesheet or diagnostic-only icesheets in
+applying CLM's glc_dyn_runoff_routing switch. In particular, we should only use
+the new runoff routing scheme over areas of icesheet that are generating calving
+fluxes. From the perspective of CISM, this is achieved by computing and sending
+a new icemask_coupled_fluxes field to the coupler (which is then passed to
+CLM). icemask_coupled_fluxes is similar to the existing icemask field, but is
+zero over icesheet instances for which zero_gcm_fluxes is true - which will be
+the case for icesheets that are not generating calving fluxes (e.g.,
+diagnostic-only icesheets).
+
+Changes answers relative to previous tag: YES, at the roundoff-level
+
+   Changes icemask at the roundoff-level
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/):
+
+List all modified files, and describe the changes:
+
+*** Update to r63495: glint changes needed to support the above changes
+M       SVN_EXTERNAL_DIRECTORIES
+
+*** add zero_gcm_fluxes namelist option
+M       bld/build-namelist
+M       bld/namelist_files/namelist_defaults_cism.xml
+M       bld/namelist_files/namelist_definition_cism.xml
+
+*** send icemask_coupled_fluxes field to the coupler
+M       drivers/cpl/glc_cpl_indices.F90
+M       drivers/cpl/glc_import_export.F90
+M       source_glc/glc_InitMod.F90
+M       source_glc/glc_RunMod.F90
+M       source_glc/glc_global_fields.F90
+
+Summary of testing:
+
+   Yellowstone intel & pgi test lists. All PASS except the following expected
+   failures:
+
+   All IS2 tests fail (as usual)
+
+   compare_hist failures:
+
+   FAIL  CME_Ly5.T31_g37.IG.yellowstone_intel.clm-reduceOutput.compare_hist.cism1_140602_beta12 
+   FAIL  ERS_Ly5.T31_g37.IGCLM45.yellowstone_intel.clm-glcMEC_long.compare_hist.cism1_140602_beta12 
+   FAIL  SMS_D.T31_g37.BG1850CN.yellowstone_intel.compare_hist.cism1_140602_beta12 
+
+   These show roundoff-level changes in icemask. In addition, the CME test has
+   large diffs in g2x_Fogg_rofl and g2x_Fogg_rofi: These fields are identically
+   0 in the new run. This makes sense, since zero_gcm_fluxes is set to true for
+   this CLM40 run (these diffs arise fundamentally from the new version of CLM
+   used for this testing).
+
+
+Externals used for testing: cesm1_3_beta12, with these diffs:
+
+   Index: SVN_EXTERNAL_DIRECTORIES
+   ===================================================================
+   --- SVN_EXTERNAL_DIRECTORIES	(revision 63201)
+   +++ SVN_EXTERNAL_DIRECTORIES	(working copy)
+   @@ -1,8 +1,8 @@
+   -scripts                            https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_140813
+   +scripts                            https://svn-ccsm-models.cgd.ucar.edu/scripts/branch_tags/glc_runoff_routing_tags/glc_runoff_routing_n01_scripts4_140814a
+    scripts/ccsm_utils/Machines        https://svn-ccsm-models.cgd.ucar.edu/Machines/branch_tags/bluewatersfix_Machines_140811_tags/bluewatersfix02_Machines_140811
+    tools/cprnc                        https://svn-ccsm-models.cgd.ucar.edu/tools/cprnc/trunk_tags/cprnc_140625
+    tools/mapping                      https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_140702b
+   -models/drv                         https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq5_0_15
+   +models/drv                         https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/branch_tags/glc_runoff_routing_tags/glc_runoff_routing_n01_drvseq5_0_15
+    models/csm_share                   https://svn-ccsm-models.cgd.ucar.edu/csm_share/trunk_tags/share3_140723
+    scripts/validation_testing         https://svn-ccsm-models.cgd.ucar.edu/validation_testing/trunk_tags/validation_20140708/run_CESM/
+    models/atm/cam                     https://svn-ccsm-models.cgd.ucar.edu/cam1/trunk_tags/cam5_3_45/models/atm/cam/
+   @@ -10,7 +10,7 @@
+    models/atm/satm                    https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_4_04/satm
+    models/atm/xatm                    https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_8_00/xatm
+    models/dead_share                  https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_8_00/dead_share
+   -models/glc/cism                    https://svn-ccsm-models.cgd.ucar.edu/glc/trunk_tags/cism1_140602
+   +models/glc/cism                    https://svn-ccsm-models.cgd.ucar.edu/glc/branches/glc_runoff_routing
+    models/glc/sglc                    https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_4_04/sglc
+    models/glc/xglc                    https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_8_00/xglc
+    models/ice/cice                    https://svn-ccsm-models.cgd.ucar.edu/cice/trunk_tags/cice4_0_20140711
+   @@ -17,7 +17,7 @@
+    models/ice/dice                    https://svn-ccsm-models.cgd.ucar.edu/dice7/trunk_tags/dice8_131201
+    models/ice/sice                    https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_4_04/sice
+    models/ice/xice                    https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_8_00/xice
+   -models/lnd/clm                     https://svn-ccsm-models.cgd.ucar.edu/clm2/trunk_tags/clm4_5_1_r079//models/lnd/clm
+   +models/lnd/clm                     https://svn-ccsm-models.cgd.ucar.edu/clm2/branch_tags/glc_runoff_routing_tags/glc_runoff_routing_n02_clm4_5_1_r081
+    models/lnd/dlnd                    https://svn-ccsm-models.cgd.ucar.edu/dlnd7/trunk_tags/dlnd8_131201
+    models/lnd/slnd                    https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_4_04/slnd
+    models/lnd/xlnd                    https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_8_00/xlnd
+
+However, for the PEA test, I merged the changes from scripts4_140903b into the sandbox.
+
+
+cism tag used for baseline comparisons: cism1_140602
+
+Any other externals that differed in baseline: Baseline used cesm1_3_beta12 with
+updated scripts (scripts4_140905???)
+
+================================================================================
+Originator: sacks
 Date: June 2, 2014
 Model: cism
 Version: cism1_140602
