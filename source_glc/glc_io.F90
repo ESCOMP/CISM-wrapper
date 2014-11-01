@@ -188,8 +188,8 @@
 
     ! create the output unit
     call glimmer_nc_createfile(oc, instance%model)
-    call glide_io_create(oc, instance%model)
-    call glint_io_create(oc, instance%model)
+    call glide_io_create(oc, instance%model, instance%model)
+    call glint_io_create(oc, instance%model, instance)
 
     if (my_task == master_task) then
        ! write time to the file
@@ -286,8 +286,8 @@
 
     ! create the output unit
     call glimmer_nc_createfile(oc, instance%model)
-    call glide_io_create(oc, instance%model)
-    call glint_io_create(oc, instance%model)
+    call glide_io_create(oc, instance%model, instance%model)
+    call glint_io_create(oc, instance%model, instance)
 
     if (my_task == master_task) then
        ! write time to the file

@@ -499,12 +499,13 @@ id="dycore"
 type="integer"
 category="cism_config_options"
 group="cism_config_options"
-valid_values="0,1,2" >
+valid_values="0,2" >
 Which dycore to use
 0: glide dycore (SIA, serial only)
-1: glam dycore (HO, FDM, serial or parallel)
+1: NOT SUPPORTED: glam dycore (HO, FDM, serial or parallel)
+   Note that this option is not allowed within CESM, because it is buggy
 2: glissade dycore (HO, FEM, serial or parallel)
-Default: 0 for cism1, 1 for cism2
+Default: 0 for cism1, 2 for cism2
 </entry>
 
 <entry 
@@ -720,16 +721,6 @@ Default: Depends on resolution and physics option
 
 <entry 
 id="ntem"
-type="integer" 
-category="cism_config_time"
-group="cism_config_time" >
-Multiplier of ice sheet timestep, dt
-(in theory, can be real-valued, but values less than 1 are not handled properly, so restricted to being an integer)
-Default: 1
-</entry>
-
-<entry 
-id="nvel"
 type="integer" 
 category="cism_config_time"
 group="cism_config_time" >
@@ -979,16 +970,16 @@ Default: 3
 </entry>
 
 <entry
-id="which_disp"
+id="which_ho_disp"
 type="integer"
 category="cism_config_ho_options"
 group="cism_config_ho_options"
-valid_values="0,1,2" >
+valid_values="-1,0,1" >
 Method for computing the dissipation during the temperature calculation
+-1: no dissipation
 0: 0-order SIA approx.
 1: 1st order solution (e.g., Blatter-Pattyn)
-2: 1st order depth-integrated solution (SSA)
-Default: 0
+Default: 1
 </entry>
 
 <entry
@@ -1003,7 +994,7 @@ Method for solving the sparse linear system that arises from the higher-order so
 2: Conjugate gradient, incomplete LU preconditioner
 3: Conjugate gradient, structured grid, parallel-enabled
 4: standalone interface to Trilinos
-Default: 4 when building with trilinos, 1 otherwise
+Default: 3
 </entry>
 
 <entry
@@ -1015,7 +1006,21 @@ valid_values="0,1" >
 Method for solving the nonlinear iteration when solving the first-order momentum balance
 0: use the standard Picard iteration
 1: use Jacobian Free Newton Krylov (JFNK) method
-Default: 1
+Default: 0
+</entry>
+
+<entry
+id="which_ho_gradient_margin"
+type="integer"
+category="cism_config_ho_options"
+group="cism_config_ho_options"
+valid_values="0,1,2" >
+How to compute the gradient at the ice margin in the glissade dycore.
+Not valid for other dycores.
+0: Use info from all neighbor cells, ice-covered or ice-free
+1: Use info from ice-covered and/or land cells, not ice-free ocean
+2: Use info from ice-covered cells only
+Default: (use hard-coded default)
 </entry>
 
 <!-- =============================================================  -->

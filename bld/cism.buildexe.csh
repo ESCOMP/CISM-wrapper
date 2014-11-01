@@ -39,18 +39,21 @@ set cmake_opts="$cmake_opts -D CISM_USE_MPI_WITH_SLAP=ON"
 set cmake_opts="$cmake_opts -D CISM_USE_GPTL_INSTRUMENTATION=OFF"
 set cmake_opts="$cmake_opts -D CISM_BINARY_DIR=$glc_dir"
 set cmake_opts="$cmake_opts -D CMAKE_Fortran_MODULE_DIRECTORY=$glc_obj_dir"
-set cmake_opts="$cmake_opts -D GLIMMER_NETCDF_DIR="\$"(NETCDF_PATH)"
+set cmake_opts="$cmake_opts -D CISM_NETCDF_DIR="\$"(NETCDF_PATH)"
 set cmake_opts="$cmake_opts -D CISM_MPI_INC_DIR="\$"(INC_MPI)"
-set cmake_opts="$cmake_opts -D GLIMMER_SOURCEMOD_DIR=$sourcemod_dir/glimmer-cism"
+set cmake_opts="$cmake_opts -D CISM_SOURCEMOD_DIR=$sourcemod_dir/glimmer-cism"
+# Turn on MPI_MODE always. This works within CESM because we always
+# have an mpi library (possibly mpi-serial). And always turning on
+# MPI_MODE means that we can defer more decisions to
+# runtime. (Although this comes with a small performance cost when we
+# don't actually need mpi.)
+set cmake_opts="$cmake_opts -D CISM_MPI_MODE=ON"
+set cmake_opts="$cmake_opts -D CISM_SERIAL_MODE=OFF"
 if ($CISM_USE_TRILINOS == 'TRUE') then
-    set cmake_opts="$cmake_opts -D NO_TRILINOS=OFF"
-    set cmake_opts="$cmake_opts -D CISM_MPI_MODE=ON"
-    set cmake_opts="$cmake_opts -D CISM_SERIAL_MODE=OFF"
-    set cmake_opts="$cmake_opts -D GLIMMER_TRILINOS_DIR="\$"(TRILINOS_PATH)"
+    set cmake_opts="$cmake_opts -D CISM_USE_TRILINOS=ON"
+    set cmake_opts="$cmake_opts -D CISM_TRILINOS_DIR="\$"(TRILINOS_PATH)"
 else
-    set cmake_opts="$cmake_opts -D NO_TRILINOS=ON"
-    set cmake_opts="$cmake_opts -D CISM_MPI_MODE=OFF"
-    set cmake_opts="$cmake_opts -D CISM_SERIAL_MODE=ON"
+    set cmake_opts="$cmake_opts -D CISM_USE_TRILINOS=OFF"
 endif
 
 # ----------------------------------------------------------------------

@@ -375,6 +375,12 @@ EOF
 if ($print>=2) { print "CESM inputdata root directory: $DIN_LOC_ROOT$eol"; }
 
 ####################################
+# Preliminary consistency checks
+####################################
+
+check_grid($GLC_GRID, $CISM_PHYS);
+
+####################################
 # namelist group: time_manager_nml #
 ####################################
 
@@ -536,7 +542,6 @@ else {
 print $fh "\n[time]\n";
 add_default($nl, 'dt');
 add_default($nl, 'ntem');
-add_default($nl, 'nvel');
 add_default($nl, 'dt_diag');
 add_default($nl, 'idiag');
 add_default($nl, 'jdiag');
@@ -558,9 +563,9 @@ if ($nl->get_value('dycore') != 0) {
     add_default($nl, 'which_ho_babc');
     add_default($nl, 'which_ho_efvs');
     add_default($nl, 'which_ho_resid');
-    add_default($nl, 'which_disp');
-    add_default($nl, 'which_ho_sparse', 'cism_use_trilinos'=>"$CISM_USE_TRILINOS");
-    add_default($nl, 'which_ho_nonlinear');
+    add_default($nl, 'which_ho_disp');
+    add_default($nl, 'which_ho_sparse', 'dycore'=>$nl->get_value('dycore'), 'cism_use_trilinos'=>"$CISM_USE_TRILINOS");
+    add_default($nl, 'which_ho_nonlinear', 'dycore'=>$nl->get_value('dycore'));
     $nl->write_cism_config($fh, "cism_config_ho_options");
 }
 else {
@@ -1001,6 +1006,44 @@ sub get_glc_dt {
   return ($dt_option, $dt_count);
 }
   
+#-------------------------------------------------------------------------------
+
+sub check_grid {
+
+# Usage: check_grid($glc_grid, $cism_phys)
+#
+# Checks that the glc_grid is valid given the cism_phys setting
+
+   my ($glc_grid, $cism_phys) = @_;
+
+   # we only care about the keys in allowed_grids, not the values; but we use a
+   # hash for easy lookup later
+   my %allowed_grids;
+
+   if ($cism_phys eq "cism1") {
+      %allowed_grids = (gland20  => 1, 
+                        gland10  => 1,
+                        gland5   => 1, 
+                        gland5UM => 1,
+                       );
+   }
+   elsif ($cism_phys eq "cism2") {
+      %allowed_grids = (gland20 => 1,
+                        gland10 => 1,
+                        gland4  => 1,
+                       );
+   }
+
+   if (!exists($allowed_grids{$glc_grid})) {
+      print "ERROR: For cism_phys = $cism_phys, allowable grids are:\n";
+      print join(", ", sort keys %allowed_grids);
+      print "\n";
+      print "Current value of CISM_GRID is: $glc_grid\n";
+      die;
+   }
+}
+   
+
 #-------------------------------------------------------------------------------
 
 sub check_consistency {
