@@ -6,6 +6,33 @@ This file describes what main-trunk tags were created and why
 Originator: sacks
 Date: Oct 31, 2014
 Model: cism
+Version: cism2_0_01
+One-line summary: Update ChangeLog entry for last tag
+
+Purpose of changes:
+
+Add stuff to ChangeLog that was accidentally excluded from the last tag
+
+Changes answers relative to previous tag: NO
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/):
+
+List all modified files, and describe the changes:
+
+M       ChangeLog
+
+Summary of testing: none
+
+Externals used for testing: n/a
+
+cism tag used for baseline comparisons: n/a
+
+Any other externals that differed in baseline: n/a
+
+================================================================================
+Originator: sacks
+Date: Oct 31, 2014
+Model: cism
 Version: cism2_0_00
 One-line summary: Point to cism2 release code base
 
@@ -50,6 +77,14 @@ Summary of testing:
 
    Ran full aux_glc test suite, on yellowstone and titan. All tests PASS!
 
+   In addition, ran these tests from the prebeta test list:
+
+   PASS  SMS.T31_g37_gl10.BGCNIS2.yellowstone_intel 
+   PASS  SMS.T31_g37_gl10.BGCNIS2.yellowstone_intel.memleak
+   PASS  SMS_Ly2.f09_g16_gl10.TGIS2.yellowstone_intel 
+   PASS  SMS_Ly2.f09_g16_gl10.TGIS2.yellowstone_intel.memleak
+
+
 Externals used for testing: cesm1_3_beta12 with the following diffs:
 
    Index: SVN_EXTERNAL_DIRECTORIES
@@ -90,12 +125,89 @@ Externals used for testing: cesm1_3_beta12 with the following diffs:
     In addition, the following diffs in my yellowstone sandbox, which are needed
     for the PEA tests:
 
+Index: models/utils/mct/mpi-serial/mpi.h
+===================================================================
+--- models/utils/mct/mpi-serial/mpi.h	(revision 1122)
++++ models/utils/mct/mpi-serial/mpi.h	(working copy)
+@@ -152,6 +152,8 @@
+ 
+ } MPI_Status;
+ 
++#define MPI_STATUS_IGNORE (MPI_Status *)1
++#define MPI_STATUSES_IGNORE (MPI_Status *)1
+ 
+ /*
+  * Collective operations
+Index: models/utils/mct/mpi-serial/mpif.master.h
+===================================================================
+--- models/utils/mct/mpi-serial/mpif.master.h	(revision 1122)
++++ models/utils/mct/mpi-serial/mpif.master.h	(working copy)
+@@ -132,6 +132,8 @@
+ 
+         INTEGER MPI_SOURCE, MPI_TAG, MPI_ERROR
+         PARAMETER(MPI_SOURCE=1, MPI_TAG=2, MPI_ERROR=3)
++        INTEGER MPI_STATUS_IGNORE(MPI_STATUS_SIZE)
++        INTEGER MPI_STATUSES_IGNORE(MPI_STATUS_SIZE,1)
+ 
+ 
+ 
+Index: models/utils/mct/mpi-serial/mpif.real4double8.h
+===================================================================
+--- models/utils/mct/mpi-serial/mpif.real4double8.h	(revision 1122)
++++ models/utils/mct/mpi-serial/mpif.real4double8.h	(working copy)
+@@ -132,6 +132,8 @@
+ 
+         INTEGER MPI_SOURCE, MPI_TAG, MPI_ERROR
+         PARAMETER(MPI_SOURCE=1, MPI_TAG=2, MPI_ERROR=3)
++        INTEGER MPI_STATUS_IGNORE(MPI_STATUS_SIZE)
++        INTEGER MPI_STATUSES_IGNORE(MPI_STATUS_SIZE,1)
+ 
+ 
+ 
+Index: models/utils/mct/mpi-serial/mpif.real8double16.h
+===================================================================
+--- models/utils/mct/mpi-serial/mpif.real8double16.h	(revision 1122)
++++ models/utils/mct/mpi-serial/mpif.real8double16.h	(working copy)
+@@ -132,6 +132,8 @@
+ 
+         INTEGER MPI_SOURCE, MPI_TAG, MPI_ERROR
+         PARAMETER(MPI_SOURCE=1, MPI_TAG=2, MPI_ERROR=3)
++        INTEGER MPI_STATUS_IGNORE(MPI_STATUS_SIZE)
++        INTEGER MPI_STATUSES_IGNORE(MPI_STATUS_SIZE,1)
+ 
+ 
+ 
+Index: models/utils/mct/mpi-serial/mpif.real8double8.h
+===================================================================
+--- models/utils/mct/mpi-serial/mpif.real8double8.h	(revision 1122)
++++ models/utils/mct/mpi-serial/mpif.real8double8.h	(working copy)
+@@ -132,6 +132,8 @@
+ 
+         INTEGER MPI_SOURCE, MPI_TAG, MPI_ERROR
+         PARAMETER(MPI_SOURCE=1, MPI_TAG=2, MPI_ERROR=3)
++        INTEGER MPI_STATUS_IGNORE(MPI_STATUS_SIZE)
++        INTEGER MPI_STATUSES_IGNORE(MPI_STATUS_SIZE,1)
+ 
+ 
+ 
+cism tag used for baseline comparisons: cism1_141006 and
+piscees_n13_cism1_141006
 
+   yellowstone testing:
 
+     - CISM1 tests bfb with cism1_141006, according to both cism & cpl hist
+       files; CISM2 tests BFAIL with this comparison because the tests were
+       failing on the trunk until now
 
-cism tag used for baseline comparisons:
+     - All tests (CISM1 & CISM2) bfb with piscees_n13_cism1_141006, according to
+       both cism & cpl hist files
 
-Any other externals that differed in baseline:
+   titan testing:
+
+     - just compared with piscees_n13_cism1_141006; all tests bfb
+
+Any other externals that differed in baseline: externals were similar, but
+possibly not identical in the baseline
 
 ================================================================================
 Originator: sacks
