@@ -10,8 +10,6 @@ begin
 ; read in glimmer grid file
 ;************************************************
 
-; infile    = addfile ("gland20km.nc","r")
-; infile    = addfile ("gland10km.nc","r")
 infile    = addfile ("gland5km.nc","r")
 
 lat = infile->lat
@@ -62,16 +60,12 @@ end do
 ; write out lats and lons in SCRIP format
 ; ---------------------------------------
 
-; outfile = "gland20km_scrip.nc"
-; outfile = "gland10km_scrip.nc"
 outfile = "gland5km_scrip.nc"
 system("/bin/rm -f " + outfile)
 
 fout1 = addfile(outfile,"c")
 
 globalAtt             = True
-; globalAtt@title       = "Glimmer Greenland 20 km Grid"
-; globalAtt@title       = "Glimmer Greenland 10 km Grid"
 globalAtt@title       = "Glimmer Greenland 5 km Grid"
 globalAtt@history     = "GLC_to_SCRIP conversion " + systemfunc("date")
 fileattdef( fout1, globalAtt )
