@@ -1023,6 +1023,22 @@ Not valid for other dycores.
 Default: (use hard-coded default)
 </entry>
 
+<entry
+id="which_ho_approx"
+type="integer"
+category="cism_config_ho_options"
+group="cism_config_ho_options"
+valid_values="-1,0,1,2,3" >
+Flag that indicates which Stokes approximation to use with the glissade dycore.
+Not valid for other dycores.
+-1: Shallow-ice approximation, Glide-type calculation (uses glissade_velo_sia)
+0: Shallow-ice approximation, vertical-shear stresses only (uses glissade_velo_higher)
+1: Shallow-shelf approximation, horizontal-plane stresses only (uses glissade_velo_higher)
+2: Blatter-Pattyn approximation with both vertical-shear and horizontal-plane stresses (uses glissade_velo_higher)
+3:  Vertically integrated 'L1L2' approximation with vertical-shear and horizontal-plane stresses (uses glissade_velo_higher)
+Default: (use hard-coded default)
+</entry>
+
 <!-- =============================================================  -->
 <!-- group: cism.config: GTHF (geothermal heat flux)                -->
 <!-- =============================================================  -->

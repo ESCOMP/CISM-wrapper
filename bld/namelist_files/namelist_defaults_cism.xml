@@ -21,20 +21,10 @@ attributes to express the dependency.
 <cisminputfile glc_grid="gland5" cism_phys="cism1">glc/cism/gland5.input.nc</cisminputfile>
 <cisminputfile glc_grid="gland5UM" cism_phys="cism1">glc/cism/IceSheetData_UMontana/PresentDayGreenland/Greenland_5km_v1.1_SacksRev_c110629.nc</cisminputfile>
 
-<!-- the following is just for initial testing, and may have to be changed later -->
+<!-- the following is just for the sake of software testing, and should not be used for science -->
 <cisminputfile glc_grid="gland20" cism_phys="cism2">glc/cism/gland20.input.nc</cisminputfile>
-<!-- the following is a temporary file, just for testing -->
-<!-- WJS (1-25-13): Commenting this out for now, because it gives funky acab & artm
-<cisminputfile glc_grid="gland10" cism_phys="cism2">glc/cism/Greenland/glide/init/gis_10km.ice2sea.boost_c121109.nc</cisminputfile>
--->
 
-<!-- The following is the file Kate has been using for standalone testing. It probably
-shouldn't be used in the long-term, becasue it has boosted topography, and may not be
-ideal in other senses as well. Also, note that it probably disagrees with the default
-projection info in the config file, though by less than the "boost" file, above. For
-now, it gives reasonable enough results for testing purposes. -->
-<cisminputfile glc_grid="gland10" cism_phys="cism2">glc/cism/Greenland/glide/init/gis_10km.crop_c110510.nc</cisminputfile>
-
+<!-- this is the resolution that should be used for science applications with cism2 -->
 <cisminputfile glc_grid="gland4" cism_phys="cism2">glc/cism/Greenland/glissade/init/greenland_4km.glissade.10kyr.beta6.SSacab_c140919.nc</cisminputfile>
 
 <!-- =============================================================  -->
@@ -100,11 +90,6 @@ now, it gives reasonable enough results for testing purposes. -->
 <nsn glc_grid="gland5"  >561</nsn>
 <nsn glc_grid="gland5UM">561</nsn>
 <nsn glc_grid="gland4"  >701</nsn>
-
-<!-- the temporary cism2 10km input file has a different number of points than the cism1 10km input file;
-     in the future, these might return to agreement -->
-<ewn glc_grid="gland10" cism_phys="cism2">150</ewn>
-<nsn glc_grid="gland10" cism_phys="cism2">280</nsn>
 
 <upn>11</upn>
 
@@ -201,14 +186,12 @@ now, it gives reasonable enough results for testing purposes. -->
 <dt glc_grid="gland5"   cism_phys="cism1">0.05</dt>
 <dt glc_grid="gland5UM" cism_phys="cism1">0.05</dt>
 
-<!-- Use 1 for initial testing of cism2 gland20... may be reduced later
-     (If it's reduced later, we can still get dt=1 for testing by using a user_nl directory in the test list -->
-<dt glc_grid="gland20"  cism_phys="cism2">1.0</dt>
+<!-- A dt of 1 seems sufficient for cism2 gland20. However, use 0.5 because (a)
+     this is less likely to break due to instabilities, and (b) it exercises the
+     code in a more typical configuration (i.e., with a sub-annual time step) -->
+<dt glc_grid="gland20"  cism_phys="cism2">0.5</dt>
 
-<!-- Use 0.25 for initial testing of cism2 gland10... will probably be reduced later -->
-<dt glc_grid="gland10"  cism_phys="cism2">0.25</dt>
-
-<dt glc_grid="gland4"   cism_phys="cism2">0.05</dt>
+<dt glc_grid="gland4"   cism_phys="cism2">0.0083333333333333333</dt>
 
 <ntem>1</ntem>
 
@@ -255,10 +238,17 @@ now, it gives reasonable enough results for testing purposes. -->
 
 <!-- This group is only relevant if dycore is not 0 -->
 
-<!-- This should be 5 when beta is provided in the cism input file,
-     but in general we'll want the default to be 4, according to Steve
-     Price-->
+<!-- which_ho_babc should be 5 when beta is provided in the cism input file, but
+     in general we'll want the default to be 4, according to Steve Price. In
+     order to ensure that we pick up a beta value if one is available (e.g., if
+     someone adds a new resolution and forgets to modify things in this
+     section), we're setting the overall default to 5, and then overriding that
+     explicitly for input files that do not have a beta value. -->
 <which_ho_babc>5</which_ho_babc>
+<which_ho_babc glc_grid="gland20">4</which_ho_babc>
+<which_ho_babc glc_grid="gland10">4</which_ho_babc>
+<which_ho_babc glc_grid="gland5">4</which_ho_babc>
+<which_ho_babc glc_grid="gland5UM">4</which_ho_babc>
 
 <which_ho_efvs>2</which_ho_efvs>
 
