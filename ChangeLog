@@ -4,6 +4,80 @@ This file describes what main-trunk tags were created and why
 
 ================================================================================
 Originator: sacks
+Date: Nov 19, 2014
+Model: cism
+Version: cism2_0_04
+One-line summary: update glimmer-cism external
+
+Purpose of changes:
+
+   Point to new external location, in the CESM-Develop github area.
+
+   Update that repo to pull in some minor bug fixes from the piscees repo.
+
+   Also add some error-checking to ensure that beta is present on the input file
+   if using which_ho_babc = 5.
+
+Changes answers relative to previous tag: NO
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/):
+
+List all modified files, and describe the changes:
+
+M       SVN_EXTERNAL_DIRECTORIES
+-glimmer-cism https://github.com/CISM/cism/tags/v2.0
++glimmer-cism https://github.com/CESM-Development/cism/tags/cism2_141119a
+
+Summary of testing:
+
+   Ran full aux_glc test suite (which now just runs on yellowstone). All tests PASSed.
+
+Externals used for testing: cesm1_3_beta12 with these diffs:
+
+   Index: SVN_EXTERNAL_DIRECTORIES
+   ===================================================================
+   --- SVN_EXTERNAL_DIRECTORIES	(revision 65521)
+   +++ SVN_EXTERNAL_DIRECTORIES	(working copy)
+   @@ -1,8 +1,8 @@
+   -scripts                            https://svn-ccsm-models.cgd.ucar.edu/scripts/trunk_tags/scripts4_140813
+   -scripts/ccsm_utils/Machines        https://svn-ccsm-models.cgd.ucar.edu/Machines/branch_tags/bluewatersfix_Machines_140811_tags/bluewatersfix02_Machines_140811
+   +scripts                            https://svn-ccsm-models.cgd.ucar.edu/scripts/branch_tags/rollback_timing_updates_tags/rollback_timing_updates_n08_scripts4_141023
+   +scripts/ccsm_utils/Machines        https://svn-ccsm-models.cgd.ucar.edu/Machines/branch_tags/piscees_testing_tags/piscees_testing_n02_Machines_140923
+    tools/cprnc                        https://svn-ccsm-models.cgd.ucar.edu/tools/cprnc/trunk_tags/cprnc_140625
+    tools/mapping                      https://svn-ccsm-models.cgd.ucar.edu/tools/mapping/trunk_tags/mapping_140702b
+   -models/drv                         https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq5_0_15
+   +models/drv                         https://svn-ccsm-models.cgd.ucar.edu/drv/seq_mct/trunk_tags/drvseq5_0_17
+    models/csm_share                   https://svn-ccsm-models.cgd.ucar.edu/csm_share/trunk_tags/share3_140723
+    scripts/validation_testing         https://svn-ccsm-models.cgd.ucar.edu/validation_testing/trunk_tags/validation_20140708/run_CESM/
+    models/atm/cam                     https://svn-ccsm-models.cgd.ucar.edu/cam1/trunk_tags/cam5_3_45/models/atm/cam/
+   @@ -10,14 +10,14 @@
+    models/atm/satm                    https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_4_04/satm
+    models/atm/xatm                    https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_8_00/xatm
+    models/dead_share                  https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_8_00/dead_share
+   -models/glc/cism                    https://svn-ccsm-models.cgd.ucar.edu/glc/trunk_tags/cism1_140602
+   +models/glc/cism                    https://svn-ccsm-models.cgd.ucar.edu/glc/trunk
+    models/glc/sglc                    https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_4_04/sglc
+    models/glc/xglc                    https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_8_00/xglc
+   -models/ice/cice                    https://svn-ccsm-models.cgd.ucar.edu/cice/trunk_tags/cice4_0_20140711
+   +models/ice/cice                    https://svn-ccsm-models.cgd.ucar.edu/cice/trunk_tags/cice4_0_20140918b
+    models/ice/dice                    https://svn-ccsm-models.cgd.ucar.edu/dice7/trunk_tags/dice8_131201
+    models/ice/sice                    https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_4_04/sice
+    models/ice/xice                    https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_8_00/xice
+   -models/lnd/clm                     https://svn-ccsm-models.cgd.ucar.edu/clm2/trunk_tags/clm4_5_1_r079//models/lnd/clm
+   +models/lnd/clm                     https://svn-ccsm-models.cgd.ucar.edu/clm2/trunk_tags/clm4_5_1_r084//models/lnd/clm
+    models/lnd/dlnd                    https://svn-ccsm-models.cgd.ucar.edu/dlnd7/trunk_tags/dlnd8_131201
+    models/lnd/slnd                    https://svn-ccsm-models.cgd.ucar.edu/stubs/trunk_tags/stubs1_4_04/slnd
+    models/lnd/xlnd                    https://svn-ccsm-models.cgd.ucar.edu/dead7/trunk_tags/dead7_8_00/xlnd
+
+Also, diffs for mpi-serial, as noted below
+
+
+cism tag used for baseline comparisons: cism2_0_03
+
+Any other externals that differed in baseline: none
+
+================================================================================
+Originator: sacks
 Date: Nov 18, 2014
 Model: cism
 Version: cism2_0_03
