@@ -4,6 +4,188 @@ This file describes what main-trunk tags were created and why
 
 ================================================================================
 Originator: sacks
+Date: Feb 20, 2015
+Model: cism
+Version: cism2_0_07
+One-line summary: Separate cism history frequency from coupler history frequency
+
+Purpose of changes:
+
+   With Mariana's new testing framework, some exact restart tests were failing
+   because CISM was writing history files at the end of a few-day run, and these
+   didn't restart properly (specifically, IG/FG/BG tests without
+   test_coupling). This provided motivation for something I have been wanting to
+   do for a long time: separating the cism history frequency from the coupler
+   history frequency.
+
+   With this tag, the default cism history frequency is annual. You can still
+   tie cism history to cpl history if you want, by setting hist_option =
+   'coupler'. However, this is not recommended for production runs, because it
+   does not write frequency metadata to the history file.
+
+   Along with this change, I have added a global metadata field to the history
+   files saying the frequency of history writes. This is in accordance with a
+   new requirement from the CESM post-processing/workflow group. As noted above,
+   this does NOT work for hist_option = 'coupler'.
+
+Changes answers relative to previous tag: NO
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/):
+
+List all modified files, and describe the changes:
+
+M       bld/build-namelist
+M       bld/namelist_files/namelist_defaults_cism.xml
+M       bld/namelist_files/namelist_definition_cism.xml
+A       source_glc/glc_history.F90
+M       source_glc/glc_InitMod.F90
+M       source_glc/glc_RunMod.F90
+A       source_glc/history_tape_standard.F90
+M       source_glc/glc_io.F90
+A       source_glc/history_tape_coupler.F90
+A       source_glc/history_tape_base.F90
+M       drivers/cpl/glc_comp_mct.F90
+M       drivers/cpl/glc_comp_esmf.F90
+
+Summary of testing:
+
+   Ran full yellowstone test suite, using the new aux_glc test suite that I have
+   developed... this test suite is not on the scripts trunk (it is on Mariana's
+   testing branch), so I'm listing it below:
+
+    CME_D.T31_g37.IGCLM45.yellowstone_intel.cism-test_coupling # Note that this is more about testing CLM (specifically the esmf code in CLM) than it is about testing CISM
+    ERS_Ly5.T31_g37.IGCLM45.yellowstone_intel.clm-glcMEC_long # Need IG ERS test to catch problems with fields sent before the end of the first year after restart. Also use glcMEC_long testmods to get shorter snow_persistence_max - the main motivation here is to have a long ERS test that checks restart of the snow_persistence stuff (which more belongs in the aux_clm test list, but was added here to avoid needing to add a long ERS test to that test list)... this is mainly needed because we do not have an IG test that uses spun-up initial conditions, so we currently need a long test to completely test the restartability of the snow_persistence stuff. Also note that this is the only multi-year non-TG test in the test list, so this is the one test that a production-like configuration can run for a few years. Consider moving this to the aux_clm45 test list once this test can be made shorter, either through use of initial conditions and/or moving to f10 resolution.
+    ERS_D_Ld9.f19_g16.IGCLM45.yellowstone_pgi.cism-override_glc_frac # Make sure glc override options work correctly, and restart properly
+    SMS_D.T31_g37_gl20.IGCLM45IS2.yellowstone_gnu.cism-test_coupling
+    SMS_D.f09_g16.TG.yellowstone_intel
+    ERS_Ly20_N2_P2.f09_g16_gl10.TG.yellowstone_pgi
+    SMS_D.f09_g16_gl10.TG.yellowstone_gnu
+    SMS_D.f09_g16_gl10.TG.yellowstone_pgi
+    CME_Ly5_N2_P2_D.f09_g16.TG1850.yellowstone_intel
+    ERS_Ly20.f09_g16.TG1850.yellowstone_gnu.cism-oneway
+    ERS_Ly11.f09_g16_gl20.TG1850IS2.yellowstone_gnu
+    SMS_D_Ly1.f09_g16_gl20.TG1850IS2.yellowstone_pgi
+    ERS_Ly20_E.f09_g16.TGHIST.yellowstone_intel
+    PEA_P1_M.f09_g16.TGHIST.yellowstone_pgi
+    ERI_Ly15.f09_g16_gl20.TGHISTIS2.yellowstone_pgi
+    SMS_D_Ly1.f09_g16_gl20.TGHISTIS2.yellowstone_gnu
+    PEA_P1_M_Ly2.f09_g16_gl20.TGIS2.yellowstone_intel # needs to be at least 2 years for there to be enough cpl fields for the cpl log comparison to work
+    SMS_D_Ly1.f09_g16_gl20.TGIS2.yellowstone_intel
+    SMS_D_Ly1.f09_g16_gl20.TGIS2.yellowstone_intel.cism-trilinos
+    SMS_Ly1.f09_g16_gl4.TGIS2.yellowstone_intel # include one short test of the typical production resolution for CISM2
+    ERI_Ly44.f09_g16.TGRCP85.yellowstone_intel
+    CME_Ly3.f09_g16_gl20.TGRCP85IS2.yellowstone_intel
+    NCK_Ly3.f09_g16_gl20.TGRCP85IS2.yellowstone_pgi
+
+    These all passed, except for these, which are currently expected to fail for
+    issues unrelated to CISM:
+
+     PEND CME_D.T31_g37.IGCLM45.yellowstone_intel.cism-test_coupling.GC.150219-095007
+     PEND CME_Ly5_N2_P2_D.f09_g16.TG1850.yellowstone_intel.GC.150219-095007
+
+    Also, this comparison failed due to having no history file in the test
+    case. This is expected and okay - note that this test is about testing the
+    fields sent to the coupler, so it's fine for this to not have a CISM history
+    file (and, as a side-note, this was the main test that provided motivation
+    for this tag, because in Mariana's branch, the ERS comparison of the CISM
+    history file fails for this test)
+
+     FAIL ERS_D_Ld9.f19_g16.IGCLM45.yellowstone_pgi.cism-override_glc_frac.cism.h.compare_hist.cism2_0_05_alpha17d
+
+   Since the CME_D tests currently fail (because of issues unrelated to CISM), I
+   ran SMS versions of these tests:
+
+    SMS_D.T31_g37.IGCLM45.yellowstone_intel.cism-test_coupling
+    SMS_Ly5_N2_P2_D.f09_g16.TG1850.yellowstone_intel
+
+    
+
+Externals used for testing: cesm1_3_alpha17d, with these mods:
+
+   Index: mpi-serial/mpi.h
+   ===================================================================
+   --- mpi-serial/mpi.h	(revision 1224)
+   +++ mpi-serial/mpi.h	(working copy)
+   @@ -152,6 +152,8 @@
+    
+    } MPI_Status;
+    
+   +#define MPI_STATUS_IGNORE (MPI_Status *)1
+   +#define MPI_STATUSES_IGNORE (MPI_Status *)1
+    
+    /*
+     * Collective operations
+   Index: mpi-serial/mpif.master.h
+   ===================================================================
+   --- mpi-serial/mpif.master.h	(revision 1224)
+   +++ mpi-serial/mpif.master.h	(working copy)
+   @@ -132,6 +132,8 @@
+    
+            INTEGER MPI_SOURCE, MPI_TAG, MPI_ERROR
+            PARAMETER(MPI_SOURCE=1, MPI_TAG=2, MPI_ERROR=3)
+   +        INTEGER MPI_STATUS_IGNORE(MPI_STATUS_SIZE)
+   +        INTEGER MPI_STATUSES_IGNORE(MPI_STATUS_SIZE,1)
+    
+    
+    
+   Index: mpi-serial/mpif.real4double8.h
+   ===================================================================
+   --- mpi-serial/mpif.real4double8.h	(revision 1224)
+   +++ mpi-serial/mpif.real4double8.h	(working copy)
+   @@ -132,6 +132,8 @@
+    
+            INTEGER MPI_SOURCE, MPI_TAG, MPI_ERROR
+            PARAMETER(MPI_SOURCE=1, MPI_TAG=2, MPI_ERROR=3)
+   +        INTEGER MPI_STATUS_IGNORE(MPI_STATUS_SIZE)
+   +        INTEGER MPI_STATUSES_IGNORE(MPI_STATUS_SIZE,1)
+    
+    
+    
+   Index: mpi-serial/mpif.real8double16.h
+   ===================================================================
+   --- mpi-serial/mpif.real8double16.h	(revision 1224)
+   +++ mpi-serial/mpif.real8double16.h	(working copy)
+   @@ -132,6 +132,8 @@
+    
+            INTEGER MPI_SOURCE, MPI_TAG, MPI_ERROR
+            PARAMETER(MPI_SOURCE=1, MPI_TAG=2, MPI_ERROR=3)
+   +        INTEGER MPI_STATUS_IGNORE(MPI_STATUS_SIZE)
+   +        INTEGER MPI_STATUSES_IGNORE(MPI_STATUS_SIZE,1)
+    
+    
+    
+   Index: mpi-serial/mpif.real8double8.h
+   ===================================================================
+   --- mpi-serial/mpif.real8double8.h	(revision 1224)
+   +++ mpi-serial/mpif.real8double8.h	(working copy)
+   @@ -132,6 +132,8 @@
+    
+            INTEGER MPI_SOURCE, MPI_TAG, MPI_ERROR
+            PARAMETER(MPI_SOURCE=1, MPI_TAG=2, MPI_ERROR=3)
+   +        INTEGER MPI_STATUS_IGNORE(MPI_STATUS_SIZE)
+   +        INTEGER MPI_STATUSES_IGNORE(MPI_STATUS_SIZE,1)
+    
+    
+   Index: ccsm_utils/Testlistxml/testmods_dirs/cism/test_coupling/user_nl_cism
+   ===================================================================
+   --- ccsm_utils/Testlistxml/testmods_dirs/cism/test_coupling/user_nl_cism	(revision 68086)
+   +++ ccsm_utils/Testlistxml/testmods_dirs/cism/test_coupling/user_nl_cism	(working copy)
+   @@ -1,3 +1,6 @@
+    ! This option changes the ice sheet dynamics time step to 1 day rather than 1 year
+    ! Thus, the ice sheet dynamics can be exercised in a few-day run
+    test_coupling = .true.
+   +
+   +! This option gives us a history file at the end of the run, even for a few-day run
+   +history_option = 'coupler'
+
+
+cism tag used for baseline comparisons: cism2_0_05
+
+Any other externals that differed in baseline: same, but without the mod in
+test_coupling/user_nl_cism
+
+================================================================================
+Originator: sacks
 Date: Feb 13, 2015
 Model: cism
 Version: cism2_0_06

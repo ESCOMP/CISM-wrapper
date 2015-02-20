@@ -33,9 +33,17 @@ attributes to express the dependency.
 
 <cism_debug>.false.</cism_debug>
 
+<ice_flux_routing>ocn</ice_flux_routing>
+
+<!-- =============================================================  -->
+<!-- group: cism_history                                            -->
+<!-- =============================================================  -->
+
 <cesm_history_vars>'acab artm thk usurf topg uvel vvel uflx vflx temp bmlt bwat'</cesm_history_vars>
 
-<ice_flux_routing>ocn</ice_flux_routing>
+<history_option>nyears</history_option>
+
+<history_frequency>1</history_frequency>
 
 <!-- =============================================================  -->
 <!-- group: grid_nml                                                -->

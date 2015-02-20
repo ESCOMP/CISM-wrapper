@@ -24,7 +24,7 @@ module glc_comp_esmf
   use glc_InitMod,         only: glc_initialize
   use glc_RunMod,          only: glc_run
   use glc_FinalMod,        only: glc_final
-  use glc_io,              only: glc_io_write_restart, glc_io_write_history
+  use glc_io,              only: glc_io_write_restart
   use glc_communicate,     only: init_communicate, my_task, master_task
   use glc_time_management, only: iyear,imonth,iday,ihour,iminute,isecond,runtype
   use glc_global_fields,   only: ice_sheet
@@ -366,7 +366,6 @@ CONTAINS
     integer(IN)   :: glcYMD            ! glc model date
     integer(IN)   :: glcTOD            ! glc model sec 
     logical       :: stop_alarm        ! is it time to stop
-    logical       :: hist_alarm        ! is it time to write a history file
     logical       :: rest_alarm        ! is it time to write a restart
     logical       :: done              ! time loop logical
     integer(IN)   :: shrlogunit, shrloglev  
@@ -420,7 +419,7 @@ CONTAINS
           call shr_sys_abort('glc error overshot time')
        endif
 
-       call glc_run
+       call glc_run(EClock)
 
        glcYMD = iyear*10000 + imonth*100 + iday
        glcTOD = ihour*3600 + iminute*60 + isecond
@@ -455,14 +454,6 @@ CONTAINS
        write(stdout,F01) ' GLC  Date ',glcYMD,glcTOD
        call shr_sys_flush(stdout)
     end if
-
-    ! If time to write history, do so
-
-    hist_alarm = seq_timemgr_HistoryAlarmIsOn( EClock )
-    if (hist_alarm) then
-       ! TODO loop over instances
-       call glc_io_write_history(ice_sheet%instances(1), EClock)
-    endif
 
     ! If time to write restart, do so
 

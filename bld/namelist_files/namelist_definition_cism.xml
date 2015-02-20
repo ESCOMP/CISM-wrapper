@@ -44,15 +44,6 @@ Determines whether extra diagnostics are printed in the cism log file
 Default: false
 </entry>
 
-<entry id="cesm_history_vars" 
-type="char*1024" 
-category="cism" 
-group="cism_params" 
-valid_values="">
-Space-delimited list of variables output to history file
-Default: 'acab artm thk usurf topg uvel vvel uflx vflx temp bmlt bwat'
-</entry>
-
 <entry id="ice_flux_routing"
 type="char*64"
 category="cism"
@@ -63,6 +54,42 @@ be routed.
 ocn: all solid ice goes to the ocean component
 ice: all solid ice goes to the sea ice component
 Default: ocn
+</entry>
+
+<!-- =============================================================  -->
+<!-- group: cism_history                                            -->
+<!-- =============================================================  -->
+
+<entry id="cesm_history_vars" 
+type="char*1024" 
+category="history" 
+group="cism_history" 
+valid_values="">
+Space-delimited list of variables output to history file
+Default: 'acab artm thk usurf topg uvel vvel uflx vflx temp bmlt bwat'
+</entry>
+
+<entry id="history_option"
+type="char*64"
+category="history"
+group="cism_history"
+valid_values="nyears,coupler">
+How history frequency is specified
+nyears: Write history every N years
+coupler: Get history frequency from coupler (HIST_OPTION/HIST_N xml variables)
+         WARNING: SHOULD NOT BE USED IN PRODUCTION RUNS - frequency metadata not set properly
+Default: nyears
+</entry>
+
+<entry id="history_frequency"
+type="integer"
+category="history"
+group="cism_history"
+valid_values="">
+History frequency
+e.g., if history_option=nyears, then 1 = annual, 2 = every two years, etc.
+Ignored for history_option = 'coupler'
+Default: 1
 </entry>
 
 <!-- =============================================================  -->

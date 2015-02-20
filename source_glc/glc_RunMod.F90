@@ -51,7 +51,7 @@
 ! !IROUTINE: glc_run
 ! !INTERFACE:
 
- subroutine glc_run
+ subroutine glc_run(EClock)
 
 ! !DESCRIPTION:
 !  This routine advances the simulation one timestep.
@@ -66,7 +66,13 @@
    use glint_global_interp
    use glint_example_clim
    use glc_global_fields 
+   use glc_history, only : glc_history_write
+   use esmf, only : ESMF_Clock
 
+! !ARGUMENTS:
+   type(ESMF_Clock),     intent(in)    :: EClock
+   
+   
 !EOP
 !BOC
 !-----------------------------------------------------------------------
@@ -208,6 +214,13 @@
       write(stdout,*) 'Called time manager: new hour =', thour 
    endif
 
+   !-----------------------------------------------------------------------
+   ! Write a history file if it's time to do so
+   !-----------------------------------------------------------------------
+
+   ! TODO loop over instances
+   call glc_history_write(ice_sheet%instances(1), EClock)
+   
 !-----------------------------------------------------------------------
 !EOC
 
