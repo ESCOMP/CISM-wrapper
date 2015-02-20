@@ -3,6 +3,88 @@ This file describes what main-trunk tags were created and why
 ================================================================================
 
 ================================================================================
+Originator: mvertens, sacks
+Date: Feb 20, 2015
+Model: cism
+Version: cism2_0_08
+One-line summary: Updates for Mariana's new testing infrastructure
+
+Purpose of changes:
+
+   This tag updates CISM to fit in with Mariana's major overhaul of the test
+   system and build scripts. Specifically:
+
+   (1) Tests are now distributed with their components, rather than being
+       centralized in 'scripts'
+
+   (2) Build scripts have been converted to perl, and implicit dependencies on
+       the environment have been removed.
+
+Changes answers relative to previous tag: NO
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/):
+
+List all modified files, and describe the changes:
+
+*** Build scripts converted to perl; implicit dependencies on environment removed
+D       bld/cism.buildexe.csh
+D       bld/cism.cpl7.template
+D       bld/cism.buildnml.csh
+M       bld/trilinosOptions/README
+A       bld/cism.buildlib
+A       bld/cism.buildnml
+M       bld/README.build-namelist
+A       bld/cism.template
+M       bld/build-namelist
+M       bld/README
+
+*** Tests now distributed into components, rather than being centralized in scripts
+A       cesmtest/testmods_dirs/cism/override_glc_frac/user_nl_cism
+A       cesmtest/testmods_dirs/cism/override_glc_frac/include_user_mods
+A       cesmtest/testmods_dirs/cism/override_glc_frac
+A       cesmtest/testmods_dirs/cism/test_coupling/user_nl_cism
+A       cesmtest/testmods_dirs/cism/test_coupling/include_user_mods
+A       cesmtest/testmods_dirs/cism/test_coupling
+A       cesmtest/testmods_dirs/cism/oneway/xmlchange_cmnds
+A       cesmtest/testmods_dirs/cism/oneway/README
+A       cesmtest/testmods_dirs/cism/oneway
+A       cesmtest/testmods_dirs/cism/trilinos/user_nl_cism
+A       cesmtest/testmods_dirs/cism/trilinos/include_user_mods
+A       cesmtest/testmods_dirs/cism/trilinos/shell_commands
+A       cesmtest/testmods_dirs/cism/trilinos/README
+A       cesmtest/testmods_dirs/cism/trilinos
+A       cesmtest/testmods_dirs/cism/apply_to_multiinstance/shell_commands
+A       cesmtest/testmods_dirs/cism/apply_to_multiinstance/README
+A       cesmtest/testmods_dirs/cism/apply_to_multiinstance
+A       cesmtest/testmods_dirs/cism
+A       cesmtest/testmods_dirs
+A       cesmtest/testlist_cism.xml
+A       cesmtest
+
+
+Summary of testing:
+
+   Ran full yellowstone test suite from Mariana's experimental tag
+   (https://svn-ccsm-models.cgd.ucar.edu/cesm1/exp_tags/newtesting_cesm1_3_beta18c). All
+   tests PASSed.
+
+   Since the CME _D tests failed in the baseline, I ran SMS versions of these,
+   as noted below (cism2_0_07). These baseline comparisons PASSed. (The CME
+   tests themselves now pass, too.)
+
+Externals used for testing:
+https://svn-ccsm-models.cgd.ucar.edu/cesm1/exp_tags/newtesting_cesm1_3_beta18c -
+but since this points to branches rather than tags, it is hard to say exactly
+what was used. (I think it was at r68306 for most components.)
+
+  Also, mpi-serial changes, as noted below.
+
+cism tag used for baseline comparisons: cism2_0_07
+
+Any other externals that differed in baseline: See below for notes on externals
+used for cism2_0_07.
+
+================================================================================
 Originator: sacks
 Date: Feb 20, 2015
 Model: cism

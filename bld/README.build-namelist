@@ -38,9 +38,9 @@ build-namelist
     denotes an environment or xml variable while $nocaps denotes a perl
     variable)
   
-  - is called from $CASEBUILD/cism.buildnml.csh
+  - is called from $CASEBUILD/cism.buildnml
 
-    (cism.buildnml.csh is now just a wrapper to build-namelist)
+    (cism.buildnml is now just a wrapper to build-namelist)
 
   - allows the user to edit existing namlist variables or introduce new
     variables if that is desired
@@ -54,7 +54,7 @@ build-namelist
     (see "namelist_definition_cism.xml" and "namelist defaults.xml" sections
     below for details)
 
-  - is invoked upon every build -AND- upon every call to cism.buildnml.csh
+  - is invoked upon every build -AND- upon every call to cism.buildnml
 
 
 ============================================================================
