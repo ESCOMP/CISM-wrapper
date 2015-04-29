@@ -8,7 +8,7 @@ my ($CASEROOT) = @ARGV;
 chdir "${CASEROOT}";
 
 my $CASEBUILD = `./xmlquery CASEBUILD -value`;
-my $CODEROOT  = `./xmlquery CODEROOT  -value`;
+my $CCSMROOT  = `./xmlquery CCSMROOT  -value`;
 my $CASETOOLS = `./xmlquery CASETOOLS -value`;
 my $OBJROOT   = `./xmlquery OBJROOT   -value`;
 my $EXEROOT   = `./xmlquery EXEROOT   -value`;
@@ -39,9 +39,9 @@ chdir "$glc_obj_dir";
 
 open(file,">Filepath") or die "Could not open file Filepath to write";
 print file "$sourcemod_dir \n";
-print file "$CODEROOT/glc/cism/drivers/cpl \n";
-print file "$CODEROOT/glc/cism/source_glc \n";
-print file "$CODEROOT/glc/cism/mpi \n";
+print file "$CCSMROOT/components/cism/drivers/cpl \n";
+print file "$CCSMROOT/components/cism/source_glc \n";
+print file "$CCSMROOT/components/cism/mpi \n";
 close(file);
 
 # ----------------------------------------------------------------------

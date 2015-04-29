@@ -3,6 +3,77 @@ This file describes what main-trunk tags were created and why
 ================================================================================
 
 ================================================================================
+Originator: mvertens (brought to trunk by sacks)
+Date: Apr 29, 2015
+Model: cism
+Version: cism2_0_09
+One-line summary: Updates for latest version of cime
+
+Purpose of changes:
+
+   Updates to make (a) location of test directory and (b) variable names
+   consistent with the latest version of CIME.
+
+Changes answers relative to previous tag: NO
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/):
+
+List all modified files, and describe the changes:
+
+*** Change variable names to be consistent with latest version of CIME
+M       bld/README.build-namelist
+M       bld/build-namelist
+M       bld/cism.buildlib
+M       bld/cism.buildnml
+M       bld/cism.template
+
+*** Rename cesmtest to cimetest
+D       cesmtest
+D       cesmtest/testlist_cism.xml
+D       cesmtest/testmods_dirs
+D       cesmtest/testmods_dirs/cism
+D       cesmtest/testmods_dirs/cism/apply_to_multiinstance
+D       cesmtest/testmods_dirs/cism/apply_to_multiinstance/README
+D       cesmtest/testmods_dirs/cism/apply_to_multiinstance/shell_commands
+D       cesmtest/testmods_dirs/cism/oneway
+D       cesmtest/testmods_dirs/cism/oneway/README
+D       cesmtest/testmods_dirs/cism/oneway/xmlchange_cmnds
+D       cesmtest/testmods_dirs/cism/override_glc_frac
+D       cesmtest/testmods_dirs/cism/override_glc_frac/include_user_mods
+D       cesmtest/testmods_dirs/cism/override_glc_frac/user_nl_cism
+D       cesmtest/testmods_dirs/cism/test_coupling
+D       cesmtest/testmods_dirs/cism/test_coupling/include_user_mods
+D       cesmtest/testmods_dirs/cism/test_coupling/user_nl_cism
+D       cesmtest/testmods_dirs/cism/trilinos
+D       cesmtest/testmods_dirs/cism/trilinos/README
+D       cesmtest/testmods_dirs/cism/trilinos/include_user_mods
+D       cesmtest/testmods_dirs/cism/trilinos/shell_commands
+D       cesmtest/testmods_dirs/cism/trilinos/user_nl_cism
+A  +    cimetest
+
+
+Summary of testing:
+
+   Ran full yellowstone aux_glc test suite. All tests passed.
+
+   Note, however, that two tests needed to be rerun to pass:
+
+      PEA_P1_M_Ly2.f09_g16_gl20.TGIS2.yellowstone_intel
+      - seemed to have a system problem the first time
+
+      SMS_D_Ly1.f09_g16_gl20.TGHISTIS2.yellowstone_gnu
+      - died with:
+        MCT::m_AttrVect::lsize_: attribute array length mismatch error, stat =892988089
+      - passed when I reran it
+      - likely a compiler bug
+
+Externals used for testing: cesm1_4_beta02, with mpi-serial patch as noted below
+
+cism tag used for baseline comparisons: cism2_0_08
+
+Any other externals that differed in baseline: see externals notes under cism2_0_08
+
+================================================================================
 Originator: mvertens, sacks
 Date: Feb 20, 2015
 Model: cism
