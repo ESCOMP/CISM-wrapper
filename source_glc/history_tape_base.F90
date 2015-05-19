@@ -73,12 +73,12 @@ contains
     !
     ! !USES:
     use glc_io, only : glc_io_write_history
-    use glint_type, only : glint_instance
+    use glad_type, only : glad_instance
     use esmf, only: ESMF_Clock
     !
     ! !ARGUMENTS:
     class(history_tape_base_type), intent(in) :: this
-    type(glint_instance), intent(inout) :: instance
+    type(glad_instance), intent(inout) :: instance
     type(ESMF_Clock),     intent(in)    :: EClock
     !
     ! !LOCAL VARIABLES:

@@ -42,11 +42,16 @@ GLC grid file and write out the same grid in a format understood by SCRIP,
 CCSM's interpolation tool.  SCRIP requires that cell-center lats and lons be
 written out in 1D arrays whose length is the grid size, and that cell-corner
 lats and lons be output as 2D arrays with the grid size as the first dimension 
-and the number of corners per cell as the second dimension.  The GLC grid file
-has lats and lons as 2D arrays of cell corner locations, so this script assumes
-cell centers are located at the midpoints of the corners.  Otherwise, it just
-does some simple transformations before outputting the same grid in the SCRIP
-format.
+and the number of corners per cell as the second dimension.
+
+This script assumes that the GLC grid file has lats and lons as 2D arrays of
+cell corner locations, and then assumes that cell centers are located at the
+midpoints of the corners. In actuality, the grid files we use have lats and lons
+of the CENTERS rather than the corners, but for the purposes of this toolchain,
+this small difference is generally not important.
+
+This script then does some simple transformations before outputting the same
+grid in the SCRIP format.
 
 Input:
 The script requires a user-specified GLC grid file with lats and lons in

@@ -53,12 +53,12 @@
 ! !IROUTINE: glc_io_read_restart_time
 ! !INTERFACE:
 
-   subroutine glc_io_read_restart_time(nhour_glint, filename)
+   subroutine glc_io_read_restart_time(nhour_glad, filename)
 
     use glc_files, only : ptr_filename
 
     implicit none
-    integer(IN),             intent(inout) :: nhour_glint
+    integer(IN),             intent(inout) :: nhour_glad
     character(fname_length), intent(inout) :: filename
 
     ! local variables
@@ -112,8 +112,8 @@
     call broadcast_scalar (glcTOD          , master_task)
     call broadcast_scalar (rst_elapsed_days, master_task)
 
-    ! calculate nhour_glint for return
-    nhour_glint = rst_elapsed_days * 24
+    ! calculate nhour_glad for return
+    nhour_glad = rst_elapsed_days * 24
 
   end subroutine glc_io_read_restart_time
 
@@ -124,12 +124,12 @@
 
    subroutine glc_io_write_history(instance, EClock, history_vars, history_frequency_metadata)
 
-    use glint_type
+    use glad_type
     use glide_io, only : glide_io_create, glide_io_write
-    use glint_io, only : glint_io_create, glint_io_write
+    use glad_io, only : glad_io_create, glad_io_write
     use glide_nc_custom, only: glide_nc_filldvars
     implicit none
-    type(glint_instance), intent(inout) :: instance
+    type(glad_instance), intent(inout) :: instance
     type(ESMF_Clock),     intent(in)    :: EClock
     character(len=*),     intent(in)    :: history_vars
     character(len=*),     intent(in)    :: history_frequency_metadata
@@ -181,7 +181,7 @@
     ! create the output unit
     call glimmer_nc_createfile(oc, instance%model)
     call glide_io_create(oc, instance%model, instance%model)
-    call glint_io_create(oc, instance%model, instance)
+    call glad_io_create(oc, instance%model, instance)
 
     if (my_task == master_task) then
        ! write time to the file
@@ -209,7 +209,7 @@
     call glimmer_nc_checkwrite(oc, instance%model, forcewrite=.true., &
                                time=instance%glide_time)
     call glide_io_write(oc, instance%model)
-    call glint_io_write(oc, instance)
+    call glad_io_write(oc, instance)
 
     if (my_task == master_task) then
        status = nf90_close(oc%nc%id)
@@ -230,12 +230,12 @@
    subroutine glc_io_write_restart(instance, EClock)
 
     use glc_files, only : ptr_filename
-    use glint_type
+    use glad_type
     use glide_io, only : glide_io_create, glide_io_write
-    use glint_io, only : glint_io_create, glint_io_write
+    use glad_io, only : glad_io_create, glad_io_write
     use glide_nc_custom, only: glide_nc_filldvars
     implicit none
-    type(glint_instance), intent(inout) :: instance
+    type(glad_instance), intent(inout) :: instance
     type(ESMF_Clock),     intent(in)    :: EClock
 
     ! local variables
@@ -284,7 +284,7 @@
     ! create the output unit
     call glimmer_nc_createfile(oc, instance%model)
     call glide_io_create(oc, instance%model, instance%model)
-    call glint_io_create(oc, instance%model, instance)
+    call glad_io_create(oc, instance%model, instance)
 
     if (my_task == master_task) then
        ! write time to the file
@@ -307,7 +307,7 @@
     call glimmer_nc_checkwrite(oc, instance%model, forcewrite=.true., &
                                time=instance%glide_time)
     call glide_io_write(oc, instance%model)
-    call glint_io_write(oc, instance)
+    call glad_io_write(oc, instance)
 
     if (my_task == master_task) then
        status = nf90_close(oc%nc%id)

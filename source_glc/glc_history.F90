@@ -100,11 +100,11 @@ contains
     ! anything if it isn't yet time to write a history file.
     !
     ! !USES:
-    use glint_type, only : glint_instance
+    use glad_type, only : glad_instance
     use esmf, only: ESMF_Clock
     !
     ! !ARGUMENTS:
-    type(glint_instance), intent(inout) :: instance
+    type(glad_instance), intent(inout) :: instance
     type(ESMF_Clock),     intent(in)    :: EClock
     !-----------------------------------------------------------------------
 

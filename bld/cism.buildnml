@@ -14,7 +14,7 @@ require SetupTools;
 my $sysmod; 
 
 my $CASEBUILD           = `./xmlquery CASEBUILD         -value`;
-my $CISM_GRID           = `./xmlquery CISM_GRID         -value`;
+my $GLC_GRID            = `./xmlquery GLC_GRID          -value`;
 my $CISM_PHYS           = `./xmlquery CISM_PHYS         -value`;
 my $CISM_USE_TRILINOS   = `./xmlquery CISM_USE_TRILINOS -value`;
 my $CCSMROOT            = `./xmlquery CCSMROOT          -value`;
@@ -73,7 +73,7 @@ while ($inst_counter <= $NINST_GLC) {
     $sysmod = "$sysmod -scriptsroot $SCRIPTSROOT";
     $sysmod = "$sysmod -inst_string \"$inst_string\" ";
     $sysmod = "$sysmod -paramfile cism.config${inst_string}";
-    $sysmod = "$sysmod -lnd_grid $LND_GRID -glc_grid $CISM_GRID";
+    $sysmod = "$sysmod -lnd_grid $LND_GRID -glc_grid $GLC_GRID";
     $sysmod = "$sysmod -cism_phys $CISM_PHYS";
     system($sysmod) == 0 or die "ERROR cism.buildnml: $sysmod failed: $?\n";
 
@@ -99,12 +99,12 @@ if ($CISM_USE_TRILINOS eq "TRUE") {
         system($sysmod) == 0 or die "ERROR cism.buildnml: $sysmod failed: $?\n";
     } else {
         my $trilinos_options_dir = "$CCSMROOT/components/cism/bld/trilinosOptions";
-        my $trilinos_file = "trilinosOptions_${CISM_GRID}.xml";
+        my $trilinos_file = "trilinosOptions_${GLC_GRID}.xml";
         if (-e "${trilinos_options_dir}/${trilinos_file}") {
             $sysmod = "cp ${trilinos_options_dir}/${trilinos_file} ${RUNDIR}/trilinosOptions.xml";
             system($sysmod) == 0 or die "ERROR cism.buildnml: $sysmod failed: $?\n";
         } else {
-            die "ERROR: no trilinosOptions file found in $trilinos_options_dir for CISM_GRID=$CISM_GRID \n";
+            die "ERROR: no trilinosOptions file found in $trilinos_options_dir for GLC_GRID=$GLC_GRID \n";
         }
     }
 }

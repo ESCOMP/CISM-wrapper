@@ -3,6 +3,128 @@ This file describes what main-trunk tags were created and why
 ================================================================================
 
 ================================================================================
+Originator: sacks
+Date: May 19, 2015
+Model: cism
+Version: cism2_1_00
+One-line summary: Move GLC <-> LND coupling to CESM coupler
+
+Purpose of changes:
+
+   Up until now, the GLC <-> LND coupling has been done by CISM's glint
+   library. This is problematic for a few reasons:
+   - glint can only handle regular land grids - not (for example) the CAM-SE
+     grid
+   - glint can only perform bilinear interpolation, not area-conservative
+     remapping, for mapping from LND -> GLC
+   - glint’s remapping is done in serial, on the master processor
+   - any alternative ice sheet model that wants to couple to CESM (e.g.,
+     MPAS-Land Ice) needs to reimplement glint
+   - coupling between the ocean and GLC would need to go through the LND grid,
+     leading to loss of accuracy (especially for high-resolution ocean grids)
+
+   To address these limitations, we have moved the GLC <-> LND coupling out of
+   CISM, into the CESM coupler. This required significant changes to the coupler
+   and scripts. In addition, for GLC/CISM, it required:
+
+   - Writing a replacement for glint in CISM (called glad, for "glimmer already
+     downscaled"), which works with inputs and outputs on the CISM grid rather
+     than on the LND grid.
+
+   - Changing GLC so that its grid is now the CISM grid, not the LND grid. Along
+     with this, removed the CISM_GRID xml variable (now, just use the GLC_GRID
+     variable, which has the value that CISM_GRID used to have).
+
+   - Changing various namelist options to accommodate these changes
+
+   I have also enabled the glc -> ocn coupling. Previously, this was disabled
+   because we didn't have the necessary mapping files. Now I have generated the
+   necessary mapping files, and they are available out-of-the-box in the
+   upcoming CIME tag.
+   
+   The new code currently does not have any PDD support. I have pulled out some
+   never-quite-working code related to the PDD option, because now the PDD
+   option is definitively NOT supported.
+
+
+Changes answers relative to previous tag: YES
+
+   Since the coupling method has changed - including using area-conservative
+   remapping rather than bilinear remapping for the downscaling - answers change
+   significantly. However, I have done many eyeball comparisons to verify that
+   the new code is operating roughly the same as before.
+
+
+Dependencies: Depends on an upcoming CIME tag (cime2_0_00?)
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/):
+
+List all modified files, and describe the changes:
+
+*** Point to glimmer-cism branch
+M       SVN_EXTERNAL_DIRECTORIES
+
+*** glc_global_fields renamed to glc_fields for accuracy; this is significantly
+    different now
+D       source_glc/glc_global_fields.F90
+A       source_glc/glc_fields.F90
+
+*** Operation of glc overrides fundamentally reworked: It no longer works to
+    scale fractions. Instead, the fractions specify topographic height cutoffs
+    below / above which ice_covered is set to 0 / 1.
+M       source_glc/glc_override_frac.F90
+
+*** Point to new input files, which contain lat/lon values that agree with the
+    values on Jeremy's new SCRIP grid files. These SCRIP grid files were needed
+    for creating mapping files for the coupler. Lat/lon values are now also
+    needed on the input files in order for CISM/GLC to tell the coupler about
+    its domain information. It seemed good (although maybe not completely
+    necessary) for these two sets of files to agree in terms of lat/lon
+    values. Also, removed some no-longer-needed namelist items.
+M       bld/namelist_files/namelist_defaults_cism.xml
+
+*** Fix some documentation
+M       tools/glc2scripConvert.ncl
+M       tools/README.glc_overlap_tools
+
+*** Other changes; see "Purpose of changes", above, for details.
+D       source_glc/glc_global_grid.F90
+A       source_glc/glc_indexing_info.F90
+M       source_glc/glc_io.F90
+M       source_glc/glc_constants.F90
+M       source_glc/history_tape_base.F90
+M       source_glc/glc_FinalMod.F90
+M       source_glc/glc_history.F90
+M       source_glc/glc_InitMod.F90
+M       source_glc/glc_RunMod.F90
+M       cimetest/testmods_dirs/cism/override_glc_frac/user_nl_cism
+M       drivers/cpl/glc_comp_esmf.F90
+M       drivers/cpl/glc_import_export.F90
+M       drivers/cpl/glc_coupling_flags.F90
+M       drivers/cpl/glc_cpl_indices.F90
+M       drivers/cpl/glc_comp_mct.F90
+M       bld/cismIO/cism.buildIO.template.csh
+M       bld/README.build-namelist
+M       bld/cism.template
+M       bld/build-namelist
+M       bld/namelist_files/namelist_definition_cism.xml
+M       bld/trilinosOptions/README
+M       bld/cism.buildnml
+
+
+Summary of testing:
+
+   Ran full yellowstone aux_glc test suite. All tests passed.
+
+Externals used for testing:
+https://svn-ccsm-models.cgd.ucar.edu/cesm1/exp/branch_tags/move_glint_into_cpl2_tags/move_glint_into_cpl2_n03_cesm1_4_beta04
+   with mpi-serial patch as noted below
+
+cism tag used for baseline comparisons: cism2_0_09
+
+Any other externals that differed in baseline: see externals notes under cism2_0_09
+
+================================================================================
 Originator: mvertens (brought to trunk by sacks)
 Date: Apr 29, 2015
 Model: cism

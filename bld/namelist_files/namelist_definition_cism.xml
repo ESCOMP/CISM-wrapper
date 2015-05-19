@@ -93,48 +93,6 @@ Default: 1
 </entry>
 
 <!-- =============================================================  -->
-<!-- group: grid_nml                                                -->
-<!-- =============================================================  -->
-
-<entry id="horiz_grid_opt" 
-type="char*256" 
-category="grid"
-group="grid_nml" 
-valid_values="file">
-How grid is being specified: from file or internally
-Currently, only 'file' is supported
-Default: file
-</entry>
-
-<entry id="horiz_grid_file" 
-type="char*256" 
-category="grid" 
-input_pathname="abs" 
-group="grid_nml" 
-valid_values="">
-Filename of file to specify horizontal grid resolution
-Default: resolution-dependent (e.g., grid file for 0.9x1.25 deg)
-</entry>
-
-<entry id="mask_varname" 
-type="char*128" 
-category="grid"
-group="grid_nml" 
-valid_values="">
-Variable name for mask
-Default: LANDMASK
-</entry>
-
-<entry id="frac_varname" 
-type="char*128" 
-category="grid"
-group="grid_nml" 
-valid_values="">
-Variable name for fraction
-Default: LANDFRAC
-</entry>
-
-<!-- =============================================================  -->
 <!-- group: time_manager_nml                                        -->
 <!-- =============================================================  -->
 
@@ -279,7 +237,9 @@ Default: 0 (start overrides at beginning of run)
 type="real"
 category="overrides"
 group="glc_override_nml" >
-Fractional decrease in glacier area, per day (multiplicative) (should be positive).
+Fractional decrease in glacier area, per day (should be positive).
+(days_elapsed * decrease_frac) determines the elevation threshold below which ice_covered is set to 0.
+When this factor reaches 1, all elevations below 3500 m are set to non-ice-covered.
 Default: 0 (no decrease)
 </entry>
 
@@ -287,7 +247,9 @@ Default: 0 (no decrease)
 type="real"
 category="overrides"
 group="glc_override_nml" >
-Fractional increase in glacier area, per day (additive).
+Fractional increase in glacier area, per day.
+(days_elapsed * increase_frac) determines the elevation threshold above which ice_covered is set to 1.
+When this factor reaches 1, all elevations >= 0 m are set to ice-covered.
 Default: 0 (no increase)
 </entry>
 
@@ -295,7 +257,7 @@ Default: 0 (no increase)
 type="integer"
 category="overrides"
 group="glc_override_nml" >
-Frequency (days) at which we flip the order of the elevation classes.
+Frequency (days) at which we rearrange elevation classes.
 Default: 0 (no flips ever)
 </entry>
 
@@ -382,47 +344,12 @@ Default: 1
 </entry>
 
 <entry 
-id="precip_mode" 
-type="integer" 
-category="cism_config_climate"
-group="cism_config_climate"
-valid_values="1,2" >
-Method of precipitation downscaling:
-1: Use large-scale precipitation rate
-2: Use parameterization of Roe and Lindzen
-Default: 1
-</entry>
-
-<entry 
-id="acab_mode" 
-type="integer" 
-category="cism_config_climate"
-group="cism_config_climate"
-valid_values="0" >
-Mass-balance model to use.
-In the CESM context, this should be set to 0 (receive surface mass balance from climate model)
-Default: 0
-</entry>
-
-<entry 
 id="ice_tstep_multiply" 
 type="integer" 
 category="cism_config_climate"
 group="cism_config_climate" >
 Ice time-step multiplier: allows asynchronous climate-ice coupling
 Default: 1
-</entry>
-
-<entry 
-id="mean_preserving" 
-type="integer" 
-category="cism_config_climate"
-group="cism_config_climate"
-valid_values="0,1" >
-Flag to control if mean-preserving interpolation is used
-0: Do not use mean-preserving interpolation
-1: Use mean-preserving interpolation
-Default: 0
 </entry>
 
 <entry id="test_coupling"
@@ -448,6 +375,9 @@ Default: Depends on GLC_TWO_WAY_COUPLING xml variable
 
 <!-- =============================================================  -->
 <!-- group: cism.config: projection                                 -->
+<!--                                                                -->
+<!-- NOTE(wjs, 2015-04-03) With the replacement of glint by glad,   -->
+<!-- it's likely that we no longer need this section                -->
 <!-- =============================================================  -->
 
 <entry 

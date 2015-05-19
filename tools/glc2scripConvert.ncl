@@ -24,6 +24,11 @@ delete(infile)
 ; calculate 1-D arrays of lats and lons
 ; -------------------------------------
 
+; This code assumes that the grid file provides lats and lons of the grid cell
+; corners. In actuality, the grid files we use give lats and lons of the grid
+; cell CENTERS. But, for the sake of this tool-chain, this small difference is
+; not important.
+
 grid_size    = (nx-1)*(ny-1)
 grid_corners = 4
 grid_rank    = 2
