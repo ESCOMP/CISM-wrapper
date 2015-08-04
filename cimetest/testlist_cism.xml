@@ -115,7 +115,7 @@
   <compset name="TGRCP85">
     <grid name="f09_g16">
       <test name="ERI_Ly44">
-        <machine compiler="intel" testtype="prebeta">goldbach</machine>
+        <machine compiler="intel" testtype="prebeta">hobart</machine>
         <machine compiler="intel" testtype="aux_glc">yellowstone</machine>
       </test>
     </grid>
@@ -126,7 +126,7 @@
         <machine compiler="intel" testtype="aux_glc">yellowstone</machine>
       </test>
       <test name="NCK_Ly3">
-        <machine compiler="pgi" testtype="prebeta">goldbach</machine>
+        <machine compiler="pgi" testtype="prebeta">hobart</machine>
         <machine compiler="pgi" testtype="aux_glc">yellowstone</machine>
       </test>
     </grid>
