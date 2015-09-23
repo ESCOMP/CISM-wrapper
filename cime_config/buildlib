@@ -7,8 +7,8 @@ if ($#ARGV == -1) {
 my ($CASEROOT) = @ARGV;
 chdir "${CASEROOT}";
 
+my $SRCROOT   = `./xmlquery SRCROOT  -value`;
 my $CASEBUILD = `./xmlquery CASEBUILD -value`;
-my $CCSMROOT  = `./xmlquery CCSMROOT  -value`;
 my $CASETOOLS = `./xmlquery CASETOOLS -value`;
 my $OBJROOT   = `./xmlquery OBJROOT   -value`;
 my $EXEROOT   = `./xmlquery EXEROOT   -value`;
@@ -39,9 +39,9 @@ chdir "$glc_obj_dir";
 
 open(file,">Filepath") or die "Could not open file Filepath to write";
 print file "$sourcemod_dir \n";
-print file "$CCSMROOT/components/cism/drivers/cpl \n";
-print file "$CCSMROOT/components/cism/source_glc \n";
-print file "$CCSMROOT/components/cism/mpi \n";
+print file "$SRCROOT/components/cism/drivers/cpl \n";
+print file "$SRCROOT/components/cism/source_glc \n";
+print file "$SRCROOT/components/cism/mpi \n";
 close(file);
 
 # ----------------------------------------------------------------------

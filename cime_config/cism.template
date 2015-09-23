@@ -7,7 +7,7 @@ if ($#ARGV == -1) {
 my ($CASEROOT) = @ARGV;
 my $sysmod;
 
-my $CCSMROOT  = `./xmlquery CCSMROOT  -value`;
+my $SRCROOT   = `./xmlquery SRCROOT  -value`;
 my $CASEBUILD = `./xmlquery CASEBUILD -value`;
 
 #-------------------------------------------------------------------------------
@@ -16,12 +16,12 @@ my $CASEBUILD = `./xmlquery CASEBUILD -value`;
 #-------------------------------------------------------------------------------
 
 my $IOCONF_DIR = "$CASEBUILD/cismIOconf";
-my $GLIMMER_CISM_ROOT = "$CCSMROOT/components/cism/glimmer-cism";
+my $GLIMMER_CISM_ROOT = "$SRCROOT/components/cism/glimmer-cism";
 if (! -d "$IOCONF_DIR") {
     $sysmod = "mkdir $IOCONF_DIR";
     system($sysmod) == 0 or die "ERROR cism.build_usernl: $sysmod failed: $?\n";
 }
-$sysmod = "cp $CCSMROOT/components/cism/bld/cismIO/README.cismIO        $IOCONF_DIR/";
+$sysmod = "cp $SRCROOT/components/cism/bld/cismIO/README.cismIO        $IOCONF_DIR/";
 system($sysmod) == 0 or die "ERROR cism.build_usernl: $sysmod failed: $?\n";
 
 $sysmod = "cp $GLIMMER_CISM_ROOT/utils/build/generate_ncvars.py  $IOCONF_DIR/";
@@ -72,7 +72,7 @@ set cism_confIOdir = $IOCONF_DIR
 
 END_OUTPUT
 
-$sysmod = "cat $CCSMROOT/components/cism/bld/cismIO/cism.buildIO.template.csh >> $buildIO_script";
+$sysmod = "cat $SRCROOT/components/cism/bld/cismIO/cism.buildIO.template.csh >> $buildIO_script";
 system($sysmod) == 0 or die "ERROR cism.build_usernl: $sysmod failed: $?\n";
 
 $sysmod = "chmod u+x $buildIO_script";
