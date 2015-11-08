@@ -39,6 +39,7 @@
       <test name="SMS_D">
         <machine compiler="gnu" testtype="aux_glc">yellowstone</machine>
         <machine compiler="pgi" testtype="aux_glc">yellowstone</machine>
+        <machine compiler="gnu" testtype="prealpha" comment="Include a single-processor test, because cime changes sometimes break single-processor runs">yellowstone</machine>
       </test>
     </grid>
     <grid name="f09_g16_gl5">
