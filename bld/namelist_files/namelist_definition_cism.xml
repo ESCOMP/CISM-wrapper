@@ -909,6 +909,15 @@ global domain
 Default: 0.
 </entry>
 
+<entry
+id="ho_beta_const"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Spatially uniform beta for higher-order dycores (Pa yr m-1)
+Default: (use hard-coded default)
+</entry>
+
 <!-- =============================================================  -->
 <!-- group: cism.config: ho_options (higher-order options)          -->
 <!-- =============================================================  -->
