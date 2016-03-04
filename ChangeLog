@@ -4,6 +4,88 @@ This file describes what main-trunk tags were created and why
 
 ================================================================================
 Originator: sacks
+Date: March 4, 2016
+Model: cism
+Version: cism2_1_14
+One-line summary: Move zero_gcm_fluxes handling to GLC
+
+Purpose of changes:
+
+   Previously, CISM (particularly glad) was responsible for handling
+   zero_gcm_fluxes: zeroing out flux variables and setting
+   icemask_coupled_fluxes. I have now moved that handling into the GLC layer.
+
+   The main motivation for doing this is that, in the next tag, I plan to add
+   more logic based on zero_gcm_fluxes: has_ocn_coupling and has_ice_coupling
+   will be false if zero_gcm_fluxes is true. It will be easier to make sure
+   everything is done consistently if all of the zero_gcm_fluxes handling is
+   moved into GLC. Specifically, it seems this will make it less likely that we
+   would set has_ocn_coupling and has_ice_coupling to false when they should
+   really be true for some reason.
+
+   Possible downside: If we have multiple ice instances (e.g., Greenland +
+   Antarctica): Previously, I think I had been imagining that we would have one
+   cism.config for each of them, but potentially only a single cism_in file. But
+   if we want zero_gcm_fluxes to be able to differ for each instance, then we
+   would need to have separate cism_in files for each instance (or have an array
+   of zero_gcm_fluxes values in the single cism_in file). I'll need to come back
+   to this.
+
+
+   Also refactored the setting of indexing-related stuff: Moved behavior into
+   glc_indexing.F90
+
+   Also updated CISM external to match latest version of piscees/develop.
+
+Changes answers relative to previous tag: YES
+   Roundoff-level changes just in the acab field in the cism history file. I
+   have confirmed that these changes are due to previous changes in
+   piscees/develop, not due to the changes in this refactoring.
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/):
+
+List all modified files, and describe the changes:
+
+*** Renamed, and moved behavior into here
+D       source_glc/glc_indexing_info.F90
+A       source_glc/glc_indexing.F90
+
+M       drivers/cpl/glc_comp_mct.F90
+M       drivers/cpl/glc_comp_esmf.F90
+M       drivers/cpl/glc_import_export.F90
+M       bld/namelist_files/namelist_defaults_cism.xml
+M       bld/namelist_files/namelist_definition_cism.xml
+M       bld/build-namelist
+M       source_glc/glc_route_ice_runoff.F90
+M       source_glc/glc_InitMod.F90
+M       source_glc/glc_RunMod.F90
+M       source_glc/glc_fields.F90
+M       source_glc/glc_constants.F90
+
+*** Updates needed for moving zero_gcm_fluxes into GLC. While I was at it,
+    updated to latest version of piscees/develop.
+M       SVN_EXTERNAL_DIRECTORIES
+
+*** Added a one-way coupling test with CISM2, to make sure logic works in
+    parallel cases
+M       cime_config/testdefs/testlist_cism.xml
+
+Summary of testing:
+
+   Ran full aux_glc test suite: yellowstone & hobart. All tests passed.
+
+   CME_Ly3.f09_g16_gl20.TGRCP85IS2.yellowstone_intel CFAILed as part of a test
+   suite, but passed when run alone (with build on login node) - chalking it up
+   to a cime issue
+
+Externals used for testing: cesm1_5_beta05
+
+cism tag used for baseline comparisons: cism2_1_13
+
+Any other externals that differed in baseline: none
+
+================================================================================
+Originator: sacks
 Date: Jan 13, 2016
 Model: cism
 Version: cism2_1_13
