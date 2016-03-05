@@ -4,6 +4,56 @@ This file describes what main-trunk tags were created and why
 
 ================================================================================
 Originator: sacks
+Date: March 5, 2016
+Model: cism
+Version: cism2_1_15
+One-line summary: Set glcocn_present and glcice_present to false for one-way-coupling
+
+Purpose of changes:
+
+   For one-way coupling (with zero_gcm_fluxes = .true.), fluxes sent to ocn and
+   ice are all zero. Thus, there is no reason for the coupler to do glc -> ocn
+   or glc -> ice mapping. By setting glcocn_present and glcice_present to
+   .false. in this case, we make it easier for users to run a one-way-coupled
+   case with some new ocean grid, for which they do not have glc -> ocn mapping
+   files.
+
+Changes answers relative to previous tag: NO
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/):
+
+List all modified files, and describe the changes:
+
+M       drivers/cpl/glc_coupling_flags.F90
+
+Summary of testing:
+
+   Ran full aux_glc test suite: yellowstone & hobart. All tests passed.
+
+   Also ran the following tests, with comparison against cesm1_5_beta05 (using
+   cism2_1_13 but with glimmer-cism at the head of piscees/develop):
+
+   SMS_Ld5.T31_g37_gl20.B1850C5L45BGCRG2.yellowstone_intel.allactive-cism-test_coupling
+   - passes and bit-for-bit
+
+   SMS_D_Ld5.T31_g37_gl20.B1850C5L45BGCRG2.yellowstone_intel.allactive-cism-test_coupling
+   with zero_gcm_fluxes
+   - passes and bit-for-bit
+
+   SMS_D_Ld5.T31_g37_gl20.B1850C5L45BGCRG2.yellowstone_intel.allactive-cism-test_coupling
+   with zero_gcm_fluxes, and in my new code, removed all instances of
+   GLC2OCN_RMAPNAME from config_grids.xml (resulting in glc2ocn_rmapname =
+   idmap)
+   - passes and bit-for-bit
+
+Externals used for testing: cesm1_5_beta05
+
+cism tag used for baseline comparisons: cism2_1_14
+
+Any other externals that differed in baseline: none
+
+================================================================================
+Originator: sacks
 Date: March 4, 2016
 Model: cism
 Version: cism2_1_14
