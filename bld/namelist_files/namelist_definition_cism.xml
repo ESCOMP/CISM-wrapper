@@ -146,7 +146,7 @@ group="time_manager_nml"
 valid_values="" >
 Whether leap years are enabled in the GLC time manager.
 CAUTION: Leap years don't work correctly with GLC time steps longer than a few months.
-Default: .false.
+Default: .false. for NO_LEAP calendar, .true. otherwise
 </entry>
 
 <entry id="iyear0" 

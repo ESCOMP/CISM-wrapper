@@ -59,7 +59,8 @@ attributes to express the dependency.
 
 <stop_option>never</stop_option>
 
-<allow_leapyear>.false.</allow_leapyear>
+<allow_leapyear>.true.</allow_leapyear>
+<allow_leapyear calendar="NO_LEAP">.false.</allow_leapyear>
 
 <!-- =============================================================  -->
 <!-- group: glc_override_nml                                        -->
