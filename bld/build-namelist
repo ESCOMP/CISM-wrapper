@@ -437,7 +437,9 @@ if (!($nl->get_value('history_option') =~ /coupler/)) {
 
 add_default($nl, 'enable_frac_overrides');
 if ($nl->get_value('enable_frac_overrides') =~ $TRUE) {
-   add_default($nl, 'override_delay');
+   add_default($nl, 'decrease_override_delay');
+   add_default($nl, 'increase_override_delay');
+   add_default($nl, 'rearrange_override_delay');
    add_default($nl, 'decrease_frac');
    add_default($nl, 'increase_frac');
    add_default($nl, 'rearrange_freq');

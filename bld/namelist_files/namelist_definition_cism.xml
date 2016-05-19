@@ -235,11 +235,27 @@ ONLY MEANT FOR TESTING - SHOULD NOT BE USED FOR SCIENCE RUNS.
 Default: .false.
 </entry>
 
-<entry id="override_delay"
+<entry id="decrease_override_delay"
 type="integer"
 category="overrides"
 group="glc_override_nml" >
-Time delay before beginning any overrides (days).
+Time delay before beginning decrease_frac overrides (days).
+Default: 0 (start overrides at beginning of run)
+</entry>
+
+<entry id="increase_override_delay"
+type="integer"
+category="overrides"
+group="glc_override_nml" >
+Time delay before beginning increase_frac overrides (days).
+Default: 0 (start overrides at beginning of run)
+</entry>
+
+<entry id="rearrange_override_delay"
+type="integer"
+category="overrides"
+group="glc_override_nml" >
+Time delay before beginning rearrange_freq overrides (days).
 Default: 0 (start overrides at beginning of run)
 </entry>
 

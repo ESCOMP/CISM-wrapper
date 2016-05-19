@@ -68,7 +68,9 @@ attributes to express the dependency.
 
 <enable_frac_overrides>.false.</enable_frac_overrides>
 
-<override_delay>0</override_delay>
+<decrease_override_delay>0</decrease_override_delay>
+<increase_override_delay>0</increase_override_delay>
+<rearrange_override_delay>0</rearrange_override_delay>
 
 <decrease_frac>0.0</decrease_frac>
 
