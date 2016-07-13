@@ -499,12 +499,13 @@ id="temp_init"
 type="integer" 
 category="cism_config_options"
 group="cism_config_options"
-valid_values="0,1,2" >
+valid_values="0,1,2,3" >
 Temperature initialization method
 0: Initialize temperature to 0 C
 1: Initialize temperature to surface air temperature
 2: Initialize temperature with a linear profile in each column
-Default: 2
+3: Initialize temperature with an advective-diffusive balance in each column
+Default: 3 for resolutions where acab is present on the input file; otherwise 2
 </entry>
 
 <entry 
@@ -570,7 +571,7 @@ group="cism_config_options"
 valid_values="0,1" >
 0: Do not calve at initialization
 1: Calve at initialization
-Default: (use hard-coded default)
+Default: 1
 </entry>
 
 <entry 
@@ -933,6 +934,111 @@ Spatially uniform beta for higher-order dycores (Pa yr m-1)
 Default: (use hard-coded default)
 </entry>
 
+<entry
+id="pmp_offset"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Offset of initial Tbed from pressure melting point temperature (deg C)
+Default: 5.
+</entry>
+
+<entry
+id="pseudo_plastic_q"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Parameter for pseudo-plasting sliding law:
+Exponent for pseudo-plastic law (unitless)
+0 &lt;= q &lt;= 1
+q = 1: linear sliding law
+q = 0: plastic
+Intermediate values: power law
+Default: 0.5
+</entry>
+
+<entry
+id="pseudo_plastic_u0"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Parameter for pseudo-plasting sliding law:
+Threshold velocity for pseudo-plastic law (m yr-1)
+Default: 100.
+</entry>
+
+<entry
+id="pseudo_plastic_phimin"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Parameter for pseudo-plasting sliding law:
+min(phi) in pseudo-plastic law, for topg &lt;= bedmin (degrees)
+0 &lt; phi &lt; 90
+Default: 5.
+</entry>
+
+<entry
+id="pseudo_plastic_phimax"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Parameter for pseudo-plasting sliding law:
+max(phi) in pseudo-plastic law, for topg &gt;= bedmin (degrees)
+0 &lt; phi &lt; 90
+Default: 40.
+</entry>
+
+<entry
+id="pseudo_plastic_bedmin"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Parameter for pseudo-plasting sliding law:
+Bed elevation below which phi = phimin (m)
+Default: -700.
+</entry>
+
+<entry
+id="pseudo_plastic_bedmax"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Parameter for pseudo-plasting sliding law:
+Bed elevation above which phi = phimax (m)
+Default: 700.
+</entry>
+
+<entry
+id="effecpress_delta"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Parameter for reducing the effective pressure where the bed is warm, saturated or connected to the ocean:
+Multiplier for effective pressure N where the bed is saturated and/or thawed (unitless)
+Default: 0.02
+</entry>
+
+<entry
+id="effecpress_bpmp_threshold"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Parameter for reducing the effective pressure where the bed is warm, saturated or connected to the ocean:
+Temperature range over which N ramps from a small value to full overburden (deg C)
+Default: 0.1
+</entry>
+
+<entry
+id="beta_grounded_min"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Minimum value of beta for grounded ice (Pa yr m-1)
+(Applies only to glissade higher-order dycore)
+Default: 100.
+</entry>
+
 <!-- =============================================================  -->
 <!-- group: cism.config: ho_options (higher-order options)          -->
 <!-- =============================================================  -->
@@ -944,17 +1050,37 @@ id="which_ho_babc"
 type="integer"
 category="cism_config_ho_options"
 group="cism_config_ho_options"
-valid_values="0,1,2,3,4,5,6,7" >
-Basal boundary condition for Payne/Price dynamical core
-0: constant value of 10 Pa/yr (useful for debugging)
-1: simple hard-coded pattern (useful for debugging)
-2: treat betasquared value as a till yield stress (in Pa) using Picard iteration
-3: linear (inverse) function of bwat
-4: very large value for betasquared to enforce no slip everywhere
-5: betasquared field passed in from .nc input file as part of standard i/o
-6: no slip everywhere (using Dirichlet BC rather than large betasquared)
-7: treat betasquared value as till yield stress (in Pa) using Newton-type iteration (in devel.)
-Default: 5
+valid_values="0,1,2,3,4,5,6,7,8,9,10,11,12,13" >
+Basal boundary condition for higher order dynamical core
+0: spatially uniform value (low value of 10 Pa yr-1 by default)
+1: large value for frozen bed, lower value for bed at pressure melting point
+2: treat beta value as a till yield stress (in Pa) using Picard iteration 
+3: pseudo-plastic basal sliding law; can model linear, power-law or plastic behavior
+4: very large value for beta to enforce no slip everywhere 
+5: beta field passed in from .nc input file as part of standard i/o
+6: no slip everywhere (using Dirichlet BC rather than large beta)
+7: treat beta value as till yield stress (in Pa) using Newton-type iteration (in development)
+8: beta field as prescribed for ISMIP-HOM test C (serial only)
+9: power law based using effective pressure
+10: Coulomb friction law using effective pressure, with flwa from lowest ice layer
+11: Coulomb friction law using effective pressure, with constant basal flwa
+12: basal stress is the minimum of Coulomb and power-law values, as in Tsai et al. (2015)
+13: simple hard-coded pattern (useful for debugging)
+Default: 3
+</entry>
+
+<entry
+id="which_ho_effecpress"
+type="integer"
+category="cism_config_ho_options"
+group="cism_config_ho_options"
+valid_values="0,1,2,3" >
+Flag that describes effective pressure calculation for higher order dynamical core
+0: N = overburden pressure, rhoi*grav*thck
+1: N is reduced where the bed is at or near the pressure melting point
+2: N is reduced where basal water is present
+3: N is reduced due to the connection of subglacial water to the ocean
+Default: 1
 </entry>
 
 <entry
@@ -971,17 +1097,30 @@ Default: 2
 </entry>
 
 <entry
+id="which_ho_thermal_timestep"
+type="integer"
+category="cism_config_ho_options"
+group="cism_config_ho_options"
+valid_values="0,1,2" >
+0: vertical thermal solve before transport solve
+1: vertical thermal solve after transport solve
+2: vertical thermal solve split; both before and after transport solve
+Default: 2
+</entry>
+
+<entry
 id="which_ho_resid"
 type="integer"
 category="cism_config_ho_options"
 group="cism_config_ho_options"
-valid_values="0,1,2,3" >
+valid_values="0,1,2,3,4" >
 Method for computing residual in Payne/Price dynamical core
 0: maxval
 1: maxval ignoring basal velocity
 2: mean value
 3: L2 norm of system residual, Ax-b=resid
-Default: 3
+4: L2 norm of system residual relative to rhs, |Ax-b|/|b|
+Default: 4
 </entry>
 
 <entry
@@ -1091,7 +1230,7 @@ valid_values="0,1" >
 Flag that describes how beta terms are assembled in the glissade finite-element calculation
 0: Standard finite-element calculation (which effectively smooths beta)
 1: Apply local value of beta at each vertex
-Default: 0
+Default: 1
 </entry>
 
 <entry

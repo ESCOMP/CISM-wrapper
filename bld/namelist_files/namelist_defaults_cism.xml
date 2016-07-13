@@ -151,7 +151,17 @@ attributes to express the dependency.
 
 <temperature>1</temperature>
 
-<temp_init>2</temp_init>
+<!-- temp_init should be 3 for resolutions where acab is present on the input
+     file; for other resolutions we want to use 2. In order to ensure that we
+     use 3 whenever possible (e.g., if someone adds a new resolution and forgets
+     to modify things in this section), we're setting the overall default to 3
+     and then overriding that explicitly for input files that do not have an
+     acab value -->
+<temp_init>3</temp_init>
+<temp_init glc_grid="gland20">2</temp_init>
+<temp_init glc_grid="gland10">2</temp_init>
+<temp_init glc_grid="gland5">2</temp_init>
+<temp_init glc_grid="gland5UM">2</temp_init>
 
 <flow_law>2</flow_law>
 
@@ -166,6 +176,8 @@ attributes to express the dependency.
 <marine_margin>1</marine_margin>
 
 <calving_domain>1</calving_domain>
+
+<calving_init>1</calving_init>
 
 <slip_coeff>0</slip_coeff>
 
@@ -232,7 +244,27 @@ attributes to express the dependency.
 
 <hydro_time>1000.</hydro_time>
 
+<pmp_offset>5.</pmp_offset>
+
+<pseudo_plastic_q>0.5</pseudo_plastic_q>
+
+<pseudo_plastic_u0>100.</pseudo_plastic_u0>
+
+<pseudo_plastic_phimin>5.</pseudo_plastic_phimin>
+
+<pseudo_plastic_phimax>40.</pseudo_plastic_phimax>
+
+<pseudo_plastic_bedmin>-700.</pseudo_plastic_bedmin>
+
+<pseudo_plastic_bedmax>700.</pseudo_plastic_bedmax>
+
 <basal_tract_const>1.e-4</basal_tract_const>
+
+<effecpress_delta>0.02</effecpress_delta>
+
+<effecpress_bpmp_threshold>0.1</effecpress_bpmp_threshold>
+
+<beta_grounded_min>100.</beta_grounded_min>
 
 <!-- =============================================================  -->
 <!-- group: cism.config: ho_options                                 -->
@@ -240,21 +272,15 @@ attributes to express the dependency.
 
 <!-- This group is only relevant if dycore is not 0 -->
 
-<!-- which_ho_babc should be 5 when beta is provided in the cism input file, but
-     in general we'll want the default to be 4, according to Steve Price. In
-     order to ensure that we pick up a beta value if one is available (e.g., if
-     someone adds a new resolution and forgets to modify things in this
-     section), we're setting the overall default to 5, and then overriding that
-     explicitly for input files that do not have a beta value. -->
-<which_ho_babc>5</which_ho_babc>
-<which_ho_babc glc_grid="gland20">4</which_ho_babc>
-<which_ho_babc glc_grid="gland10">4</which_ho_babc>
-<which_ho_babc glc_grid="gland5">4</which_ho_babc>
-<which_ho_babc glc_grid="gland5UM">4</which_ho_babc>
+<which_ho_babc>3</which_ho_babc>
+
+<which_ho_effecpress>1</which_ho_effecpress>
 
 <which_ho_efvs>2</which_ho_efvs>
 
-<which_ho_resid>3</which_ho_resid>
+<which_ho_thermal_timestep>2</which_ho_thermal_timestep>
+
+<which_ho_resid>4</which_ho_resid>
 
 <which_ho_disp>1</which_ho_disp>
 
@@ -273,7 +299,7 @@ attributes to express the dependency.
 
 <which_ho_precond>1</which_ho_precond>
 
-<which_ho_assemble_beta>0</which_ho_assemble_beta>
+<which_ho_assemble_beta>1</which_ho_assemble_beta>
 
 <which_ho_assemble_bfric>1</which_ho_assemble_bfric>
 

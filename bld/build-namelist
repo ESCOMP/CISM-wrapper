@@ -502,6 +502,7 @@ add_default($nl, 'gthf');
 add_default($nl, 'isostasy');
 add_default($nl, 'marine_margin');
 add_default($nl, 'calving_domain');
+add_default($nl, 'calving_init');
 add_default($nl, 'slip_coeff');
 add_default($nl, 'evolution');
 add_default($nl, 'vertical_integration');
@@ -537,14 +538,26 @@ add_default($nl, 'marine_limit');
 add_default($nl, 'geothermal');
 add_default($nl, 'flow_factor');
 add_default($nl, 'hydro_time');
+add_default($nl, 'pmp_offset');
+add_default($nl, 'pseudo_plastic_q');
+add_default($nl, 'pseudo_plastic_u0');
+add_default($nl, 'pseudo_plastic_phimin');
+add_default($nl, 'pseudo_plastic_phimax');
+add_default($nl, 'pseudo_plastic_bedmin');
+add_default($nl, 'pseudo_plastic_bedmax');
 add_default($nl, 'basal_tract_const');
+add_default($nl, 'effecpress_delta');
+add_default($nl, 'effecpress_bpmp_threshold');
+add_default($nl, 'beta_grounded_min');
 $nl->write_cism_config($fh, "cism_config_parameters");
 
 # The ho_options section only applies if dycore is not 0
 if ($nl->get_value('dycore') != 0) {
     print $fh "\n[ho_options]\n";
     add_default($nl, 'which_ho_babc');
+    add_default($nl, 'which_ho_effecpress');
     add_default($nl, 'which_ho_efvs');
+    add_default($nl, 'which_ho_thermal_timestep');
     add_default($nl, 'which_ho_resid');
     add_default($nl, 'which_ho_disp');
     add_default($nl, 'which_ho_sparse', 'dycore'=>$nl->get_value('dycore'), 'cism_use_trilinos'=>"$CISM_USE_TRILINOS");
