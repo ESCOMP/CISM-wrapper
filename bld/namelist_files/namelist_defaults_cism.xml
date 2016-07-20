@@ -19,7 +19,7 @@ attributes to express the dependency.
 <cisminputfile glc_grid="gland20" cism_phys="cism1">glc/cism/gland20.input_c150415.nc</cisminputfile>
 <cisminputfile glc_grid="gland10" cism_phys="cism1">glc/cism/gland10.input_c150415.nc</cisminputfile>
 <cisminputfile glc_grid="gland5" cism_phys="cism1">glc/cism/gland5.input_c150415.nc</cisminputfile>
-<cisminputfile glc_grid="gland5UM" cism_phys="cism1">glc/cism/IceSheetData_UMontana/PresentDayGreenland/Greenland_5km_v1.1_SacksRev_c160715.nc</cisminputfile>
+<cisminputfile glc_grid="gland5UM" cism_phys="cism1">glc/cism/IceSheetData_UMontana/PresentDayGreenland/Greenland_5km_v1.1_SacksRev_c160720.nc</cisminputfile>
 
 <!-- the following is just for the sake of software testing, and should not be used for science -->
 <cisminputfile glc_grid="gland20" cism_phys="cism2">glc/cism/gland20.input_c150415.nc</cisminputfile>
