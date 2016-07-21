@@ -151,17 +151,12 @@ attributes to express the dependency.
 
 <temperature>1</temperature>
 
-<!-- temp_init should be 3 for resolutions where acab is present on the input
-     file; for other resolutions we want to use 2. In order to ensure that we
-     use 3 whenever possible (e.g., if someone adds a new resolution and forgets
-     to modify things in this section), we're setting the overall default to 3
-     and then overriding that explicitly for input files that do not have an
-     acab value -->
+<!-- temp_init = 3 can only generate an advective-diffusive-balance profile if
+     acab is present in the input file (which is currently only the case for the
+     4km input file). But it defaults to a linear profile (temp_init 2) if acab
+     is not present. So to keep things simple, we specify temp_init = 3 for all
+     input files, rather than making this dependent on glc_grid. -->
 <temp_init>3</temp_init>
-<temp_init glc_grid="gland20">2</temp_init>
-<temp_init glc_grid="gland10">2</temp_init>
-<temp_init glc_grid="gland5">2</temp_init>
-<temp_init glc_grid="gland5UM">2</temp_init>
 
 <flow_law>2</flow_law>
 
