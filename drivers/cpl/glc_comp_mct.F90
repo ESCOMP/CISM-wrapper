@@ -85,6 +85,7 @@ CONTAINS
     integer(IN)              :: shrlogunit, shrloglev  
     character(CL)            :: starttype
     character(CS)            :: myModelName
+    logical                  :: lnd_present
 
     !--- formats ---
     character(*), parameter :: F00   = "('(glc_init_mct) ',8a)"
@@ -159,7 +160,25 @@ CONTAINS
        call write_inst_vars
        call shr_sys_flush(stdout)
     endif
+
+    ! ------------------------------------------------------------------------
+    ! Perform initial sanity checks, making sure we're okay to run
+    ! ------------------------------------------------------------------------
+
+    ! The coupler allows running glc without lnd. MPAS-LI can handle that configuration,
+    ! but CISM cannot. So abort if there is no land model (data or active) present.
+    call seq_infodata_GetData(lnd_present=lnd_present)
+    if (.not. lnd_present) then
+       call shr_sys_abort('ERROR: CISM requires a land component (either active land or dlnd)&
+            & - it cannot be run with a stub land'
+    end if
+
+    ! ------------------------------------------------------------------------
+    ! Do main initialization
+    ! ------------------------------------------------------------------------
+
     call init_communicate(mpicom)
+
     call glc_initialize(EClock, errorCode)
     if (verbose .and. my_task == master_task) then
        write(stdout,F01) ' GLC Initial Date ',iyear,imonth,iday,ihour,iminute,isecond
