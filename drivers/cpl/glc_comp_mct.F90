@@ -170,7 +170,7 @@ CONTAINS
     call seq_infodata_GetData(lnd_present=lnd_present)
     if (.not. lnd_present) then
        call shr_sys_abort('ERROR: CISM requires a land component (either active land or dlnd)&
-            & - it cannot be run with a stub land'
+            & - it cannot be run with a stub land')
     end if
 
     ! ------------------------------------------------------------------------
