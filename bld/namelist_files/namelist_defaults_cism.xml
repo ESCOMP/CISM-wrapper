@@ -202,7 +202,7 @@ attributes to express the dependency.
      code in a more typical configuration (i.e., with a sub-annual time step) -->
 <dt glc_grid="gland20"  cism_phys="cism2">0.5</dt>
 
-<dt glc_grid="gland4"   cism_phys="cism2">0.05</dt>
+<dt glc_grid="gland4"   cism_phys="cism2">0.1</dt>
 
 <ntem>1</ntem>
 
