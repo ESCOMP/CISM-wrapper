@@ -167,7 +167,8 @@ CONTAINS
 
     ! The coupler allows running glc without lnd. MPAS-LI can handle that configuration,
     ! but CISM cannot. So abort if there is no land model (data or active) present.
-    call seq_infodata_GetData(lnd_present=lnd_present)
+    call seq_infodata_GetData(infodata, &
+         lnd_present=lnd_present)
     if (.not. lnd_present) then
        call shr_sys_abort('ERROR: CISM requires a land component (either active land or dlnd)&
             & - it cannot be run with a stub land')
