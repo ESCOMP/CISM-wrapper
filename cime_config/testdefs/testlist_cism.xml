@@ -43,6 +43,9 @@
       </test>
     </grid>
     <grid name="f09_g16_gl5">
+      <test name="ERS_D_Ly3">
+        <machine compiler="gnu" testtype="aux_glc" testmods="cism/noevolve" comment="ice evolution off is the typical operation of cism within cesm, so test that for both CISM1 and CISM2">yellowstone</machine>
+      </test>
       <test name="SMS_D">
         <machine compiler="intel" testtype="aux_glc">yellowstone</machine>
       </test>
@@ -107,6 +110,9 @@
       </test>
     </grid>
     <grid name="f09_g16_gl4">
+      <test name="ERS_D_Ly3">
+        <machine compiler="pgi" testtype="aux_glc" testmods="cism/noevolve" comment="ice evolution off is the typical operation of cism within cesm, so test that for both CISM1 and CISM2">yellowstone</machine>
+      </test>
       <test name="ERS_Ly3">
         <machine compiler="pgi" testtype="prebeta" comment="included simply to have a test on hopper">hopper</machine>
         <machine compiler="intel" testtype="prealpha">yellowstone</machine>
