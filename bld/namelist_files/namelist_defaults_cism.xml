@@ -155,8 +155,11 @@ attributes to express the dependency.
      acab is present in the input file (which is currently only the case for the
      4km input file). But it defaults to a linear profile (temp_init 2) if acab
      is not present. So to keep things simple, we specify temp_init = 3 for all
-     input files, rather than making this dependent on glc_grid. -->
-<temp_init>3</temp_init>
+     input files, rather than making this dependent on glc_grid. However,
+     temp_init = 3 cannot be used for glide, so we use temp_init = 2 when
+     running with cism1 physics. -->
+<temp_init cism_phys="cism1">2</temp_init>
+<temp_init cism_phys="cism2">3</temp_init>
 
 <flow_law>2</flow_law>
 

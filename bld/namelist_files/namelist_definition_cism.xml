@@ -505,7 +505,7 @@ Temperature initialization method
 1: Initialize temperature to surface air temperature
 2: Initialize temperature with a linear profile in each column
 3: Initialize temperature with an advective-diffusive balance in each column
-Default: 3 for resolutions where acab is present on the input file; otherwise 2
+Default: 3 for cism2; 2 for cism1
 </entry>
 
 <entry 
