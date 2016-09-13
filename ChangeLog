@@ -4,6 +4,47 @@ This file describes what main-trunk tags were created and why
 
 ================================================================================
 Originator: sacks
+Date: Sept 13, 2016
+Model: cism
+Version: cism2_1_20
+One-line summary: Exclude some history fields when ice evolution is turned off
+
+Purpose of changes:
+
+   A few diagnostic history fields do not restart properly when ice evolution is
+   turned off: uflx and vflx for cism1, and beta_internal for cism2 (see also
+   https://github.com/ACME-Climate/cism-piscees/issues/59 for the beta_internal
+   issue).
+
+   Since these diagnostic fields are not important with ice evolution turned
+   off, this tag implements a workaround where we simply do not add these fields
+   to the default list of history fields if running with the CISM_EVOLVE xml
+   variable set to FALSE.
+
+Changes answers relative to previous tag: NO
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/): none
+
+List all modified files, and describe the changes:
+
+M       bld/build-namelist
+M       bld/namelist_files/namelist_defaults_cism.xml
+
+Summary of testing:
+
+   Ran aux_glc test suite just on yellowstone. All tests passed, except for this
+   BFAIL:
+
+BFAIL (baseline directory /glade/scratch/sacks/cesm_baselines/cesm1_5_beta07/SMS_Ly5_N2_P2_D.f09_g16_gl5.TG1850.yellowstone_intel does not exist)
+
+Externals used for testing: cesm1_5_beta07
+
+cism tag used for baseline comparisons: cism2_1_17
+
+Any other externals that differed in baseline: none
+
+================================================================================
+Originator: sacks
 Date: Sept 12, 2016
 Model: cism
 Version: cism2_1_19
