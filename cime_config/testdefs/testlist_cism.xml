@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <testlist version="2.0">
 
-  <test name="ERI_Ly15" grid="f09_g16_gl20" compset="TGHISTIS2">
+  <test name="ERI_Ly15" grid="f09_g16_gl20" compset="THISTG">
     <machines>
 
       <machine name="edison" compiler="intel" category="prebeta">
@@ -19,7 +19,7 @@
     </machines>
   </test>
 
-  <test name="ERI_Ly44" grid="f09_g16_gl5" compset="TGRCP85">
+  <test name="ERI_Ly44" grid="f09_g16_gl5" compset="TRCP85G1">
     <machines>
 
       <machine name="hobart" compiler="intel" category="prebeta">
@@ -37,7 +37,7 @@
     </machines>
   </test>
 
-  <test name="ERS_D_Ld9" grid="f19_g16_gl5" compset="IGCLM45" testmods="cism/override_glc_frac">
+  <test name="ERS_D_Ld9" grid="f19_g16_gl4" compset="IGCLM45" testmods="cism/override_glc_frac">
     <machines>
 
       <machine name="yellowstone" compiler="pgi" category="aux_glc">
@@ -50,7 +50,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Ly11" grid="f09_g16_gl20" compset="TG1850IS2">
+  <test name="ERS_Ly11" grid="f09_g16_gl20" compset="T1850G">
     <machines>
 
       <machine name="yellowstone" compiler="gnu" category="aux_glc">
@@ -62,7 +62,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Ly11" grid="f09_g16_gl20" compset="TG1850IS2" testmods="cism/oneway">
+  <test name="ERS_Ly11" grid="f09_g16_gl20" compset="T1850G" testmods="cism/oneway">
     <machines>
 
       <machine name="yellowstone" compiler="gnu" category="aux_glc">
@@ -75,7 +75,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Ly20_N2_P2" grid="f09_g16_gl10" compset="TG">
+  <test name="ERS_Ly20_N2_P2" grid="f09_g16_gl10" compset="TG1">
     <machines>
 
       <machine name="yellowstone" compiler="pgi" category="aux_glc">
@@ -93,7 +93,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Ly3" grid="f09_g16_gl4" compset="TGIS2">
+  <test name="ERS_Ly3" grid="f09_g16_gl4" compset="TG">
     <machines>
 
       <machine name="bluewaters" compiler="pgi" category="prebeta">
@@ -119,7 +119,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Ly5" grid="T31_g37_gl5" compset="IGCLM45" testmods="clm/glcMEC_long">
+  <test name="ERS_Ly5" grid="T31_g37_gl4" compset="IGCLM45" testmods="clm/glcMEC_long">
     <machines>
 
       <machine name="yellowstone" compiler="intel" category="aux_glc">
@@ -138,7 +138,7 @@
     </machines>
   </test>
 
-  <test name="NCK_Ly3" grid="f09_g16_gl20" compset="TGRCP85IS2">
+  <test name="NCK_Ly3" grid="f09_g16_gl20" compset="TRCP85G">
     <machines>
 
       <machine name="hobart" compiler="pgi" category="prebeta">
@@ -156,7 +156,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D" grid="T31_g37_gl20" compset="IGCLM45IS2" testmods="cism/test_coupling">
+  <test name="SMS_D" grid="T31_g37_gl20" compset="IGCLM45" testmods="cism/test_coupling">
     <machines>
 
       <machine name="yellowstone" compiler="gnu" category="aux_glc">
@@ -169,7 +169,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D" grid="f09_g16_gl10" compset="TG">
+  <test name="SMS_D" grid="f09_g16_gl10" compset="TG1">
     <machines>
 
       <machine name="yellowstone" compiler="gnu" category="aux_glc">
@@ -194,7 +194,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D" grid="f09_g16_gl5" compset="TG">
+  <test name="SMS_D" grid="f09_g16_gl5" compset="TG1">
     <machines>
 
       <machine name="yellowstone" compiler="intel" category="aux_glc">
@@ -206,7 +206,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D_Ld5_P24x1" grid="T31_g37_gl20" compset="IGCLM45IS2" testmods="cism/test_coupling">
+  <test name="SMS_D_Ld5_P24x1" grid="T31_g37_gl20" compset="IGCLM45" testmods="cism/test_coupling">
     <machines>
 
       <machine name="hobart" compiler="nag" category="aux_glc">
@@ -230,7 +230,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D_Ly1" grid="f09_g16_gl20" compset="TG1850IS2">
+  <test name="SMS_D_Ly1" grid="f09_g16_gl20" compset="T1850G">
     <machines>
 
       <machine name="yellowstone" compiler="pgi" category="aux_glc">
@@ -242,7 +242,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D_Ly1" grid="f09_g16_gl20" compset="TGHISTIS2">
+  <test name="SMS_D_Ly1" grid="f09_g16_gl20" compset="THISTG">
     <machines>
 
       <machine name="yellowstone" compiler="gnu" category="aux_glc">
@@ -254,7 +254,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D_Ly1" grid="f09_g16_gl20" compset="TGIS2">
+  <test name="SMS_D_Ly1" grid="f09_g16_gl20" compset="TG">
     <machines>
 
       <machine name="yellowstone" compiler="intel" category="aux_glc">
@@ -266,7 +266,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D_Ly1" grid="f09_g16_gl20" compset="TGIS2" testmods="cism/trilinos">
+  <test name="SMS_D_Ly1" grid="f09_g16_gl20" compset="TG" testmods="cism/trilinos">
     <machines>
 
       <machine name="yellowstone" compiler="intel" category="aux_glc">
@@ -284,7 +284,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D_Ly1_P24x1" grid="f09_g16_gl4" compset="TGIS2">
+  <test name="SMS_D_Ly1_P24x1" grid="f09_g16_gl4" compset="TG">
     <machines>
 
       <machine name="hobart" compiler="nag" category="aux_glc">
@@ -297,7 +297,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D_Ly3" grid="f09_g16_gl5" compset="TG">
+  <test name="SMS_D_Ly3" grid="f09_g16_gl5" compset="TG1">
     <machines>
 
       <machine name="hobart" compiler="nag" category="aux_glc">
@@ -310,7 +310,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D_Ly3_P24x1" grid="f09_g16_gl20" compset="TGIS2">
+  <test name="SMS_D_Ly3_P24x1" grid="f09_g16_gl20" compset="TG">
     <machines>
 
       <machine name="hobart" compiler="nag" category="aux_glc">
@@ -323,7 +323,7 @@
     </machines>
   </test>
 
-  <test name="SMS_Ly5_N2_P2_D" grid="f09_g16_gl5" compset="TG1850">
+  <test name="SMS_Ly5_N2_P2_D" grid="f09_g16_gl5" compset="T1850G1">
     <machines>
 
       <machine name="yellowstone" compiler="intel" category="aux_glc">
