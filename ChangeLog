@@ -4,6 +4,111 @@ This file describes what main-trunk tags were created and why
 
 ================================================================================
 Originator: sacks
+Date: Dec 29, 2016
+Model: cism
+Version: cism2_1_28
+One-line summary: Just update ChangeLog entry for cism2_1_27
+
+Purpose of changes:
+
+   I forgot to mention a few things in the ChangeLog entry for cism2_1_27
+
+Changes answers relative to previous tag: NO
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/): none
+
+List all modified files, and describe the changes:
+
+M       ChangeLog
+
+Summary of testing: NONE
+
+Externals used for testing: N/A
+
+cism tag used for baseline comparisons: N/A
+
+Any other externals that differed in baseline: N/A
+
+================================================================================
+Originator: sacks
+Date: Dec 29, 2016
+Model: cism
+Version: cism2_1_27
+One-line summary: Use new 4-km input file, with epsg3413 projection
+
+Purpose of changes:
+
+   Joe Kennedy has created a new 4-km input file, which uses the epsg3413
+   projection. This projection is more commonly used, so facilitates comparisons
+   with observations, etc. This tag switches to this new input file.
+
+   In addition to changing the projection, this input file also updates the
+   glacier / ice sheet cover - particularly, including peripheral glaciers.
+
+   In addition, this new file has: (1) spatially-varying bheatflx; (2) no
+   tempstag field, so it is not spun-up in this respect; (3) no beta field.
+
+   Some related changes in this tag are:
+
+     (1) Change default which_ho_babc to 4 for 4km runs, because the new input
+         file does not have a beta field.
+
+     (2) No longer set projection section in cism.config file. This seems to no
+         longer be needed now that glint is gone, and the default values are
+         wrong for this new 4km file.
+
+   And some unrelated changes in this tag are:
+
+     (1) Fix from Jim Edwards to allow build-namelist to work with latest
+         version of cime, where NTASKS and NINST have been reworked
+
+     (2) Rename xmlchange_cmnds to shell_commands in a testmod: xmlchange_cmnds
+         has been deprecated
+
+   This tag depends on a new version of cime (currently on the cism4km_new_grid
+   branch, which will soon have a PR to master). This cime version has new
+   mapping files to go with the new 4km grid.
+
+Changes answers relative to previous tag: YES
+
+   Changes answers for all cases that use the 4km grid
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/): none
+
+List all modified files, and describe the changes:
+
+M       bld/namelist_files/namelist_definition_cism.xml
+M       bld/namelist_files/namelist_defaults_cism.xml
+M       bld/build-namelist
+D       cime_config/testdefs/testmods_dirs/cism/oneway/xmlchange_cmnds
+A       cime_config/testdefs/testmods_dirs/cism/oneway/shell_commands
+
+Summary of testing:
+
+   Full aux_glc test suite on yellowstone and hobart. All tests passed except
+   for expected NLCOMP failures, and expected BASELINE failures in 4km tests:
+
+     FAIL ERS_Ly3.f09_g16_gl4.TG.yellowstone_intel BASELINE
+     FAIL ERS_Ly5.T31_g37_gl4.IGCLM45.yellowstone_intel.clm-glcMEC_long BASELINE
+     FAIL ERS_D_Ld9.f19_g16_gl4.IGCLM45.yellowstone_pgi.cism-override_glc_frac BASELINE
+
+   In addition, ran B compset tests:
+
+     (1) SMS_D_Ld5.T31_g37_gl4.B1850C5L45BGCRG.yellowstone_intel.allactive-defaultio
+
+     (2) ./create_newcase -case test_b_mapping_1228a -compset B1850 -res f09_g16_gl4
+
+         with CISM_EVOLVE=TRUE, and test_coupling = .true.
+
+Externals used for testing: cesm2_0_alpha05b with cime at cism4km_new_grid
+
+cism tag used for baseline comparisons: cism2_1_25
+
+Any other externals that differed in baseline: Baseline used out-of-the-box
+cesm2_0_alpha05b (so an earlier version of cime)
+
+================================================================================
+Originator: sacks
 Date: Dec 6, 2016
 Model: cism
 Version: cism2_1_26

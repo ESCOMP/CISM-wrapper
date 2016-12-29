@@ -132,22 +132,6 @@ attributes to express the dependency.
 <test_coupling>.false.</test_coupling>
 
 <!-- =============================================================  -->
-<!-- group: cism.config: projection                                 -->
-<!-- =============================================================  -->
-
-<type>"STERE"</type>
-
-<centre_latitude>90.0</centre_latitude>
-
-<centre_longitude>321.0</centre_longitude>
-
-<false_easting>800000.0</false_easting>
-
-<false_northing>3400000.0</false_northing>
-
-<standard_parallel>71.0</standard_parallel>
-
-<!-- =============================================================  -->
 <!-- group: cism.config: options                                    -->
 <!-- =============================================================  -->
 
