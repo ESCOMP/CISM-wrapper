@@ -439,10 +439,11 @@ id="flow_law"
 type="integer" 
 category="cism_config_options"
 group="cism_config_options"
-valid_values="0,1,2" >
-0: constant value, taken from default_flwa
-1: uniform value equal to the Paterson-Budd value at -10 deg C
+valid_values="0,1,2,3" >
+0: Constant value, taken from default_flwa
+1: Uniform value equal to the Paterson-Budd value at -10 deg C
 2: Paterson-Budd temperature-dependent relationship
+3: Read flwa/flwastag from file
 Default: 2
 </entry>
 
@@ -1000,12 +1001,13 @@ id="which_ho_effecpress"
 type="integer"
 category="cism_config_ho_options"
 group="cism_config_ho_options"
-valid_values="0,1,2,3" >
+valid_values="0,1,2,3,4" >
 Flag that describes effective pressure calculation for higher order dynamical core
 0: N = overburden pressure, rhoi*grav*thck
 1: N is reduced where the bed is at or near the pressure melting point
-2: N is reduced where basal water is present
+2: N is reduced where there is melting at the bed
 3: N is reduced due to the connection of subglacial water to the ocean
+4: N is reduced where basal water is present
 Default: 1
 </entry>
 
