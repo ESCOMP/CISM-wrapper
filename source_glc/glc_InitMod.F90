@@ -123,6 +123,15 @@
   integer (i4) :: &
       nhour_glad      ! number of hours since start of complete glad/glimmer run
 
+  integer (i4) :: &
+       av_start_time_restart  ! glad averaging start time
+
+  integer (i4) :: &
+       days_this_year  ! days since beginning of year
+
+  integer (i4) :: &
+       forcing_start_time
+
   logical :: &
       cesm_restart = .false. ! Logical flag to pass to glimmer, telling it to hotstart
                              ! from a CESM restart
@@ -237,7 +246,7 @@
   ! if this is a continuation run, then set up to read restart file and get the restart time
   if (runtype == 'continue') then
     cesm_restart = .true.
-    call glc_io_read_restart_time(nhour_glad, cesm_restart_file)
+    call glc_io_read_restart_time(nhour_glad, av_start_time_restart, cesm_restart_file)
     call ymd2eday (iyear0, imonth0, iday0, elapsed_days0)
     elapsed_days = elapsed_days0 + nhour_glad/24     
     call eday2ymd(elapsed_days, iyear, imonth, iday)
@@ -273,7 +282,20 @@
   ! TODO(wjs, 2015-03-24) We will need a loop over instances, either here or around the
   ! call to glc_initialize
 
-  call glad_initialize_instance(ice_sheet, instance_index = 1)
+  if (cesm_restart) then
+     forcing_start_time = av_start_time_restart
+  else
+     ! BUG(wjs, 2017-04-08, https://github.com/NCAR/CISM/issues/1) This assumes that mass
+     ! balance time steps always occur on the year boundary - so the current mass balance
+     ! time step started at the beginning of the current year. We'd need to generalize
+     ! this to allow mid-year mass balance time steps.
+     !
+     ! This also assumes that ihour0, iminute0 and isecond0 are all 0
+     call ymd2eday(year=0, month=imonth0, day=iday0, eday=days_this_year)
+     forcing_start_time = nhour_glad - days_this_year * 24
+  end if
+
+  call glad_initialize_instance(ice_sheet, instance_index = 1, my_forcing_start_time=forcing_start_time)
 
   call glc_indexing_init(ice_sheet, instance_index = 1)
   

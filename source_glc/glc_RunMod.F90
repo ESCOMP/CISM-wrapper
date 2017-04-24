@@ -52,7 +52,7 @@
 ! !IROUTINE: glc_run
 ! !INTERFACE:
 
- subroutine glc_run(EClock)
+ subroutine glc_run(EClock, valid_inputs)
 
 ! !DESCRIPTION:
 !  This routine advances the simulation one timestep.
@@ -69,8 +69,8 @@
    use esmf, only : ESMF_Clock
 
 ! !ARGUMENTS:
-   type(ESMF_Clock),     intent(in)    :: EClock
-   
+   type(ESMF_Clock), intent(in) :: EClock
+   logical         , intent(in) :: valid_inputs      
    
 !EOP
 !BOC
@@ -140,6 +140,7 @@
                         ice_covered = ice_covered, topo = topo,        &
                         rofi = rofi, rofl = rofl, hflx = hflx,         &
                         ice_sheet_grid_mask=ice_sheet_grid_mask,       &
+                        valid_inputs=valid_inputs,                     &
                         ice_tstep = ice_tstep)
 
      else    ! use PDD scheme

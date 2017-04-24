@@ -3,6 +3,112 @@ This file describes what main-trunk tags were created and why
 ================================================================================
 
 ================================================================================
+Originator: mvertens, sacks
+Date: Apr 24, 2017
+Model: cism
+Version: cism2_1_30
+One-line summary: Allow coupler to pass annual-average fields
+
+Purpose of changes:
+
+   Until now, the CESM coupler has been sending CISM daily-average fields, and
+   then CISM has been averaging these fields to annual-averages in order to do
+   its mass balance time step using annual-average SMB (and temperature). This
+   has a number of problems:
+
+   (1) We could not restart mid-year, because CISM doesn't write the necessary
+       partial accumulation information to its restart files.
+
+   (2) With Bill Lipscomb's new remapping (bilinear + conservation correction),
+       there were too-large corrections needed when doing the remapping from CLM
+       to CISM on daily fields.
+
+   (3) This led to a discrepancy between TG and BG/IG compsets: In BG/IG, CISM
+       received the annual average of remapped daily fields; in TG, CISM
+       received the remapped annual average fields. The remapping is not a
+       linear operation, so there would typically be differences in these two
+       runs.
+
+   This tag, together with some CIME changes, allows the coupler to make annual
+   averages before remapping fields to CISM. This was a bit tricky: CISM still
+   needs to be called once per day in order to support mid-year restarts (CESM
+   can only restart at a frequency when all components are called). So now the
+   GLC calling frequency has been separated from the GLC averaging
+   frequency. Then GLC/CISM is passed a flag saying whether the inputs are
+   currently valid; CISM only accumulates averages of the inputs when they are
+   valid.
+
+   This tag also includes some other changes that were needed to support
+   mid-year restarts, as well as a check to confirm that you're not trying to
+   write a restart file in a time/configuration when it would lead to non-bfb
+   restarts.
+
+Changes answers relative to previous tag: YES
+
+   Changes answers for non-TG runs
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/):
+- 1611: CISM restarts can only occur on year boundaries
+  This is not completely fixed, but is fixed well enough for standard use cases:
+  if we use the default glc averaging period of yearly, then we can restart
+  mid-year. Eventually, we may want more general support for mid-year restarts
+  even if using a different glc averaging period in the coupler.
+
+List all modified files, and describe the changes:
+
+*** Main changes, as described above
+M       SVN_EXTERNAL_DIRECTORIES
+M       source_glc/glc_InitMod.F90
+M       source_glc/glc_RunMod.F90
+M       source_glc/glc_io.F90
+M       drivers/cpl/glc_comp_mct.F90
+
+*** Add some mid-year restart tests, and change IG test to f10 resolution for efficiency
+M       cime_config/testdefs/testlist_cism.xml
+
+*** For test_coupling testmod, need to set GLC_AVG_PERIOD=glc_coupling_period
+A       cime_config/testdefs/testmods_dirs/cism/test_coupling/shell_commands
+
+Summary of testing:
+
+   Full aux_glc test suite on yellowstone and hobart. All tests passed except
+   for expected NLCOMP failures and expected BASELINE failure in IG without
+   test_coupling.
+
+   (Actually, the only baseline failure is
+   ERS_D_Ld9.f19_g16_gl4.IGCLM45.yellowstone_pgi.cism-override_glc_frac, which
+   just changes answers in x2g_Sl_tsrf and x2g_Flgl_qice, as expected. There
+   would be answer changes in other IG tests, but the one other relevant test
+   [the 5-year ERS test] is changed in this tag, so it shows up as a BFAIL.)
+
+   Also ran these three tests:
+
+      ERS_Lm24.T31_g37.B1850Gcheap.yellowstone_intel
+      ERS_Lm30.T31_g37.B1850Gcheap.yellowstone_intel
+      ERS_Lm36.T31_g37.B1850Gcheap.yellowstone_intel
+
+   They passed except for differences in time and time_bound in the POP history
+   file, which presumably is unrelated to these changes.
+
+   Also ran aux_glc test suite on yellowstone with
+   GLC_AVG_PERIOD=glc_coupling_period, plus this test which I have removed from
+   the test list:
+   ERS_Ly5.T31_g37_gl4.IGCLM45.yellowstone_intel.clm-glcMEC_long. Tests pass and
+   are bfb with trunk, as expected, except for expected failures in these three
+   tests due to trying to write a mid-year restart file:
+
+      ERS_D_Ld9.f19_g16_gl4.IGCLM45.yellowstone_pgi.cism-override_glc_frac
+      ERI_Lm24.f10_f10.IGCLM45.yellowstone_intel.clm-glcMEC_long
+      ERS_Lm24.f10_f10.IGCLM45.yellowstone_intel.clm-glcMEC_long
+
+Externals used for testing: cesm2_0_alpha06g, but cime at
+billsacks/glc_tavg_v2_n03 (8ce40ab7).
+
+cism tag used for baseline comparisons: cism2_1_29
+
+Any other externals that differed in baseline: Baseline used cesm2_0_alpha06g
+
+================================================================================
 Originator: sacks
 Date: Dec 30, 2016
 Model: cism
