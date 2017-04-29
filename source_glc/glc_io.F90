@@ -40,6 +40,14 @@
              glc_io_write_history,      &
              glc_io_write_restart
 
+! !PRIVATE MEMBER DATA:
+
+   ! Baseline year to use for time units - i.e., the year to use in the string,
+   ! 'common_year since YYYY-01-01'. Note that the baseline year here is tied in with the
+   ! specification of external_time in the calls to glimmer_nc_checkwrite - so if we use
+   ! a baseline year other than 0, we'd need to change how we specify that external_time.
+   integer, parameter :: baseline_year = 0
+
 !EOP
 !BOC
 !EOC
@@ -193,7 +201,7 @@
 !jw    oc%metadata%comment = 
 
     ! create the output unit
-    call glimmer_nc_createfile(oc, instance%model)
+    call glimmer_nc_createfile(oc, instance%model, baseline_year=baseline_year)
     call glide_io_create(oc, instance%model, instance%model)
     call glad_io_create(oc, instance%model, instance)
 
@@ -223,7 +231,8 @@
     
     call glide_nc_filldvars(oc, instance%model)
     call glimmer_nc_checkwrite(oc, instance%model, forcewrite=.true., &
-                               time=instance%glide_time)
+         time=instance%glide_time, &
+         external_time = real(cesmYR, r8))
     call glide_io_write(oc, instance%model)
     call glad_io_write(oc, instance)
 
@@ -316,7 +325,7 @@
 !jw    oc%metadata%comment = 
 
     ! create the output unit
-    call glimmer_nc_createfile(oc, instance%model)
+    call glimmer_nc_createfile(oc, instance%model, baseline_year=baseline_year)
     call glide_io_create(oc, instance%model, instance%model)
     call glad_io_create(oc, instance%model, instance)
 
@@ -342,7 +351,8 @@
     
     call glide_nc_filldvars(oc, instance%model)
     call glimmer_nc_checkwrite(oc, instance%model, forcewrite=.true., &
-                               time=instance%glide_time)
+         time=instance%glide_time, &
+         external_time = real(cesmYR, r8))
     call glide_io_write(oc, instance%model)
     call glad_io_write(oc, instance)
 
