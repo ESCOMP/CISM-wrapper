@@ -204,6 +204,19 @@
     </machines>
   </test>
 
+  <test name="ERI" grid="f10_f10" compset="IGCLM45" testmods="cism/test_coupling">
+    <machines>
+
+      <machine name="yellowstone" compiler="intel" category="aux_glc">
+        <options>
+          <option name="wallclock">0:30</option>
+          <option name="comment">Changes often break the test_coupling testmod, so include an ERI test with this testmod to help catch these problems</option>
+        </options>
+      </machine>
+
+    </machines>
+  </test>
+
   <test name="NCK_Ly3" grid="f09_g16_gl20" compset="TRCP85G">
     <machines>
 

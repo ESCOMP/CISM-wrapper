@@ -59,6 +59,9 @@
   logical :: &
        zero_gcm_fluxes = .false.  ! If true, zero out all fluxes sent to the coupler
 
+  logical :: &
+       test_coupling   = .false.  ! If true, force frequent coupling for testing purposes
+
    !-----------------------------------------------------------------
    !  common formats for formatted output
    !-----------------------------------------------------------------

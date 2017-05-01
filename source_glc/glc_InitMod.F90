@@ -26,7 +26,7 @@
                                   iyear,  imonth,  iday,  elapsed_days,   &
                                   ihour,  iminute, isecond, nsteps_total, &
                                   ymd2eday, eday2ymd, runtype
-   use glc_constants, only: nml_in, stdout, zero_gcm_fluxes
+   use glc_constants, only: nml_in, stdout, zero_gcm_fluxes, test_coupling
    use glc_io,        only: glc_io_read_restart_time
    use glc_files,     only: nml_filename
    use glc_exit_mod
@@ -146,7 +146,7 @@
   
   integer, parameter :: days_in_year = 365
   
-  namelist /cism_params/  paramfile, cism_debug, ice_flux_routing, zero_gcm_fluxes
+  namelist /cism_params/  paramfile, cism_debug, ice_flux_routing, zero_gcm_fluxes, test_coupling
  
 ! TODO - Write version info?
 !-----------------------------------------------------------------------
@@ -209,10 +209,12 @@
    call broadcast_scalar(cism_debug,        master_task)
    call broadcast_scalar(ice_flux_routing,  master_task)
    call broadcast_scalar(zero_gcm_fluxes,   master_task)
+   call broadcast_scalar(test_coupling,     master_task)
    call set_routing(ice_flux_routing)
 
    if (my_task == master_task) then
       write(stdout,*) 'zero_gcm_fluxes: ', zero_gcm_fluxes
+      write(stdout,*) 'test_coupling:   ', test_coupling
    end if
 
    if (verbose .and. my_task==master_task) then
@@ -284,6 +286,11 @@
 
   if (cesm_restart) then
      forcing_start_time = av_start_time_restart
+  else if (test_coupling) then
+     ! This assumes that (1) when test_coupling is true, we take a mass balance time step
+     ! at the start of every day, and (2) we're starting at the start of a day (i.e.,
+     ! ihour0 = iminute0 = isecond0 = 0).
+     forcing_start_time = nhour_glad
   else
      ! BUG(wjs, 2017-04-08, https://github.com/NCAR/CISM/issues/1) This assumes that mass
      ! balance time steps always occur on the year boundary - so the current mass balance
@@ -295,7 +302,9 @@
      forcing_start_time = nhour_glad - days_this_year * 24
   end if
 
-  call glad_initialize_instance(ice_sheet, instance_index = 1, my_forcing_start_time=forcing_start_time)
+  call glad_initialize_instance(ice_sheet, instance_index = 1, &
+       my_forcing_start_time = forcing_start_time, &
+       test_coupling = test_coupling)
 
   call glc_indexing_init(ice_sheet, instance_index = 1)
   
