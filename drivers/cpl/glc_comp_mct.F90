@@ -47,6 +47,8 @@ module glc_comp_mct
   integer(IN)           :: my_task_local        ! my task in mpi communicator mpicom 
   integer(IN),parameter :: master_task_local=0  ! task number of master task
 
+  type(seq_infodata_type), pointer :: infodata
+
 !===============================================================================
 CONTAINS
 !===============================================================================
@@ -77,7 +79,6 @@ CONTAINS
     integer(IN)              :: mpicom
     type(mct_gsMap), pointer :: gsMap
     type(mct_gGrid), pointer :: dom
-    type(seq_infodata_type), pointer :: infodata   ! Input init object
     integer(IN)              :: shrlogunit, shrloglev  
     character(CL)            :: starttype
     character(CS)            :: myModelName
@@ -266,6 +267,7 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
    integer           :: num 
    character(len= 2) :: cnum
    character(len=64) :: name
+   logical           :: valid_inputs
 
    character(*), parameter :: F00   = "('(glc_run_mct) ',8a)"
    character(*), parameter :: F01   = "('(glc_run_mct) ',a,8i8)"
@@ -283,6 +285,7 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
     ! Set internal time info
  
     call seq_timemgr_EClockGetData(EClock,curr_ymd=cesmYMD, curr_tod=cesmTOD)
+
     stop_alarm = seq_timemgr_StopAlarmIsOn( EClock )
 
     glcYMD = iyear*10000 + imonth*100 + iday
@@ -300,13 +303,15 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
 
     ! Run 
 
+    call seq_infodata_GetData( infodata, glc_valid_input=valid_inputs)
+
     do while (.not. done) 
        if (glcYMD > cesmYMD .or. (glcYMD == cesmYMD .and. glcTOD > cesmTOD)) then
           write(stdout,*) subname,' ERROR overshot coupling time ',glcYMD,glcTOD,cesmYMD,cesmTOD
           call shr_sys_abort('glc error overshot time')
        endif
 
-       call glc_run(EClock)
+       call glc_run(EClock, valid_inputs)
 
        glcYMD = iyear*10000 + imonth*100 + iday
        glcTOD = ihour*3600 + iminute*60 + isecond
@@ -333,6 +338,7 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
        glcYMD = iyear*10000 + imonth*100 + iday
        glcTOD = ihour*3600 + iminute*60 + isecond
        write(stdout,F01) ' GLC  Date ',glcYMD,glcTOD
+       write(stdout,*) '(glc_run_mct) valid Inputs =  ', valid_inputs
        call shr_sys_flush(stdout)
     end if
 

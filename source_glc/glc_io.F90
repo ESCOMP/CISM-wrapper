@@ -40,6 +40,14 @@
              glc_io_write_history,      &
              glc_io_write_restart
 
+! !PRIVATE MEMBER DATA:
+
+   ! Baseline year to use for time units - i.e., the year to use in the string,
+   ! 'common_year since YYYY-01-01'. Note that the baseline year here is tied in with the
+   ! specification of external_time in the calls to glimmer_nc_checkwrite - so if we use
+   ! a baseline year other than 0, we'd need to change how we specify that external_time.
+   integer, parameter :: baseline_year = 0
+
 !EOP
 !BOC
 !EOC
@@ -53,20 +61,17 @@
 ! !IROUTINE: glc_io_read_restart_time
 ! !INTERFACE:
 
-   subroutine glc_io_read_restart_time(nhour_glad, filename)
+   subroutine glc_io_read_restart_time(nhour_glad, av_start_time_restart, filename)
 
     use glc_files, only : ptr_filename
 
     implicit none
-    integer(IN),             intent(inout) :: nhour_glad
-    character(fname_length), intent(inout) :: filename
+    integer(IN),             intent(out) :: nhour_glad
+    integer(IN),             intent(out) :: av_start_time_restart
+    character(fname_length), intent(out) :: filename
 
     ! local variables
     character(fname_length) :: filename0
-    integer(IN)             :: cesmYMD           ! cesm model date
-    integer(IN)             :: cesmTOD           ! cesm model sec
-    integer(IN)             :: glcYMD            ! glc model date
-    integer(IN)             :: glcTOD            ! glc model sec
     integer(IN)             :: rst_elapsed_days  ! 
     integer(IN)             :: ptr_unit          ! unit for pointer file
     integer(IN)             :: rst_unit          ! unit for restart file
@@ -91,26 +96,17 @@
        rst_unit = shr_file_getUnit()
        status = nf90_open(filename,0,rst_unit)
        call nc_errorhandle(__FILE__,__LINE__,status)
-       status = nf90_get_att(rst_unit, NF90_GLOBAL, 'cesmYMD', cesmYMD)
-       call nc_errorhandle(__FILE__,__LINE__,status)
-       status = nf90_get_att(rst_unit, NF90_GLOBAL, 'cesmTOD', cesmTOD)
-       call nc_errorhandle(__FILE__,__LINE__,status)
-       status = nf90_get_att(rst_unit, NF90_GLOBAL, 'glcYMD', glcYMD)
-       call nc_errorhandle(__FILE__,__LINE__,status)
-       status = nf90_get_att(rst_unit, NF90_GLOBAL, 'glcTOD', glcTOD)
-       call nc_errorhandle(__FILE__,__LINE__,status)
        status = nf90_get_att(rst_unit, NF90_GLOBAL, 'elapsed_days', rst_elapsed_days)
+       call nc_errorhandle(__FILE__,__LINE__,status)
+       status = nf90_get_att(rst_unit, NF90_GLOBAL, 'av_start_time_restart', av_start_time_restart)
        call nc_errorhandle(__FILE__,__LINE__,status)
        status = nf90_close(rst_unit)
        call nc_errorhandle(__FILE__,__LINE__,status)
-
     end if
 
-    call broadcast_scalar (cesmYMD         , master_task)
-    call broadcast_scalar (cesmTOD         , master_task)
-    call broadcast_scalar (glcYMD          , master_task)
-    call broadcast_scalar (glcTOD          , master_task)
+    call broadcast_scalar (filename        , master_task)
     call broadcast_scalar (rst_elapsed_days, master_task)
+    call broadcast_scalar (av_start_time_restart, master_task)
 
     ! calculate nhour_glad for return
     nhour_glad = rst_elapsed_days * 24
@@ -205,7 +201,7 @@
 !jw    oc%metadata%comment = 
 
     ! create the output unit
-    call glimmer_nc_createfile(oc, instance%model)
+    call glimmer_nc_createfile(oc, instance%model, baseline_year=baseline_year)
     call glide_io_create(oc, instance%model, instance%model)
     call glad_io_create(oc, instance%model, instance)
 
@@ -235,7 +231,8 @@
     
     call glide_nc_filldvars(oc, instance%model)
     call glimmer_nc_checkwrite(oc, instance%model, forcewrite=.true., &
-                               time=instance%glide_time)
+         time=instance%glide_time, &
+         external_time = real(cesmYR, r8))
     call glide_io_write(oc, instance%model)
     call glad_io_write(oc, instance)
 
@@ -262,6 +259,8 @@
     use glide_io, only : glide_io_create, glide_io_write
     use glad_io, only : glad_io_create, glad_io_write
     use glide_nc_custom, only: glide_nc_filldvars
+    use glad_main, only : glad_okay_to_restart
+    use glad_input_averages, only : get_av_start_time
     implicit none
     type(glad_instance), intent(inout) :: instance
     type(ESMF_Clock),     intent(in)    :: EClock
@@ -281,6 +280,22 @@
     integer(IN)   :: status            !
 
 !-----------------------------------------------------------------------
+
+    if (.not. glad_okay_to_restart(instance)) then
+       if (my_task == master_task) then
+          write(stdout,*) 'ERROR: Attempt to write a restart file at an invalid time'
+          write(stdout,*) 'This can occur if GLC_AVG_PERIOD is shorter than the mass balance time step,'
+          write(stdout,*) 'and if you are trying to write a restart file in the middle of a mass balance time step.'
+          write(stdout,*) '(This is because CISM does not save the accumulated input fields when you restart'
+          write(stdout,*) 'in the middle of a mass balance time step.)'
+          write(stdout,*) 'For example, this problem can occur for GLC_AVG_PERIOD=glc_coupling_period,'
+          write(stdout,*) 'when the glc coupling period is 1 day, and the mass balance time step is 1 year,'
+          write(stdout,*) 'if you try to write a restart file mid-year.'
+          write(stdout,*) 'The solution is generally to set GLC_AVG_PERIOD=yearly if you want'
+          write(stdout,*) 'to be able to write mid-year restart files.'
+       end if
+       call shr_sys_abort('glc_io_write_restart: Attempt to write a restart file at an invalid time')
+    end if
 
     ! figure out restart filename
     call seq_timemgr_EClockGetData(EClock, curr_ymd=cesmYMD, curr_tod=cesmTOD, &
@@ -310,7 +325,7 @@
 !jw    oc%metadata%comment = 
 
     ! create the output unit
-    call glimmer_nc_createfile(oc, instance%model)
+    call glimmer_nc_createfile(oc, instance%model, baseline_year=baseline_year)
     call glide_io_create(oc, instance%model, instance%model)
     call glad_io_create(oc, instance%model, instance)
 
@@ -329,11 +344,15 @@
        rst_elapsed_days = elapsed_days - elapsed_days0
        status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'elapsed_days', rst_elapsed_days)
        call nc_errorhandle(__FILE__,__LINE__,status)
+       status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'av_start_time_restart', &
+            get_av_start_time(instance%glad_inputs))
+       call nc_errorhandle(__FILE__,__LINE__,status)
     end if
     
     call glide_nc_filldvars(oc, instance%model)
     call glimmer_nc_checkwrite(oc, instance%model, forcewrite=.true., &
-                               time=instance%glide_time)
+         time=instance%glide_time, &
+         external_time = real(cesmYR, r8))
     call glide_io_write(oc, instance%model)
     call glad_io_write(oc, instance)
 
