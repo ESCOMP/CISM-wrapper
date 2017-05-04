@@ -17,7 +17,7 @@ group="derived"
 valid_values="">
 Input file
 Default: For startup runs or hybrid runs with CISM_OBSERVED_IC=TRUE, a resolution-dependent
-         initial conditions file (e.g., gland10.input.nc).
+         initial conditions file (e.g., gland20.input_c150415.nc).
          For branch/hybrid runs with CISM_OBSERVED_IC=FALSE, a restart file name
          built based on RUN_REFCASE and RUN_REFDATE.
 </entry>

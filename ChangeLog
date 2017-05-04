@@ -4,6 +4,99 @@ This file describes what main-trunk tags were created and why
 
 ================================================================================
 Originator: sacks
+Date: May 03, 2017
+Model: cism
+Version: cism2_1_33
+One-line summary: Point to new 4km input file
+
+Purpose of changes:
+
+   Joe Kennedy made a new version of the 4km input file that has a slightly
+   extended grid. The point of this is to have a number of grid cells that can
+   be evenly divided by 2 a number of times, to facilitate changing resolution.
+
+   This tag points to the new file.
+
+   There are also some miscellaneous other changes in this tag:
+
+   (1) Remove support for gland10 and gland5
+       - gland5UM should be used in place of gland5
+       - gland10 was just being used for testing; I am now using gland20 for those tests
+       - Point is: These grids weren't being used, and were just a maintenance
+         burden, particularly when we need to make new mapping files.
+
+   (2) Remove unused GLC_SMB variable (used to be used in CLM, no longer is)
+
+   (3) Move prealpha & prebeta tests from yellowstone to cheyenne
+       - For the trilinos test: I have replaced it with a non-trilinos test,
+         since trilinos isn't installed on cheyenne, and we don't feel a need to
+         support trilinos for cesm2.
+       - For the pgi test: I have replaced it with an intel test since pgi isn't
+         supported on cheyenne.
+
+   (4) When using test_coupling, tell CLM that it should allow non-annual dynbal
+       adjustments. This is needed when running CLM in CN/BGC mode.
+
+Changes answers relative to previous tag: YES
+
+   The new file is effectively identical to the old one in the grid cells that
+   overlap. One potential difference is in exactly where topg is submerged to
+   -200m, since we now use a slightly different mask for that submerging;
+   however, even in that case, the new version appears to be effectively the
+   same as the old.
+
+   Answers change for the following reasons:
+
+   (1) Variables on the CISM grid cannot be compared for runs at 4km
+
+   (2) The new 4km mapping files have roundoff-level differences from the old
+       ones, resulting in changes in CLM (which are presumably initially
+       roundoff-level, but then grow; I think the differences arise from small
+       differences in the topographic heights of CLM's columns, leading to
+       differences in downscaling of atmospheric fields). These differences will
+       affect even cases with CISM evolution turned off.
+
+   (3) There are 3 CLM cells with greater-than-roundoff-level differences in
+       icemask. These CLM cells lay partly outside the old CISM grid, though lie
+       entirely within the new grid. Because icemask is currently mapped with
+       normalization, this led to differences in the remapped icemask
+       field. Currently, I'm pretty sure this doesn't matter, because icemask in
+       CLM is only checked for whether it's > 0.
+
+   (4) With 2-way coupling, I expect answer changes in the runoff fields after
+       remapping to the ocean, because we're using new mapping files for ALL
+       GRIDS in this respect, to incorporate a fix to the runoff mapping
+       tool. (This change comes from the new version of cime rather than this
+       version of cism per se.)
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/):
+- https://github.com/ESMCI/cime/issues/1262 - Remake all glc to ocean mapping files
+
+List all modified files, and describe the changes:
+
+A       cime_config/testdefs/testmods_dirs/cism/test_coupling/user_nl_clm
+M       bld/build-namelist
+M       bld/namelist_files/namelist_defaults_cism.xml
+M       bld/namelist_files/namelist_definition_cism.xml
+M       cime_config/testdefs/testlist_cism.xml
+M       cime_config/config_component.xml
+
+Summary of testing:
+
+   Full aux_glc test suite on yellowstone and hobart. All tests passed except
+   for expected baseline comparison failures for 4-km tests, and expected NLCOMP
+   failures.
+
+Externals used for testing: cesm2_0_alpha06g, but cime at 4e2cd84 (git describe:
+billsacks/glc_tavg_v2_n03-2-g4e2cd84) (cism_new_mapping_files branch)
+
+cism tag used for baseline comparisons: cism2_1_32
+
+Any other externals that differed in baseline: Baseline had cime at
+billsacks/glc_tavg_v2_n03
+
+================================================================================
+Originator: sacks
 Date: May 01, 2017
 Model: cism
 Version: cism2_1_32
