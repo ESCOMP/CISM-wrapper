@@ -101,7 +101,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Ly20_N2_P2" grid="f09_g16_gl10" compset="TG1">
+  <test name="ERS_Ly20_N2_P2" grid="f09_g16_gl20" compset="TG1">
     <machines>
 
       <machine name="yellowstone" compiler="pgi" category="aux_glc">
@@ -110,7 +110,7 @@
         </options>
       </machine>
 
-      <machine name="yellowstone" compiler="pgi" category="prealpha">
+      <machine name="cheyenne" compiler="intel" category="prealpha">
         <options>
           <option name="wallclock">0:20</option>
         </options>
@@ -136,7 +136,7 @@
         </options>
       </machine>
 
-      <machine name="yellowstone" compiler="intel" category="prealpha">
+      <machine name="cheyenne" compiler="intel" category="prealpha">
         <options>
           <option name="wallclock">0:20</option>
         </options>
@@ -248,7 +248,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D" grid="f09_g16_gl10" compset="TG1">
+  <test name="SMS_D" grid="f09_g16_gl20" compset="TG1">
     <machines>
 
       <machine name="yellowstone" compiler="gnu" category="aux_glc">
@@ -263,7 +263,7 @@
         </options>
       </machine>
 
-      <machine name="yellowstone" compiler="gnu" category="prealpha">
+      <machine name="cheyenne" compiler="gnu" category="prealpha">
         <options>
           <option name="wallclock">0:30</option>
           <option name="comment">Include a single-processor test, because cime changes sometimes break single-processor runs</option>
@@ -342,6 +342,12 @@
         </options>
       </machine>
 
+      <machine name="cheyenne" compiler="intel" category="prebeta">
+        <options>
+          <option name="wallclock">0:20</option>
+        </options>
+      </machine>
+
     </machines>
   </test>
 
@@ -349,12 +355,6 @@
     <machines>
 
       <machine name="yellowstone" compiler="intel" category="aux_glc">
-        <options>
-          <option name="wallclock">0:20</option>
-        </options>
-      </machine>
-
-      <machine name="yellowstone" compiler="intel" category="prebeta">
         <options>
           <option name="wallclock">0:20</option>
         </options>
@@ -412,7 +412,7 @@
         </options>
       </machine>
 
-      <machine name="yellowstone" compiler="intel" category="prebeta">
+      <machine name="cheyenne" compiler="intel" category="prebeta">
         <options>
           <option name="wallclock">0:30</option>
         </options>

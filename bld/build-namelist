@@ -918,8 +918,6 @@ sub check_grid {
 
    if ($cism_phys eq "cism1") {
       %allowed_grids = (gland20  => 1, 
-                        gland10  => 1,
-                        gland5   => 1, 
                         gland5UM => 1,
                        );
    }
