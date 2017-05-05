@@ -418,4 +418,30 @@
     </machines>
   </test>
 
+  <test name="ERS_D_Ly3" grid="f09_g16_gl4" compset="TG" testmods="isostasy_period3">
+    <machines>
+
+      <machine name="yellowstone" compiler="pgi" category="aux_glc">
+        <options>
+          <option name="wallclock">0:30</option>
+          <option name="comment">Include an exact restart test with isostasy, where we restart in the middle of the isostasy update period; also, have a debug test with isostasy</option>
+        </options>
+      </machine>
+
+    </machines>
+  </test>
+
+  <test name="ERS_Ly3" grid="f09_g16_gl4" compset="TG" testmods="isostasy_period1">
+    <machines>
+
+      <machine name="yellowstone" compiler="gnu" category="aux_glc">
+        <options>
+          <option name="wallclock">0:20</option>
+          <option name="comment">Include an exact restart test with isostasy, where restart aligns with the isostasy update period</option>
+        </options>
+      </machine>
+
+    </machines>
+  </test>
+
 </testlist>
