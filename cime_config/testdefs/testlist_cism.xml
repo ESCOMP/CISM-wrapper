@@ -418,7 +418,7 @@
     </machines>
   </test>
 
-  <test name="ERS_D_Ly3" grid="f09_g16_gl4" compset="TG" testmods="isostasy_period3">
+  <test name="ERS_D_Ly3" grid="f09_g16_gl4" compset="TG" testmods="cism/isostasy_period3">
     <machines>
 
       <machine name="yellowstone" compiler="pgi" category="aux_glc">
@@ -431,7 +431,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Ly3" grid="f09_g16_gl4" compset="TG" testmods="isostasy_period1">
+  <test name="ERS_Ly3" grid="f09_g16_gl4" compset="TG" testmods="cism/isostasy_period1">
     <machines>
 
       <machine name="yellowstone" compiler="gnu" category="aux_glc">
