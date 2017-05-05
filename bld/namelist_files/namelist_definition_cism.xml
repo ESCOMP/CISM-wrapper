@@ -545,18 +545,6 @@ Default: 0
 </entry>
 
 <entry 
-id="topo_is_relaxed"
-type="integer" 
-category="cism_config_options"
-group="cism_config_options"
-valid_values="0,1,2" >
-0: relaxed topography is read from a separate variable
-1: first time slice of input topography is assumed to be relaxed
-2: first time slice of input topography is assumed to be in isostatic equilibrium with ice thickness
-Default: 0
-</entry>
-
-<entry 
 id="basal_mass_balance"
 type="integer" 
 category="cism_config_options"
@@ -1321,6 +1309,18 @@ Default: (use hard-coded default)
 <!-- This group is only relevant if isostasy = 1 -->
 
 <entry 
+id="whichrelaxed"
+type="integer" 
+category="cism_config_isostasy"
+group="cism_config_isostasy"
+valid_values="0,1,2" >
+0: relaxed topography is read from a separate variable
+1: first time slice of input topography is assumed to be relaxed
+2: first time slice of input topography is assumed to be in isostatic equilibrium with ice thickness
+Default: 0
+</entry>
+
+<entry 
 id="lithosphere"
 type="integer" 
 category="cism_config_isostasy"
@@ -1329,7 +1329,7 @@ valid_values="0,1" >
 0: local lithosphere, equilibrium bedrock depression is found using Archimedes' principle
 1: elastic lithosphere, flexural rigidity is taken into account
 Only relevant if isostasy = 1
-Default: 0
+Default: 1
 </entry>
 
 <entry 
@@ -1341,7 +1341,7 @@ valid_values="0,1" >
 0: fluid mantle, isostatic adjustment happens instantaneously
 1: relaxing mantle, mantle is approximated by a half-space
 Only relevant if isostasy = 1
-Default: 0
+Default: 1
 </entry>
 
 <entry 
@@ -1355,7 +1355,7 @@ Default: (use hard-coded default)
 </entry>
 
 <entry 
-id="update"
+id="period"
 type="real" 
 category="cism_config_isostasy"
 group="cism_config_isostasy" >
