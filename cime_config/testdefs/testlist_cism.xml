@@ -325,12 +325,13 @@
     </machines>
   </test>
 
-  <test name="SMS_D_Ly1" grid="f09_g16_gl4" compset="T1850G">
+  <test name="SMS_D_Ly1" grid="f09_g16_gl4" compset="T1850G" testmods="cism/isostasy_period1">
     <machines>
 
       <machine name="yellowstone" compiler="pgi" category="aux_glc">
         <options>
           <option name="wallclock">0:20</option>
+          <option name="comment">Include a debug test with isostasy turned on</option>
         </options>
       </machine>
 
@@ -418,13 +419,13 @@
     </machines>
   </test>
 
-  <test name="ERS_D_Ly3" grid="f09_g16_gl4" compset="TG" testmods="cism/isostasy_period3">
+  <test name="ERS_Ly5" grid="f09_g16_gl4" compset="TG" testmods="cism/isostasy_period4">
     <machines>
 
-      <machine name="yellowstone" compiler="pgi" category="aux_glc">
+      <machine name="yellowstone" compiler="gnu" category="aux_glc">
         <options>
           <option name="wallclock">0:30</option>
-          <option name="comment">Include an exact restart test with isostasy, where we restart in the middle of the isostasy update period; also, have a debug test with isostasy</option>
+          <option name="comment">Include an exact restart test with isostasy, where we restart in the middle of the isostasy update period</option>
         </options>
       </machine>
 
