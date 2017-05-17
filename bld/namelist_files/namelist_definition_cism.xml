@@ -1355,7 +1355,7 @@ Default: (use hard-coded default)
 </entry>
 
 <entry 
-id="period"
+id="lithosphere_period"
 type="real" 
 category="cism_config_isostasy"
 group="cism_config_isostasy" >
