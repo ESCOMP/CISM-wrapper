@@ -86,7 +86,7 @@ category="history"
 group="cism_history" 
 valid_values="">
 Space-delimited list of variables output to history file
-Default: 'acab artm thk usurf topg uvel vvel uflx vflx temp bmlt bwat'
+Default: Depends on physics and ice evolution options
 </entry>
 
 <entry id="history_option"
