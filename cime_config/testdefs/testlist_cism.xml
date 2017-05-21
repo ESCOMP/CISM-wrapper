@@ -1,20 +1,20 @@
 <?xml version="1.0"?>
 <testlist version="2.0">
 
-  <test name="ERI_Ly44" grid="f09_g16_gl20" compset="THISTG">
+  <test name="ERI_Ly44" grid="f09_g16_gl20" compset="THISTG" testmods="cism/isostasy_period4">
     <machines>
 
       <machine name="yellowstone" compiler="intel" category="aux_glc">
         <options>
           <option name="wallclock">0:40</option>
-          <option name="comment">include a longer ERI test to catch problems that may just show up after longer runs, using a coarse resolution to get faster turnaround and lower cost</option>
+          <option name="comment">include a longer ERI test to catch problems that may just show up after longer runs, using a coarse resolution to get faster turnaround and lower cost; include isostasy because there are extra subtleties with getting isostasy to restart exactly</option>
         </options>
       </machine>
 
     </machines>
   </test>
 
-  <test name="ERI_Ly15" grid="f09_g16_gl4" compset="THISTG">
+  <test name="ERI_Ly15" grid="f09_g16_gl4" compset="THISTG" testmods="cism/isostasy_period4">
     <machines>
 
       <machine name="edison" compiler="intel" category="prebeta">
@@ -26,7 +26,7 @@
       <machine name="yellowstone" compiler="intel" category="aux_glc">
         <options>
           <option name="wallclock">0:40</option>
-          <option name="comment">include an ERI test at the production resolution, to exercise all options used at that resolution</option>
+          <option name="comment">include an ERI test at the production resolution, to exercise all options used at that resolution; include isostasy because there are extra subtleties with getting isostasy to restart exactly</option>
         </options>
       </machine>
 
@@ -200,7 +200,7 @@
     </machines>
   </test>
 
-  <test name="ERI_Lm24" grid="f10_f10" compset="IGCLM45" testmods="clm/glcMEC_long">
+  <test name="ERI_Lm24" grid="f10_f10" compset="IGCLM45" testmods="cism/isostasy_period4">
     <machines>
 
       <machine name="yellowstone" compiler="intel" category="aux_glc">
@@ -213,7 +213,7 @@
                expected behavior. Thus, I believe this is not actually a
                problem. -->
           <option name="memleak_tolerance">0.34</option>
-          <option name="comment">Test branching mid-year</option>
+          <option name="comment">Test branching mid-year; include isostasy because there are extra subtleties with getting isostasy to restart exactly</option>
         </options>
       </machine>
 
