@@ -17,7 +17,7 @@ module glc_comp_mct
 
   use glc_import_export
   use glc_cpl_indices
-  use glc_constants,       only: verbose, stdout, stderr, nml_in, radius
+  use glc_constants,       only: verbose, stdout, stderr, nml_in, radius, zero_gcm_fluxes
   use glc_InitMod,         only: glc_initialize
   use glc_RunMod,          only: glc_run
   use glc_FinalMod,        only: glc_final
@@ -82,6 +82,7 @@ CONTAINS
     integer(IN)              :: shrlogunit, shrloglev  
     character(CL)            :: starttype
     character(CS)            :: myModelName
+    logical                  :: glc_coupled_fluxes ! are we sending fluxes to other components?
 
     !--- formats ---
     character(*), parameter :: F00   = "('(glc_init_mct) ',8a)"
@@ -173,11 +174,16 @@ CONTAINS
 
     ! Set flags in infodata
 
-    call seq_infodata_PutData(infodata, glc_present=.true., &
-       glclnd_present = .true., &
-       glcocn_present=has_ocn_coupling(), &
-       glcice_present=has_ice_coupling(), &
-       glc_prognostic = .true., glc_nx=nx_tot, glc_ny=ny_tot)
+    glc_coupled_fluxes = (.not. zero_gcm_fluxes)
+    call seq_infodata_PutData(infodata, &
+         glc_present= .true., &
+         glclnd_present = .true., &
+         glcocn_present = has_ocn_coupling(), &
+         glcice_present = has_ice_coupling(), &
+         glc_prognostic = .true., &
+         glc_coupled_fluxes = glc_coupled_fluxes, &
+         glc_nx=nx_tot, &
+         glc_ny=ny_tot)
 
     ! Initialize MCT attribute vectors
 
