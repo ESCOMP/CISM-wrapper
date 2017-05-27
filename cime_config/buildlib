@@ -7,15 +7,15 @@ if ($#ARGV == -1) {
 my ($CASEROOT) = @ARGV;
 chdir "${CASEROOT}";
 
-my $SRCROOT   = `./xmlquery SRCROOT  -value`;
-my $CASEBUILD = `./xmlquery CASEBUILD -value`;
-my $CASETOOLS = `./xmlquery CASETOOLS -value`;
-my $OBJROOT   = `./xmlquery OBJROOT   -value`;
-my $EXEROOT   = `./xmlquery EXEROOT   -value`;
-my $LIBROOT   = `./xmlquery LIBROOT   -value`;
-my $GMAKE_J   = `./xmlquery GMAKE_J   -value`;
-my $GMAKE     = `./xmlquery GMAKE     -value`;
-my $CISM_USE_TRILINOS = `./xmlquery  CISM_USE_TRILINOS	-value`;
+my $SRCROOT   = `./xmlquery SRCROOT  --value`;
+my $CASEBUILD = `./xmlquery CASEBUILD --value`;
+my $CASETOOLS = `./xmlquery CASETOOLS --value`;
+my $OBJROOT   = `./xmlquery OBJROOT   --value`;
+my $EXEROOT   = `./xmlquery EXEROOT   --value`;
+my $LIBROOT   = `./xmlquery LIBROOT   --value`;
+my $GMAKE_J   = `./xmlquery GMAKE_J   --value`;
+my $GMAKE     = `./xmlquery GMAKE     --value`;
+my $CISM_USE_TRILINOS = `./xmlquery  CISM_USE_TRILINOS --value`;
 
 # directory in which glc is built
 my $glc_dir = "$EXEROOT/glc";

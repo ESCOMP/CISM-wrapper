@@ -7,8 +7,8 @@ if ($#ARGV == -1) {
 my ($CASEROOT) = @ARGV;
 my $sysmod;
 
-my $SRCROOT   = `./xmlquery SRCROOT  -value`;
-my $CASEBUILD = `./xmlquery CASEBUILD -value`;
+my $SRCROOT   = `./xmlquery SRCROOT  --value`;
+my $CASEBUILD = `./xmlquery CASEBUILD --value`;
 
 #-------------------------------------------------------------------------------
 # stage variable definition files and related scripts and templates to

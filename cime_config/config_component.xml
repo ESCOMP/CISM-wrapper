@@ -2,6 +2,13 @@
 
 <entries>
 
+  <description>
+    <desc compset="_CISM1">cism1:</desc>
+    <desc compset="_CISM2">cism2:</desc>
+    <desc compset="_CISM[^_]*%EVOLVE">cism ice evolution turned on:</desc>
+    <desc compset="_CISM[^_]*%NOEVOLVE">cism ice evolution turned off:</desc>
+  </description>
+
   <entry id="COMP_GLC"> 
     <type>char</type>
     <valid_values>cism</valid_values>
@@ -46,8 +53,9 @@
   <entry id="CISM_EVOLVE">
      <type>logical</type>
      <valid_values>TRUE,FALSE</valid_values>
-     <default_value>TRUE</default_value>
+     <default_value>FALSE</default_value>
      <values>
+        <value compset="_CISM[^_]*%EVOLVE">TRUE</value>
         <value compset="_CISM[^_]*%NOEVOLVE">FALSE</value>
      </values>
      <group>run_component_cism</group>
@@ -69,11 +77,6 @@
       generally used for startup runs. This variable is ignored for startup
       runs; for branch runs, it MUST BE FALSE.</desc>
   </entry>
-
-  <description>
-    <desc compset="_CISM1">cism1:</desc>
-    <desc compset="_CISM2">cism2:</desc>
-  </description>
 
   <help>
     =========================================
