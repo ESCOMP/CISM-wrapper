@@ -415,7 +415,7 @@ elsif ($CISM_OBSERVED_IC eq 'TRUE') {
 }
 elsif ($RUN_TYPE eq 'branch' || $RUN_TYPE eq 'hybrid') {
    add_default($nl, 'cisminputfile',
-               'val'=>"${RUN_REFCASE}.cism.r.${RUN_REFDATE}-00000.nc", 'noprepend'=>'1');
+               'val'=>"${RUN_REFCASE}.cism${INST_STRING}.r.${RUN_REFDATE}-00000.nc", 'noprepend'=>'1');
    $hotstart = 1;
 }
 else {

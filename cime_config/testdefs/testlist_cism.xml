@@ -119,6 +119,19 @@
     </machines>
   </test>
 
+  <test name="ERI_N2_Ly9" grid="f09_g16_gl20" compset="TG">
+    <machines>
+
+      <machine name="yellowstone" compiler="intel" category="aux_glc">
+        <options>
+          <option name="wallclock">0:30</option>
+          <option name="comment">Include a multi-instance ERI test to catch problems with multi-instance branch/hybrid runs</option>
+        </options>
+      </machine>
+
+    </machines>
+  </test>
+
   <test name="ERS_Ly3" grid="f09_g16_gl4" compset="TG">
     <machines>
 
