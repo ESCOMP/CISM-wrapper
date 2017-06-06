@@ -400,10 +400,10 @@ add_default($nl, 'zero_gcm_fluxes',
             'cism_evolve'=>"$CISM_EVOLVE");
 add_default($nl, 'test_coupling');
 
-my $hotstart;
+my $restart;
 if ($RUN_TYPE eq 'startup') {
    add_default($nl, 'cisminputfile'); 
-   $hotstart = 0;
+   $restart = 0;
 } 
 elsif ($CISM_OBSERVED_IC eq 'TRUE') {
    if ($RUN_TYPE eq 'branch') {
@@ -411,12 +411,12 @@ elsif ($CISM_OBSERVED_IC eq 'TRUE') {
    }
 
    add_default($nl, 'cisminputfile'); 
-   $hotstart = 0;
+   $restart = 0;
 }
 elsif ($RUN_TYPE eq 'branch' || $RUN_TYPE eq 'hybrid') {
    add_default($nl, 'cisminputfile',
                'val'=>"${RUN_REFCASE}.cism.r.${RUN_REFDATE}-00000.nc", 'noprepend'=>'1');
-   $hotstart = 1;
+   $restart = 1;
 }
 else {
    die "$ProgName - ERROR: Unknown RUN_TYPE: $RUN_TYPE\n";
@@ -499,7 +499,7 @@ add_default($nl, 'slip_coeff');
 add_default($nl, 'evolution');
 add_default($nl, 'vertical_integration');
 add_default($nl, 'sigma');
-add_default($nl, 'hotstart', 'val'=>$hotstart);
+add_default($nl, 'restart', 'val'=>$restart);
 $nl->write_cism_config($fh, "cism_config_options");
 
 # The [sigma] section only applies if we're using user-defined sigma

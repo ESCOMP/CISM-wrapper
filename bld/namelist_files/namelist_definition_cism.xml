@@ -607,12 +607,12 @@ Default: 0
 </entry>
 
 <entry 
-id="hotstart"
+id="restart"
 type="integer" 
 category="cism_config_options"
 group="cism_config_options"
 valid_values="0,1" >
-Hotstart (restart) the model if set to 1. 
+Restart the model if set to 1. 
 This allows for exact restarts from previous initial conditions
 Default: 0 for startup or hybrid with CISM_OBSERVED_IC=TRUE, 1 for hybrid/branch with CISM_OBSERVED_IC=FALSE
 </entry>
