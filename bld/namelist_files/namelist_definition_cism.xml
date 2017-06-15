@@ -945,6 +945,24 @@ Default: 0.1
 </entry>
 
 <entry
+id="effecpress_bmlt_threshold"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Basal melting range over which N ramps from a small value to full overburden (m/yr)
+Default: (use hard-coded default)
+</entry>
+
+<entry
+id="effecpress_bwat_threshold"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Basal water thickness range over which N ramps from a small value to full overburden (m)
+Default: (use hard-coded default)
+</entry>
+
+<entry
 id="beta_grounded_min"
 type="real"
 category="cism_config_parameters"
