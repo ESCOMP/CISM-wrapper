@@ -6,7 +6,7 @@
     <desc compset="_CISM1">cism1:</desc>
     <desc compset="_CISM2">cism2:</desc>
     <desc compset="_CISM[^_]*%EVOLVE">cism ice evolution turned on:</desc>
-    <desc compset="_CISM[^_]*%NOEVOLVE">cism ice evolution turned off:</desc>
+    <desc compset="_CISM[^_]*%NOEVOLVE">cism ice evolution turned off (this is the standard configuration unless you're explicitly interested in ice evolution):</desc>
   </description>
 
   <entry id="COMP_GLC"> 

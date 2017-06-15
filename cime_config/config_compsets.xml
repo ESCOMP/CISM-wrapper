@@ -36,11 +36,9 @@
     - grid  (optional regular expression match for grid to work with the compset)
   </help>
 
-  <!---TG compsets -->
-  <compset>
-    <alias>TG1</alias>
-    <lname>2000_SATM_DLND%SCPL_SICE_SOCN_SROF_CISM1%EVOLVE_SWAV</lname>
-  </compset>
+  <!--- TG compsets
+      The final G (or G1) denotes that ice evolution is turned on
+  -->
 
   <compset>
     <alias>T1850G1</alias>
@@ -48,42 +46,14 @@
   </compset>
 
   <compset>
-    <alias>THISTG1</alias>     
-    <lname>HIST_SATM_DLND%SCPL_SICE_SOCN_SROF_CISM1%EVOLVE_SWAV</lname>
-  </compset>
-
-  <compset>
-    <alias>TRCP85G1</alias>    
-    <lname>RCP8_SATM_DLND%SCPL_SICE_SOCN_SROF_CISM1%EVOLVE_SWAV</lname>
-  </compset>
-
-  <compset>
-    <alias>TG</alias>      
-    <lname>2000_SATM_DLND%SCPL_SICE_SOCN_SROF_CISM2%EVOLVE_SWAV</lname>
-  </compset>
-
-  <compset>
     <alias>T1850G</alias>  
     <lname>1850_SATM_DLND%SCPL_SICE_SOCN_SROF_CISM2%EVOLVE_SWAV</lname>
-  </compset>
-
-  <compset>
-    <alias>THISTG</alias>  
-    <lname>HIST_SATM_DLND%SCPL_SICE_SOCN_SROF_CISM2%EVOLVE_SWAV</lname>
-  </compset>
-
-  <compset>
-    <alias>TRCP85G</alias> 
-    <lname>RCP8_SATM_DLND%SCPL_SICE_SOCN_SROF_CISM2%EVOLVE_SWAV</lname>
   </compset>
 
   <entries>
     <entry id="RUN_STARTDATE"> 
       <values>
-	<value compset="2000.*_DLND.*_CISM" grid="a%0.9x1.25_l%0.9x1.25_oi%gx1v6">0001-01-01</value>
-	<value compset="1850.*_DLND.*_CISM" grid="a%0.9x1.25_l%0.9x1.25_oi%gx1v6">0001-01-01</value>
-	<value compset="HIST.*_DLND.*_CISM" grid="a%0.9x1.25_l%0.9x1.25_oi%gx1v6">1850-01-01</value>
-	<value compset="RCP8.*_DLND.*_CISM" grid="a%0.9x1.25_l%0.9x1.25_oi%gx1v6">2006-01-01</value>
+        <value compset="1850_">0001-01-01</value>
       </values>
     </entry>
     <entry id="STOP_OPTION"> 

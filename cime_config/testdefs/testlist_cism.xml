@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <testlist version="2.0">
 
-  <test name="ERI_Ly15" grid="f09_g16_gl20" compset="THISTG">
+  <test name="ERI_Ly15" grid="f09_g16_gl20" compset="T1850G">
     <machines>
 
       <machine name="edison" compiler="intel" category="prebeta">
@@ -19,7 +19,7 @@
     </machines>
   </test>
 
-  <test name="ERI_Ly44" grid="f09_g16_gl5" compset="TRCP85G1">
+  <test name="ERI_Ly44" grid="f09_g16_gl5" compset="T1850G1">
     <machines>
 
       <machine name="hobart" compiler="intel" category="prebeta">
@@ -75,7 +75,7 @@
     </machines>
   </test>
 
-  <test name="ERS_D_Ly3" grid="f09_g16_gl5" compset="TG1" testmods="cism/noevolve">
+  <test name="ERS_D_Ly3" grid="f09_g16_gl5" compset="T1850G1" testmods="cism/noevolve">
     <machines>
 
       <machine name="yellowstone" compiler="gnu" category="aux_glc">
@@ -88,7 +88,7 @@
     </machines>
   </test>
 
-  <test name="ERS_D_Ly3" grid="f09_g16_gl4" compset="TG" testmods="cism/noevolve">
+  <test name="ERS_D_Ly3" grid="f09_g16_gl4" compset="T1850G" testmods="cism/noevolve">
     <machines>
 
       <machine name="yellowstone" compiler="pgi" category="aux_glc">
@@ -101,7 +101,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Ly20_N2_P2" grid="f09_g16_gl20" compset="TG1">
+  <test name="ERS_Ly20_N2_P2" grid="f09_g16_gl20" compset="T1850G1">
     <machines>
 
       <machine name="yellowstone" compiler="pgi" category="aux_glc">
@@ -119,7 +119,7 @@
     </machines>
   </test>
 
-  <test name="ERI_N2_Ly9" grid="f09_g16_gl20" compset="TG">
+  <test name="ERI_N2_Ly9" grid="f09_g16_gl20" compset="T1850G">
     <machines>
 
       <machine name="yellowstone" compiler="intel" category="aux_glc">
@@ -132,7 +132,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Ly3" grid="f09_g16_gl4" compset="TG">
+  <test name="ERS_Ly3" grid="f09_g16_gl4" compset="T1850G">
     <machines>
 
       <machine name="bluewaters" compiler="pgi" category="prebeta">
@@ -230,7 +230,7 @@
     </machines>
   </test>
 
-  <test name="NCK_Ly3" grid="f09_g16_gl20" compset="TRCP85G">
+  <test name="NCK_Ly3" grid="f09_g16_gl20" compset="T1850G">
     <machines>
 
       <machine name="hobart" compiler="pgi" category="prebeta">
@@ -261,7 +261,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D" grid="f09_g16_gl20" compset="TG1">
+  <test name="SMS_D" grid="f09_g16_gl20" compset="T1850G1">
     <machines>
 
       <machine name="yellowstone" compiler="gnu" category="aux_glc">
@@ -286,7 +286,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D" grid="f09_g16_gl5" compset="TG1">
+  <test name="SMS_D" grid="f09_g16_gl5" compset="T1850G1">
     <machines>
 
       <machine name="yellowstone" compiler="intel" category="aux_glc">
@@ -334,7 +334,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D_Ly1" grid="f09_g16_gl20" compset="THISTG">
+  <test name="SMS_D_Ly1" grid="f09_g16_gl20" compset="T1850G">
     <machines>
 
       <machine name="yellowstone" compiler="gnu" category="aux_glc">
@@ -346,7 +346,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D_Ly1" grid="f09_g16_gl20" compset="TG">
+  <test name="SMS_D_Ly1" grid="f09_g16_gl20" compset="T1850G">
     <machines>
 
       <machine name="yellowstone" compiler="intel" category="aux_glc">
@@ -364,7 +364,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D_Ly1" grid="f09_g16_gl20" compset="TG" testmods="cism/trilinos">
+  <test name="SMS_D_Ly1" grid="f09_g16_gl20" compset="T1850G" testmods="cism/trilinos">
     <machines>
 
       <machine name="yellowstone" compiler="intel" category="aux_glc">
@@ -376,7 +376,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D_Ly1_P24x1" grid="f09_g16_gl4" compset="TG">
+  <test name="SMS_D_Ly1_P24x1" grid="f09_g16_gl4" compset="T1850G">
     <machines>
 
       <machine name="hobart" compiler="nag" category="aux_glc">
@@ -389,7 +389,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D_Ly3" grid="f09_g16_gl5" compset="TG1">
+  <test name="SMS_D_Ly3" grid="f09_g16_gl5" compset="T1850G1">
     <machines>
 
       <machine name="hobart" compiler="nag" category="aux_glc">
@@ -402,7 +402,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D_Ly3_P24x1" grid="f09_g16_gl20" compset="TG">
+  <test name="SMS_D_Ly3_P24x1" grid="f09_g16_gl20" compset="T1850G">
     <machines>
 
       <machine name="hobart" compiler="nag" category="aux_glc">
