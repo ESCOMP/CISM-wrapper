@@ -4,6 +4,67 @@ This file describes what main-trunk tags were created and why
 
 ================================================================================
 Originator: sacks
+Date: June 15, 2017
+Model: cism
+Version: cism2_1_37
+One-line summary: Only have T1850G and T1850G1 compsets
+
+Purpose of changes:
+
+   The TG compsets are only used for software testing at this point: they use
+   old forcing data that (among other things) do not allow for glacial
+   inception. Thus, there is no benefit in having different TG compsets with
+   different forcing data. So just keep one compset with CISM2 and one with
+   CISM1 for software testing purposes.
+
+   Also remove most of the RUN_STARTDATE settings: most of these are no longer
+   needed. For the one I'm keeping, get rid of a bunch of unnecessary
+   qualifiers; for the grid, note that the grid match wasn't working before
+   because the grid format changed... I don't see any reason to have a grid
+   attribute here anyway.
+
+Changes answers relative to previous tag: NO (but reworks test list, leading to
+baseline failures)
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/): none
+
+List all modified files, and describe the changes:
+
+*** Main changes
+M       cime_config/config_compsets.xml
+M       cime_config/testdefs/testlist_cism.xml
+
+*** Add a note
+M       cime_config/config_component.xml
+
+Summary of testing:
+
+   aux_glc test suite, just on yellowstone. All tests passed.
+
+   Did NOT do baseline comparisons
+
+Externals used for testing: clm4_5_16_r246 with IGCLM45 compset redefined:
+
+   Index: cime_config/config_compsets.xml
+   ===================================================================
+   --- cime_config/config_compsets.xml	(revision 85679)
+   +++ cime_config/config_compsets.xml	(working copy)
+   @@ -329,7 +329,7 @@
+
+      <compset>
+        <alias>IGCLM45</alias>
+   -    <lname>2000_DATM%QIA_CLM45%SP_SICE_SOCN_RTM_CISM2_SWAV</lname>
+   +    <lname>2000_DATM%QIA_CLM45%SP_SICE_SOCN_RTM_CISM2%EVOLVE_SWAV</lname>
+      </compset>
+
+      <compset>
+
+cism tag used for baseline comparisons: N/A
+
+Any other externals that differed in baseline: N/A
+
+================================================================================
+Originator: sacks
 Date: June 6, 2017
 Model: cism
 Version: cism2_1_36
