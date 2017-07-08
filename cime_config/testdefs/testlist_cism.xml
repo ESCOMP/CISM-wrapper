@@ -37,12 +37,12 @@
     </machines>
   </test>
 
-  <test name="ERS_D_Ld9" grid="f19_g16_gl4" compset="IGCLM45" testmods="cism/override_glc_frac">
+  <test name="ERS_D_Ld9" grid="f10_f10_musgs" compset="I1850Clm50SpG" testmods="cism/override_glc_frac">
     <machines>
 
       <machine name="yellowstone" compiler="pgi" category="aux_glc">
         <options>
-          <option name="wallclock">0:20</option>
+          <option name="wallclock">0:30</option>
           <option name="comment">Make sure glc override options work correctly, and restart properly. Note that we do not generate cism history files in this test, but that is okay: this test is about what is sent to the coupler, not what is output by CISM. (And currently CISM history files do not restart properly in this test.)</option>
         </options>
       </machine>
@@ -158,7 +158,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Ly5" grid="f10_f10" compset="IGCLM45" testmods="clm/glcMEC_long">
+  <test name="ERS_Ly3" grid="f10_f10_musgs" compset="I1850Clm50SpG">
     <machines>
 
       <machine name="yellowstone" compiler="intel" category="aux_glc">
@@ -170,19 +170,19 @@
                prognostic solve, so I think this is expected behavior. Thus, I
                believe this is not actually a problem. -->
           <option name="memleak_tolerance">0.34</option>
-          <option name="comment">Need IG ERS test to catch problems with fields sent before the end of the first year after restart. Also use glcMEC_long testmods to get shorter snow_persistence_max - the main motivation here is to have a long ERS test that checks restart of the snow_persistence stuff (which more belongs in the aux_clm test list, but was added here to avoid needing to add a long ERS test to that test list)... this is mainly needed because we do not have an IG test that uses spun-up initial conditions, so we currently need a long test to completely test the restartability of the snow_persistence stuff. Also note that this is the only multi-year non-TG test in the test list, so this is the one test that a production-like configuration can run for a few years. Consider moving this to the aux_clm45 test list once this test can be made shorter, either through use of initial conditions and/or moving to f10 resolution.</option>
+          <option name="comment">Need IG ERS test to catch problems with fields sent before the end of the first year after restart. Also note that this is the only multi-year non-TG test in the test list, so this is the one test that a production-like configuration can run for a few years.</option>
         </options>
       </machine>
 
     </machines>
   </test>
 
-  <test name="ERS_Lm24" grid="f10_f10" compset="IGCLM45" testmods="clm/glcMEC_long">
+  <test name="ERS_Lm24" grid="f10_f10_musgs" compset="I1850Clm50SpG">
     <machines>
 
       <machine name="yellowstone" compiler="intel" category="aux_glc">
         <options>
-          <option name="wallclock">1:00</option>
+          <option name="wallclock">1:59</option>
           <!-- 2016-10-25: At least in the ERS_Ly5 test: There is a big jump in
                memory at the start of year 2. In the 5-year run, things then
                stay roughly constant after that. Note that the start of year 2
@@ -197,12 +197,12 @@
     </machines>
   </test>
 
-  <test name="ERI_Lm24" grid="f10_f10" compset="IGCLM45" testmods="clm/glcMEC_long">
+  <test name="ERI_Lm24" grid="f10_f10_musgs" compset="I1850Clm50SpG">
     <machines>
 
       <machine name="yellowstone" compiler="intel" category="aux_glc">
         <options>
-          <option name="wallclock">1:00</option>
+          <option name="wallclock">1:59</option>
           <!-- 2016-10-25: At least in the ERS_Ly5 test: There is a big jump in
                memory at the start of year 2. In the 5-year run, things then
                stay roughly constant after that. Note that the start of year 2
@@ -217,7 +217,7 @@
     </machines>
   </test>
 
-  <test name="ERI" grid="f10_f10" compset="IGCLM45" testmods="cism/test_coupling">
+  <test name="ERI" grid="f10_f10_musgs" compset="I1850Clm50SpG" testmods="cism/test_coupling">
     <machines>
 
       <machine name="yellowstone" compiler="intel" category="aux_glc">
@@ -248,12 +248,12 @@
     </machines>
   </test>
 
-  <test name="SMS_D" grid="T31_g37_gl20" compset="IGCLM45" testmods="cism/test_coupling">
+  <test name="SMS_D" grid="T31_g37_gl20" compset="I1850Clm50SpG" testmods="cism/test_coupling">
     <machines>
 
       <machine name="yellowstone" compiler="gnu" category="aux_glc">
         <options>
-          <option name="wallclock">0:20</option>
+          <option name="wallclock">0:30</option>
           <option name="comment">Basically duplicates a similar test on hobart_nag; I want a version on yellowstone so we do not need to do baseline comparisons on hobart</option>
         </options>
       </machine>
@@ -298,7 +298,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D_Ld5_P24x1" grid="T31_g37_gl20" compset="IGCLM45" testmods="cism/test_coupling">
+  <test name="SMS_D_Ld5_P24x1" grid="T31_g37_gl20" compset="I1850Clm50SpG" testmods="cism/test_coupling">
     <machines>
 
       <machine name="hobart" compiler="nag" category="aux_glc">
