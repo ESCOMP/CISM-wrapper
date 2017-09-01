@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 
-<entries>
+<entry_id version="3.0">
 
-  <description>
-    <desc compset="_CISM1">cism1:</desc>
-    <desc compset="_CISM2">cism2:</desc>
-    <desc compset="_CISM[^_]*%EVOLVE">cism ice evolution turned on:</desc>
-    <desc compset="_CISM[^_]*%NOEVOLVE">cism ice evolution turned off (this is the standard configuration unless you're explicitly interested in ice evolution):</desc>
+  <description modifier_mode="1">
+    <desc glc="CISM1[%EVOLVE][%NOEVOLVE]">cism1 (shallow ice approximation, serial only):</desc>
+    <desc glc="CISM2[%EVOLVE][%NOEVOLVE]">cism2 (default, higher-order, can run in parallel):</desc>
+    <desc option="EVOLVE">cism ice evolution turned on:</desc>
+    <desc option="NOEVOLVE">cism ice evolution turned off (this is the standard configuration unless you're explicitly interested in ice evolution):</desc>
   </description>
 
   <entry id="COMP_GLC"> 
@@ -82,8 +82,6 @@
     =========================================
     CISM naming conventions in compset name
     =========================================
-    CISM1  => cism1 (shallow ice approximation, serial only)
-    CISM2  => cism2 (default, higher-order, can run in parallel)
   </help>
 
-</entries>
+</entry_id>
