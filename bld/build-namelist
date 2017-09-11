@@ -357,6 +357,16 @@ if ($print>=2) { print "Inputdata root directory: $DIN_LOC_ROOT$eol"; }
 ####################################
 
 check_grid($GLC_GRID, $CISM_PHYS);
+if ($CALENDAR ne "NO_LEAP") {
+   # See bug http://bugs.cgd.ucar.edu/show_bug.cgi?id=2507
+   print "CISM currently only supports a NO_LEAP calendar\n";
+   print "Either change the calendar to NO_LEAP\n";
+   print "or create a case without CISM.\n";
+   print "(For the latter, you can use SGLC in place of CISM\n";
+   print "if you don't care about ice evolution. Besides not getting CISM diagnostics,\n";
+   print "this will just result in slightly different glacier cover in CLM.)\n";
+   die "$ProgName: ERROR: CISM currently only supports a NO_LEAP calendar\n";
+}
 
 ####################################
 # namelist group: time_manager_nml #
