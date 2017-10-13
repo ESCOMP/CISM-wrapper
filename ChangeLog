@@ -4,6 +4,66 @@ This file describes what main-trunk tags were created and why
 
 ================================================================================
 Originator: sacks
+Date: Oct 13, 2017
+Model: cism
+Version: cism2_1_41
+One-line summary: Minor fixes to build scripts
+
+Purpose of changes:
+
+   (1) Fixes from Jim Edwards to make the build work with pgi with long
+       paths to the build directory. (This change was needed because
+       cism's buildlib is in perl rather than python... Jim made this
+       Just Work for any buildlib using the python.)
+
+   (2) Change ntasks/ninst check to work with multi-driver: If using
+       multi-driver, it is no longer the case that the number of tasks
+       per instance equals ntasks_glc / ninst_glc. (Instead, ntasks_glc
+       gives the number of tasks per instance.) A new variable has been
+       introduced in cime to account for this (NTASKS_PER_INST); use
+       that new variable in the error check.
+
+   (3) In a hybrid/branch run: If the restart file name with instance
+       number does not exist, then try a file name without the instance
+       number. This is needed when starting a multi-instance case from a
+       single-instance refcase. (See bugzilla bug #2514.)
+
+   (4) Add a 13-month IG test to the prealpha test list: Include one
+       test in the prealpha test list that exercises CISM without
+       resorting to the test_coupling testmod, in order to exercise CISM
+       in a production-like configuration. 13-months rather than 1-year
+       in order to allow time for CISM to affect CLM (and CLM to produce
+       the next month's history file).
+
+Changes answers relative to previous tag: NO
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/):
+- #2514: Incorrect restart file name when starting multi-instance case
+         from a single-instance refcase
+
+List all modified files, and describe the changes:
+
+*** Change (1) above
+M       cime_config/buildlib
+
+*** Changes (2) and (3) above
+M       bld/build-namelist
+
+*** Change (4) above
+M       cime_config/testdefs/testlist_cism.xml
+
+Summary of testing:
+
+   aux_glc test suite, just on yellowstone
+
+Externals used for testing: cesm2_0_alpha07d
+
+cism tag used for baseline comparisons: cism2_1_40
+
+Any other externals that differed in baseline: none
+
+================================================================================
+Originator: sacks
 Date: Sept 11, 2017
 Model: cism
 Version: cism2_1_40

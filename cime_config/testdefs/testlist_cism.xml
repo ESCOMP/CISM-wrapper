@@ -177,6 +177,19 @@
     </machines>
   </test>
 
+  <test name="SMS_Lm13" grid="f10_f10_musgs" compset="I1850Clm50SpG">
+    <machines>
+
+      <machine name="cheyenne" compiler="intel" category="prealpha">
+        <options>
+          <option name="wallclock">2:00</option>
+          <option name="comment">Include one test in the prealpha test list that exercises CISM without resorting to the test_coupling testmod, in order to exercise CISM in a production-like configuration. 13-months rather than 1-year in order to allow time for CISM to affect CLM (and CLM to produce the next month's history file).</option>
+        </options>
+      </machine>
+
+    </machines>
+  </test>
+
   <test name="ERS_Lm24" grid="f10_f10_musgs" compset="I1850Clm50SpG">
     <machines>
 
