@@ -2830,7 +2830,13 @@
 
    else
 
-      write(stdout,*) 'WARNING: GLINT will not handle leap years correctly!!!'
+      ! BUG(wjs, 2017-09-08, bugz 2507)
+      write(stdout,*) 'ERROR: CISM currently does not handle leap years correctly'
+      write(stdout,*) 'Rerun with a NO_LEAP calendar, or create a new case without CISM'
+      call exit_glc(sigAbort, 'ERROR: CISM currently does not handle leap years correctly')
+      ! Even though we abort, the following code is left in place here so that it can be
+      ! used once CISM works with leap years - i.e., once the above error check is
+      ! removed.
 
       !***  First, initialize arrays used to determine date
 

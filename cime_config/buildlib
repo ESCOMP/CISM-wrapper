@@ -1,5 +1,6 @@
 #! /usr/bin/env perl
 use strict;
+use File::Spec;
 
 if ($#ARGV == -1) {
     die " ERROR cism.buildexe: must specify a caseroot input argument";
@@ -18,13 +19,16 @@ my $GMAKE     = `./xmlquery GMAKE     --value`;
 my $CISM_USE_TRILINOS = `./xmlquery  CISM_USE_TRILINOS --value`;
 
 # directory in which glc is built
-my $glc_dir = "$EXEROOT/glc";
+my $glc_dir = "$OBJROOT/glc";
+# get the relative path to EXEROOT - some compilers have
+# issues with long include paths, this helps reduce those problems
+$EXEROOT = File::Spec->abs2rel( $EXEROOT , $glc_dir);
 
 # directory in which glc obj files are built
 my $glc_obj_dir = "$OBJROOT/glc/obj";
 
 # directory in which glimmer-cism library is created
-my $cism_libdir = "$glc_dir/lib"; 
+my $cism_libdir = "$glc_dir/lib";
 
 # directory in which we can find source mods
 my $sourcemod_dir = "$CASEROOT/SourceMods/src.cism";
@@ -105,7 +109,7 @@ my $mkdepends_opts = "-d $cism_libdir/libglimmercismfortran.a";
 # create the glimmer-cism makefile by running cmake (done via a rule
 # in the system-level makefile)
 # ----------------------------------------------------------------------
-my $sysmod = "$GMAKE $glc_dir/Makefile MODEL=cism USER_CMAKE_OPTS=\"$cmake_opts\" USER_MKDEPENDS_OPTS=\"$mkdepends_opts\" GLC_DIR=$glc_dir -f $CASETOOLS/Makefile";
+my $sysmod = "$GMAKE $glc_dir/Makefile MODEL=cism USER_CMAKE_OPTS=\"$cmake_opts\" USER_MKDEPENDS_OPTS=\"$mkdepends_opts\" GLC_DIR=$glc_dir -f $CASETOOLS/Makefile EXEROOT=$EXEROOT";
 system($sysmod) == 0 or die "ERROR cism.buildexe: $sysmod failed: $?\n";
 
 # ----------------------------------------------------------------------

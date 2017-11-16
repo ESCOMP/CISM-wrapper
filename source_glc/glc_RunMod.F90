@@ -19,7 +19,7 @@
    use glc_time_management, only:  thour, time_manager, check_time_flag, init_time_flag
    use shr_sys_mod
    use glc_communicate, only: my_task, master_task
-   use glc_constants, only: verbose, stdout, glc_smb
+   use glc_constants, only: verbose, stdout, glc_smb, test_coupling
    use glc_exit_mod, only : exit_glc, sigAbort
    
    implicit none
@@ -29,6 +29,10 @@
 ! !PUBLIC MEMBER FUNCTIONS:
 
    public :: glc_run
+
+! !PRIVATE MEMBER FUNCTIONS:
+
+   private :: test_coupling_adjust_rofi
 
 !----------------------------------------------------------------------
 !
@@ -93,6 +97,8 @@
   ! Scalar model outputs
  
   ! Other variables
+
+  integer (i4) :: instance_index
  
   !TODO - Remove?  Currently not used
   logical ::  &
@@ -133,8 +139,10 @@
 
          ! TODO(wjs, 2015-03-23) We will need a loop over instances, either here or
          ! around the call to glc_run
+         instance_index = 1
          
-         call glad_gcm (params = ice_sheet, instance_index = 1,        &
+         call glad_gcm (params = ice_sheet, &
+                        instance_index = instance_index,               &
                         time = nint(thour),                            &
                         qsmb = qsmb, tsfc = tsfc,                      &
                         ice_covered = ice_covered, topo = topo,        &
@@ -142,6 +150,11 @@
                         ice_sheet_grid_mask=ice_sheet_grid_mask,       &
                         valid_inputs=valid_inputs,                     &
                         ice_tstep = ice_tstep)
+
+         if (test_coupling) then
+            call test_coupling_adjust_rofi(rofi = rofi, &
+                 ice_sheet_instance = ice_sheet%instances(instance_index))
+         end if
 
      else    ! use PDD scheme
 
@@ -174,6 +187,62 @@
 !EOC
 
    end subroutine glc_run
+
+!***********************************************************************
+!BOP
+! !IROUTINE: test_coupling_adjust_rofi
+! !INTERFACE:
+
+   subroutine test_coupling_adjust_rofi(rofi, ice_sheet_instance)
+     ! !DESCRIPTION:
+     !
+     ! This routine adjusts the ice runoff field (rofi) if we're running with
+     ! test_coupling = .true.
+     !
+     ! This is a bit of a hack. When we're running with test_coupling, we can get
+     ! too-large ice runoff fluxes in the first coupling interval (when CISM sloughs off
+     ! excess ice). This can cause CICE to blow up.
+     !
+     ! In a typical run, the large ice runoff fluxes from the first dynamic time step
+     ! would be averaged with near-zero fluxes from the remaining dynamic time steps in
+     ! the first coupling interval, leading to approximately an order of magnitude
+     ! smaller fluxes. Thus, to avoid crashing test_coupling runs, we adjust the rofi
+     ! flux by a factor that accounts for the fact that, with test_coupling, we aren't
+     ! averaging in the 0 values from (n-1) dynamic time steps in the first coupling
+     ! interval (where n = 1/dt - e.g., if dt = 0.1 yr, then n = 10).
+     !
+     ! We should only have to do this adjustment in the first coupling interval of a run
+     ! that starts from non-spun-up initial conditions. But to avoid the complexity that
+     ! would be needed for that logic to restart correctly in various situations (restart,
+     ! branch, hybrid runs), we simply always do this adjustment. This means that rofi
+     ! will be lower than normal for test_coupling runs, but since this is only meant for
+     ! software testing, this should be okay.
+
+     ! !USES:
+
+     use glad_type, only : glad_instance
+
+     ! !ARGUMENTS:
+     real(r8), intent(inout) :: rofi(:,:)
+     type(glad_instance), intent(in) :: ice_sheet_instance
+
+     !EOP
+     !BOC
+
+     ! Local variables:
+     real(r8) :: tinc ! ice sheet time step (yrs)
+     !-----------------------------------------------------------------------
+     
+     tinc = ice_sheet_instance%model%numerics%tinc
+
+     ! This multiplication by tinc (ice sheet time step) is basically saying: let's
+     ! assume that the given flux appeared in one time step of the year, with the other
+     ! time steps of the year having a flux of 0. See subroutine description above for
+     ! more rationale.
+     rofi(:,:) = rofi(:,:) * tinc
+
+     !EOC
+   end subroutine test_coupling_adjust_rofi
 
 !***********************************************************************
 

@@ -343,6 +343,7 @@ my $RUN_STARTDATE          = $xmlvars{'RUN_STARTDATE'};
 my $RUN_REFCASE            = $xmlvars{'RUN_REFCASE'};
 my $RUN_REFDATE            = $xmlvars{'RUN_REFDATE'};
 my $CONTINUE_RUN           = $xmlvars{'CONTINUE_RUN'};
+my $RUNDIR                 = $xmlvars{'RUNDIR'};
 my $NCPL_BASE_PERIOD       = $xmlvars{'NCPL_BASE_PERIOD'};
 my $GLC_NCPL               = $xmlvars{'GLC_NCPL'};
 my $GLC_TWO_WAY_COUPLING   = $xmlvars{'GLC_TWO_WAY_COUPLING'};
@@ -357,6 +358,16 @@ if ($print>=2) { print "Inputdata root directory: $DIN_LOC_ROOT$eol"; }
 ####################################
 
 check_grid($GLC_GRID, $CISM_PHYS);
+if ($CALENDAR ne "NO_LEAP") {
+   # See bug http://bugs.cgd.ucar.edu/show_bug.cgi?id=2507
+   print "CISM currently only supports a NO_LEAP calendar\n";
+   print "Either change the calendar to NO_LEAP\n";
+   print "or create a case without CISM.\n";
+   print "(For the latter, you can use SGLC in place of CISM\n";
+   print "if you don't care about ice evolution. Besides not getting CISM diagnostics,\n";
+   print "this will just result in slightly different glacier cover in CLM.)\n";
+   die "$ProgName: ERROR: CISM currently only supports a NO_LEAP calendar\n";
+}
 
 ####################################
 # namelist group: time_manager_nml #
@@ -414,8 +425,16 @@ elsif ($CISM_OBSERVED_IC eq 'TRUE') {
    $restart = 0;
 }
 elsif ($RUN_TYPE eq 'branch' || $RUN_TYPE eq 'hybrid') {
+   my $refcase_restfile = "${RUN_REFCASE}.cism${INST_STRING}.r.${RUN_REFDATE}-00000.nc";
+   my $refcase_restfile_fullpath = File::Spec->catfile($RUNDIR, $refcase_restfile);
+   if (! -e $refcase_restfile_fullpath) {
+      # If the version with INST_STRING doesn't exist, try without
+      # INST_STRING. This is needed when starting a multi-instance case
+      # from a single-instance refcase.
+      $refcase_restfile = "${RUN_REFCASE}.cism.r.${RUN_REFDATE}-00000.nc";
+   }
    add_default($nl, 'cisminputfile',
-               'val'=>"${RUN_REFCASE}.cism${INST_STRING}.r.${RUN_REFDATE}-00000.nc", 'noprepend'=>'1');
+               'val'=>$refcase_restfile, 'noprepend'=>'1');
    $restart = 1;
 }
 else {
@@ -998,19 +1017,18 @@ sub check_consistency {
 # ----------------------------------------------------------------------
 # Requirements for running with more than one MPI task per ensemble member
 # ----------------------------------------------------------------------
-    my $NTASKS_GLC = `$CASEROOT/xmlquery NTASKS --subgroup GLC --value --caseroot $CASEROOT`;
-    my $NINST_GLC = `$CASEROOT/xmlquery NINST --subgroup GLC --value --caseroot $CASEROOT`;
+    my $NTASKS_PER_INST_GLC = `$CASEROOT/xmlquery NTASKS_PER_INST --subgroup GLC --value --caseroot $CASEROOT`;
 
-    if ($NTASKS_GLC > $NINST_GLC) {
+    if ($NTASKS_PER_INST_GLC > 1) {
 	if ($nl->get_value('dycore') == 0) {
 	    print "$ProgName: ERROR: With dycore=0 (glide dycore), can only have 1 GLC task per instance\n";
-	    print "NTASKS_GLC = " . $NTASKS_GLC . ", NINST_GLC = " . $NINST_GLC . "\n";
+	    print "NTASKS_PER_INST_GLC = " . $NTASKS_PER_INST_GLC . "\n";
 	    $num_errors += 1;
 	}
 
 	if ($nl->get_value('dycore') == 1 && $nl->get_value('which_ho_sparse') != 4) {
 	    print "$ProgName: ERROR: To run with more than 1 GLC task per instance, with dycore=1, must use trilinos solver (which_ho_sparse=4)\n";
-	    print "NTASKS_GLC = " . $NTASKS_GLC . ", NINST_GLC = " . $NINST_GLC . "\n";
+	    print "NTASKS_PER_INST_GLC = " . $NTASKS_PER_INST_GLC . "\n";
 	    print "which_ho_sparse = " . $nl->get_value('which_ho_sparse') . "\n";
 	    $num_errors += 1;
 	}
