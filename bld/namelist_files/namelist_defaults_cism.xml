@@ -154,6 +154,8 @@ attributes to express the dependency.
 
 <calving_domain>1</calving_domain>
 
+<limit_marine_cliffs>.true.</limit_marine_cliffs>
+
 <calving_init>1</calving_init>
 
 <slip_coeff>0</slip_coeff>
@@ -181,6 +183,8 @@ attributes to express the dependency.
 
 <ntem>1</ntem>
 
+<adaptive_cfl_threshold>0.</adaptive_cfl_threshold>
+
 <!-- To get diagnostic once per year, set this to 1/dt -->
 <dt_diag>1.</dt_diag>
 
@@ -204,6 +208,9 @@ attributes to express the dependency.
 
 <ice_limit cism_phys="cism1">100.</ice_limit>
 <ice_limit cism_phys="cism2">1.</ice_limit>
+
+<thck_gradient_ramp cism_phys="cism1">0.</thck_gradient_ramp>
+<thck_gradient_ramp cism_phys="cism2">10.</thck_gradient_ramp>
 
 <max_slope>0.1</max_slope>
 
@@ -236,6 +243,10 @@ attributes to express the dependency.
 
 <effecpress_bpmp_threshold>0.1</effecpress_bpmp_threshold>
 
+<bwat_till_max>2.0</bwat_till_max>
+
+<C_drainage>0.001</C_drainage>
+
 <beta_grounded_min>100.</beta_grounded_min>
 
 <!-- =============================================================  -->
@@ -246,7 +257,9 @@ attributes to express the dependency.
 
 <which_ho_babc>3</which_ho_babc>
 
-<which_ho_effecpress>1</which_ho_effecpress>
+<which_ho_bwat>2</which_ho_bwat>
+
+<which_ho_effecpress>4</which_ho_effecpress>
 
 <which_ho_efvs>2</which_ho_efvs>
 
@@ -265,13 +278,15 @@ attributes to express the dependency.
 
 <which_ho_gradient>0</which_ho_gradient>
 
-<which_ho_gradient_margin>1</which_ho_gradient_margin>
+<which_ho_gradient_margin>3</which_ho_gradient_margin>
 
 <which_ho_approx>4</which_ho_approx>
 
 <which_ho_precond>1</which_ho_precond>
 
 <which_ho_assemble_beta>1</which_ho_assemble_beta>
+
+<which_ho_assemble_taud>1</which_ho_assemble_taud>
 
 <which_ho_assemble_bfric>1</which_ho_assemble_bfric>
 

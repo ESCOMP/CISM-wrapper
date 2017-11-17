@@ -467,13 +467,18 @@ id="marine_margin"
 type="integer" 
 category="cism_config_options"
 group="cism_config_options"
-valid_values="0,1,2,3,4,5" >
-0: ignore marine margin
-1: set thickness to zero if floating
-2: lose a specified fraction of floating ice
-3: set thickness to zero if relaxed bedrock is below a given depth (marine_limit)
-4: set thickness to zero if current bedrock is below a given depth (marine_limit)
-5: Huybrechts grounding line scheme for Greenland initialization
+valid_values="0,1,2,3,4,5,6,7,8,9" >
+Calving
+0: No calving
+1: Set thickness to zero if floating
+2: Lose a fraction of floating ice at marine margin
+3: Set thickness to zero if relaxed bedrock is more than a certain water depth (marine_limit)
+4: Set thickness to zero if present bedrock topography lies below a certain water depth (marine_limit)
+5: Set thickness to zero based on grid location (field 'calving_mask')
+6: Set thickness to zero if ice at marine margin is thinner than a certain value (calving_minthck)
+7: Set thickness to zero based on strain rate (eigencalving) criterion
+8: Calve ice that is sufficiently damaged
+9: Huybrechts grounding line scheme for Greenland initialization
 Default: 1
 </entry>
 
@@ -488,6 +493,14 @@ valid_values="0,1,2" >
 2: Calve where the calving criterion is met, and there is a connected path
    to the ocean through other cells where the criterion is met
 Default: 1
+</entry>
+
+<entry
+id="limit_marine_cliffs"
+type="logical"
+category="cism_config_options"
+group="cism_config_options" >
+If true, then thin marine-based cliffs based on a thickness threshold
 </entry>
 
 <entry 
@@ -651,6 +664,16 @@ Default: 1
 </entry>
 
 <entry
+id="adaptive_cfl_threshold"
+type="real"
+category="cism_config_time"
+group="cism_config_time" >
+Adaptively subcycle the advection when advective CFL exceeds this value
+(Zero value means no adaptive subcycling.)
+Default: 0.
+</entry>
+
+<entry
 id="profile"
 type="integer"
 category="cism_config_time"
@@ -711,6 +734,15 @@ Below this limit, ice is only accumulated
 Default: 100 for cism1, 1 for cism2
 </entry>
 
+<entry
+id="thck_gradient_ramp"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Thickness scale over which gradients increase from zero to full value (HO only)
+Default: 10. for cism2
+</entry>
+
 <entry 
 id="max_slope"
 type="real" 
@@ -737,6 +769,15 @@ type="real"
 category="cism_config_parameters"
 group="cism_config_parameters" >
 Fraction of ice lost to calving
+Default: (use hard-coded default)
+</entry>
+
+<entry 
+id="taumax_cliff"
+type="real" 
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Yield stress (Pa) for marine-based ice cliffs
 Default: (use hard-coded default)
 </entry>
 
@@ -954,12 +995,21 @@ Default: (use hard-coded default)
 </entry>
 
 <entry
-id="effecpress_bwat_threshold"
+id="bwat_till_max"
 type="real"
 category="cism_config_parameters"
 group="cism_config_parameters" >
-Basal water thickness range over which N ramps from a small value to full overburden (m)
-Default: (use hard-coded default)
+Parameter for local till model: Maximum water depth in till (m)
+Default: 2.0
+</entry>
+
+<entry
+id="C_drainage"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Parameter for local till model: Uniform drainage rate (m/yr)
+Default: 0.001
 </entry>
 
 <entry
@@ -983,7 +1033,7 @@ id="which_ho_babc"
 type="integer"
 category="cism_config_ho_options"
 group="cism_config_ho_options"
-valid_values="0,1,2,3,4,5,6,7,8,9,10,11,12,13" >
+valid_values="0,1,2,3,4,5,6,7,8,9,10,11,12,13,14" >
 Basal boundary condition for higher order dynamical core
 0: spatially uniform value (low value of 10 Pa yr-1 by default)
 1: large value for frozen bed, lower value for bed at pressure melting point
@@ -994,12 +1044,26 @@ Basal boundary condition for higher order dynamical core
 6: no slip everywhere (using Dirichlet BC rather than large beta)
 7: treat beta value as till yield stress (in Pa) using Newton-type iteration (in development)
 8: beta field as prescribed for ISMIP-HOM test C (serial only)
-9: power law based using effective pressure
+9: power law
 10: Coulomb friction law using effective pressure, with flwa from lowest ice layer
 11: Coulomb friction law using effective pressure, with constant basal flwa
 12: basal stress is the minimum of Coulomb and power-law values, as in Tsai et al. (2015)
-13: simple hard-coded pattern (useful for debugging)
+13: power law based on effective pressure
+14: simple hard-coded pattern (useful for debugging)
 Default: 3
+</entry>
+
+<entry
+id="which_ho_bwat"
+type="integer"
+category="cism_config_ho_options"
+group="cism_config_ho_options"
+valid_values="0,1,2" >
+Basal water depth
+0: Set to zero everywhere
+1: Set to constant everywhere, to force T = Tpmp.
+2: Local basal till model with constant drainage
+Default: 2
 </entry>
 
 <entry
@@ -1014,7 +1078,7 @@ Flag that describes effective pressure calculation for higher order dynamical co
 2: N is reduced where there is melting at the bed
 3: N is reduced due to the connection of subglacial water to the ocean
 4: N is reduced where basal water is present
-Default: 1
+Default: 4
 </entry>
 
 <entry
@@ -1115,13 +1179,20 @@ id="which_ho_gradient_margin"
 type="integer"
 category="cism_config_ho_options"
 group="cism_config_ho_options"
-valid_values="0,1,2" >
+valid_values="0,1,2,3" >
 How to compute the gradient at the ice margin in the glissade dycore.
 Not valid for other dycores.
-0: Use info from all neighbor cells, ice-covered or ice-free
-1: Use info from ice-covered and/or land cells, not ice-free ocean
-2: Use info from ice-covered cells only
-Default: 1
+Note: Gradients are always computed at edges with ice on both sides.
+The methods differ in whether gradients are computed when an ice-covered cell
+lies above an ice-free cell (land or ocean).
+Option 3 is appropriate for ice sheets with both land and marine boundaries
+when a lateral spreading force is computed for marine ice cliffs.
+This lateral force ensures spreading where the gradient is zero.
+0: Compute edge gradient when either cell is ice-covered
+1: Compute edge gradient for grounded ice above ice-free land or ocean
+2: Compute edge gradient only when both cells have ice
+3: Compute edge gradient for ice-covered cell above ice-free land (not ocean)
+Default: 3
 </entry>
 
 <entry
@@ -1177,7 +1248,7 @@ Flag that describes how driving-stress terms are assembled in the glissade finit
 Not valid for other dycores
 0: Standard finite-element calculation (which effectively smooths the driving stress)
 1: Apply local value of driving stress at each vertex
-Default: (use hard-coded default)
+Default: 1
 </entry>
 
 <entry
