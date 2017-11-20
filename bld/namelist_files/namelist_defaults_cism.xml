@@ -245,8 +245,6 @@ attributes to express the dependency.
 
 <bwat_till_max>2.0</bwat_till_max>
 
-<C_drainage>0.001</C_drainage>
-
 <beta_grounded_min>100.</beta_grounded_min>
 
 <!-- =============================================================  -->

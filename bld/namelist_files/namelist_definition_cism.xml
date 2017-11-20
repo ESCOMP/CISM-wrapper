@@ -1004,12 +1004,12 @@ Default: 2.0
 </entry>
 
 <entry
-id="C_drainage"
+id="c_drainage"
 type="real"
 category="cism_config_parameters"
 group="cism_config_parameters" >
 Parameter for local till model: Uniform drainage rate (m/yr)
-Default: 0.001
+Default: (use hard-coded default)
 </entry>
 
 <entry

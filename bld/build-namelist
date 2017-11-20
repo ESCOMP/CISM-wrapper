@@ -563,7 +563,6 @@ add_default($nl, 'basal_tract_const');
 add_default($nl, 'effecpress_delta');
 add_default($nl, 'effecpress_bpmp_threshold');
 add_default($nl, 'bwat_till_max');
-add_default($nl, 'C_drainage');
 add_default($nl, 'beta_grounded_min');
 $nl->write_cism_config($fh, "cism_config_parameters");
 
