@@ -1063,7 +1063,7 @@ type="real"
 category="cism_config_parameters"
 group="cism_config_parameters" >
 Parameter for local till model: Maximum water depth in till (m)
-Default: 2.0
+Default: (use hard-coded default)
 </entry>
 
 <entry
