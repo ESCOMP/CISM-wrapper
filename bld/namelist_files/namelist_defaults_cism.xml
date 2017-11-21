@@ -151,7 +151,8 @@ attributes to express the dependency.
 
 <basal_mass_balance>1</basal_mass_balance>
 
-<gthf>0</gthf>
+<gthf cism_phys="cism1">0</gthf>
+<gthf cism_phys="cism2">1</gthf>
 
 <isostasy>0</isostasy>
 

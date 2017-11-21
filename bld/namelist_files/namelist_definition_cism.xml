@@ -626,9 +626,10 @@ category="cism_config_options"
 group="cism_config_options"
 valid_values="0,1,2" >
 0: prescribed uniform geothermal heat flux
-1: read 2D geothermal flux field from input file (if present)
+1: read 2D geothermal flux field from input file, if present
+   (if absent, fall back to prescribed uniform geothermal heat flux)
 2: calculate geothermal flux using 3d diffusion
-Default: 0
+Default: 0 for cism1, 1 for cism2
 </entry>
 
 <entry 
