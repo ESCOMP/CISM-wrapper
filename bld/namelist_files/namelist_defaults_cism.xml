@@ -252,8 +252,6 @@ attributes to express the dependency.
 
 <effecpress_bpmp_threshold>0.1</effecpress_bpmp_threshold>
 
-<bwat_till_max>2.0</bwat_till_max>
-
 <beta_grounded_min>100.</beta_grounded_min>
 
 <!-- =============================================================  -->
