@@ -105,6 +105,9 @@ attributes to express the dependency.
 <dns glc_grid="gland5UM">5000.</dns>
 <dns glc_grid="gland4"  >4000.</dns>
 
+<global_bc cism_phys="cism1">0</global_bc>
+<global_bc cism_phys="cism2">1</global_bc>
+
 <!-- =============================================================  -->
 <!-- group: cism.config: sigma                                      -->
 <!-- =============================================================  -->
@@ -144,6 +147,8 @@ attributes to express the dependency.
 
 <basal_water>0</basal_water>
 
+<bmlt_float>0</bmlt_float>
+
 <basal_mass_balance>1</basal_mass_balance>
 
 <gthf>0</gthf>
@@ -154,7 +159,11 @@ attributes to express the dependency.
 
 <calving_domain>1</calving_domain>
 
+<remove_icebergs>.true.</remove_icebergs>
+
 <limit_marine_cliffs>.true.</limit_marine_cliffs>
+
+<cull_calving_front>.false.</cull_calving_front>
 
 <calving_init>1</calving_init>
 
@@ -288,7 +297,15 @@ attributes to express the dependency.
 
 <which_ho_assemble_bfric>1</which_ho_assemble_bfric>
 
+<!-- 2017-11-21: Bill Lipscomb says: For Antarctic runs, we'll want to
+     set this to 1, for accuracy and stability.  But for Greenland runs
+     out of the box, it's OK to use the CISM default of 0, since there's
+     no floating ice. -->
+<which_ho_calving_front>0</which_ho_calving_front>
+
 <which_ho_ground>0</which_ho_ground>
+
+<which_ho_ground_bmlt>0</which_ho_ground_bmlt>
 
 <which_ho_flotation_function>1</which_ho_flotation_function>
 

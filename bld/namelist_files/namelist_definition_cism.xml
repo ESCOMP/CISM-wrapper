@@ -347,6 +347,19 @@ Node spacing in y-direction (m)
 Default: resolution-dependent
 </entry>
 
+<entry 
+id="global_bc" 
+type="integer" 
+category="cism_config_grid"
+group="cism_config_grid"
+valid_values="0,1,2" >
+Global boundary conditions
+0: Doubly periodic
+1: Free outflow; scalars in global halo set to zero
+2: No penetration; outflow set to zero at global boundaries (only supported for glissade)
+Default: 0 for cism1, 1 for cism2
+</entry>
+
 <!-- =============================================================  -->
 <!-- group: cism.config: sigma                                      -->
 <!-- =============================================================  -->
@@ -463,6 +476,21 @@ Default: 0
 </entry>
 
 <entry 
+id="bmlt_float"
+type="integer" 
+category="cism_config_options"
+group="cism_config_options"
+valid_values="0,1,2,3,4" >
+Basal melt rate for floating ice
+0: Basal melt rate = 0 for floating ice
+1: Basal melt rate for floating ice as prescribed for MISMIP+
+2: Basal melt rate = constant for floating ice (with option to selectively mask out melting)
+3: Basal melt rate for floating ice from MISOMIP ocean forcing with plume model
+4: External basal melt rate field (from input file or coupler)
+Default: 0
+</entry>
+
+<entry 
 id="marine_margin"
 type="integer" 
 category="cism_config_options"
@@ -496,11 +524,34 @@ Default: 1
 </entry>
 
 <entry
+id="remove_icebergs"
+type="logical"
+category="cism_config_options"
+group="cism_config_options" >
+If true, then identify and remove icebergs after calving.
+These are connected regions with zero basal traction and no connection to grounded ice.
+Safer to make it true (and this is needed for stability when allowing floating ice
+with more advanced calving options), but not necessary for all applications.
+Default: .true.
+</entry>
+
+<entry
 id="limit_marine_cliffs"
 type="logical"
 category="cism_config_options"
 group="cism_config_options" >
 If true, then thin marine-based cliffs based on a thickness threshold
+</entry>
+
+<entry
+id="cull_calving_front"
+type="logical"
+category="cism_config_options"
+group="cism_config_options" >
+Expert setting.
+If true, then cull calving_front cells at initialization.
+This can make the run more stable by removing long, thin peninsulas.
+Default: .false.
 </entry>
 
 <entry 
@@ -670,6 +721,9 @@ category="cism_config_time"
 group="cism_config_time" >
 Adaptively subcycle the advection when advective CFL exceeds this value
 (Zero value means no adaptive subcycling.)
+This is an expert setting. If you use a non-zero value, you may be able
+to run with a longer timestep when using the more advanced calving
+options, but you can also mask large, unphysical velocities.
 Default: 0.
 </entry>
 
@@ -778,6 +832,15 @@ type="real"
 category="cism_config_parameters"
 group="cism_config_parameters" >
 Yield stress (Pa) for marine-based ice cliffs
+Default: (use hard-coded default)
+</entry>
+
+<entry 
+id="cliff_timescale"
+type="real" 
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Time scale (yr) for limiting marine cliffs (glissade only)
 Default: (use hard-coded default)
 </entry>
 
@@ -1265,6 +1328,18 @@ Default: 1
 </entry>
 
 <entry
+id="which_ho_calving_front"
+type="integer"
+category="cism_config_ho_options"
+group="cism_config_ho_options"
+valid_values="0,1" >
+Flag that indicates whether to use a subgrid calving front parameterization
+0: No subgrid calving front parameterization
+1: Use subgrid calving front parameterization
+Default: 0
+</entry>
+
+<entry
 id="which_ho_ground"
 type="integer"
 category="cism_config_ho_options"
@@ -1275,6 +1350,19 @@ Not valid for other dycores
 0: fground = 0 in floating cells (based on flotation condition), else fground = 1 
 1: fground between 0 and 1 (inclusive), based on a grounding line parameterization
 2: fground = 1 in all cells
+Default: 0
+</entry>
+
+<entry
+id="which_ho_ground_bmlt"
+type="integer"
+category="cism_config_ho_options"
+group="cism_config_ho_options"
+valid_values="0,1" >
+Expert setting for marine ice runs.
+Flag that indicates how to compute bmlt_float in partly grounded cells
+0: Apply bmlt_float in all floating cells, including partly grounded cells
+1: Do not apply bmlt_float in partly grounded cells
 Default: 0
 </entry>
 
