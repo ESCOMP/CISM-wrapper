@@ -177,20 +177,22 @@ attributes to express the dependency.
 <!-- group: cism.config: time                                       -->
 <!-- =============================================================  -->
 
+<!-- Note: if change dt, also should change dt_diag -->
 <dt glc_grid="gland20"  cism_phys="cism1">0.1</dt>
 <dt glc_grid="gland5UM" cism_phys="cism1">0.05</dt>
-
 <!-- A dt of 1 seems sufficient for cism2 gland20. However, use 0.5 because (a)
      this is less likely to break due to instabilities, and (b) it exercises the
      code in a more typical configuration (i.e., with a sub-annual time step) -->
 <dt glc_grid="gland20"  cism_phys="cism2">0.5</dt>
+<dt glc_grid="gland4"   cism_phys="cism2">0.25</dt>
 
-<dt glc_grid="gland4"   cism_phys="cism2">0.1</dt>
+<!-- Set dt_diag same as dt in order to get diagnostics every time step -->
+<dt_diag glc_grid="gland20"  cism_phys="cism1">0.1</dt_diag>
+<dt_diag glc_grid="gland5UM" cism_phys="cism1">0.05</dt_diag>
+<dt_diag glc_grid="gland20"  cism_phys="cism2">0.5</dt_diag>
+<dt_diag glc_grid="gland4"   cism_phys="cism2">0.25</dt_diag>
 
 <adaptive_cfl_threshold>0.</adaptive_cfl_threshold>
-
-<!-- To get diagnostic once per year, set this to 1/dt -->
-<dt_diag>1.</dt_diag>
 
 <!-- 5-km idiag & jdiag chosen by Jeremy Fyke, as a point prone to CFL
      instability (in trunk of Jakobshavn); 20-km and 4-km points

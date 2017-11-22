@@ -745,7 +745,7 @@ category="cism_config_time"
 group="cism_config_time" >
 Diagnostic frequency (years)
 Set to 0 for no diagnostic output; set to dt for diagnostic output every time step
-Default: 1
+Default: Same as dt
 </entry>
 
 <entry 
