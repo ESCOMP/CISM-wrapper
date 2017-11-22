@@ -218,14 +218,10 @@ attributes to express the dependency.
 
 <max_slope>0.1</max_slope>
 
-<marine_limit>-200.</marine_limit>
-
 <geothermal>-5.e-2</geothermal>
 
 <flow_factor cism_phys="cism1">3.</flow_factor>
 <flow_factor cism_phys="cism2">1.</flow_factor>
-
-<hydro_time>1000.</hydro_time>
 
 <pmp_offset>5.</pmp_offset>
 

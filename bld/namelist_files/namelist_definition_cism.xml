@@ -816,7 +816,8 @@ category="cism_config_parameters"
 group="cism_config_parameters" >
 All ice is assumed lost once water depths reach this value (for marine_margin=2 or 4) (m)
 Note that water depth is negative
-Default: -200.
+Only relevant for cism1 (glide dycore)
+Default: (use hard-coded default)
 </entry>
 
 <entry 
@@ -892,8 +893,9 @@ type="real"
 category="cism_config_parameters"
 group="cism_config_parameters" >
 Time scale for basal water to drain (yr-1)
+Only relevant for cism1 (glide dycore)
 (Not relevant for basal_water=2)
-Default: 1000.
+Default: (use hard-coded default)
 </entry>
 
 <entry 
