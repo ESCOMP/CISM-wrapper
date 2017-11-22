@@ -446,4 +446,18 @@
 
     </machines>
   </test>
+
+  <test name="SMS_Lm13" grid="f10_f10_musgs" compset="I2000Clm50Sp">
+    <machines>
+
+      <machine name="yellowstone" compiler="intel" category="aux_glc">
+        <options>
+          <option name="wallclock">2:00</option>
+          <option name="comment">Include an I compset test with CISM in NOEVOLVE mode. The purpose of this test is: Often there are answer changes in CISM, but we expect that these should not affect NOEVOLVE runs (which is the typical CESM configuration). This test allows us to do a baseline comparison to confirm that expectation. 13-months rather than 1-year in order to allow time for CISM to affect CLM (and CLM to produce the next month's history file).</option>
+        </options>
+      </machine>
+
+    </machines>
+  </test>
+
 </testlist>
