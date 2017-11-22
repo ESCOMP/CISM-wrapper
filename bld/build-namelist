@@ -564,7 +564,6 @@ add_default($nl, 'pseudo_plastic_bedmin');
 add_default($nl, 'pseudo_plastic_bedmax');
 add_default($nl, 'basal_tract_const');
 add_default($nl, 'effecpress_delta');
-add_default($nl, 'effecpress_bpmp_threshold');
 add_default($nl, 'beta_grounded_min');
 $nl->write_cism_config($fh, "cism_config_parameters");
 

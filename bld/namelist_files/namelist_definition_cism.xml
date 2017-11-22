@@ -1046,7 +1046,8 @@ category="cism_config_parameters"
 group="cism_config_parameters" >
 Parameter for reducing the effective pressure where the bed is warm, saturated or connected to the ocean:
 Temperature range over which N ramps from a small value to full overburden (deg C)
-Default: 0.1
+Only applies for which_ho_effecpress = 1.
+Default: (use hard-coded default)
 </entry>
 
 <entry
