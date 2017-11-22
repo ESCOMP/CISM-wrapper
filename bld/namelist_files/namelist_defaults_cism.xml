@@ -187,8 +187,6 @@ attributes to express the dependency.
 
 <dt glc_grid="gland4"   cism_phys="cism2">0.1</dt>
 
-<ntem>1</ntem>
-
 <adaptive_cfl_threshold>0.</adaptive_cfl_threshold>
 
 <!-- To get diagnostic once per year, set this to 1/dt -->

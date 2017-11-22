@@ -538,7 +538,6 @@ else {
 
 print $fh "\n[time]\n";
 add_default($nl, 'dt');
-add_default($nl, 'ntem');
 add_default($nl, 'adaptive_cfl_threshold');
 add_default($nl, 'dt_diag');
 add_default($nl, 'idiag');

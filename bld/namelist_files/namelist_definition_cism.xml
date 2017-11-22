@@ -704,7 +704,7 @@ category="cism_config_time"
 group="cism_config_time" >
 Multiplier of ice sheet timestep, dt
 (in theory, can be real-valued, but values less than 1 are not handled properly, so restricted to being an integer)
-Default: 1
+Default: (use hard-coded default: 1)
 </entry>
 
 <entry
