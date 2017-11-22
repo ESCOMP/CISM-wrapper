@@ -218,6 +218,8 @@ attributes to express the dependency.
 
 <max_slope>0.1</max_slope>
 
+<taumax_cliff>1.e6</taumax_cliff>
+
 <geothermal>-5.e-2</geothermal>
 
 <flow_factor cism_phys="cism1">3.</flow_factor>
@@ -240,6 +242,10 @@ attributes to express the dependency.
 <basal_tract_const>1.e-4</basal_tract_const>
 
 <effecpress_delta>0.02</effecpress_delta>
+
+<bwat_till_max>2.0</bwat_till_max>
+
+<c_drainage>1.e-3</c_drainage>
 
 <beta_grounded_min>100.</beta_grounded_min>
 
