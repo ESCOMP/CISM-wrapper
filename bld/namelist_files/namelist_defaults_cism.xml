@@ -145,8 +145,6 @@ attributes to express the dependency.
 
 <flow_law>2</flow_law>
 
-<basal_water>0</basal_water>
-
 <bmlt_float>0</bmlt_float>
 
 <basal_mass_balance>1</basal_mass_balance>

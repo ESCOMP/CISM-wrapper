@@ -465,14 +465,14 @@ id="basal_water"
 type="integer" 
 category="cism_config_options"
 group="cism_config_options"
-valid_values="0,1,2,3,4" >
+valid_values="0,1,2,3" >
 Determines the treatment of basal water
+Only valid for glide dycore (cism1)
 0: Set to zero everywhere
 1: Calculated from local water balance
 2: Compute the basal water flux, then find depth via calculation
-3: Set to constant everywhere (10m)
-4: Calculated from till water content, in the basal processes module
-Default: 0
+3: Set to constant everywhere (10m), to force T = Tpmp
+Default: (use hard-coded default - currently 0)
 </entry>
 
 <entry 
