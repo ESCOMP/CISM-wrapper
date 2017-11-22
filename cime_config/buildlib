@@ -1,6 +1,7 @@
 #! /usr/bin/env perl
 use strict;
 use File::Spec;
+use File::Compare;
 
 if ($#ARGV == -1) {
     die " ERROR cism.buildexe: must specify a caseroot input argument";
@@ -40,14 +41,16 @@ chdir "$glc_obj_dir";
 # ----------------------------------------------------------------------
 # The following just gives the filepath for the cesm-specific code:
 # the glimmer-cism stuff is picked up by the cmake-based build
-
-open(file,">Filepath") or die "Could not open file Filepath to write";
+open(file,">Filepath.new") or die "Could not open file Filepath.new to write";
 print file "$sourcemod_dir \n";
 print file "$SRCROOT/components/cism/drivers/cpl \n";
 print file "$SRCROOT/components/cism/source_glc \n";
 print file "$SRCROOT/components/cism/mpi \n";
 close(file);
 
+if (compare("Filepath","Filepath.new") != 0){
+    rename("Filepath.new", "Filepath");
+}
 # ----------------------------------------------------------------------
 # Set options to cmake
 #
