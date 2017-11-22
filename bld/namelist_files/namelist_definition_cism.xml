@@ -551,7 +551,8 @@ group="cism_config_options" >
 Expert setting.
 If true, then cull calving_front cells at initialization.
 This can make the run more stable by removing long, thin peninsulas.
-Default: .false.
+If this is set, then also need to set ncull_calving_front.
+Default: (use hard-coded default - currently .false.)
 </entry>
 
 <entry 
@@ -842,6 +843,17 @@ type="real"
 category="cism_config_parameters"
 group="cism_config_parameters" >
 Time scale (yr) for limiting marine cliffs (glissade only)
+Default: (use hard-coded default)
+</entry>
+
+<entry 
+id="ncull_calving_front"
+type="integer" 
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Number of times to cull calving_front cells at initialization
+Set to a larger value to remove thicker peninsulas
+To use this, also set cull_calving_front to .true.
 Default: (use hard-coded default)
 </entry>
 

@@ -162,8 +162,6 @@ attributes to express the dependency.
 
 <limit_marine_cliffs>.true.</limit_marine_cliffs>
 
-<cull_calving_front>.false.</cull_calving_front>
-
 <calving_init>1</calving_init>
 
 <slip_coeff>0</slip_coeff>

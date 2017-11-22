@@ -516,7 +516,6 @@ add_default($nl, 'marine_margin');
 add_default($nl, 'calving_domain');
 add_default($nl, 'remove_icebergs');
 add_default($nl, 'limit_marine_cliffs');
-add_default($nl, 'cull_calving_front');
 add_default($nl, 'calving_init');
 add_default($nl, 'slip_coeff');
 add_default($nl, 'evolution');
