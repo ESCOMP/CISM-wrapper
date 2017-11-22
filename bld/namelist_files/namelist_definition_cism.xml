@@ -31,7 +31,7 @@ type="char*100"
 category="cism" 
 group="cism_params" 
 valid_values="">
-Name of top-level configuration file for Glimmer Glacier model
+Name of top-level configuration file for CISM
 (Determined by scripts -- cannot be set by user)
 </entry>
 

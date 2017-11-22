@@ -623,7 +623,7 @@ print $fh <<"EOF";
 ########################################
 
 \[CF default]
-title: Glimmer-CISM simulation
+title: CISM simulation
 institution: Community Earth System Model
 EOF
 
