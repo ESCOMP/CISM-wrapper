@@ -4,7 +4,7 @@
   <test name="ERI_Ly44" grid="f09_g16_gl20" compset="T1850G" testmods="cism/isostasy_period4">
     <machines>
 
-      <machine name="yellowstone" compiler="intel" category="aux_glc">
+      <machine name="cheyenne" compiler="intel" category="aux_glc">
         <options>
           <option name="wallclock">0:40</option>
           <option name="comment">include a longer ERI test to catch problems that may just show up after longer runs, using a coarse resolution to get faster turnaround and lower cost; include isostasy because there are extra subtleties with getting isostasy to restart exactly</option>
@@ -23,7 +23,7 @@
         </options>
       </machine>
 
-      <machine name="yellowstone" compiler="intel" category="aux_glc">
+      <machine name="cheyenne" compiler="intel" category="aux_glc">
         <options>
           <option name="wallclock">0:40</option>
           <option name="comment">include an ERI test at the production resolution, to exercise all options used at that resolution; include isostasy because there are extra subtleties with getting isostasy to restart exactly</option>
@@ -36,7 +36,7 @@
   <test name="ERS_D_Ld9" grid="f10_f10_musgs" compset="I1850Clm50SpG" testmods="cism/override_glc_frac">
     <machines>
 
-      <machine name="yellowstone" compiler="pgi" category="aux_glc">
+      <machine name="cheyenne" compiler="gnu" category="aux_glc">
         <options>
           <option name="wallclock">0:30</option>
           <option name="comment">Make sure glc override options work correctly, and restart properly. Note that we do not generate cism history files in this test, but that is okay: this test is about what is sent to the coupler, not what is output by CISM. (And currently CISM history files do not restart properly in this test.)</option>
@@ -49,7 +49,7 @@
   <test name="ERS_Ly11" grid="f09_g16_gl20" compset="T1850G">
     <machines>
 
-      <machine name="yellowstone" compiler="gnu" category="aux_glc">
+      <machine name="cheyenne" compiler="gnu" category="aux_glc">
         <options>
           <option name="wallclock">0:20</option>
         </options>
@@ -61,7 +61,7 @@
   <test name="ERS_Ly11" grid="f09_g16_gl20" compset="T1850G" testmods="cism/oneway">
     <machines>
 
-      <machine name="yellowstone" compiler="gnu" category="aux_glc">
+      <machine name="cheyenne" compiler="gnu" category="aux_glc">
         <options>
           <option name="wallclock">0:20</option>
           <option name="comment">(3-3-16) identical to an existing non-oneway test, which generates some non-zero runoff fluxes</option>
@@ -74,7 +74,7 @@
   <test name="ERS_D_Ly3" grid="f09_g16_gl5" compset="T1850G1" testmods="cism/noevolve">
     <machines>
 
-      <machine name="yellowstone" compiler="gnu" category="aux_glc">
+      <machine name="cheyenne" compiler="gnu" category="aux_glc">
         <options>
           <option name="wallclock">0:20</option>
           <option name="comment">ice evolution off is the typical operation of cism within cesm, so test that for both CISM1 and CISM2</option>
@@ -87,7 +87,7 @@
   <test name="ERS_D_Ly3" grid="f09_g16_gl4" compset="T1850G" testmods="cism/noevolve">
     <machines>
 
-      <machine name="yellowstone" compiler="pgi" category="aux_glc">
+      <machine name="cheyenne" compiler="intel" category="aux_glc">
         <options>
           <option name="wallclock">0:30</option>
           <option name="comment">ice evolution off is the typical operation of cism within cesm, so test that for both CISM1 and CISM2</option>
@@ -100,16 +100,16 @@
   <test name="ERS_Ly20_N2_P2" grid="f09_g16_gl20" compset="T1850G1">
     <machines>
 
-      <machine name="yellowstone" compiler="pgi" category="aux_glc">
+      <machine name="cheyenne" compiler="gnu" category="aux_glc">
         <options>
-          <option name="wallclock">0:20</option>
+          <option name="wallclock">0:30</option>
           <option name="comment">Include a CISM1 multi-instance test</option>
         </options>
       </machine>
 
-      <machine name="cheyenne" compiler="intel" category="prealpha">
+      <machine name="cheyenne" compiler="gnu" category="prealpha">
         <options>
-          <option name="wallclock">0:20</option>
+          <option name="wallclock">0:30</option>
         </options>
       </machine>
 
@@ -119,9 +119,9 @@
   <test name="ERI_N2_Ly9" grid="f09_g16_gl20" compset="T1850G">
     <machines>
 
-      <machine name="yellowstone" compiler="intel" category="aux_glc">
+      <machine name="cheyenne" compiler="gnu" category="aux_glc">
         <options>
-          <option name="wallclock">0:30</option>
+          <option name="wallclock">0:45</option>
           <option name="comment">Include a multi-instance ERI test to catch problems with multi-instance branch/hybrid runs</option>
         </options>
       </machine>
@@ -132,7 +132,7 @@
   <test name="ERS_Ly3_N2_D" grid="f09_g16_gl20" compset="T1850G">
     <machines>
 
-      <machine name="yellowstone" compiler="intel" category="aux_glc">
+      <machine name="cheyenne" compiler="intel" category="aux_glc">
         <options>
           <option name="wallclock">0:30</option>
           <option name="comment">Include a CISM2 multi-instance restart test, and a multi-instance debug test</option>
@@ -158,7 +158,7 @@
         </options>
       </machine>
 
-      <machine name="yellowstone" compiler="intel" category="aux_glc">
+      <machine name="cheyenne" compiler="intel" category="aux_glc">
         <options>
           <option name="wallclock">0:20</option>
           <option name="comment">include one test of the typical production resolution for CISM2</option>
@@ -177,7 +177,7 @@
   <test name="ERS_Ly3" grid="f10_f10_musgs" compset="I1850Clm50SpG">
     <machines>
 
-      <machine name="yellowstone" compiler="intel" category="aux_glc">
+      <machine name="cheyenne" compiler="intel" category="aux_glc">
         <options>
           <option name="wallclock">1:59</option>
           <!-- 2016-10-25: There is a big jump in memory at the start of year
@@ -209,7 +209,7 @@
   <test name="ERS_Lm24" grid="f10_f10_musgs" compset="I1850Clm50SpG">
     <machines>
 
-      <machine name="yellowstone" compiler="intel" category="aux_glc">
+      <machine name="cheyenne" compiler="intel" category="aux_glc">
         <options>
           <option name="wallclock">1:59</option>
           <!-- 2016-10-25: At least in the ERS_Ly5 test: There is a big jump in
@@ -229,7 +229,7 @@
   <test name="ERI_Lm24" grid="f10_f10_musgs" compset="I1850Clm50SpG" testmods="cism/isostasy_period4">
     <machines>
 
-      <machine name="yellowstone" compiler="intel" category="aux_glc">
+      <machine name="cheyenne" compiler="intel" category="aux_glc">
         <options>
           <option name="wallclock">1:59</option>
           <!-- 2016-10-25: At least in the ERS_Ly5 test: There is a big jump in
@@ -249,9 +249,9 @@
   <test name="ERI" grid="f10_f10_musgs" compset="I1850Clm50SpG" testmods="cism/test_coupling">
     <machines>
 
-      <machine name="yellowstone" compiler="intel" category="aux_glc">
+      <machine name="cheyenne" compiler="gnu" category="aux_glc">
         <options>
-          <option name="wallclock">0:30</option>
+          <option name="wallclock">0:45</option>
           <option name="comment">Changes often break the test_coupling testmod, so include an ERI test with this testmod to help catch these problems</option>
         </options>
       </machine>
@@ -268,7 +268,7 @@
         </options>
       </machine>
 
-      <machine name="yellowstone" compiler="pgi" category="aux_glc">
+      <machine name="cheyenne" compiler="gnu" category="aux_glc">
         <options>
           <option name="wallclock">0:20</option>
         </options>
@@ -280,10 +280,10 @@
   <test name="SMS_D" grid="T31_g37_gl20" compset="I1850Clm50SpG" testmods="cism/test_coupling">
     <machines>
 
-      <machine name="yellowstone" compiler="gnu" category="aux_glc">
+      <machine name="cheyenne" compiler="gnu" category="aux_glc">
         <options>
           <option name="wallclock">0:30</option>
-          <option name="comment">Basically duplicates a similar test on hobart_nag; I want a version on yellowstone so we do not need to do baseline comparisons on hobart</option>
+          <option name="comment">Basically duplicates a similar test on hobart_nag; I want a version on cheyenne so we do not need to do baseline comparisons on hobart</option>
         </options>
       </machine>
 
@@ -293,13 +293,7 @@
   <test name="SMS_D" grid="f09_g16_gl20" compset="T1850G1">
     <machines>
 
-      <machine name="yellowstone" compiler="gnu" category="aux_glc">
-        <options>
-          <option name="wallclock">0:30</option>
-        </options>
-      </machine>
-
-      <machine name="yellowstone" compiler="pgi" category="aux_glc">
+      <machine name="cheyenne" compiler="gnu" category="aux_glc">
         <options>
           <option name="wallclock">0:30</option>
         </options>
@@ -318,7 +312,7 @@
   <test name="SMS_D" grid="f09_g16_gl5" compset="T1850G1">
     <machines>
 
-      <machine name="yellowstone" compiler="intel" category="aux_glc">
+      <machine name="cheyenne" compiler="intel" category="aux_glc">
         <options>
           <option name="wallclock">0:30</option>
         </options>
@@ -354,7 +348,7 @@
   <test name="SMS_D_Ly1" grid="f09_g16_gl4" compset="T1850G" testmods="cism/isostasy_period1">
     <machines>
 
-      <machine name="yellowstone" compiler="pgi" category="aux_glc">
+      <machine name="cheyenne" compiler="intel" category="aux_glc">
         <options>
           <option name="wallclock">0:20</option>
           <option name="comment">Include a debug test with isostasy turned on</option>
@@ -367,7 +361,7 @@
   <test name="SMS_D_Ly1" grid="f09_g16_gl4" compset="T1850G">
     <machines>
 
-      <machine name="yellowstone" compiler="gnu" category="aux_glc">
+      <machine name="cheyenne" compiler="gnu" category="aux_glc">
         <options>
           <option name="wallclock">0:20</option>
         </options>
@@ -379,25 +373,13 @@
   <test name="SMS_D_Ly1" grid="f09_g16_gl4" compset="T1850G">
     <machines>
 
-      <machine name="yellowstone" compiler="intel" category="aux_glc">
+      <machine name="cheyenne" compiler="intel" category="aux_glc">
         <options>
           <option name="wallclock">0:20</option>
         </options>
       </machine>
 
       <machine name="cheyenne" compiler="intel" category="prebeta">
-        <options>
-          <option name="wallclock">0:20</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
-
-  <test name="SMS_D_Ly1" grid="f09_g16_gl20" compset="T1850G" testmods="cism/trilinos">
-    <machines>
-
-      <machine name="yellowstone" compiler="intel" category="aux_glc">
         <options>
           <option name="wallclock">0:20</option>
         </options>
@@ -416,6 +398,13 @@
         </options>
       </machine>
 
+      <machine name="hobart" compiler="pgi" category="aux_glc">
+        <options>
+          <option name="wallclock">1:59</option>
+          <option name="comment">include a pgi test of CISM2</option>
+        </options>
+      </machine>
+
     </machines>
   </test>
 
@@ -426,6 +415,13 @@
         <options>
           <option name="wallclock">1:59</option>
           <option name="comment">multi-year nag debug test of CISM1</option>
+        </options>
+      </machine>
+
+      <machine name="hobart" compiler="pgi" category="aux_glc">
+        <options>
+          <option name="wallclock">1:59</option>
+          <option name="comment">include a pgi test of CISM1</option>
         </options>
       </machine>
 
@@ -448,7 +444,7 @@
   <test name="ERS_Ly5" grid="f09_g16_gl4" compset="T1850G" testmods="cism/isostasy_period4">
     <machines>
 
-      <machine name="yellowstone" compiler="gnu" category="aux_glc">
+      <machine name="cheyenne" compiler="gnu" category="aux_glc">
         <options>
           <option name="wallclock">0:30</option>
           <option name="comment">Include an exact restart test with isostasy, where we restart in the middle of the isostasy update period</option>
@@ -461,7 +457,7 @@
   <test name="ERS_Ly3" grid="f09_g16_gl4" compset="T1850G" testmods="cism/isostasy_period1">
     <machines>
 
-      <machine name="yellowstone" compiler="gnu" category="aux_glc">
+      <machine name="cheyenne" compiler="gnu" category="aux_glc">
         <options>
           <option name="wallclock">0:20</option>
           <option name="comment">Include an exact restart test with isostasy, where restart aligns with the isostasy update period</option>
@@ -474,7 +470,7 @@
   <test name="SMS_Lm13" grid="f10_f10_musgs" compset="I2000Clm50Sp">
     <machines>
 
-      <machine name="yellowstone" compiler="intel" category="aux_glc">
+      <machine name="cheyenne" compiler="intel" category="aux_glc">
         <options>
           <option name="wallclock">2:00</option>
           <option name="comment">Include an I compset test with CISM in NOEVOLVE mode. The purpose of this test is: Often there are answer changes in CISM, but we expect that these should not affect NOEVOLVE runs (which is the typical CESM configuration). This test allows us to do a baseline comparison to confirm that expectation. 13-months rather than 1-year in order to allow time for CISM to affect CLM (and CLM to produce the next month's history file).</option>
