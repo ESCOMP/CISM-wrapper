@@ -446,7 +446,7 @@
 
       <machine name="cheyenne" compiler="gnu" category="aux_glc">
         <options>
-          <option name="wallclock">0:30</option>
+          <option name="wallclock">1:30</option>
           <option name="comment">Include an exact restart test with isostasy, where we restart in the middle of the isostasy update period</option>
         </options>
       </machine>
@@ -459,7 +459,7 @@
 
       <machine name="cheyenne" compiler="gnu" category="aux_glc">
         <options>
-          <option name="wallclock">0:20</option>
+          <option name="wallclock">0:50</option>
           <option name="comment">Include an exact restart test with isostasy, where restart aligns with the isostasy update period</option>
         </options>
       </machine>
