@@ -1,3 +1,6 @@
+# directories checked out by manage_externals
+glimmer-cism/
+
 # ignore svn directories
 **/.svn/**
 .svn/
