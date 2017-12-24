@@ -1,7 +1,6 @@
 ================================================================================
 Originator:
 Date:
-Model:
 Version:
 One-line summary:
 
@@ -9,9 +8,7 @@ Purpose of changes:
 
 Changes answers relative to previous tag:
 
-Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/):
-
-List all modified files, and describe the changes:
+Bugs fixed (include github issue number):
 
 Summary of testing:
 
