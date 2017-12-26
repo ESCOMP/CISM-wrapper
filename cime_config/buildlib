@@ -9,7 +9,7 @@ if ($#ARGV == -1) {
 my ($CASEROOT) = @ARGV;
 chdir "${CASEROOT}";
 
-my $SRCROOT   = `./xmlquery SRCROOT  --value`;
+my $GLCROOT   = `./xmlquery COMP_ROOT_DIR_GLC --value`;
 my $CASEBUILD = `./xmlquery CASEBUILD --value`;
 my $CASETOOLS = `./xmlquery CASETOOLS --value`;
 my $OBJROOT   = `./xmlquery OBJROOT   --value`;
@@ -43,9 +43,9 @@ chdir "$glc_obj_dir";
 # the glimmer-cism stuff is picked up by the cmake-based build
 open(file,">Filepath.new") or die "Could not open file Filepath.new to write";
 print file "$sourcemod_dir \n";
-print file "$SRCROOT/components/cism/drivers/cpl \n";
-print file "$SRCROOT/components/cism/source_glc \n";
-print file "$SRCROOT/components/cism/mpi \n";
+print file "$GLCROOT/drivers/cpl \n";
+print file "$GLCROOT/source_glc \n";
+print file "$GLCROOT/mpi \n";
 close(file);
 
 if (compare("Filepath","Filepath.new") != 0){
@@ -112,7 +112,7 @@ my $mkdepends_opts = "-d $cism_libdir/libglimmercismfortran.a";
 # create the glimmer-cism makefile by running cmake (done via a rule
 # in the system-level makefile)
 # ----------------------------------------------------------------------
-my $sysmod = "$GMAKE $glc_dir/Makefile MODEL=cism USER_CMAKE_OPTS=\"$cmake_opts\" USER_MKDEPENDS_OPTS=\"$mkdepends_opts\" GLC_DIR=$glc_dir -f $CASETOOLS/Makefile EXEROOT=$EXEROOT";
+my $sysmod = "$GMAKE $glc_dir/Makefile MODEL=cism USER_CMAKE_OPTS=\"$cmake_opts\" USER_MKDEPENDS_OPTS=\"$mkdepends_opts\" GLCROOT=$GLCROOT GLC_DIR=$glc_dir -f $CASETOOLS/Makefile EXEROOT=$EXEROOT";
 system($sysmod) == 0 or die "ERROR cism.buildexe: $sysmod failed: $?\n";
 
 # ----------------------------------------------------------------------

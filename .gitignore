@@ -1,5 +1,9 @@
-# directories checked out by manage_externals
+# directories checked out by manage_externals, and other files created
+# by manage_externals
+manage_externals.log
 glimmer-cism/
+cime/
+components/
 
 # ignore svn directories
 **/.svn/**
@@ -18,9 +22,6 @@ glimmer-cism/
 # cmake generated files
 build/
 CMakeFiles/
-
-# don't ignore cism build utilities directory
-!components/cism/**/build
 
 # build output
 *.o
