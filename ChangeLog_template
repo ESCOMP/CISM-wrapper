@@ -14,6 +14,8 @@ Standalone checkout supported in this tag (Yes/No):
    one external points to a temporary branch that is may be deleted in
    the near future.)
 
+   If No: Notes on externals used for testing:
+
 Changes answers relative to previous tag:
 
 Bugs fixed (include github issue number):
