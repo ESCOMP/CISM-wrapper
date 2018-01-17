@@ -43,6 +43,59 @@ Summary of testing:
 
 ================================================================================
 Originator: sacks
+Date: Dec 11, 2017
+Model: cism
+Version: cism2_1_44
+One-line summary: Migrate aux_glc yellowstone tests to cheyenne
+
+Purpose of changes:
+
+   With yellowstone going away in a few weeks, I am migrating the
+   aux_glc tests to cheyenne.
+
+   Some particular items of note:
+
+   - Removed trilinos test: this is no longer supported
+
+   - For the most part, moved yellowstone_intel to cheyenne_intel, and
+     yellowstone_pgi and yellowstone_gnu to cheyenne_gnu. However, I moved
+     a few intel tests to gnu to give better balance, and tried to end up
+     with slightly more gnu than intel tests, so that the long-running
+     intel tests can get going sooner (in hopes this will lead the whole
+     test suite to finish sooner). I kept the following on intel: test(s)
+     matching typical production case(s), important debug tests (because
+     gnu doesn't catch as much as intel in debug mode), and long-running
+     tests (because intel is typically faster than gnu).
+
+   - Introduced two hobart_pgi tests so we'd continue to have pgi test
+     coverage
+
+Changes answers relative to previous tag: NO
+
+Bugs fixed (include bugzilla ID) (http://bugs.cgd.ucar.edu/): none
+
+List all modified files, and describe the changes:
+
+D       cime_config/testdefs/testmods_dirs/cism/trilinos/user_nl_cism
+D       cime_config/testdefs/testmods_dirs/cism/trilinos/shell_commands
+D       cime_config/testdefs/testmods_dirs/cism/trilinos/README
+D       cime_config/testdefs/testmods_dirs/cism/trilinos
+M       cime_config/testdefs/testlist_cism.xml
+
+Summary of testing:
+
+   Full aux_glc test suite on cheyenne and hobart: intel and gnu on
+   cheyenne; nag and pgi on hobart. No baseline comparisons done. All
+   tests pass.
+
+Externals used for testing: cesm2_0_alpha08d
+
+cism tag used for baseline comparisons: N/A
+
+Any other externals that differed in baseline: N/A
+
+================================================================================
+Originator: sacks
 Date: Nov 22, 2017
 Model: cism
 Version: cism2_1_43
