@@ -480,4 +480,36 @@
     </machines>
   </test>
 
+  <!-- aux_cime_baselines category
+
+       For the sake of making sure cime hasn't inadvertently changed
+       answers, make sure we cover a T compset (to test dlnd) and an I
+       compset with test_coupling (to test both directions of two-way
+       coupling).
+  -->
+
+  <test name="SMS_Ly2" grid="f09_g16_gl20" compset="T1850G">
+    <machines>
+
+      <machine name="cheyenne" compiler="intel" category="aux_cime_baselines">
+        <options>
+          <option name="wallclock">0:30</option>
+        </options>
+      </machine>
+
+    </machines>
+  </test>
+
+  <test name="SMS_Ld5" grid="T31_g37_gl20" compset="I1850Clm50SpG" testmods="cism/test_coupling">
+    <machines>
+
+      <machine name="cheyenne" compiler="intel" category="aux_cime_baselines">
+        <options>
+          <option name="wallclock">0:30</option>
+        </options>
+      </machine>
+
+    </machines>
+  </test>
+
 </testlist>
