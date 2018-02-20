@@ -189,7 +189,6 @@
     oc%default_xtype = NF90_DOUBLE
     oc%nc%filename   = ''
     oc%nc%filename   = trim(filename)
-!jw    oc%nc%vars       = ' acab artm thk usurf uvel vvel uflx vflx temp '
     oc%nc%vars       = trim(history_vars)
     oc%nc%vars_copy  = oc%nc%vars
 !jw TO DO: fill out the rest of the metadata

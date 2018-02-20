@@ -107,7 +107,7 @@
       paramfile        ! Name of the top-level configuration file
  
   character(fname_length) ::  &
-      cesm_restart_file  ! Name of the hotstart file to be used for a restart
+      cesm_restart_file  ! Name of the file to be used for a restart
  
   character(CL) :: &
        ice_flux_routing  ! Code for how solid ice should be routed to ocean or sea ice
@@ -133,7 +133,7 @@
        forcing_start_time
 
   logical :: &
-      cesm_restart = .false. ! Logical flag to pass to glimmer, telling it to hotstart
+      cesm_restart = .false. ! Logical flag to pass to glimmer, telling it to restart
                              ! from a CESM restart
 
   logical :: &

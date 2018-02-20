@@ -17,13 +17,13 @@ attributes to express the dependency.
 <!-- =============================================================  -->
 
 <cisminputfile glc_grid="gland20" cism_phys="cism1">glc/cism/gland20.input_c150415.nc</cisminputfile>
-<cisminputfile glc_grid="gland5UM" cism_phys="cism1">glc/cism/IceSheetData_UMontana/PresentDayGreenland/Greenland_5km_v1.1_SacksRev_c150415.nc</cisminputfile>
+<cisminputfile glc_grid="gland5UM" cism_phys="cism1">glc/cism/IceSheetData_UMontana/PresentDayGreenland/Greenland_5km_v1.1_SacksRev_c160720.nc</cisminputfile>
 
 <!-- the following is just for the sake of software testing, and should not be used for science -->
 <cisminputfile glc_grid="gland20" cism_phys="cism2">glc/cism/gland20.input_c150415.nc</cisminputfile>
 
 <!-- this is the resolution that should be used for science applications with cism2 -->
-<cisminputfile glc_grid="gland4" cism_phys="cism2">glc/cism/Greenland/glissade/init/greenland_4km_epsg3413_bheatflxPos_c170501.nc</cisminputfile>
+<cisminputfile glc_grid="gland4" cism_phys="cism2">glc/cism/Greenland/glissade/init/greenland_4km_epsg3413_c171126.nc</cisminputfile>
 
 <!-- =============================================================  -->
 <!-- group: cism_params                                             -->
@@ -44,13 +44,13 @@ attributes to express the dependency.
 <!-- group: cism_history                                            -->
 <!-- =============================================================  -->
 
-<cesm_history_vars cism_phys="cism1" cism_evolve="TRUE" >'acab artm thk usurf topg uvel vvel uflx vflx temp bmlt bwat'</cesm_history_vars>
+<cesm_history_vars cism_phys="cism1" cism_evolve="TRUE" >'smb artm thk usurf topg uvel vvel uflx vflx temp bmlt bwat'</cesm_history_vars>
 <!-- When ice evolution is turned off, uflx and vflx don't restart properly, so remove those from the list -->
-<cesm_history_vars cism_phys="cism1" cism_evolve="FALSE">'acab artm thk usurf topg uvel vvel temp bmlt bwat'</cesm_history_vars>
+<cesm_history_vars cism_phys="cism1" cism_evolve="FALSE">'smb artm thk usurf topg uvel vvel temp bmlt bwat'</cesm_history_vars>
 
-<cesm_history_vars cism_phys="cism2" cism_evolve="TRUE" >'acab artm thk usurf topg uvel vvel temp bmlt bwat beta_internal'</cesm_history_vars>
+<cesm_history_vars cism_phys="cism2" cism_evolve="TRUE" >'smb artm thk usurf topg uvel vvel temp bmlt bwat beta_internal'</cesm_history_vars>
 <!-- When ice evolution is turned off, beta_internal doesn't restart properly, so remove it from the list -->
-<cesm_history_vars cism_phys="cism2" cism_evolve="FALSE">'acab artm thk usurf topg uvel vvel temp bmlt bwat'</cesm_history_vars>
+<cesm_history_vars cism_phys="cism2" cism_evolve="FALSE">'smb artm thk usurf topg uvel vvel temp bmlt bwat'</cesm_history_vars>
 
 <history_option>nyears</history_option>
 
@@ -105,6 +105,9 @@ attributes to express the dependency.
 <dns glc_grid="gland5UM">5000.</dns>
 <dns glc_grid="gland4"  >4000.</dns>
 
+<global_bc cism_phys="cism1">0</global_bc>
+<global_bc cism_phys="cism2">1</global_bc>
+
 <!-- =============================================================  -->
 <!-- group: cism.config: sigma                                      -->
 <!-- =============================================================  -->
@@ -130,21 +133,36 @@ attributes to express the dependency.
 
 <temperature>1</temperature>
 
-<temp_init>2</temp_init>
+<!-- temp_init = 3 can only generate an advective-diffusive-balance profile if
+     acab is present in the input file (which is currently only the case for the
+     4km input file). But it defaults to a linear profile (temp_init 2) if acab
+     is not present. So to keep things simple, we specify temp_init = 3 for all
+     input files, rather than making this dependent on glc_grid. However,
+     temp_init = 3 cannot be used for glide, so we use temp_init = 2 when
+     running with cism1 physics. -->
+<temp_init cism_phys="cism1">2</temp_init>
+<temp_init cism_phys="cism2">3</temp_init>
 
 <flow_law>2</flow_law>
 
-<basal_water>0</basal_water>
+<bmlt_float>0</bmlt_float>
 
 <basal_mass_balance>1</basal_mass_balance>
 
-<gthf>0</gthf>
+<gthf cism_phys="cism1">0</gthf>
+<gthf cism_phys="cism2">1</gthf>
 
 <isostasy>0</isostasy>
 
 <marine_margin>1</marine_margin>
 
 <calving_domain>1</calving_domain>
+
+<remove_icebergs>.true.</remove_icebergs>
+
+<limit_marine_cliffs>.true.</limit_marine_cliffs>
+
+<calving_init>1</calving_init>
 
 <slip_coeff>0</slip_coeff>
 
@@ -159,20 +177,22 @@ attributes to express the dependency.
 <!-- group: cism.config: time                                       -->
 <!-- =============================================================  -->
 
+<!-- Note: if change dt, also should change dt_diag -->
 <dt glc_grid="gland20"  cism_phys="cism1">0.1</dt>
 <dt glc_grid="gland5UM" cism_phys="cism1">0.05</dt>
-
 <!-- A dt of 1 seems sufficient for cism2 gland20. However, use 0.5 because (a)
      this is less likely to break due to instabilities, and (b) it exercises the
      code in a more typical configuration (i.e., with a sub-annual time step) -->
 <dt glc_grid="gland20"  cism_phys="cism2">0.5</dt>
+<dt glc_grid="gland4"   cism_phys="cism2">0.25</dt>
 
-<dt glc_grid="gland4"   cism_phys="cism2">0.05</dt>
+<!-- Set dt_diag same as dt in order to get diagnostics every time step -->
+<dt_diag glc_grid="gland20"  cism_phys="cism1">0.1</dt_diag>
+<dt_diag glc_grid="gland5UM" cism_phys="cism1">0.05</dt_diag>
+<dt_diag glc_grid="gland20"  cism_phys="cism2">0.5</dt_diag>
+<dt_diag glc_grid="gland4"   cism_phys="cism2">0.25</dt_diag>
 
-<ntem>1</ntem>
-
-<!-- To get diagnostic once per year, set this to 1/dt -->
-<dt_diag>1.</dt_diag>
+<adaptive_cfl_threshold>0.</adaptive_cfl_threshold>
 
 <!-- 5-km idiag & jdiag chosen by Jeremy Fyke, as a point prone to CFL
      instability (in trunk of Jakobshavn); 20-km and 4-km points
@@ -195,18 +215,41 @@ attributes to express the dependency.
 <ice_limit cism_phys="cism1">100.</ice_limit>
 <ice_limit cism_phys="cism2">1.</ice_limit>
 
+<thck_gradient_ramp cism_phys="cism1">0.</thck_gradient_ramp>
+<thck_gradient_ramp cism_phys="cism2">10.</thck_gradient_ramp>
+
 <max_slope>0.1</max_slope>
 
-<marine_limit>-200.</marine_limit>
+<taumax_cliff>1.e6</taumax_cliff>
 
 <geothermal>-5.e-2</geothermal>
 
 <flow_factor cism_phys="cism1">3.</flow_factor>
 <flow_factor cism_phys="cism2">1.</flow_factor>
 
-<hydro_time>1000.</hydro_time>
+<pmp_offset>5.</pmp_offset>
+
+<pseudo_plastic_q>0.5</pseudo_plastic_q>
+
+<pseudo_plastic_u0>100.</pseudo_plastic_u0>
+
+<pseudo_plastic_phimin>5.</pseudo_plastic_phimin>
+
+<pseudo_plastic_phimax>40.</pseudo_plastic_phimax>
+
+<pseudo_plastic_bedmin>-700.</pseudo_plastic_bedmin>
+
+<pseudo_plastic_bedmax>700.</pseudo_plastic_bedmax>
 
 <basal_tract_const>1.e-4</basal_tract_const>
+
+<effecpress_delta>0.02</effecpress_delta>
+
+<bwat_till_max>2.0</bwat_till_max>
+
+<c_drainage>1.e-3</c_drainage>
+
+<beta_grounded_min>100.</beta_grounded_min>
 
 <!-- =============================================================  -->
 <!-- group: cism.config: ho_options                                 -->
@@ -214,20 +257,17 @@ attributes to express the dependency.
 
 <!-- This group is only relevant if dycore is not 0 -->
 
-<!-- which_ho_babc should be 5 when beta is provided in the cism input file, but
-     in general we'll want the default to be 4, according to Steve Price. In
-     order to ensure that we pick up a beta value if one is available (e.g., if
-     someone adds a new resolution and forgets to modify things in this
-     section), we're setting the overall default to 5, and then overriding that
-     explicitly for input files that do not have a beta value. -->
-<which_ho_babc>5</which_ho_babc>
-<which_ho_babc glc_grid="gland20">4</which_ho_babc>
-<which_ho_babc glc_grid="gland5UM">4</which_ho_babc>
-<which_ho_babc glc_grid="gland4">4</which_ho_babc>
+<which_ho_babc>3</which_ho_babc>
+
+<which_ho_bwat>2</which_ho_bwat>
+
+<which_ho_effecpress>4</which_ho_effecpress>
 
 <which_ho_efvs>2</which_ho_efvs>
 
-<which_ho_resid>3</which_ho_resid>
+<which_ho_thermal_timestep>2</which_ho_thermal_timestep>
+
+<which_ho_resid>4</which_ho_resid>
 
 <which_ho_disp>1</which_ho_disp>
 
@@ -240,17 +280,27 @@ attributes to express the dependency.
 
 <which_ho_gradient>0</which_ho_gradient>
 
-<which_ho_gradient_margin>1</which_ho_gradient_margin>
+<which_ho_gradient_margin>3</which_ho_gradient_margin>
 
 <which_ho_approx>4</which_ho_approx>
 
 <which_ho_precond>1</which_ho_precond>
 
-<which_ho_assemble_beta>0</which_ho_assemble_beta>
+<which_ho_assemble_beta>1</which_ho_assemble_beta>
+
+<which_ho_assemble_taud>1</which_ho_assemble_taud>
 
 <which_ho_assemble_bfric>1</which_ho_assemble_bfric>
 
+<!-- 2017-11-21: Bill Lipscomb says: For Antarctic runs, we'll want to
+     set this to 1, for accuracy and stability.  But for Greenland runs
+     out of the box, it's OK to use the CISM default of 0, since there's
+     no floating ice. -->
+<which_ho_calving_front>0</which_ho_calving_front>
+
 <which_ho_ground>0</which_ho_ground>
+
+<which_ho_ground_bmlt>0</which_ho_ground_bmlt>
 
 <which_ho_flotation_function>1</which_ho_flotation_function>
 

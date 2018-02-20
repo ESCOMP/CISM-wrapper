@@ -411,10 +411,10 @@ add_default($nl, 'zero_gcm_fluxes',
             'cism_evolve'=>"$CISM_EVOLVE");
 add_default($nl, 'test_coupling');
 
-my $hotstart;
+my $restart;
 if ($RUN_TYPE eq 'startup') {
    add_default($nl, 'cisminputfile'); 
-   $hotstart = 0;
+   $restart = 0;
 } 
 elsif ($CISM_OBSERVED_IC eq 'TRUE') {
    if ($RUN_TYPE eq 'branch') {
@@ -422,7 +422,7 @@ elsif ($CISM_OBSERVED_IC eq 'TRUE') {
    }
 
    add_default($nl, 'cisminputfile'); 
-   $hotstart = 0;
+   $restart = 0;
 }
 elsif ($RUN_TYPE eq 'branch' || $RUN_TYPE eq 'hybrid') {
    my $refcase_restfile = "${RUN_REFCASE}.cism${INST_STRING}.r.${RUN_REFDATE}-00000.nc";
@@ -435,7 +435,7 @@ elsif ($RUN_TYPE eq 'branch' || $RUN_TYPE eq 'hybrid') {
    }
    add_default($nl, 'cisminputfile',
                'val'=>$refcase_restfile, 'noprepend'=>'1');
-   $hotstart = 1;
+   $restart = 1;
 }
 else {
    die "$ProgName - ERROR: Unknown RUN_TYPE: $RUN_TYPE\n";
@@ -495,6 +495,7 @@ add_default($nl, 'nsn');
 add_default($nl, 'upn');
 add_default($nl, 'dew');
 add_default($nl, 'dns');
+add_default($nl, 'global_bc');
 $nl->write_cism_config($fh, "cism_config_grid");
 
 print $fh "\n[GLAD climate]\n";
@@ -507,17 +508,20 @@ add_default($nl, 'dycore');
 add_default($nl, 'temperature');
 add_default($nl, 'temp_init');
 add_default($nl, 'flow_law');
-add_default($nl, 'basal_water');
+add_default($nl, 'bmlt_float');
 add_default($nl, 'basal_mass_balance');
 add_default($nl, 'gthf');
 add_default($nl, 'isostasy');
 add_default($nl, 'marine_margin');
 add_default($nl, 'calving_domain');
+add_default($nl, 'remove_icebergs');
+add_default($nl, 'limit_marine_cliffs');
+add_default($nl, 'calving_init');
 add_default($nl, 'slip_coeff');
 add_default($nl, 'evolution');
 add_default($nl, 'vertical_integration');
 add_default($nl, 'sigma');
-add_default($nl, 'hotstart', 'val'=>$hotstart);
+add_default($nl, 'restart', 'val'=>$restart);
 $nl->write_cism_config($fh, "cism_config_options");
 
 # The [sigma] section only applies if we're using user-defined sigma
@@ -534,7 +538,7 @@ else {
 
 print $fh "\n[time]\n";
 add_default($nl, 'dt');
-add_default($nl, 'ntem');
+add_default($nl, 'adaptive_cfl_threshold');
 add_default($nl, 'dt_diag');
 add_default($nl, 'idiag');
 add_default($nl, 'jdiag');
@@ -543,19 +547,33 @@ $nl->write_cism_config($fh, "cism_config_time");
 print $fh "\n[parameters]\n";
 add_default($nl, 'log_level');
 add_default($nl, 'ice_limit');
+add_default($nl, 'thck_gradient_ramp');
 add_default($nl, 'max_slope');
-add_default($nl, 'marine_limit');
+add_default($nl, 'taumax_cliff');
 add_default($nl, 'geothermal');
 add_default($nl, 'flow_factor');
-add_default($nl, 'hydro_time');
+add_default($nl, 'pmp_offset');
+add_default($nl, 'pseudo_plastic_q');
+add_default($nl, 'pseudo_plastic_u0');
+add_default($nl, 'pseudo_plastic_phimin');
+add_default($nl, 'pseudo_plastic_phimax');
+add_default($nl, 'pseudo_plastic_bedmin');
+add_default($nl, 'pseudo_plastic_bedmax');
 add_default($nl, 'basal_tract_const');
+add_default($nl, 'effecpress_delta');
+add_default($nl, 'bwat_till_max');
+add_default($nl, 'c_drainage');
+add_default($nl, 'beta_grounded_min');
 $nl->write_cism_config($fh, "cism_config_parameters");
 
 # The ho_options section only applies if dycore is not 0
 if ($nl->get_value('dycore') != 0) {
     print $fh "\n[ho_options]\n";
     add_default($nl, 'which_ho_babc');
+    add_default($nl, 'which_ho_bwat');
+    add_default($nl, 'which_ho_effecpress');
     add_default($nl, 'which_ho_efvs');
+    add_default($nl, 'which_ho_thermal_timestep');
     add_default($nl, 'which_ho_resid');
     add_default($nl, 'which_ho_disp');
     add_default($nl, 'which_ho_sparse', 'dycore'=>$nl->get_value('dycore'), 'cism_use_trilinos'=>"$CISM_USE_TRILINOS");
@@ -565,8 +583,11 @@ if ($nl->get_value('dycore') != 0) {
     add_default($nl, 'which_ho_approx');
     add_default($nl, 'which_ho_precond');
     add_default($nl, 'which_ho_assemble_beta');
+    add_default($nl, 'which_ho_assemble_taud');
     add_default($nl, 'which_ho_assemble_bfric');
+    add_default($nl, 'which_ho_calving_front');
     add_default($nl, 'which_ho_ground');
+    add_default($nl, 'which_ho_ground_bmlt');
     add_default($nl, 'which_ho_flotation_function');
     add_default($nl, 'glissade_maxiter');
     $nl->write_cism_config($fh, "cism_config_ho_options");
@@ -603,7 +624,7 @@ print $fh <<"EOF";
 ########################################
 
 \[CF default]
-title: Glimmer-CISM simulation
+title: CISM simulation
 institution: Community Earth System Model
 EOF
 
