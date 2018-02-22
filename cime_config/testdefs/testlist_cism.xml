@@ -17,7 +17,7 @@
   <test name="ERI_Ly15" grid="f09_g16_gl4" compset="T1850G" testmods="cism/isostasy_period4">
     <machines>
 
-      <machine name="edison" compiler="intel" category="prebeta">
+      <machine name="cheyenne" compiler="intel" category="prebeta">
         <options>
           <option name="wallclock">0:40</option>
         </options>
@@ -150,13 +150,6 @@
 
   <test name="ERS_Ly7" grid="f09_g16_gl4" compset="T1850G">
     <machines>
-
-      <machine name="bluewaters" compiler="pgi" category="prebeta">
-        <options>
-          <option name="wallclock">0:50</option>
-          <option name="comment">included simply to have a test on bluewaters</option>
-        </options>
-      </machine>
 
       <machine name="cheyenne" compiler="intel" category="aux_glc">
         <options>
