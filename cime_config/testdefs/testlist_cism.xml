@@ -518,17 +518,4 @@
     </machines>
   </test>
 
-  <test name="SMS_D_Ly1" grid="f09_g16_gl4" compset="T1850G" testmods="cism/refcase_for_b1850">
-    <machines>
-
-      <machine name="cheyenne" compiler="intel" category="aux_glc">
-        <options>
-          <option name="wallclock">0:30</option>
-          <option name="comment">The purpose of this test is to check compatibility with the hybrid refcase that is used for out-of-the-box B1850 cases at f09_g17 resolution. Changes in CISM often break compatibility with the CISM restart file in this refcase, so I want a test that will catch this problem before making a CISM tag.</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
-
 </testlist>

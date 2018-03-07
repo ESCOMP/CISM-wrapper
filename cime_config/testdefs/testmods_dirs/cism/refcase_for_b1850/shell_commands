@@ -1,4 +1,0 @@
-./xmlchange RUN_TYPE=hybrid
-./xmlchange RUN_REFDIR=cesm2_init
-./xmlchange RUN_REFCASE=b.e11.B1850C5CN.f09_g16.005_yr402_cesm2_v3
-./xmlchange RUN_REFDATE=0402-01-01
