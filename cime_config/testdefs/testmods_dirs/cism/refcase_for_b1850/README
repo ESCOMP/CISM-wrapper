@@ -1,0 +1,12 @@
+(2018-03-07)
+
+The purpose of this testmod is to check compatibility with the hybrid
+refcase that is used for out-of-the-box B1850 cases at f09_g17
+resolution. Changes in CISM often break compatibility with the CISM
+restart file in this refcase, so I want a test that will catch this
+problem before making a CISM tag.
+
+If the B1850 configuration changes the refcase it's pointing to, we
+should change this testmod so that it stays in sync. If we stop pointing
+to a refcase for B1850 or other configurations, then this testmod can go
+away.
