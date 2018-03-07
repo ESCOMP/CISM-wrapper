@@ -60,7 +60,12 @@
      </values>
      <group>run_component_cism</group>
      <file>env_run.xml</file>
-     <desc>Whether CISM ice evolution is on or off</desc>
+     <desc>Whether CISM ice evolution is on or off.
+
+     Setting CISM_EVOLVE to FALSE in a hybrid case also forces the use
+     of observed initial conditions, as if you had also set
+     CISM_OBSERVED_IC=TRUE.
+     </desc>
   </entry>
 
   <entry id="CISM_OBSERVED_IC">
@@ -69,13 +74,19 @@
     <default_value>FALSE</default_value>
     <group>run_component_cism</group>
     <file>env_run.xml</file>
-    <desc>For hybrid runs, whether CISM should use observed initial conditions 
-      instead of restart file.
-      For hybrid runs, a value of FALSE (default) implies that CISM should
-      use the restart file from the reference case; a value of TRUE implies
-      that CISM should instead use the observed initial conditions that are
-      generally used for startup runs. This variable is ignored for startup
-      runs; for branch runs, it MUST BE FALSE.</desc>
+    <desc>For hybrid runs, whether CISM should use observed initial
+    conditions instead of restart file.
+
+    For hybrid runs, a value of FALSE (default) implies that CISM should
+    use the restart file from the reference case; a value of TRUE
+    implies that CISM should instead use the observed initial conditions
+    that are generally used for startup runs. This variable is ignored
+    for startup runs; for branch runs, it must be FALSE.
+
+    Note that setting CISM_EVOLVE to FALSE in a hybrid case also forces
+    the use of observed initial conditions, as if you had also set
+    CISM_OBSERVED_IC=TRUE.
+    </desc>
   </entry>
 
   <help>
