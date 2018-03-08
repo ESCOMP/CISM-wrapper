@@ -424,6 +424,30 @@ elsif ($CISM_OBSERVED_IC eq 'TRUE') {
    add_default($nl, 'cisminputfile'); 
    $restart = 0;
 }
+elsif ($RUN_TYPE eq 'hybrid' && $CISM_EVOLVE eq 'FALSE') {
+   # We could use the hybrid refcase's CISM restart file in this
+   # case. However, we often run into problems where a change in CISM
+   # makes it incompatible with old restart files, and this breaks
+   # configurations that are set up as hybrid runs (typically B and F
+   # compsets). Those hybrid cases typically use NOEVOLVE (i.e.,
+   # CISM_EVOLVE=FALSE), where the restart file really doesn't
+   # matter. So, rather than requiring ourselves to recreate all of
+   # those refcases whenever we break compatibility with old restart
+   # files, an easier-to-maintain solution is to just use observed
+   # initial conditions rather than the restart file whenever we're
+   # running a hybrid case with CISM_EVOLVE=FALSE.
+   #
+   # One theoretical problem with this is: If someone did a run with
+   # CISM_EVOLVE=TRUE, then did a hybrid case off of that with
+   # CISM_EVOLVE=FALSE, hoping that this would keep the ice sheet fixed
+   # at the previously-spun-up state, they wouldn't get what they want:
+   # instead the ice sheet would be reset to observed initial
+   # conditions. Thus, the user would need to explicitly set
+   # 'cisminputfile' and 'restart' in this case.
+
+   add_default($nl, 'cisminputfile');
+   $restart = 0;
+}
 elsif ($RUN_TYPE eq 'branch' || $RUN_TYPE eq 'hybrid') {
    my $refcase_restfile = "${RUN_REFCASE}.cism${INST_STRING}.r.${RUN_REFDATE}-00000.nc";
    my $refcase_restfile_fullpath = File::Spec->catfile($RUNDIR, $refcase_restfile);
