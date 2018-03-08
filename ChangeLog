@@ -4,6 +4,71 @@ This file describes what tags were created on master and why
 
 ================================================================================
 Originator: sacks
+Date: March 7, 2018
+Version: cism2_1_50
+One-line summary: Use observed init cond file in hybrid cases with CISM_EVOLVE=FALSE
+
+Purpose of changes:
+
+    Use observed initial conditions file in hybrid cases with
+    CISM_EVOLVE=FALSE
+
+    We could use the hybrid refcase's CISM restart file in this
+    case. However, we often run into problems where a change in CISM
+    makes it incompatible with old restart files, and this breaks
+    configurations that are set up as hybrid runs (typically B and F
+    compsets). Those hybrid cases typically use NOEVOLVE (i.e.,
+    CISM_EVOLVE=FALSE), where the restart file really doesn't
+    matter. So, rather than requiring ourselves to recreate all of those
+    refcases whenever we break compatibility with old restart files, an
+    easier-to-maintain solution is to just use observed initial
+    conditions rather than the restart file whenever we're running a
+    hybrid case with CISM_EVOLVE=FALSE.
+
+    One theoretical problem with this is: If someone did a run with
+    CISM_EVOLVE=TRUE, then did a hybrid case off of that with
+    CISM_EVOLVE=FALSE, hoping that this would keep the ice sheet fixed
+    at the previously-spun-up state, they wouldn't get what they want:
+    instead the ice sheet would be reset to observed initial
+    conditions. Thus, the user would need to explicitly set
+    'cisminputfile' and 'restart' in this case.
+
+Standalone checkout supported in this tag (Yes/No): No
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing: Externals as listed in
+   Externals.cfg. However, need the following workaround (which is why
+   I'm saying a standalone checkout isn't supported):
+
+     mkdir -p cime_config/usermods_dirs/b1850
+
+Changes answers relative to previous tag: NO
+
+Bugs fixed (include github issue number):
+
+Summary of testing:
+
+   aux_glc test suite, just on cheyenne. Four tests are still pending:
+
+    PEND SMS_D_Ly1.f09_g16_gl4.T1850G.cheyenne_intel.cism-isostasy_period1 RUN
+    PEND SMS_D_Ly1.f09_g16_gl4.T1850G.cheyenne_intel RUN
+
+    PEND ERS_Ly3.f09_g16_gl4.T1850G.cheyenne_gnu.cism-isostasy_period1 RUN
+    PEND ERS_Ly5.f09_g16_gl4.T1850G.cheyenne_gnu.cism-isostasy_period4 RUN
+
+   I'll check on those tomorrow. Other tests all passed.
+
+   Also checking
+   SMS_Ld7.f09_g17.B1850.cheyenne_intel.allactive-defaultio out of a
+   cesm2_0_alpha10b sandbox; this is still pending.
+
+================================================================================
+Originator: sacks
 Date: Feb 26, 2018
 Version: cism2_1_49
 One-line summary: Add more output variables, including for CMIP6; reduce PE count
