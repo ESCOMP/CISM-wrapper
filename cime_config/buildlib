@@ -90,7 +90,7 @@ if ("$CISM_USE_TRILINOS" eq 'TRUE') {
 }
 
 # ----------------------------------------------------------------------
-# Set mkDepends to append libcismfortran.a to the end of each
+# Set mkDepends to append libglimmercismfortran.a to the end of each
 # .o dependency line.
 #
 # Rationale: Some of the source files in the cesm-specific code depend
@@ -99,14 +99,14 @@ if ("$CISM_USE_TRILINOS" eq 'TRUE') {
 # current tools and the fact that we build the source_cism code using
 # a different build system than the cesm-specific code. So for now, we
 # just rebuild all the cesm-specific code whenever anything in the
-# libcismfortran.a library changes.
+# libglimmercismfortran.a library changes.
 #
 # WJS (3-6-13): I thought we would just need to include these options
 # in the call to make the complib target. But for some reason that I
 # can't determine, mkDepends is called when we make $glc_dir/Makefile,
 # so we also need to include these options there.
 # ----------------------------------------------------------------------
-my $mkdepends_opts = "-d $cism_libdir/libcismfortran.a";
+my $mkdepends_opts = "-d $cism_libdir/libglimmercismfortran.a";
 
 # ----------------------------------------------------------------------
 # create the source_cism makefile by running cmake (done via a rule
