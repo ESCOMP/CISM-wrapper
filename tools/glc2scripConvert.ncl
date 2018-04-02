@@ -7,7 +7,7 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/contributed.ncl"
 ;************************************************
 begin
 ;************************************************
-; read in glimmer grid file
+; read in CISM grid file
 ;************************************************
 
 infile    = addfile ("gland5km.nc","r")
@@ -71,7 +71,7 @@ system("/bin/rm -f " + outfile)
 fout1 = addfile(outfile,"c")
 
 globalAtt             = True
-globalAtt@title       = "Glimmer Greenland 5 km Grid"
+globalAtt@title       = "CISM Greenland 5 km Grid"
 globalAtt@history     = "GLC_to_SCRIP conversion " + systemfunc("date")
 fileattdef( fout1, globalAtt )
 

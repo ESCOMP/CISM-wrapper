@@ -5,7 +5,7 @@ Notes on parallelization of glc
          Jan 18, 2013
 ------------------------------------------------------------------------
 
-(See also glimmer-cism/libglint/README.parallelization.)
+(See also source_cism/libglint/README.parallelization.)
 
 The master task is responsible for the full global (i.e., land) grid;
 other tasks have 0-size grids.

@@ -16,7 +16,7 @@ my $CASEBUILD = `./xmlquery CASEBUILD --value`;
 #-------------------------------------------------------------------------------
 
 my $IOCONF_DIR = "$CASEBUILD/cismIOconf";
-my $GLIMMER_CISM_ROOT = "$GLCROOT/glimmer-cism";
+my $SOURCE_CISM_ROOT = "$GLCROOT/source_cism";
 if (! -d "$IOCONF_DIR") {
     $sysmod = "mkdir $IOCONF_DIR";
     system($sysmod) == 0 or die "ERROR cism.build_usernl: $sysmod failed: $?\n";
@@ -24,29 +24,29 @@ if (! -d "$IOCONF_DIR") {
 $sysmod = "cp $GLCROOT/bld/cismIO/README.cismIO        $IOCONF_DIR/";
 system($sysmod) == 0 or die "ERROR cism.build_usernl: $sysmod failed: $?\n";
 
-$sysmod = "cp $GLIMMER_CISM_ROOT/utils/build/generate_ncvars.py  $IOCONF_DIR/";
+$sysmod = "cp $SOURCE_CISM_ROOT/utils/build/generate_ncvars.py  $IOCONF_DIR/";
 system($sysmod) == 0 or die "ERROR cism.build_usernl: $sysmod failed: $?\n";
 
-$sysmod = "cp $GLIMMER_CISM_ROOT/libglimmer/ncdf_template.F90.in $IOCONF_DIR/";
+$sysmod = "cp $SOURCE_CISM_ROOT/libglimmer/ncdf_template.F90.in $IOCONF_DIR/";
 system($sysmod) == 0 or die "ERROR cism.build_usernl: $sysmod failed: $?\n";
 
-$sysmod = "cp $GLIMMER_CISM_ROOT/libglide/glide_vars.def         $IOCONF_DIR/";
+$sysmod = "cp $SOURCE_CISM_ROOT/libglide/glide_vars.def         $IOCONF_DIR/";
 system($sysmod) == 0 or die "ERROR cism.build_usernl: $sysmod failed: $?\n";
 
-$sysmod = "cp $GLIMMER_CISM_ROOT/libglad/glad_vars.def         $IOCONF_DIR/";
+$sysmod = "cp $SOURCE_CISM_ROOT/libglad/glad_vars.def         $IOCONF_DIR/";
 system($sysmod) == 0 or die "ERROR cism.build_usernl: $sysmod failed: $?\n";
 
-$sysmod = "cp $GLIMMER_CISM_ROOT/libglad/glad_mbal_vars.def    $IOCONF_DIR/";
+$sysmod = "cp $SOURCE_CISM_ROOT/libglad/glad_mbal_vars.def    $IOCONF_DIR/";
 system($sysmod) == 0 or die "ERROR cism.build_usernl: $sysmod failed: $?\n";
 
 # NOTE(wjs, 2015-04-03) glint is no longer used by CESM. However, I'm keeping
 # the glint stuff here for now so that we can keep the glint default i/o files
 # up-to-date (since I use this mechanism to regenerate the default i/o files)
 
-$sysmod = "cp $GLIMMER_CISM_ROOT/libglint/glint_vars.def         $IOCONF_DIR/";
+$sysmod = "cp $SOURCE_CISM_ROOT/libglint/glint_vars.def         $IOCONF_DIR/";
 system($sysmod) == 0 or die "ERROR cism.build_usernl: $sysmod failed: $?\n";
 
-$sysmod = "cp $GLIMMER_CISM_ROOT/libglint/glint_mbal_vars.def    $IOCONF_DIR/";
+$sysmod = "cp $SOURCE_CISM_ROOT/libglint/glint_mbal_vars.def    $IOCONF_DIR/";
 system($sysmod) == 0 or die "ERROR cism.build_usernl: $sysmod failed: $?\n";
 
 #-------------------------------------------------------------------------------
@@ -67,7 +67,7 @@ my $output = <<END_OUTPUT;
 #         Use this script ONLY in $CASEROOT.
 # -----------------------------------------------------------------------------
 
-set sourcemod_dir  = $CASEROOT/SourceMods/src.cism/glimmer-cism
+set sourcemod_dir  = $CASEROOT/SourceMods/src.cism/source_cism
 set cism_confIOdir = $IOCONF_DIR
 
 END_OUTPUT

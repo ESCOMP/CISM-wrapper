@@ -8,7 +8,7 @@
 !  This module contains the necessary routines and variables for
 !  communicating between processors.
 !
-!  WJS (11-19-12): some information here is redundant with information in glimmer-cism's
+!  WJS (11-19-12): some information here is redundant with information in CISM's
 !  parallel module - e.g., my_task (redundant with this_rank) and the get_num_procs
 !  routine. However, I am keeping this redundant information here, looking to the future:
 !  When we have multiple instances of cism, and/or GIC, all within a single GLC: the

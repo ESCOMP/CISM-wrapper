@@ -24,8 +24,8 @@
 
 !lipscomb - Previously, stdout was defined in glc_constants.
 !           Moved to glimmer_paramets so that it can be accessed from
-!            glimmer source code as well as glc source code.
-!           Glimmer does most of its standard output by calling the
+!            CISM source code as well as glc source code.
+!           CISM does most of its standard output by calling the
 !            write_log subroutine, which has a private output index
 !            called glimmer_unit, but it is convenient sometimes to
 !            write diagnostics directly to stdout.  
@@ -49,7 +49,7 @@
   logical ::   &
      glc_smb              ! if true, get surface mass balance from CLM via coupler
                           ! (in multiple elevation classes)
-                          ! if false, use PDD scheme in GLIMMER
+                          ! if false, use PDD scheme in CISM
                           ! set in glc_cpl_indices_set
 
    !-----------------------------------------------------------------
