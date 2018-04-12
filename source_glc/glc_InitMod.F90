@@ -121,7 +121,7 @@
       nml_error        ! namelist i/o error flag
 
   integer (i4) :: &
-      nhour_glad      ! number of hours since start of complete glad/glimmer run
+      nhour_glad      ! number of hours since start of complete glad/CISM run
 
   integer (i4) :: &
        av_start_time_restart  ! glad averaging start time
@@ -133,14 +133,14 @@
        forcing_start_time
 
   logical :: &
-      cesm_restart = .false. ! Logical flag to pass to glimmer, telling it to restart
+      cesm_restart = .false. ! Logical flag to pass to CISM, telling it to restart
                              ! from a CESM restart
 
   logical :: &
-      cism_debug   = .false. ! Logical flag to pass to glimmer, telling it to output extra
+      cism_debug   = .false. ! Logical flag to pass to CISM, telling it to output extra
                              ! debug diagnostics
 
-  integer :: unit      ! fileunit passed to Glimmer
+  integer :: unit      ! fileunit passed to CISM
 
   integer :: climate_tstep  ! climate time step (hours)
   
@@ -183,7 +183,7 @@
  
 !--------------------------------------------------------------------
 ! Initialize ice sheet model, grid, and coupling.
-! The following code is largely based on GLIMMER.
+! The following code is largely based on CISM.
 !-----------------------------------------------------------------------
 
    paramfile  = 'unknown_paramfile'
@@ -233,7 +233,7 @@
       write (stdout,*) 'Initialize glad'
    endif
 
-  ! Set glimmer_unit for diagnostic output from Glimmer. (Log file is already open)
+  ! Set glimmer_unit for diagnostic output from CISM. (Log file is already open)
 !  call open_log(unit=101)
 
   call set_glimmer_unit(stdout)

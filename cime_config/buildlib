@@ -28,7 +28,7 @@ $EXEROOT = File::Spec->abs2rel( $EXEROOT , $glc_dir);
 # directory in which glc obj files are built
 my $glc_obj_dir = "$OBJROOT/glc/obj";
 
-# directory in which glimmer-cism library is created
+# directory in which source_cism library is created
 my $cism_libdir = "$glc_dir/lib";
 
 # directory in which we can find source mods
@@ -40,7 +40,7 @@ chdir "$glc_obj_dir";
 # Create Filepath
 # ----------------------------------------------------------------------
 # The following just gives the filepath for the cesm-specific code:
-# the glimmer-cism stuff is picked up by the cmake-based build
+# the source_cism stuff is picked up by the cmake-based build
 open(file,">Filepath.new") or die "Could not open file Filepath.new to write";
 print file "$sourcemod_dir \n";
 print file "$GLCROOT/drivers/cpl \n";
@@ -73,7 +73,7 @@ $cmake_opts = "$cmake_opts -D CISM_BINARY_DIR=$glc_dir";
 $cmake_opts = "$cmake_opts -D CMAKE_Fortran_MODULE_DIRECTORY=$glc_obj_dir";
 $cmake_opts = "$cmake_opts -D CISM_NETCDF_DIR=\\\$(NETCDF_PATH)";
 $cmake_opts = "$cmake_opts -D CISM_MPI_INC_DIR=\\\$(INC_MPI)";
-$cmake_opts = "$cmake_opts -D CISM_SOURCEMOD_DIR=$sourcemod_dir/glimmer-cism";
+$cmake_opts = "$cmake_opts -D CISM_SOURCEMOD_DIR=$sourcemod_dir/source_cism";
 
 # Turn on MPI_MODE always. This works within CESM because we always
 # have an mpi library (possibly mpi-serial). And always turning on
@@ -96,7 +96,7 @@ if ("$CISM_USE_TRILINOS" eq 'TRUE') {
 # Rationale: Some of the source files in the cesm-specific code depend
 # on files included in this library. Ideally, we would be able to
 # determine the actual dependencies, but that's not easy with the
-# current tools and the fact that we build the glimmer-cism code using
+# current tools and the fact that we build the source_cism code using
 # a different build system than the cesm-specific code. So for now, we
 # just rebuild all the cesm-specific code whenever anything in the
 # libglimmercismfortran.a library changes.
@@ -109,14 +109,14 @@ if ("$CISM_USE_TRILINOS" eq 'TRUE') {
 my $mkdepends_opts = "-d $cism_libdir/libglimmercismfortran.a";
 
 # ----------------------------------------------------------------------
-# create the glimmer-cism makefile by running cmake (done via a rule
+# create the source_cism makefile by running cmake (done via a rule
 # in the system-level makefile)
 # ----------------------------------------------------------------------
 my $sysmod = "$GMAKE $glc_dir/Makefile MODEL=cism USER_CMAKE_OPTS=\"$cmake_opts\" USER_MKDEPENDS_OPTS=\"$mkdepends_opts\" GLCROOT=$GLCROOT GLC_DIR=$glc_dir -f $CASETOOLS/Makefile EXEROOT=$EXEROOT";
 system($sysmod) == 0 or die "ERROR cism.buildexe: $sysmod failed: $?\n";
 
 # ----------------------------------------------------------------------
-# create the glimmer-cism library (or libraries), using the makefile
+# create the source_cism library (or libraries), using the makefile
 # created by cmake
 # ----------------------------------------------------------------------
 chdir "$glc_dir";

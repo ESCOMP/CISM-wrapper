@@ -13,7 +13,7 @@
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
-# generate new glimmer _io.F90 files
+# generate new CISM _io.F90 files
 # -----------------------------------------------------------------------------
 cd $cism_confIOdir
 
@@ -25,7 +25,7 @@ foreach file (glide glad glad_mbal glint glint_mbal)
   set file_ioF90 = ${file}_io.F90
   if (-f ${file_varsdef}) then
     # ---------------------------------------------------------------------------
-    #  create new _io.F90 file using the glimmer python script
+    #  create new _io.F90 file using CISM's python script
     # ---------------------------------------------------------------------------
     $PYTHON generate_ncvars.py $file_varsdef ncdf_template.F90.in
 
@@ -39,12 +39,12 @@ foreach file (glide glad glad_mbal glint glint_mbal)
       # ---------------------------------------------------------------------------
       #  if new _io.F90 file not created for some reason, exit
       # ---------------------------------------------------------------------------
-      echo ERROR: glimmer python script failed to produce new file: ${file_ioF90}
+      echo ERROR: CISM python script failed to produce new file: ${file_ioF90}
       exit 2
     endif
 
   else
-    echo ERROR: missing glimmer variable definition file: ${file_varsdef}
+    echo ERROR: missing CISM variable definition file: ${file_varsdef}
     exit 2
   endif
 end

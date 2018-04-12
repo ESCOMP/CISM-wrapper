@@ -4,6 +4,47 @@ This file describes what tags were created on master and why
 
 ================================================================================
 Originator: sacks
+Date: April 12, 2018
+Version: cism2_1_51
+One-line summary: Rename glimmer-cism directory to source_cism
+
+Purpose of changes:
+
+   We no longer use the name "glimmer" when referring to "cism", so
+   having the directory named glimmer-cism was confusing. This tag
+   renames the directory to source_cism.
+
+   Note that this requires a cime update.
+
+   Also pulls in new version of manage_externals
+
+Standalone checkout supported in this tag (Yes/No): No
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing: Externals as listed in
+   Externals.cfg. However, need the following workaround:
+
+     mkdir -p cime_config/usermods_dirs/b1850
+
+   Also, cime points to a hash on my fork, which may not stick around
+   long-term
+
+Changes answers relative to previous tag: No
+
+Bugs fixed (include github issue number):
+- Fixes #10 (Rename glimmer-cism to source_cism)
+
+Summary of testing:
+
+   aux_glc test suite on cheyenne and hobart. All tests passed.
+
+================================================================================
+Originator: sacks
 Date: March 7, 2018
 Version: cism2_1_50
 One-line summary: Use observed init cond file in hybrid cases with CISM_EVOLVE=FALSE

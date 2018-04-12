@@ -11,7 +11,7 @@
 ! !REVISION HISTORY:
 !  SVN:$Id: step_mod.F90 2019 2006-09-29 22:00:15Z njn01 $
 !  Adapted by William Lipscomb from step_mod.F90 in POP 2.0 and from 
-!   glint_example.F90 in GLIMMER
+!   glint_example.F90 in CISM
 !
 ! !USES:
 

@@ -92,7 +92,7 @@
        call shr_sys_flush(stdout)
        call shr_file_freeunit(ptr_unit)
 
-       ! read time from the restart file, since glimmer needs this to initialize
+       ! read time from the restart file, since CISM needs this to initialize
        rst_unit = shr_file_getUnit()
        status = nf90_open(filename,0,rst_unit)
        call nc_errorhandle(__FILE__,__LINE__,status)
