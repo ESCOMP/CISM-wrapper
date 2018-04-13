@@ -226,6 +226,11 @@
                history_frequency_metadata)
           call nc_errorhandle(__FILE__,__LINE__,status)
        end if
+
+       ! Another piece of metadata needed to follow a CESM convention
+       status = nf90_put_att(oc%nc%id, NF90_GLOBAL, 'model_doi_url', &
+            model_doi_url)
+       call nc_errorhandle(__FILE__,__LINE__,status)
     end if
     
     call glide_nc_filldvars(oc, instance%model)
