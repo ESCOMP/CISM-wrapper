@@ -5,6 +5,44 @@ This file describes what tags were created on master and why
 ================================================================================
 Originator: sacks
 Date: April 12, 2018
+Version: cism2_1_52
+One-line summary: Update externals used in standalone checkout
+
+Purpose of changes:
+
+   Update externals to cesm2_0_alpha10c or later:
+
+    cime: use version that has the merge of my branch to rename glimmer-cism
+    to source_cism; this is a bit past cime5.4.0-alpha.28 (the version used
+    in cesm2.0.alpha10c)
+
+    clm: use version in cesm2.0.alpha10c
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: YES
+
+   Changes answers for I compsets due to updated externals.
+
+   (This won't have any effect when including this in a CESM tag.)
+
+Bugs fixed (include github issue number): none
+
+Summary of testing:
+
+   Full aux_glc test suite on cheyenne and hobart
+
+================================================================================
+Originator: sacks
+Date: April 12, 2018
 Version: cism2_1_51
 One-line summary: Rename glimmer-cism directory to source_cism
 
