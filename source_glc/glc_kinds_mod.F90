@@ -15,6 +15,7 @@
       module glc_kinds_mod
 !
 ! !USES:
+        use shr_kind_mod, only : SHR_KIND_CS, SHR_KIND_CL
 !
 !EOP
 !=======================================================================
@@ -28,8 +29,8 @@
                             r8        = selected_real_kind(13), &
                             r16       = selected_real_kind(20)
 
-      integer, parameter :: char_len  = 80, &
-                            char_len_long  = 256, &
+      integer, parameter :: char_len  = SHR_KIND_CS, &
+                            char_len_long  = SHR_KIND_CL, &
                             int_kind  = kind(1), &
                             log_kind  = kind(.true.), &
                             real_kind = selected_real_kind(6), &
