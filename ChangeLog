@@ -4,6 +4,36 @@ This file describes what tags were created on master and why
 
 ================================================================================
 Originator: sacks
+Date: May 3, 2018
+Version: cism2_1_54
+One-line summary: Point to new CISM GitHub repo in ESCOMP
+
+Purpose of changes:
+
+   Point to the new, public CISM GitHub repository in ESCOMP, rather
+   than the temporary subversion mirror. This points to the same version
+   of the code that we were using before.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: NO
+
+Bugs fixed (include github issue number): None
+
+Summary of testing:
+
+   aux_glc test suite on cheyenne
+
+================================================================================
+Originator: sacks
 Date: April 16, 2018
 Version: cism2_1_53
 One-line summary: Add model_doi_url metadata to history files
