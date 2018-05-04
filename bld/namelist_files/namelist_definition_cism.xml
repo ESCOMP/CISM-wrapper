@@ -438,12 +438,13 @@ id="temp_init"
 type="integer" 
 category="cism_config_options"
 group="cism_config_options"
-valid_values="0,1,2,3" >
+valid_values="0,1,2,3,4" >
 Temperature initialization method
 0: Initialize temperature to 0 C
 1: Initialize temperature to surface air temperature
 2: Initialize temperature with a linear profile in each column
 3: Initialize temperature with an advective-diffusive balance in each column
+4: Initialize temperature from external file
 Default: 3 for cism2; 2 for cism1
 </entry>
 
