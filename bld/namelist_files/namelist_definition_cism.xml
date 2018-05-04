@@ -873,9 +873,20 @@ id="flow_factor"
 type="real" 
 category="cism_config_parameters"
 group="cism_config_parameters" >
-The flow law is enhanced with this factor.
-The greater the value, the lower the viscosity and the faster the ice will flow.
+Flow enhancement parameter for the Arrhenius relationship;
+typically used in SIA model to speed up the ice.
 Default: 3.0 for cism1, 1.0 for cism2
+</entry>
+
+<entry 
+id="flow_factor_ssa"
+type="real" 
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Flow enhancement parameter for floating ice.
+Default is 1.0, but for marine simulations a smaller value
+may be needed to match observed shelf speeds.
+Default: 1.0
 </entry>
 
 <entry 
@@ -1248,8 +1259,10 @@ group="cism_config_ho_options"
 valid_values="0,1,2" >
 Which gradient operator to use in the glissade dycore.
 Not valid in other dycores.
-0: Centered gradient.
-1: Upstream gradient (may be better for ice evolution because it damps checkerboard noise).
+NOTE: Upstream may be better for ice evolution because it damps checkerboard noise.
+0: Centered gradient
+1: First-order accurate upstream gradient
+2: Second-order accurate upstream gradient
 Default: 0
 </entry>
 
@@ -1258,20 +1271,16 @@ id="which_ho_gradient_margin"
 type="integer"
 category="cism_config_ho_options"
 group="cism_config_ho_options"
-valid_values="0,1,2,3" >
+valid_values="0,1,2" >
 How to compute the gradient at the ice margin in the glissade dycore.
 Not valid for other dycores.
 Note: Gradients are always computed at edges with ice on both sides.
 The methods differ in whether gradients are computed when an ice-covered cell
 lies above an ice-free cell (land or ocean).
-Option 3 is appropriate for ice sheets with both land and marine boundaries
-when a lateral spreading force is computed for marine ice cliffs.
-This lateral force ensures spreading where the gradient is zero.
 0: Compute edge gradient when either cell is ice-covered
-1: Compute edge gradient for grounded ice above ice-free land or ocean
+1: Compute edge gradient for ice-covered cell above ice-free land (not ocean)
 2: Compute edge gradient only when both cells have ice
-3: Compute edge gradient for ice-covered cell above ice-free land (not ocean)
-Default: 3
+Default: 1
 </entry>
 
 <entry
