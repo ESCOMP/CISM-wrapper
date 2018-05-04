@@ -260,7 +260,7 @@ then rerun checkout_externals.
         """
         Checkout a subversion repository (repo_url) to checkout_dir.
         """
-        cmd = ['svn', 'checkout', url, repo_dir_path]
+        cmd = ['svn', 'checkout', '--quiet', url, repo_dir_path]
         if verbosity >= VERBOSITY_VERBOSE:
             printlog('    {0}'.format(' '.join(cmd)))
         execute_subprocess(cmd)
@@ -270,7 +270,7 @@ then rerun checkout_externals.
         """
         Switch branches for in an svn sandbox
         """
-        cmd = ['svn', 'switch', url]
+        cmd = ['svn', 'switch', '--quiet', url]
         if verbosity >= VERBOSITY_VERBOSE:
             printlog('    {0}'.format(' '.join(cmd)))
         execute_subprocess(cmd)
