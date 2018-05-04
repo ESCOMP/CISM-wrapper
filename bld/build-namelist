@@ -576,6 +576,7 @@ add_default($nl, 'max_slope');
 add_default($nl, 'taumax_cliff');
 add_default($nl, 'geothermal');
 add_default($nl, 'flow_factor');
+add_default($nl, 'flow_factor_ssa');
 add_default($nl, 'pmp_offset');
 add_default($nl, 'pseudo_plastic_q');
 add_default($nl, 'pseudo_plastic_u0');
