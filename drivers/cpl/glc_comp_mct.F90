@@ -17,7 +17,8 @@ module glc_comp_mct
 
   use glc_import_export
   use glc_cpl_indices
-  use glc_constants,       only: verbose, stdout, stderr, nml_in, radius, zero_gcm_fluxes
+  use glc_constants,       only: verbose, stdout, stderr, nml_in, radius
+  use glc_constants,       only: zero_gcm_fluxes, model_doi_url
   use glc_InitMod,         only: glc_initialize
   use glc_RunMod,          only: glc_run
   use glc_FinalMod,        only: glc_final
@@ -170,6 +171,13 @@ CONTAINS
        call shr_sys_abort('ERROR: CISM requires a land component (either active land or dlnd)&
             & - it cannot be run with a stub land')
     end if
+
+    ! ------------------------------------------------------------------------
+    ! Get other info from the coupler
+    ! ------------------------------------------------------------------------
+
+    call seq_infodata_GetData(infodata, &
+         model_doi_url=model_doi_url)
 
     ! ------------------------------------------------------------------------
     ! Do main initialization
