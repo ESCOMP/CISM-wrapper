@@ -196,18 +196,11 @@ Limitations of the ice sheet model
 Limitations of other components of the CESM modeling system
 -----------------------------------------------------------
 
--  Glimmer-CISM has been coupled to CLM, but the current coupling is
-       one-way. That is, the surface mass balance computed by CLM is
-       passed to Glimmer-CISM and used to drive ice sheet evolution, but
-       the resulting ice sheet topography is not used to update the
-       surface elevation or landunit types in CLM. Two-way coupling is
-       under development and should be released in 2014.
+- There is no out-of-the-box capability for topography in the atmosphere model (CAM) to
+  respond to changes in ice sheet geometry. (However, members of the Land Ice Working
+  Group have developed an offline script that can be used for these purposes.)
 
--  Topography in the atmosphere model (CAM) does not respond to changes
-       in ice sheet geometry. A scheme for dynamic topography is under
-       development.
-
--  The ice sheet model has not been coupled to the ocean model; that
+-  The ice sheet model has not been fully coupled to the ocean model; that
        coupling is under development. For this reason the initial
        implementation is for the Greenland ice sheet only. Since
        ice-ocean coupling is critical for the dynamics of the Antarctic
@@ -216,12 +209,7 @@ Limitations of other components of the CESM modeling system
 
 -  The division of glaciers into elevation classes in CLM is fairly
        coarse and static in space. The current scheme is reasonable for
-       Greenland, but not ideal for mountain glaciers. An improved
-       scheme is under development.
-
--  When downscaling to elevation class, the partitioning between rain
-       and snow in CLM is simplistic. There are plans to make this
-       partitioning dependent on surface temperature.
+       Greenland, but not ideal for mountain glaciers.
 
 What’s new in CESM1.2 with respect to ice sheet modeling?
 ---------------------------------------------------------
