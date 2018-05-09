@@ -145,18 +145,10 @@ attributes to express the dependency.
 
 <bmlt_float>0</bmlt_float>
 
-<basal_mass_balance>1</basal_mass_balance>
-
 <gthf cism_phys="cism1">0</gthf>
 <gthf cism_phys="cism2">1</gthf>
 
-<isostasy>0</isostasy>
-
 <marine_margin>1</marine_margin>
-
-<calving_domain>1</calving_domain>
-
-<remove_icebergs>.true.</remove_icebergs>
 
 <limit_marine_cliffs>.true.</limit_marine_cliffs>
 
@@ -166,10 +158,6 @@ attributes to express the dependency.
 
 <evolution cism_phys="cism1">0</evolution>
 <evolution cism_phys="cism2">3</evolution>
-
-<vertical_integration>0</vertical_integration>
-
-<sigma>0</sigma>
 
 <!-- =============================================================  -->
 <!-- group: cism.config: time                                       -->
@@ -213,7 +201,6 @@ attributes to express the dependency.
 <ice_limit cism_phys="cism1">100.</ice_limit>
 <ice_limit cism_phys="cism2">1.</ice_limit>
 
-<thck_gradient_ramp cism_phys="cism1">0.</thck_gradient_ramp>
 <thck_gradient_ramp cism_phys="cism2">10.</thck_gradient_ramp>
 
 <max_slope>0.1</max_slope>
@@ -229,25 +216,7 @@ attributes to express the dependency.
 
 <pmp_offset>5.</pmp_offset>
 
-<pseudo_plastic_q>0.5</pseudo_plastic_q>
-
-<pseudo_plastic_u0>100.</pseudo_plastic_u0>
-
-<pseudo_plastic_phimin>5.</pseudo_plastic_phimin>
-
-<pseudo_plastic_phimax>40.</pseudo_plastic_phimax>
-
-<pseudo_plastic_bedmin>-700.</pseudo_plastic_bedmin>
-
-<pseudo_plastic_bedmax>700.</pseudo_plastic_bedmax>
-
 <basal_tract_const>1.e-4</basal_tract_const>
-
-<effecpress_delta>0.02</effecpress_delta>
-
-<bwat_till_max>2.0</bwat_till_max>
-
-<c_drainage>1.e-3</c_drainage>
 
 <beta_grounded_min>100.</beta_grounded_min>
 
@@ -263,13 +232,9 @@ attributes to express the dependency.
 
 <which_ho_effecpress>4</which_ho_effecpress>
 
-<which_ho_efvs>2</which_ho_efvs>
-
 <which_ho_thermal_timestep>2</which_ho_thermal_timestep>
 
 <which_ho_resid>4</which_ho_resid>
-
-<which_ho_disp>1</which_ho_disp>
 
 <which_ho_sparse dycore="2">3</which_ho_sparse>
 <which_ho_sparse dycore="1" cism_use_trilinos="FALSE">1</which_ho_sparse>
@@ -278,31 +243,14 @@ attributes to express the dependency.
 <which_ho_nonlinear dycore="1">1</which_ho_nonlinear>
 <which_ho_nonlinear dycore="2">0</which_ho_nonlinear>
 
-<which_ho_gradient>0</which_ho_gradient>
-
-<which_ho_gradient_margin>1</which_ho_gradient_margin>
-
 <which_ho_approx>4</which_ho_approx>
 
 <which_ho_precond>1</which_ho_precond>
-
-<which_ho_assemble_beta>1</which_ho_assemble_beta>
-
-<which_ho_assemble_taud>1</which_ho_assemble_taud>
-
-<which_ho_assemble_bfric>1</which_ho_assemble_bfric>
 
 <!-- 2017-11-21: Bill Lipscomb says: For Antarctic runs, we'll want to
      set this to 1, for accuracy and stability.  But for Greenland runs
      out of the box, it's OK to use the CISM default of 0, since there's
      no floating ice. -->
-<which_ho_calving_front>0</which_ho_calving_front>
-
-<which_ho_ground>0</which_ho_ground>
-
-<which_ho_ground_bmlt>0</which_ho_ground_bmlt>
-
-<which_ho_flotation_function>1</which_ho_flotation_function>
 
 <glissade_maxiter>50</glissade_maxiter>
 
