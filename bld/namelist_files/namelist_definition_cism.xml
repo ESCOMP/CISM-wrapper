@@ -506,7 +506,7 @@ Calving
 5: Set thickness to zero based on grid location (field 'calving_mask')
 6: Set thickness to zero if ice at marine margin is thinner than a certain value (calving_minthck)
 7: Set thickness to zero based on strain rate (eigencalving) criterion
-8: Calve ice that is sufficiently damaged
+8: [NOT SUPPORTED] Calve ice that is sufficiently damaged
 9: Huybrechts grounding line scheme for Greenland initialization
 Default: 1
 </entry>
@@ -519,7 +519,7 @@ group="cism_config_options"
 valid_values="0,1" >
 0: Calve only at ocean edge
 1: Calve wherever the calving criterion is met
-Default: (use hard-coded default - currently 1)
+Default: 1
 </entry>
 
 <entry
@@ -531,7 +531,7 @@ If true, then identify and remove icebergs after calving.
 These are connected regions with zero basal traction and no connection to grounded ice.
 Safer to make it true (and this is needed for stability when allowing floating ice
 with more advanced calving options), but not necessary for all applications.
-Default: (use hard-coded default - currently .true.)
+Default: .true.
 </entry>
 
 <entry
@@ -607,7 +607,7 @@ valid_values="0,1" >
 Method of integration used to obtain vertical velocity
 0: standard vertical integration
 1: vertical integration constrained to obey an upper kinematic boundary condition
-Default: (use hard-coded default - currently 0)
+Default: 0
 </entry>
 
 <entry 
@@ -618,7 +618,7 @@ group="cism_config_options"
 valid_values="0,1" >
 0: not in continuity equation
 1: in continuity equation
-Default: (use hard-coded default - currently 1)
+Default: 1
 </entry>
 
 <entry 
@@ -642,7 +642,7 @@ group="cism_config_options"
 valid_values="0,1" >
 0: no isostasy
 1: compute isostasy
-Default: (use hard-coded default - currently 0)
+Default: 0
 </entry>
 
 <entry
@@ -657,7 +657,7 @@ How to determine sigma values
 2: read sigma coordinates from config file (from sigma_levels)
 3: evenly spaced levels, as required for glam dycore
 4: compute Pattyn sigma coordinates
-Default: (use hard-coded default - currently 0)
+Default: 0
 </entry>
 
 <entry
@@ -671,6 +671,32 @@ valid_values="0,1">
 (This is a Glimmer serial option. The parallel code enforces periodic
 EW and NS boundary conditions by default.)
 Default: (use hard-coded default - currently 0)
+</entry>
+
+<entry
+id="diag_minthck"
+type="integer"
+category="cism_config_options"
+group="cism_config_options"
+valid_values="0,1" >
+How to determine minimum thickness for diagnostic
+0: global diagnostics include all cell with H > 0
+1: global diagnostics include all cells with H > thklim
+This change only affect log files, not output .nc files
+Default: (use hard-coded default - currently 1)
+</entry>
+
+<entry
+id="dm_dt_diag"
+type="integer"
+category="cism_config_options"
+group="cism_config_options"
+valid_values="0,1" >
+Switch units from kg/s to Gt/yr in the log file
+0: use kg/s unit in log file
+1: use Gt/yr unit in log file
+This change only affect log files, not output .nc files
+Default: 1
 </entry>
 
 <entry 
@@ -798,7 +824,7 @@ category="cism_config_parameters"
 group="cism_config_parameters" >
 Thickness scale over which gradients increase from zero to full value (HO only)
 This parameter does not exist in CISM1 thus CISM2 only.
-Default: 10.
+Default: 50.
 </entry>
 
 <entry 
@@ -836,7 +862,7 @@ type="real"
 category="cism_config_parameters"
 group="cism_config_parameters" >
 Yield stress (Pa) for marine-based ice cliffs
-Default: (use hard-coded default - currently 1.e6)
+Default: 1.e6
 </entry>
 
 <entry 
@@ -845,8 +871,49 @@ type="real"
 category="cism_config_parameters"
 group="cism_config_parameters" >
 Time scale (yr) for limiting marine cliffs (glissade only)
-Default: (use hard-coded default - currently 0.)
+Default: 10.
 </entry>
+
+<entry
+id="eigencalving_constant"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Lateral calving rate (m/yr) per unit stress (Pa)
+[NOT SUPPORTED]
+Default: (use hard-coded default - currently 0.01)
+</entry>
+
+<entry
+id="eigen2_weight"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Weight that can increase lateral calving rate (eigencalving_constant).
+[NOT SUPPORTED]
+Default: (use hard-coded default - currently 1.)
+</entry>
+
+<entry
+id="damage_constant"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Damage rate (1/yr) per unit stress (Pa)
+[NOT SUPPORTED]
+Default: (use hard-coded default - currently 1.e-7)
+</entry>
+
+<entry
+id="damage_threshold"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Damage threshold for calving
+[NOT SUPPORTED]
+Default: (use hard-coded default - currently 0.75)
+</entry>
+
 
 <entry 
 id="ncull_calving_front"
@@ -880,7 +947,7 @@ Default: 3.0 for cism1, 1.0 for cism2
 </entry>
 
 <entry 
-id="flow_factor_ssa"
+id="flow_factor_float"
 type="real" 
 category="cism_config_parameters"
 group="cism_config_parameters" >
@@ -1001,7 +1068,7 @@ Exponent for pseudo-plastic law (unitless)
 q = 1: linear sliding law
 q = 0: plastic
 Intermediate values: power law
-Default: (use hard-coded default - currently 0.5)
+Default: 0.5
 </entry>
 
 <entry
@@ -1011,7 +1078,7 @@ category="cism_config_parameters"
 group="cism_config_parameters" >
 Parameter for pseudo-plasting sliding law:
 Threshold velocity for pseudo-plastic law (m yr-1)
-Default: (use hard-coded default - currently 100.)
+Default: 100.
 </entry>
 
 <entry
@@ -1022,7 +1089,7 @@ group="cism_config_parameters" >
 Parameter for pseudo-plasting sliding law:
 min(phi) in pseudo-plastic law, for topg &lt;= bedmin (degrees)
 0 &lt; phi &lt; 90
-Default: (use hard-coded default - currently 5.)
+Default: 5.
 </entry>
 
 <entry
@@ -1033,7 +1100,7 @@ group="cism_config_parameters" >
 Parameter for pseudo-plasting sliding law:
 max(phi) in pseudo-plastic law, for topg &gt;= bedmin (degrees)
 0 &lt; phi &lt; 90
-Default: (use hard-coded default - currently 40.)
+Default: 40.
 </entry>
 
 <entry
@@ -1043,7 +1110,7 @@ category="cism_config_parameters"
 group="cism_config_parameters" >
 Parameter for pseudo-plasting sliding law:
 Bed elevation below which phi = phimin (m)
-Default: (use hard-coded default - currently -700.)
+Default: -700.
 </entry>
 
 <entry
@@ -1053,7 +1120,7 @@ category="cism_config_parameters"
 group="cism_config_parameters" >
 Parameter for pseudo-plasting sliding law:
 Bed elevation above which phi = phimax (m)
-Default: (use hard-coded default - currently 700.)
+Default: 700.
 </entry>
 
 <entry
@@ -1063,7 +1130,7 @@ category="cism_config_parameters"
 group="cism_config_parameters" >
 Parameter for reducing the effective pressure where the bed is warm, saturated or connected to the ocean:
 Multiplier for effective pressure N where the bed is saturated and/or thawed (unitless)
-Default: (use hard-coded default - currently 0.02)
+Default: 0.02
 </entry>
 
 <entry
@@ -1092,7 +1159,7 @@ type="real"
 category="cism_config_parameters"
 group="cism_config_parameters" >
 Parameter for local till model: Maximum water depth in till (m)
-Default: (use hard-coded default - currently 2.0)
+Default: 2.0
 </entry>
 
 <entry
@@ -1101,7 +1168,7 @@ type="real"
 category="cism_config_parameters"
 group="cism_config_parameters" >
 Parameter for local till model: Uniform drainage rate (m/yr)
-Default: (use hard-coded default - currently 1.e-3)
+Default: 1.e-3
 </entry>
 
 <entry
@@ -1183,7 +1250,7 @@ How effective viscosity is computed for higher-order dynamical core
 0: constant value
 1: multiple of flow factor
 2: compute from effective strain rate
-Default: (use hard-coded default - currently 2)
+Default: 2
 </entry>
 
 <entry
@@ -1223,7 +1290,7 @@ Method for computing the dissipation during the temperature calculation
 -1: no dissipation
 0: 0-order SIA approx.
 1: 1st order solution (e.g., Blatter-Pattyn)
-Default: (use hard-coded default - currently 1)
+Default: 1
 </entry>
 
 <entry
@@ -1238,8 +1305,8 @@ Method for solving the sparse linear system that arises from the higher-order so
 2: Conjugate gradient, incomplete LU preconditioner
 3: Conjugate gradient, structured grid, parallel-enabled
 4: standalone interface to Trilinos
-Default: 3 if dycore = 2, 1 if dycore = 1 and cism_use_trilinos = FALSE, 
-         4 if dycore = 1 and cism_use_trilinos = TRUE
+The use of trilinos is not supported in CESM runs.
+Default: 3 if dycore = 2, 1 if dycore = 1 and cism_use_trilinos = FALSE
 </entry>
 
 <entry
@@ -1266,7 +1333,7 @@ NOTE: Upstream may be better for ice evolution because it damps checkerboard noi
 0: Centered gradient
 1: First-order accurate upstream gradient
 2: Second-order accurate upstream gradient
-Default: (use hard-coded default - currently 0)
+Default: 0
 </entry>
 
 <entry
@@ -1283,7 +1350,7 @@ lies above an ice-free cell (land or ocean).
 0: Compute edge gradient when either cell is ice-covered
 1: Compute edge gradient for ice-covered cell above ice-free land (not ocean)
 2: Compute edge gradient only when both cells have ice
-Default: (use hard-coded default - currently 1)
+Default: 1
 </entry>
 
 <entry
@@ -1326,7 +1393,7 @@ valid_values="0,1" >
 Flag that describes how beta terms are assembled in the glissade finite-element calculation
 0: Standard finite-element calculation (which effectively smooths beta)
 1: Apply local value of beta at each vertex
-Default: (use hard-coded default - currently 1)
+Default: 1
 </entry>
 
 <entry
@@ -1339,7 +1406,7 @@ Flag that describes how driving-stress terms are assembled in the glissade finit
 Not valid for other dycores
 0: Standard finite-element calculation (which effectively smooths the driving stress)
 1: Apply local value of driving stress at each vertex
-Default: (use hard-coded default - currently 1)
+Default: 1
 </entry>
 
 <entry
@@ -1352,7 +1419,7 @@ Flag that describes how the basal friction heat flux is computed in the glissade
 Not valid for other dycores
 0: Standard finite-element calculation summing over quadrature points
 1: Apply local value of beta*(u^2 + v^2) at each vertex
-Default: (use hard-coded default - currently 1)
+Default: 1
 </entry>
 
 <entry
@@ -1364,7 +1431,7 @@ valid_values="0,1" >
 Flag that indicates whether to use a subgrid calving front parameterization
 0: No subgrid calving front parameterization
 1: Use subgrid calving front parameterization
-Default: (use hard-coded default - currently 0)
+Default: 0
 </entry>
 
 <entry
@@ -1378,7 +1445,7 @@ Not valid for other dycores
 0: fground = 0 in floating cells (based on flotation condition), else fground = 1 
 1: [NOT SUPPORTED] fground between 0 and 1 (inclusive), based on a grounding line parameterization
 2: fground = 1 in all cells
-Default: (use hard-coded default - currently 0)
+Default: 0
 </entry>
 
 <entry
@@ -1391,7 +1458,7 @@ Expert setting for marine ice runs.
 Flag that indicates how to compute bmlt_float in partly grounded cells
 0: Apply bmlt_float in all floating cells, including partly grounded cells
 1: Do not apply bmlt_float in partly grounded cells
-Default: (use hard-coded default - currently 0)
+Default: 0
 </entry>
 
 <entry
