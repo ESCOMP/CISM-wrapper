@@ -231,7 +231,7 @@ attributes to express the dependency.
 <taumax_cliff>1.e6</taumax_cliff>
 
 <!-- cliff_timescale CISM default -->
-<cliff_timescale>10.</taumax_cliff>
+<cliff_timescale>10.</cliff_timescale>
 
 <geothermal>-5.e-2</geothermal>
 
