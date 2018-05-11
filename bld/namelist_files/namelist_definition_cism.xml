@@ -356,7 +356,7 @@ valid_values="0,1,2" >
 Global boundary conditions
 0: Doubly periodic
 1: Free outflow; scalars in global halo set to zero
-2: No penetration; outflow set to zero at global boundaries (only supported for glissade)
+2: No penetration; outflow set to zero at global boundaries (only supported for Glissade dycore)
 Default: 0 for cism1, 1 for cism2
 </entry>
 
@@ -398,7 +398,7 @@ type="integer"
 category="cism_config_climate"
 group="cism_config_climate" >
 Ice time-step multiplier: allows asynchronous climate-ice coupling
-Default: 1
+Default: (use hard-coded default- currently 1)
 </entry>
 
 <!-- =============================================================  -->
@@ -412,10 +412,10 @@ category="cism_config_options"
 group="cism_config_options"
 valid_values="0,2" >
 Which dycore to use
-0: glide dycore (SIA, serial only)
+0: Glide dycore (SIA, serial only)
 1: NOT SUPPORTED: glam dycore (HO, FDM, serial or parallel)
    Note that this option is not allowed within CESM, because it is buggy
-2: glissade dycore (HO, FEM, serial or parallel)
+2: Glissade dycore (HO, FEM, serial or parallel)
 Default: 0 for cism1, 2 for cism2
 </entry>
 
@@ -468,7 +468,7 @@ category="cism_config_options"
 group="cism_config_options"
 valid_values="0,1,2,3" >
 Determines the treatment of basal water
-Only valid for glide dycore (cism1)
+Only valid for Glide dycore (cism1)
 0: Set to zero everywhere
 1: Calculated from local water balance
 2: Compute the basal water flux, then find depth via calculation
@@ -484,10 +484,11 @@ group="cism_config_options"
 valid_values="0,1,2,3,4" >
 Basal melt rate for floating ice
 0: Basal melt rate = 0 for floating ice
-1: Basal melt rate for floating ice as prescribed for MISMIP+
+1: Depth-dependent basal melt rate for floating ice as prescribed for MISMIP+
 2: Basal melt rate = constant for floating ice (with option to selectively mask out melting)
-3: Basal melt rate for floating ice from MISOMIP ocean forcing with plume model
+3: Basal melt rate based on thickness of sub-shelf cavity
 4: External basal melt rate field (from input file or coupler)
+5: [NOT SUPPORTED] Basal melt rate for floating ice from MISOMIP ocean forcing with plume model
 Default: 0
 </entry>
 
@@ -505,9 +506,9 @@ Calving
 4: Set thickness to zero if present bedrock topography lies below a certain water depth (marine_limit)
 5: Set thickness to zero based on grid location (field 'calving_mask')
 6: Set thickness to zero if ice at marine margin is thinner than a certain value (calving_minthck)
-7: Set thickness to zero based on strain rate (eigencalving) criterion
-8: Calve ice that is sufficiently damaged
-9: Huybrechts grounding line scheme for Greenland initialization
+7: Set thickness to zero based on stress (eigencalving) criterion
+8: [NOT SUPPORTED] Calve ice that is sufficiently damaged
+9: [NOT SUPPORTED] Huybrechts grounding line scheme for Greenland initialization
 Default: 1
 </entry>
 
@@ -516,11 +517,9 @@ id="calving_domain"
 type="integer" 
 category="cism_config_options"
 group="cism_config_options"
-valid_values="0,1,2" >
+valid_values="0,1" >
 0: Calve only at ocean edge
 1: Calve wherever the calving criterion is met
-2: Calve where the calving criterion is met, and there is a connected path
-   to the ocean through other cells where the criterion is met
 Default: 1
 </entry>
 
@@ -542,6 +541,7 @@ type="logical"
 category="cism_config_options"
 group="cism_config_options" >
 If true, then thin marine-based cliffs based on a thickness threshold
+Default: .true.
 </entry>
 
 <entry
@@ -574,6 +574,7 @@ category="cism_config_options"
 group="cism_config_options"
 valid_values="0,1,2,3,4,5" >
 Basal traction parameter
+Glide or Glissade local SIA (which_ho_approx = -1) only.
 0: no basal sliding
 1: constant basal traction coefficient
 2: constant coefficient where basal water is present, else no sliding
@@ -595,6 +596,8 @@ valid_values="0,2,3,4,5" >
 3: remap thickness
 4: 1st order upwind
 5: no thickness evolution
+Options 0, 1 and 2 are for Glide dycore only
+Options 3, 4 and 5 are for Glissade dycore only
 Default: 0 for cism1, 3 for cism2
 </entry>
 
@@ -670,7 +673,33 @@ valid_values="0,1">
 1: periodic EW boundary conditions
 (This is a Glimmer serial option. The parallel code enforces periodic
 EW and NS boundary conditions by default.)
-Default: 0
+Default: (use hard-coded default - currently 0)
+</entry>
+
+<entry
+id="diag_minthck"
+type="integer"
+category="cism_config_options"
+group="cism_config_options"
+valid_values="0,1" >
+How to determine minimum thickness for diagnostic
+0: global diagnostics include all cell with H > 0
+1: global diagnostics include all cells with H > thklim
+This change only affects log files, not output .nc files
+Default: (use hard-coded default - currently 1)
+</entry>
+
+<entry
+id="dm_dt_diag"
+type="integer"
+category="cism_config_options"
+group="cism_config_options"
+valid_values="0,1" >
+Switch units from kg/s to Gt/yr in the log file
+0: use kg/s unit in log file
+1: use Gt/yr unit in log file
+This change only affects log files, not output .nc files
+Default: 1
 </entry>
 
 <entry 
@@ -713,7 +742,7 @@ id="subcyc"
 type="integer"
 category="cism_config_time"
 group="cism_config_time" >
-Subcycling for glissade
+Subcycling for Glissade
 Default: 1
 </entry>
 
@@ -727,7 +756,7 @@ Adaptively subcycle the advection when advective CFL exceeds this value
 This is an expert setting. If you use a non-zero value, you may be able
 to run with a longer timestep when using the more advanced calving
 options, but you can also mask large, unphysical velocities.
-Default: 0.
+Default: (use hard-coded default - currently 0.)
 </entry>
 
 <entry
@@ -736,6 +765,7 @@ type="integer"
 category="cism_config_time"
 group="cism_config_time" >
 Profile period (number of time steps between profiles)
+Option for Glide dycore only
 Default: 100
 </entry>
 
@@ -796,8 +826,9 @@ id="thck_gradient_ramp"
 type="real"
 category="cism_config_parameters"
 group="cism_config_parameters" >
-Thickness scale over which gradients increase from zero to full value (HO only)
-Default: 10. for cism2
+Thickness scale (in meters) over which gradients increase from zero to full value (HO only)
+This parameter does not exist in CISM1 thus CISM2 only.
+Default: 50.
 </entry>
 
 <entry 
@@ -805,7 +836,7 @@ id="max_slope"
 type="real" 
 category="cism_config_parameters"
 group="cism_config_parameters" >
-Maximum surface slope used in the glissade driving-stress calculation (unitless)
+Maximum surface slope used in the Glissade driving-stress calculation (unitless)
 Not valid for other dycores
 Default: 0.1
 </entry>
@@ -815,10 +846,9 @@ id="marine_limit"
 type="real" 
 category="cism_config_parameters"
 group="cism_config_parameters" >
-All ice is assumed lost once water depths reach this value (for marine_margin=2 or 4) (m)
+All ice is assumed lost once water depths reach this value (for marine_margin=3 or 4) (m)
 Note that water depth is negative
-Only relevant for cism1 (glide dycore)
-Default: (use hard-coded default)
+Default: (use hard-coded default - currently -200.)
 </entry>
 
 <entry 
@@ -826,8 +856,8 @@ id="calving_fraction"
 type="real" 
 category="cism_config_parameters"
 group="cism_config_parameters" >
-Fraction of ice lost to calving
-Default: (use hard-coded default)
+Fraction of ice lost to calving (marine_margin = 2 only)
+Default: (use hard-coded default - currently 0.2)
 </entry>
 
 <entry 
@@ -835,7 +865,7 @@ id="taumax_cliff"
 type="real" 
 category="cism_config_parameters"
 group="cism_config_parameters" >
-Yield stress (Pa) for marine-based ice cliffs
+Yield stress (Pa) for marine-based ice cliffs (Glissade only)
 Default: 1.e6
 </entry>
 
@@ -844,9 +874,50 @@ id="cliff_timescale"
 type="real" 
 category="cism_config_parameters"
 group="cism_config_parameters" >
-Time scale (yr) for limiting marine cliffs (glissade only)
-Default: (use hard-coded default)
+Time scale (yr) for limiting marine cliffs (Glissade only)
+Default: 10.
 </entry>
+
+<entry
+id="eigencalving_constant"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Lateral calving rate (m/yr) per unit stress (Pa)
+Used only with marine_margin = 7 and 8
+Default: (use hard-coded default - currently 0.01)
+</entry>
+
+<entry
+id="eigen2_weight"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Weight that can increase lateral calving rate (eigencalving_constant).
+Used only with marine_margin = 7 and 8
+Default: (use hard-coded default - currently 1.)
+</entry>
+
+<entry
+id="damage_constant"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Damage rate (1/yr) per unit stress (Pa)
+[NOT SUPPORTED]
+Default: (use hard-coded default - currently 1.e-7)
+</entry>
+
+<entry
+id="damage_threshold"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Damage threshold for calving
+[NOT SUPPORTED]
+Default: (use hard-coded default - currently 0.75)
+</entry>
+
 
 <entry 
 id="ncull_calving_front"
@@ -856,7 +927,7 @@ group="cism_config_parameters" >
 Number of times to cull calving_front cells at initialization
 Set to a larger value to remove thicker peninsulas
 To use this, also set cull_calving_front to .true.
-Default: (use hard-coded default)
+Default: (use hard-coded default - currently 0)
 </entry>
 
 <entry 
@@ -880,7 +951,7 @@ Default: 3.0 for cism1, 1.0 for cism2
 </entry>
 
 <entry 
-id="flow_factor_ssa"
+id="flow_factor_float"
 type="real" 
 category="cism_config_parameters"
 group="cism_config_parameters" >
@@ -895,8 +966,8 @@ id="default_flwa"
 type="real" 
 category="cism_config_parameters"
 group="cism_config_parameters" >
-Glen's A to use in isothermal case
-Default: (use hard-coded default)
+Glen's A to use in isothermal case, i.e, when temperature = 0
+Default: (use hard-coded default - currently 1.e-16)
 </entry>
 
 <entry 
@@ -905,9 +976,9 @@ type="real"
 category="cism_config_parameters"
 group="cism_config_parameters" >
 Time scale for basal water to drain (yr-1)
-Only relevant for cism1 (glide dycore)
+Only relevant for cism1 (Glide dycore)
 (Not relevant for basal_water=2)
-Default: (use hard-coded default)
+Default: (use hard-coded default - currently 1000.)
 </entry>
 
 <entry 
@@ -916,6 +987,7 @@ type="real"
 category="cism_config_parameters"
 group="cism_config_parameters" >
 (m yr-1 Pa-1)
+Relevant only when slip_coeff is relevant (Glide or Glissade local SIA)
 Default: 1.e-4
 </entry>
 
@@ -926,7 +998,7 @@ category="cism_config_parameters"
 group="cism_config_parameters" >
 (m yr-1 Pa-1)
 (Only used for slip_coeff = BTRC_LINEAR_BMLT)
-Default: (use hard-coded default)
+Default: (use hard-coded default - currently 0.)
 </entry>
 
 <entry 
@@ -936,7 +1008,7 @@ category="cism_config_parameters"
 group="cism_config_parameters" >
 (Pa-1)
 (Only used for slip_coeff = BTRC_LINEAR_BMLT)
-Default: (use hard-coded default)
+Default: (use hard-coded default - currently 0.)
 </entry>
 
 <entry 
@@ -946,7 +1018,7 @@ category="cism_config_parameters"
 group="cism_config_parameters" >
 5-element list of values
 (Only used for slip_coeff = BTRC_TANH_BWAT)
-Default: (use hard-coded default)
+Default: (use hard-coded default - currently 0.2d0, 0.5d0, 0.0d0 ,1.0d-2, 1.0d0)
 </entry>
 
 <entry
@@ -957,7 +1029,7 @@ group="cism_config_parameters" >
 Optional periodic offset for ismip-hom and similar tests
 May be needed to ensure continuous ice geometry at the edges of the
 global domain
-Default: 0.
+Default: (use hard-coded default - currently 0.)
 </entry>
 
 <entry
@@ -968,7 +1040,7 @@ group="cism_config_parameters" >
 Optional periodic offset for ismip-hom and similar tests
 May be needed to ensure continuous ice geometry at the edges of the
 global domain
-Default: 0.
+Default: (use hard-coded default - currently 0.)
 </entry>
 
 <entry
@@ -976,8 +1048,9 @@ id="ho_beta_const"
 type="real"
 category="cism_config_parameters"
 group="cism_config_parameters" >
+Only relevant for which_ho_babc = 0 
 Spatially uniform beta for higher-order dycores (Pa yr m-1)
-Default: (use hard-coded default)
+Default: (use hard-coded default - currently 1000.)
 </entry>
 
 <entry
@@ -1073,7 +1146,7 @@ group="cism_config_parameters" >
 Parameter for reducing the effective pressure where the bed is warm, saturated or connected to the ocean:
 Temperature range over which N ramps from a small value to full overburden (deg C)
 Only applies for which_ho_effecpress = 1.
-Default: (use hard-coded default)
+Default: (use hard-coded default - currently 0.1)
 </entry>
 
 <entry
@@ -1082,7 +1155,8 @@ type="real"
 category="cism_config_parameters"
 group="cism_config_parameters" >
 Basal melting range over which N ramps from a small value to full overburden (m/yr)
-Default: (use hard-coded default)
+Relevant only for which_ho_effecpress = 2
+Default: (use hard-coded default - currently 1.0d-3)
 </entry>
 
 <entry
@@ -1091,6 +1165,7 @@ type="real"
 category="cism_config_parameters"
 group="cism_config_parameters" >
 Parameter for local till model: Maximum water depth in till (m)
+Relevant only for which_ho_bwat = 2
 Default: 2.0
 </entry>
 
@@ -1100,6 +1175,7 @@ type="real"
 category="cism_config_parameters"
 group="cism_config_parameters" >
 Parameter for local till model: Uniform drainage rate (m/yr)
+Relevant only for which_ho_bwat = 2
 Default: 1.e-3
 </entry>
 
@@ -1109,7 +1185,7 @@ type="real"
 category="cism_config_parameters"
 group="cism_config_parameters" >
 Minimum value of beta for grounded ice (Pa yr m-1)
-(Applies only to glissade higher-order dycore)
+(Applies only to Glissade higher-order dycore)
 Default: 100.
 </entry>
 
@@ -1230,14 +1306,16 @@ id="which_ho_sparse"
 type="integer"
 category="cism_config_ho_options"
 group="cism_config_ho_options"
-valid_values="0,1,2,3,4" >
+valid_values="-1,0,1,2,3,4" >
 Method for solving the sparse linear system that arises from the higher-order solver
-0: Biconjugate gradient, incomplete LU preconditioner
-1: GMRES, incomplete LU preconditioner
-2: Conjugate gradient, incomplete LU preconditioner
-3: Conjugate gradient, structured grid, parallel-enabled
+-1: SLAP (serial) Preconditioned conjugate gradient, incomplete Cholesky preconditioner
+0: SLAP (serial) Biconjugate gradient, incomplete LU preconditioner
+1: SLAP (serial) GMRES, incomplete LU preconditioner
+2: Native PCG, parallel-enabled, standard solver
+3: Native PCG, parallel-enabled, Chronopoulos-Gear solver
 4: standalone interface to Trilinos
-Default: 3
+The use of trilinos is NOT SUPPORTED in CESM runs.
+Default: 3 if dycore = 2, 1 if dycore = 1 and cism_use_trilinos = FALSE
 </entry>
 
 <entry
@@ -1248,8 +1326,8 @@ group="cism_config_ho_options"
 valid_values="0,1" >
 Method for solving the nonlinear iteration when solving the first-order momentum balance
 0: use the standard Picard iteration
-1: use Jacobian Free Newton Krylov (JFNK) method
-Default: 0
+1: use Jacobian Free Newton Krylov (JFNK) method [GLAM only]
+Default: 1 for dycore = 1, 0 for dycore = 2
 </entry>
 
 <entry
@@ -1258,7 +1336,7 @@ type="integer"
 category="cism_config_ho_options"
 group="cism_config_ho_options"
 valid_values="0,1,2" >
-Which gradient operator to use in the glissade dycore.
+Which gradient operator to use in the Glissade dycore.
 Not valid in other dycores.
 NOTE: Upstream may be better for ice evolution because it damps checkerboard noise.
 0: Centered gradient
@@ -1273,7 +1351,7 @@ type="integer"
 category="cism_config_ho_options"
 group="cism_config_ho_options"
 valid_values="0,1,2" >
-How to compute the gradient at the ice margin in the glissade dycore.
+How to compute the gradient at the ice margin in the Glissade dycore.
 Not valid for other dycores.
 Note: Gradients are always computed at edges with ice on both sides.
 The methods differ in whether gradients are computed when an ice-covered cell
@@ -1290,7 +1368,7 @@ type="integer"
 category="cism_config_ho_options"
 group="cism_config_ho_options"
 valid_values="-1,0,1,2,3,4" >
-Flag that indicates which Stokes approximation to use with the glissade dycore.
+Flag that indicates which Stokes approximation to use with the Glissade dycore.
 Not valid for other dycores.
 -1: Shallow-ice approximation, Glide-type calculation (uses glissade_velo_sia)
 0: Shallow-ice approximation, vertical-shear stresses only (uses glissade_velo_higher)
@@ -1307,7 +1385,7 @@ type="integer"
 category="cism_config_ho_options"
 group="cism_config_ho_options"
 valid_values="0,1,2" >
-Flag that indicates which Stokes preconditioner to use in the glissade dycore.
+Flag that indicates which Stokes preconditioner to use in the Glissade dycore.
 Not valid for other dycores.
 0: No preconditioner
 1: Diagonal preconditioner
@@ -1321,7 +1399,7 @@ type="integer"
 category="cism_config_ho_options"
 group="cism_config_ho_options"
 valid_values="0,1" >
-Flag that describes how beta terms are assembled in the glissade finite-element calculation
+Flag that describes how beta terms are assembled in the Glissade finite-element calculation
 0: Standard finite-element calculation (which effectively smooths beta)
 1: Apply local value of beta at each vertex
 Default: 1
@@ -1333,7 +1411,7 @@ type="integer"
 category="cism_config_ho_options"
 group="cism_config_ho_options"
 valid_values="0,1" >
-Flag that describes how driving-stress terms are assembled in the glissade finite-element calculation
+Flag that describes how driving-stress terms are assembled in the Glissade finite-element calculation
 Not valid for other dycores
 0: Standard finite-element calculation (which effectively smooths the driving stress)
 1: Apply local value of driving stress at each vertex
@@ -1346,7 +1424,7 @@ type="integer"
 category="cism_config_ho_options"
 group="cism_config_ho_options"
 valid_values="0,1" >
-Flag that describes how the basal friction heat flux is computed in the glissade finite-element calculation
+Flag that describes how the basal friction heat flux is computed in the Glissade finite-element calculation
 Not valid for other dycores
 0: Standard finite-element calculation summing over quadrature points
 1: Apply local value of beta*(u^2 + v^2) at each vertex
@@ -1370,11 +1448,11 @@ id="which_ho_ground"
 type="integer"
 category="cism_config_ho_options"
 group="cism_config_ho_options"
-valid_values="0,1,2" >
-Flag that indicates how the grounded ice fraction is computed in the glissade dycore
+valid_values="0,2" >
+Flag that indicates how the grounded ice fraction is computed in the Glissade dycore
 Not valid for other dycores
 0: fground = 0 in floating cells (based on flotation condition), else fground = 1 
-1: fground between 0 and 1 (inclusive), based on a grounding line parameterization
+1: [NOT SUPPORTED] fground between 0 and 1 (inclusive), based on a grounding line parameterization
 2: fground = 1 in all cells
 Default: 0
 </entry>
@@ -1385,25 +1463,10 @@ type="integer"
 category="cism_config_ho_options"
 group="cism_config_ho_options"
 valid_values="0,1" >
-Expert setting for marine ice runs.
 Flag that indicates how to compute bmlt_float in partly grounded cells
 0: Apply bmlt_float in all floating cells, including partly grounded cells
 1: Do not apply bmlt_float in partly grounded cells
 Default: 0
-</entry>
-
-<entry
-id="which_ho_flotation_function"
-type="integer"
-category="cism_config_ho_options"
-group="cism_config_ho_options"
-valid_values="0,1,2" >
-Flag that indicates how to compute the flotation function at and near vertices in the glissade dycore
-Not valid for other dycores
-0: f_flotation = (-rhow*b/rhoi*H) = f_pattyn; less than or equal to 1 for grounded, greater than 1 for floating
-1: f_flotation = (rhoi*H)/(-rhow*b) = 1/f_pattyn; greater than or equal to 1 for grounded, less than 1 for floating
-2: f_flotation = -rhow*b - rhoi*H = ocean cavity thickness; less than or equal to 0 for grounded, greater than 0 for floating 
-Default: 1
 </entry>
 
 <entry
@@ -1431,7 +1494,7 @@ valid_values="1,3" >
 1: 1D calculations
 3: 3D calculations
 Only relevant if gthf = 2
-Default: 1
+Default: (use hard-coded default - currently 1)
 </entry>
 
 <entry 
@@ -1441,7 +1504,7 @@ category="cism_config_gthf"
 group="cism_config_gthf" >
 Number of vertical layers
 Only relevant if gthf = 2
-Default: 20
+Default: (use hard-coded default - currently 20)
 </entry>
 
 <entry 
@@ -1451,7 +1514,7 @@ category="cism_config_gthf"
 group="cism_config_gthf" >
 Initial surface temperature (degrees C)
 Only relevant if gthf = 2
-Default: (use hard-coded default)
+Default: (use hard-coded default - currently 2.)
 </entry>
 
 <entry 
@@ -1461,7 +1524,7 @@ category="cism_config_gthf"
 group="cism_config_gthf" >
 Depth below sea-level at which geothermal heat gradient is applied (m)
 Only relevant if gthf = 2
-Default: (use hard-coded default)
+Default: (use hard-coded default - currently -5000.)
 </entry>
 
 <entry 
@@ -1471,7 +1534,7 @@ category="cism_config_gthf"
 group="cism_config_gthf" >
 Number of time steps for spinning up GTHF calculations
 Only relevant if gthf = 2
-Default: 0
+Default: (use hard-coded default - currently 0)
 </entry>
 
 <entry 
@@ -1481,7 +1544,7 @@ category="cism_config_gthf"
 group="cism_config_gthf" >
 Density of lithosphere (kg m-3)
 Only relevant if gthf = 2
-Default: (use hard-coded default)
+Default: (use hard-coded default - currently 3300.)
 </entry>
 
 <entry 
@@ -1491,7 +1554,7 @@ category="cism_config_gthf"
 group="cism_config_gthf" >
 Specific heat capacity of lithosphere (J kg-1 K-1)
 Only relevant if gthf = 2
-Default: (use hard-coded default)
+Default: (use hard-coded default - currently 1000.)
 </entry>
 
 <entry 
@@ -1501,7 +1564,7 @@ category="cism_config_gthf"
 group="cism_config_gthf" >
 thermal conductivity of lithosphere (W m-1 K-1)
 Only relevant if gthf = 2
-Default: (use hard-coded default)
+Default: (use hard-coded default - currently 3.3)
 </entry>
 
 
@@ -1520,7 +1583,7 @@ valid_values="0,1,2" >
 0: relaxed topography is read from a separate variable
 1: first time slice of input topography is assumed to be relaxed
 2: first time slice of input topography is assumed to be in isostatic equilibrium with ice thickness
-Default: 0
+Default: (use hard-coded default - currently 0)
 </entry>
 
 <entry 
@@ -1532,7 +1595,7 @@ valid_values="0,1" >
 0: local lithosphere, equilibrium bedrock depression is found using Archimedes' principle
 1: elastic lithosphere, flexural rigidity is taken into account
 Only relevant if isostasy = 1
-Default: 1
+Default: (use hard-coded default - currently 1)
 </entry>
 
 <entry 
@@ -1544,7 +1607,7 @@ valid_values="0,1" >
 0: fluid mantle, isostatic adjustment happens instantaneously
 1: relaxing mantle, mantle is approximated by a half-space
 Only relevant if isostasy = 1
-Default: 1
+Default: (use hard-coded default - currently 1)
 </entry>
 
 <entry 
@@ -1554,7 +1617,7 @@ category="cism_config_isostasy"
 group="cism_config_isostasy" >
 Characteristic time constant of relaxing mantle (years)
 Only relevant if isostasy = 1
-Default: (use hard-coded default)
+Default: (use hard-coded default - currently 4000.) 
 </entry>
 
 <entry 
@@ -1564,7 +1627,7 @@ category="cism_config_isostasy"
 group="cism_config_isostasy" >
 Lithosphere update period (years)
 Only relevant if isostasy = 1
-Default: (use hard-coded default)
+Default: (use hard-coded default - currently 100.)
 </entry>
 
 <entry 
@@ -1574,7 +1637,7 @@ category="cism_config_isostasy"
 group="cism_config_isostasy" >
 Flexural rigidity of the lithosphere
 Only relevant if 'lithosphere' is set to 1
-Default: (use hard-coded default)
+Default: (use hard-coded default - currently 0.24e25)
 </entry>
 
 

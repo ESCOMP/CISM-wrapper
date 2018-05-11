@@ -545,6 +545,7 @@ add_default($nl, 'slip_coeff');
 add_default($nl, 'evolution');
 add_default($nl, 'vertical_integration');
 add_default($nl, 'sigma');
+add_default($nl, 'dm_dt_diag');
 add_default($nl, 'restart', 'val'=>$restart);
 $nl->write_cism_config($fh, "cism_config_options");
 
@@ -562,7 +563,6 @@ else {
 
 print $fh "\n[time]\n";
 add_default($nl, 'dt');
-add_default($nl, 'adaptive_cfl_threshold');
 add_default($nl, 'dt_diag');
 add_default($nl, 'idiag');
 add_default($nl, 'jdiag');
@@ -574,9 +574,10 @@ add_default($nl, 'ice_limit');
 add_default($nl, 'thck_gradient_ramp');
 add_default($nl, 'max_slope');
 add_default($nl, 'taumax_cliff');
+add_default($nl, 'cliff_timescale');
 add_default($nl, 'geothermal');
 add_default($nl, 'flow_factor');
-add_default($nl, 'flow_factor_ssa');
+add_default($nl, 'flow_factor_float');
 add_default($nl, 'pmp_offset');
 add_default($nl, 'pseudo_plastic_q');
 add_default($nl, 'pseudo_plastic_u0');
@@ -613,7 +614,6 @@ if ($nl->get_value('dycore') != 0) {
     add_default($nl, 'which_ho_calving_front');
     add_default($nl, 'which_ho_ground');
     add_default($nl, 'which_ho_ground_bmlt');
-    add_default($nl, 'which_ho_flotation_function');
     add_default($nl, 'glissade_maxiter');
     $nl->write_cism_config($fh, "cism_config_ho_options");
 }
