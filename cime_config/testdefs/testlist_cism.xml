@@ -172,7 +172,7 @@
 
       <machine name="cheyenne" compiler="intel" category="aux_glc">
         <options>
-          <option name="wallclock">0:30</option>
+          <option name="wallclock">1:00</option>
           <option name="comment">Want both an ERS test and a _D test that include the cmip6_evolving_icesheet usermods</option>
         </options>
       </machine>
