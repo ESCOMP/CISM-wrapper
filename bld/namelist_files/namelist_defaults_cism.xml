@@ -47,7 +47,7 @@ attributes to express the dependency.
 <cesm_history_vars cism_phys="cism1" cism_evolve="TRUE" >'smb artm thk usurf topg uvel vvel uflx vflx temp bmlt bwat'</cesm_history_vars>
 <cesm_history_vars cism_phys="cism1" cism_evolve="FALSE">'smb artm thk usurf topg'</cesm_history_vars>
 
-<cesm_history_vars cism_phys="cism2" cism_evolve="TRUE" >'smb artm thk usurf topg uvel vvel temp bmlt bwat beta_internal floating_mask grounded_mask bpmp acab_applied_tavg bmlt_applied_tavg calving_rate_tavg iareaf iareag imass imass_above_flotation total_smb_flux total_bmb_flux total_calving_flux total_gl_flux'</cesm_history_vars>
+<cesm_history_vars cism_phys="cism2" cism_evolve="TRUE" >'smb artm thk usurf topg uvel vvel temp bmlt bwat beta_internal floating_mask grounded_mask bpmp acab_applied bmlt_applied calving_rate iareaf iareag imass imass_above_flotation total_smb_flux total_bmb_flux total_calving_flux total_gl_flux'</cesm_history_vars>
 <cesm_history_vars cism_phys="cism2" cism_evolve="FALSE">'smb artm thk usurf topg'</cesm_history_vars>
 
 <history_option>nyears</history_option>
@@ -192,13 +192,16 @@ attributes to express the dependency.
      this is less likely to break due to instabilities, and (b) it exercises the
      code in a more typical configuration (i.e., with a sub-annual time step) -->
 <dt glc_grid="gland20"  cism_phys="cism2">0.5</dt>
-<dt glc_grid="gland4"   cism_phys="cism2">0.25</dt>
+<dt glc_grid="gland4"   cism_phys="cism2">0.1</dt>
+
+<adaptive_cfl_threshold cism_phys="cism1">0.0</adaptive_cfl_threshold>
+<adaptive_cfl_threshold cism_phys="cism2">0.5</adaptive_cfl_threshold>
 
 <!-- Set dt_diag same as dt in order to get diagnostics every time step -->
 <dt_diag glc_grid="gland20"  cism_phys="cism1">0.1</dt_diag>
 <dt_diag glc_grid="gland5UM" cism_phys="cism1">0.05</dt_diag>
 <dt_diag glc_grid="gland20"  cism_phys="cism2">0.5</dt_diag>
-<dt_diag glc_grid="gland4"   cism_phys="cism2">0.25</dt_diag>
+<dt_diag glc_grid="gland4"   cism_phys="cism2">0.1</dt_diag>
 
 <!-- 5-km idiag & jdiag chosen by Jeremy Fyke, as a point prone to CFL
      instability (in trunk of Jakobshavn); 20-km and 4-km points
@@ -228,8 +231,7 @@ attributes to express the dependency.
 <!-- taumax_cliff CISM default -->
 <taumax_cliff>1.e6</taumax_cliff>
 
-<!-- cliff_timescale CISM default -->
-<cliff_timescale>10.</cliff_timescale>
+<cliff_timescale>0.</cliff_timescale>
 
 <geothermal>-5.e-2</geothermal>
 

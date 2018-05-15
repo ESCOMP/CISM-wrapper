@@ -4,6 +4,49 @@ This file describes what tags were created on master and why
 
 ================================================================================
 Originator: sacks
+Date: May 14, 2018
+Version: cism2_1_58
+One-line summary: Parameter and code changes to achieve greater stability
+
+Purpose of changes:
+
+   In multi-century T1850G runs, there were instances of
+   instability. This tag has some parameter changes and minor code
+   changes, all from Bill Lipscomb, in order to achieve greater
+   stability.
+
+   Also: changes some _tavg fields to their instantaneous versions:
+   There seems to be an issue with writing _tavg fields from CESM (which
+   we'll have to figure out at some point: see
+   https://github.com/ESCOMP/cism-wrapper/issues/15).
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: YES
+
+   - Changes answers for cases with CISM2%EVOLVE
+
+   - For CISM2%NOEVOLVE, no meaningful changes, but changes answers for
+     these cism fields (presumably due to the change in dt):
+     - internal_time
+     - tstep_count
+
+Bugs fixed (include github issue number): None
+
+Summary of testing:
+
+   Full aux_glc test suite on cheyenne and hobart
+
+================================================================================
+Originator: sacks
 Date: May 11, 2018
 Version: cism2_1_57
 One-line summary: Update CISM external; fix/update namelist xml files

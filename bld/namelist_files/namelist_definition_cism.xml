@@ -751,12 +751,13 @@ id="adaptive_cfl_threshold"
 type="real"
 category="cism_config_time"
 group="cism_config_time" >
-Adaptively subcycle the advection when advective CFL exceeds this value
+Adaptively subcycle the advection when advective CFL exceeds this value (Glissade only)
 (Zero value means no adaptive subcycling.)
-This is an expert setting. If you use a non-zero value, you may be able
-to run with a longer timestep when using the more advanced calving
-options, but you can also mask large, unphysical velocities.
-Default: (use hard-coded default - currently 0.)
+A nonzero value makes it possible for CISM to run with large velocities
+that otherwise would violate the advective CFL limit. Results are
+generally more accurate and stable, however, if the model is run with a
+time step short enough to avoid subcycling.
+Default: 0.5 for cism2
 </entry>
 
 <entry
@@ -875,7 +876,7 @@ type="real"
 category="cism_config_parameters"
 group="cism_config_parameters" >
 Time scale (yr) for limiting marine cliffs (Glissade only)
-Default: 10.
+Default: 0.
 </entry>
 
 <entry
