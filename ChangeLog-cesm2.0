@@ -1,7 +1,7 @@
 ================================================================================
 Originator: sacks
 Date: May 15, 2018
-Version: release-v2.1.01
+Version: release-cesm2.0.01
 One-line summary: Parameter and code changes to achieve greater stability
 
 Purpose of changes:
@@ -48,7 +48,7 @@ Summary of testing:
 ================================================================================
 Originator: sacks
 Date: May 11, 2018
-Version: release-v2.1.00
+Version: release-cesm2.0.00
 One-line summary: Initial version of v2.1 release
 
 Purpose of changes:
