@@ -14,15 +14,21 @@ SPHINXPROJ    = cismdoc
 SOURCEDIR     = source
 
 ifndef BUILDDIR
-# If version isn't set on the command-line, then we set it here, by
-# getting the current git branch name.
-VERSION ?= $(shell git symbolic-ref --short -q HEAD)
+ifdef VERSION
+VERSION_EXPLICIT = 1
+else  # ifdef VERSION
+VERSION_EXPLICIT = 0
+VERSION := $(shell git symbolic-ref --short -q HEAD)
 ifeq ($(VERSION),)
 $(error Cannot determine version based on git branch; set VERSION on the command line)
-endif
+endif  # ifeq ($(VERSION),)
+endif  # ifdef VERSION
 BUILDDIR = $(BUILDREPO)/cism-in-cesm/$(VERSION)
+ifeq ($(VERSION_EXPLICIT),0)
+# TODO: use a wildcard-based function here? see https://stackoverflow.com/questions/20763629/test-whether-a-directory-exists-inside-a-makefile (may want to test this first in a simple test makefile)
+endif  # ifeq ($(VERSION_EXPLICIT),0)
 $(info Using build directory: $(BUILDDIR))
-endif
+endif  # ifndef BUILDDIR
 
 # Put it first so that "make" without argument is like "make help".
 help:
