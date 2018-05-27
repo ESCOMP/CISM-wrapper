@@ -93,7 +93,8 @@ documentation at once, you should do the following:
 * Feel free to generate the html locally as often as you want, but do
   not commit the regenerated html yet
   
-* When you're finished with your changes, from the cism-docs repo:
+* When you're finished with your changes, from the **cism-docs repo
+  (i.e., the repo with the build)**:
 
   ```
   git checkout -- .
@@ -105,23 +106,23 @@ documentation at once, you should do the following:
   should not be typed literally, but indicates extra text that you'll
   want to fill in):
 
-  From cism-docs:
+  **From cism-docs**:
   
   ```
   git pull
   ```
   
-  From cism-wrapper/doc:
+  **From cism-wrapper/doc**:
   
   ```
   build_docs ...
   ```
   
-  From cism-docs:
+  **From cism-docs**:
   
   ```
   git add ...
-  git commit ...
+  git commit -m "Update html"
   git push
   ```
 
