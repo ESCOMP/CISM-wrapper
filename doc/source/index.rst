@@ -1,26 +1,27 @@
-.. cismdoc documentation master file, created by
-   sphinx-quickstart on Mon Mar  6 15:53:20 2017.
+.. on documentation master file, created by
+   sphinx-quickstart on Tue Jan 31 19:46:36 2017.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to the CISM documentation
-==================================
+.. _users-guide:
 
-This document has one major sections.
-
-The :ref:`CISM user's guide <users-guide>` is a basic guide in utilizing CISM.
-
-Table of contents
------------------
+##########################################
+CESM Land Ice Documentation and User Guide
+##########################################
 
 .. toctree::
-   :maxdepth: 1
-      
-   users_guide/index.rst
+   :maxdepth: 2
+   :numbered:
 
-Indices and tables
-==================
+   introduction.rst
+   quick-start.rst
+   dynamic-ice-sheet-model.rst
+   tg-compsets.rst
+   ice-sheets-in-clm.rst
+   faqs.rst
+   acknowledgements.rst
+   references.rst
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+----
+
+:ref:`search`
