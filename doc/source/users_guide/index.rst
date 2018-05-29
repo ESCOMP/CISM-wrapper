@@ -5,9 +5,9 @@
 
 .. _users-guide:
 
-#####################################
-CISM User's Guide
-#####################################
+##########################################
+CESM Land Ice Documentation and User Guide
+##########################################
 
 .. toctree::
    :maxdepth: 2
@@ -21,3 +21,7 @@ CISM User's Guide
    faqs.rst
    acknowledgements.rst
    references.rst
+
+----
+
+:ref:`search`
