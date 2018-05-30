@@ -1,12 +1,102 @@
 .. _ice-sheets-in-clm:
 
-**************************************
-Ice sheets in the Community Land Model
-**************************************
+*****************************************************************
+Ice sheets in the Community Land Model, and glacier-land coupling
+*****************************************************************
+
+FIXME: This section needs major review and rework. Portions of it could be deleted,
+pointing to the appropriate section in the CLM documentation.
 
 This section describes changes made in the Community Land Model to
 accommodate ice sheets. For more information, see the CLM4
 documentation.
+
+================================
+ CISM's climate model interface
+================================
+
+GLAD is the new climate model interface of CISM and is responsible for:
+
+1. handling time stepping and temporal averaging.
+2. providing a simpler interface to the climate model.
+3. translating inputs and outputs into appropriate quantities.
+
+In contrast with the old interface GLINT, GLAD receives already-dowscaled
+fields on the ice sheet grid. Consequently GLAD does not do any upscaling,
+dowscaling or interpolation. Additionaly it is no longer possible to
+use the positive-degree-day (PDD) scheme (while this option was previously
+available with GLINT it was unabled for CESM runs).
+
+In general there can be multiple non-overlapping ice sheet grids, but
+only Greenland is currently enabled.
+
+GLAD needs to know (1) one or more 2D fields necessary for computing
+the surface mass balance, (2) an upper boundary condition, usually
+surface temperature.
+The computation of the surface mass balance (SMB) for land ice embedded
+in CTSM. In this case the required input to GLAD is the SMB itself.
+This is the preferred approach for climate-change experiments. The mass
+balance is computed for a specified number of elevation classes for each
+grid cell on the coarser land grid (~100 km). This is much less
+computationally expensive than computing the SMB for each cell on the
+finer ice sheet grid (~4 km). Values of 1, 3, 5, 10 and 36 elevation
+classes are currently supported, with 10 being the default.
+
+For the SMB scheme, the fields passed to GLAD are (1) the surface mass
+balance, *qsmb* (kg/m:sup:`2`/s, positive for ice growing, negative for
+ice melting), (2) the surface temperature, *Tsfc* (deg C), and (3) the
+surface elevation, *topo* (m) for each elevation class. These fields are
+received from the coupler once per simulation day, accumulated and
+averaged over the course of a mass balance accumulation time step
+(typically one year) and then downscaled to the ice sheet grid. The
+downscaling occurs in two phases. First, the values on the global grid
+are interpolated in the horizontal to the local ice sheet grid. Next,
+for each local grid cell, values are linearly interpolated between
+adjacent elevation classes. For example, suppose that at a given
+location the coupler supplies a surface mass balance at elevations of
+300 and 500 m, whereas the local grid cell has an elevation of 400 m.
+Then the local SMB is equal to the mean of the values at 300 and 500 m.
+
+In some parts of the ice sheet grid the fields supplied by CTSM are not
+valid, simply because there are no land-covered global grid cells in the
+vicinity. For this reason, GLAD computes a mask on the ice sheet grid at
+initialization. The mask has a value of 1 for global grid cells that
+have a nonzero land fraction (and hence supply valid data) and is zero
+otherwise. GLAD then computes a local mask for each grid cell on the
+ice sheet grid. The local mask has a value of 1 if one or more of the
+four nearest global neighbors supplies valid data (i.e., has a global
+mask value of 1). Otherwise, the local mask has a value of zero. In this
+case ice sheets are not allowed to exist, and in output files, the SMB
+and temperature fields are given arbitrary values, typically zero. This
+masking has not been a restriction in practice, since the Greenland ice
+sheet does not extend far from the land margin. Alternatives may need to
+be considered for modeling the Antarctic ice sheet.
+
+After receiving the surface mass balance, GLAD calls the ice sheet
+dynamics model, which returns a new profile of ice sheet area and
+extent. The following fields are returned from GLAD to the coupler:
+(1) the ice area fraction, *gfrac*, (2) the ice sheet elevation,
+*gtopo* (m), (3), the frozen portion of the freshwater runoff, *grofi*,
+(4) the liquid portion of the runoff, *grofl*, and (5) the heat flux
+from the ice sheet interior to the surface, *ghflx*. These fields
+are computed for each elevation class of each grid cell. The frozen
+runoff corresponds to iceberg calving and the liquid runoff to basal
+meltwater. Surface runoff is not supplied by GLAD because it has already
+been computed in CTSM.
+
+There are two modes of coupling CISM to CTSM: one-way and two-way.
+For one-way coupling, CISM receives the surface mass balance from CTSM
+via the coupler, and the ice sheet extent and thickness evolve accordingly.
+However, the land surface topography is fixed, and the fields received
+by CTSM from the ice sheet model are ignored. In this case CTSM computes
+surface runoff as in earlier versions of CCSM; excess snow is assumed
+to run off, and melted ice stays put at the surface. (See Section 4
+for more details.) For two-way coupling, the CTSM surface topography
+is modified based on input from the ice sheet model. In this case,
+surface runoff is computed in a more realistic way; excess snow remains
+in place and is converted to ice, and melted ice runs off. In either case,
+CTSM computes the surface runoff, which is directed toward the ocean by
+the river routing scheme.
 
 ================================================
  CLM and the surface mass balance of ice sheets
