@@ -127,7 +127,7 @@ element following the ocean grid. For example, for a compset with CISM2, ``f09_g
 is equivalent to ``f09_g17``.
 
 For the T1850G compset (described in :numref:`tg-compsets`), you should use grid
-``f09_g17_gl4``. For more information on ice sheet grids, see :numref:`ice-sheet-grids`.
+``f09_g17_gl4``. For information on introducing new ice sheet grids, see :ref:`new-grids`.
 
 Special considerations for hybrid cases
 ---------------------------------------
