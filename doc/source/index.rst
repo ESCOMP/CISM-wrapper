@@ -14,8 +14,8 @@ CESM Land Ice Documentation and User Guide
    :numbered:
 
    introduction.rst
-   quick-start.rst
-   developing-and-modifying.rst
+   running-and-modifying.rst
+   ice-sheet-grids.rst
    tg-compsets.rst
    dynamic-ice-sheet-model.rst
    ice-sheets-in-clm.rst
