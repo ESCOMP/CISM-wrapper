@@ -9,9 +9,9 @@ Introducing a new ice sheet grid
 ********************************
 
 This section describes what is needed when introducing a new ice sheet grid into the
-system. Much of the information here is also relevant when introducing a new land grid (in
-which case new lnd-glc mapping files are needed) or a new ocean grid (in which case new
-ocn-glc mapping files are needed).
+system. Much of the information in :ref:`Generating mapping files` is also relevant when
+introducing a new land grid (in which case new lnd-glc mapping files are needed) or a new
+ocean grid (in which case new ocn-glc mapping files are needed).
 
 Note that local ice sheet grids must be rectangular; typically they are polar
 stereographic projections.
@@ -309,6 +309,8 @@ regions) encompassing the full CISM grid, whose glacier region behaviors are:
 
 The value of ``glacier_region_ice_runoff_behavior`` can be whatever makes the most sense
 scientifically.
+
+.. _Generating mapping files:
 
 ======================================================
 Generating the necessary inter-component mapping files
