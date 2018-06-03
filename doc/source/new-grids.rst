@@ -1,8 +1,12 @@
+.. sectnum::
+   :prefix: A.
+   :start: 1
+
 .. _new-grids:
 
-********************************************
-Appendix A: Introducing a new ice sheet grid
-********************************************
+********************************
+Introducing a new ice sheet grid
+********************************
 
 This section describes what is needed when introducing a new ice sheet grid into the
 system. Much of the information here is also relevant when introducing a new land grid (in
@@ -12,9 +16,14 @@ ocn-glc mapping files are needed).
 Note that local ice sheet grids must be rectangular; typically they are polar
 stereographic projections.
 
-===============
- Prerequisites
-===============
+=============
+Prerequisites
+=============
+
+.. note::
+
+   These instructions were written for the old yellowstone machine. The process on
+   cheyenne will be very similar, but batch commands and some other details will differ.
 
 The following instructions assume:
 
@@ -42,7 +51,7 @@ Generating lnd <-> glc mapping files for a new CISM grid
    files. Make sure to fill in the correct values for -fglc and -nglc where it
    says 'FIXME':
 
-   .. code:: bash
+   .. code-block:: bash
 
      #!/bin/bash
      #
@@ -120,51 +129,57 @@ Generating lnd <-> glc mapping files for a new CISM grid
 
 #. Run:
 
-   .. code:: bash
+   .. code-block:: console
 
       bsub < cism.regridbatch.sh
 
-   You can ignore errors in the .err file that look like this::
+   You can ignore errors in the .err file that look like this:
 
-     ATTENTION: 0031-408  8 tasks allocated by Resource Manager, continuing...
-     ATTENTION: 0031-408  8 tasks allocated by Resource Manager, continuing...
-     Abort(0) on node 0 (rank 0 in comm -2080374782): application called MPI_Abort(comm=0x84000002, 0) - process 0
-     ERROR: 0031-300  Forcing all remote tasks to exit due to exit code 1 in task 0
-     forrtl: error (78): process killed (SIGTERM)
-     Image              PC                Routine            Line        Source
-     libpthread.so.0    0000003F7240F4B5  Unknown               Unknown  Unknown
-     libpoe.so          00002B1CF8267AE2  Unknown               Unknown  Unknown
-     libpthread.so.0    0000003F724079D1  Unknown               Unknown  Unknown
-     libc.so.6          0000003F718E88FD  Unknown               Unknown  Unknown
+   .. code-block:: console
+
+      ATTENTION: 0031-408  8 tasks allocated by Resource Manager, continuing...
+      ATTENTION: 0031-408  8 tasks allocated by Resource Manager, continuing...
+      Abort(0) on node 0 (rank 0 in comm -2080374782): application called MPI_Abort(comm=0x84000002, 0) - process 0
+      ERROR: 0031-300  Forcing all remote tasks to exit due to exit code 1 in task 0
+      forrtl: error (78): process killed (SIGTERM)
+      Image              PC                Routine            Line        Source
+      libpthread.so.0    0000003F7240F4B5  Unknown               Unknown  Unknown
+      libpoe.so          00002B1CF8267AE2  Unknown               Unknown  Unknown
+      libpthread.so.0    0000003F724079D1  Unknown               Unknown  Unknown
+      libc.so.6          0000003F718E88FD  Unknown               Unknown  Unknown
 
 #. Look through output in the .out file telling you about the results of running
    check_maps on all of your new mapping files.
 
-   Ideally, you'll see a lot of output that looks like this::
+   Ideally, you'll see a lot of output that looks like this:
 
-     1: map_gland4km_TO_fv0.9x1.25_aave.161222.nc
-      All           21  tests passed!
-     -----
-     2: map_fv0.9x1.25_TO_gland4km_aave.161222.nc
-      All           21  tests passed!
-     -----
-     3: map_fv0.9x1.25_TO_gland4km_blin.161222.nc
-      All           14  tests passed!
-     -----
+   .. code-block:: console
+
+      1: map_gland4km_TO_fv0.9x1.25_aave.161222.nc
+       All           21  tests passed!
+      -----
+      2: map_fv0.9x1.25_TO_gland4km_aave.161222.nc
+       All           21  tests passed!
+      -----
+      3: map_fv0.9x1.25_TO_gland4km_blin.161222.nc
+       All           14  tests passed!
+      -----
 
    However, you should expect to see errors when checking the very
-   coarse-resolution fv10x15 grid, like this::
+   coarse-resolution fv10x15 grid, like this:
 
-     1: map_gland4km_TO_fv10x15_aave.161222.nc
-      ERROR: the test did not successfully map any values
-      from the source grid to the destination grid
-                0  of            0  tests failed. See above for details.
-     -----
-     2: map_fv10x15_TO_gland4km_aave.161222.nc
-      FAILED: L1 error =   9.028874246726999E-003  in test            1
-      FAILED: L1 error =   2.228991274441720E-002  in test            3
-                2  of           21  tests failed. See above for details.
-     -----
+   .. code-block:: console
+
+      1: map_gland4km_TO_fv10x15_aave.161222.nc
+       ERROR: the test did not successfully map any values
+       from the source grid to the destination grid
+                 0  of            0  tests failed. See above for details.
+      -----
+      2: map_fv10x15_TO_gland4km_aave.161222.nc
+       FAILED: L1 error =   9.028874246726999E-003  in test            1
+       FAILED: L1 error =   2.228991274441720E-002  in test            3
+                 2  of           21  tests failed. See above for details.
+      -----
 
    In addition, you *may* see additional errors like that for other CLM grids,
    particularly if you have a higher-resolution CISM grid: The tolerances in
@@ -181,7 +196,7 @@ Generating lnd <-> glc mapping files for a new CISM grid
    ``$CESMDATAROOT/inputdata/cpl/gridmaps/gland4km``. You can accomplish this
    with the following code in bash:
 
-   .. code:: bash
+   .. code-block:: bash
 
       for fl in map_*.nc; do
           IFS='_' read -ra fname_split <<< "$fl"
@@ -200,30 +215,32 @@ See also https://github.com/NCAR/cism_misc-runoff_mapping_inputs
    directions there
 
 #. Create a namelist file like the following, but changing the details to match
-   your new grid::
+   your new grid:
 
-     &input_nml
-        gridtype     = 'scrip'
-        file_roff    = '/glade/p/cesmdata/cseg/inputdata/glc/cism/griddata/SCRIPgrid_greenland_4km_epsg3413_c161223.nc'
-        file_ocn     = '/glade/p/cesm/cseg/mapping/grids/gx3v7_120309.nc'
-        file_ocn_coastal_mask = '/glade/p/cesm/cseg/mapping/grids/gx3v7_coast_180430.nc'
-        file_nn      = 'map_gland4km_epsg3413_to_gx3v7_nn.nc '
-        file_smooth  = 'map_gx3v7_coast_to_gx3v7_sm.nc '
-        file_new     = 'map_gland4km_to_gx3v7_nnsm_e1000r500_171024.nc'
-        title        = 'runoff map: gland4km -> gx3v7, nearest neighbor and smoothed '
-        eFold        = 1000000.0
-        rMax         =  500000.0
-        restrict_smooth_src_to_nn_dest = .true.
-        step1 = .true.
-        step2 = .true.
-        step3 = .true.
-       /
+   .. code-block:: console
+
+      &input_nml
+         gridtype     = 'scrip'
+         file_roff    = '/glade/p/cesmdata/cseg/inputdata/glc/cism/griddata/SCRIPgrid_greenland_4km_epsg3413_c161223.nc'
+         file_ocn     = '/glade/p/cesm/cseg/mapping/grids/gx3v7_120309.nc'
+         file_ocn_coastal_mask = '/glade/p/cesm/cseg/mapping/grids/gx3v7_coast_180430.nc'
+         file_nn      = 'map_gland4km_epsg3413_to_gx3v7_nn.nc '
+         file_smooth  = 'map_gx3v7_coast_to_gx3v7_sm.nc '
+         file_new     = 'map_gland4km_to_gx3v7_nnsm_e1000r500_171024.nc'
+         title        = 'runoff map: gland4km -> gx3v7, nearest neighbor and smoothed '
+         eFold        = 1000000.0
+         rMax         =  500000.0
+         restrict_smooth_src_to_nn_dest = .true.
+         step1 = .true.
+         step2 = .true.
+         step3 = .true.
+        /
 
    Name this file ``runoff_map.nml``
 
 #. Run
 
-   .. code:: bash
+   .. code-block:: console
 
       ./runoff_map < runoff_map.nml
 
@@ -233,7 +250,7 @@ See also https://github.com/NCAR/cism_misc-runoff_mapping_inputs
 
 #. Run
 
-   .. code:: bash
+   .. code-block:: console
 
       ./run_merge_mapping_files.sh \
       --map_in_oo map_gland4km_epsg3413_to_gx3v7_nn.nc \
@@ -304,7 +321,7 @@ scripts, you need to add entries in config_grids.xml
 
    You'll need to add a section like this:
 
-   .. code:: xml
+   .. code-block:: xml
 
       <domain name="gland4">
         <nx>376</nx> <ny>701</ny>
@@ -316,7 +333,7 @@ scripts, you need to add entries in config_grids.xml
    You'll need to add a section like this for each land grid, in the section
    "lnd to glc and glc to lnd mapping":
 
-   .. code:: xml
+   .. code-block:: xml
 
       <gridmap lnd_grid="0.9x1.25" glc_grid="gland4" >
         <map name="LND2GLC_FMAPNAME">cpl/gridmaps/fv0.9x1.25/map_fv0.9x1.25_TO_gland4km_aave.161223.nc</map>
@@ -329,7 +346,7 @@ scripts, you need to add entries in config_grids.xml
 
    In the section "GRIDS: glc to ocn mapping", add a section like this:
 
-   .. code:: xml
+   .. code-block:: xml
 
       <gridmap ocn_grid="gx1v6" glc_grid="gland4" >
         <map name="GLC2OCN_LIQ_RMAPNAME">cpl/gridmaps/gland4km/map_gland4km_to_gx1v6_nn_open_ocean_nnsm_e1000r300_marginal_sea_171105.nc</map>
@@ -377,7 +394,7 @@ B. We can potentially get an ice sheet growing there if CLM dictates glacial
 New method, using the 'mask' field
 ==================================
 
-Joe's new files have a 'mask' field on them that can be used for this
+Joe Kennedy's new files have a 'mask' field on them that can be used for this
 purpose. Joe's documentation of this field is:
 
     * 4 -- floating ice
@@ -401,7 +418,7 @@ I used the following procedure:
 #. Submerge points with something like this (note: it's important to have 'mask'
    in quotes; otherwise ncap2 thinks mask has a special meaning):
 
-   .. code:: bash
+   .. code-block:: console
 
       ncap2 -s "where(('mask' == 0) || ('mask' < 0 && topg > -200)) topg = -200.;" greenland_4km_2017_02_23.epsg3413.nc greenland_4km_epsg3413_c170429.nc
 
@@ -411,7 +428,7 @@ I used the following procedure:
 #. Remove the missing_value attribute from topg and add some metadata with
    something like this:
 
-   .. code:: bash
+   .. code-block:: console
 
       ncatted -a missing_value,topg,d,, greenland_4km_epsg3413_c170429.nc
       ncatted -h -a Note_170429,topg,c,c,"submerged all non-Greenland land to -200m with: ncap2 -s \"where(('mask' == 0) || ('mask' < 0 && topg > -200)) topg = -200.;\"; then removed now-unnecessary missing_value attribute" greenland_4km_epsg3413_c170429.nc
@@ -438,60 +455,60 @@ that old input file as well as for your new CISM grid.
 #. Make a mapping file from the old grid to the new one: Modify the following
    script (see the FIXME note for what to change):
 
-   .. code:: bash
+   .. code-block:: bash
 
-     #!/bin/bash
-     #
-     #
-     # Batch script to submit to create ESMF mapping file
-     #
-     # Set up for yellowstone
-     #
-     # yellowstone-specific batch commands:
-     #BSUB -P P93300601        # project number
-     #BSUB -n 8                # number of processors
-     #BSUB -R "span[ptile=16]"
-     #BSUB -W 1:00             # wall-clock limit
-     #BSUB -q caldera          # queue
-     #BSUB -o regrid.%J.out    # ouput filename
-     #BSUB -e regrid.%J.err    # error filename
-     #BSUB -J create_ESMF_map  # job name
-     #BSUB -N                  # send email upon job completion
+      #!/bin/bash
+      #
+      #
+      # Batch script to submit to create ESMF mapping file
+      #
+      # Set up for yellowstone
+      #
+      # yellowstone-specific batch commands:
+      #BSUB -P P93300601        # project number
+      #BSUB -n 8                # number of processors
+      #BSUB -R "span[ptile=16]"
+      #BSUB -W 1:00             # wall-clock limit
+      #BSUB -q caldera          # queue
+      #BSUB -o regrid.%J.out    # ouput filename
+      #BSUB -e regrid.%J.err    # error filename
+      #BSUB -J create_ESMF_map  # job name
+      #BSUB -N                  # send email upon job completion
 
-     #----------------------------------------------------------------------
+      #----------------------------------------------------------------------
 
-     #----------------------------------------------------------------------
-     # Set user-defined parameters here
-     #----------------------------------------------------------------------
+      #----------------------------------------------------------------------
+      # Set user-defined parameters here
+      #----------------------------------------------------------------------
 
-     # FIXME: Replace the following lines with paths to SCRIP grid files and names of your grids
-     filesrc="/glade/p/cesmdata/cseg/inputdata/glc/cism/griddata/SCRIPgrid_gland_4km_c161223.nc"
-     filedst="/glade/p/cesmdata/cseg/inputdata/glc/cism/griddata/SCRIPgrid_greenland_4km_epsg3413_c161223.nc"
-     namesrc='gland4kmOld'
-     namedst='gland4kmNew'
+      # FIXME: Replace the following lines with paths to SCRIP grid files and names of your grids
+      filesrc="/glade/p/cesmdata/cseg/inputdata/glc/cism/griddata/SCRIPgrid_gland_4km_c161223.nc"
+      filedst="/glade/p/cesmdata/cseg/inputdata/glc/cism/griddata/SCRIPgrid_greenland_4km_epsg3413_c161223.nc"
+      namesrc='gland4kmOld'
+      namedst='gland4kmNew'
 
-     typesrc='regional'
-     typedst='regional'
-     maptype='aave'
+      typesrc='regional'
+      typedst='regional'
+      maptype='aave'
 
-     #----------------------------------------------------------------------
-     # Done setting user-defined parameters
-     #----------------------------------------------------------------------
+      #----------------------------------------------------------------------
+      # Done setting user-defined parameters
+      #----------------------------------------------------------------------
 
-     #----------------------------------------------------------------------
-     # Stuff done in a machine-specific way
-     #----------------------------------------------------------------------
+      #----------------------------------------------------------------------
+      # Stuff done in a machine-specific way
+      #----------------------------------------------------------------------
 
-     # Determine number of processors we're running on
-     host_array=($LSB_HOSTS)
-     REGRID_PROC=${#host_array[@]}
+      # Determine number of processors we're running on
+      host_array=($LSB_HOSTS)
+      REGRID_PROC=${#host_array[@]}
 
-     #----------------------------------------------------------------------
-     # Begin general script
-     #----------------------------------------------------------------------
+      #----------------------------------------------------------------------
+      # Begin general script
+      #----------------------------------------------------------------------
 
-     cmdargs="--filesrc $filesrc --filedst $filedst --namesrc $namesrc --namedst $namedst --typesrc $typesrc --typedst $typedst --maptype $maptype --batch"
-     env REGRID_PROC=$REGRID_PROC ./create_ESMF_map.sh $cmdargs
+      cmdargs="--filesrc $filesrc --filedst $filedst --namesrc $namesrc --namedst $namedst --typesrc $typesrc --typedst $typedst --maptype $maptype --batch"
+      env REGRID_PROC=$REGRID_PROC ./create_ESMF_map.sh $cmdargs
 
    Put this script in
    ``cime/tools/mapping/gen_mapping_files/gen_ESMF_mapping_file/``, named
@@ -508,7 +525,7 @@ that old input file as well as for your new CISM grid.
    to remove that degenerate dimension. Run something like this, replacing the
    file path with the actual path to the CISM input file you'll be using
 
-   .. code:: bash
+   .. code-block:: console
 
       cd cime/tools/mapping/map_field
       module load nco
@@ -525,13 +542,13 @@ that old input file as well as for your new CISM grid.
    that, for this to work, you may need to source the env_mach_specific file
    that you sourced when building the map_field tool.
 
-   .. code:: bash
+   .. code-block:: console
 
       ./map_field -m "/glade/p/work/sacks/cime/tools/mapping/gen_mapping_files/gen_ESMF_mapping_file/map_gland4kmOld_TO_gland4kmNew_aave.161223.nc" -if landcover_old.nc -iv landcover -of landcover_new.nc -ov landcover
 
 #. Round landcover to 0 or 1, and fix dimension names
 
-   .. code:: bash
+   .. code-block:: console
 
       ncap2 -s 'landcover_int = int(round(landcover))' landcover_new.nc landcover_new2.nc
       ncrename -d ni,x1 -d nj,y1 landcover_new2.nc
@@ -543,7 +560,7 @@ that old input file as well as for your new CISM grid.
    Change the 'today' variable and file names to point to your actual file in
    the following:
 
-   .. code:: bash
+   .. code-block:: console
 
       export today=161223
       export path_to_input_file=/glade/p/cesmdata/cseg/inputdata/glc/cism/Greenland/glissade/init
@@ -556,7 +573,7 @@ that old input file as well as for your new CISM grid.
 
 #. Submerge non-Greenland land with:
 
-   .. code:: bash
+   .. code-block:: console
 
       export extra_info_on_origfile=" (provided by Joe Kennedy)"
       ncap2 -s 'where(landcover == 0 && topg > -200) topg = -200.;' $path_to_input_file/$newfile tempfile.nc
@@ -571,7 +588,7 @@ that old input file as well as for your new CISM grid.
    python, with the NetCDF4 library. Note that dat_old points to the version of
    the dataset prior to modifying topg.
 
-   .. code:: python
+   .. code-block:: python
 
       dat_old = Dataset('greenland_4km_2016_12_19.epsg3413.nc')
       dat_new = Dataset('greenland_4km_epsg3413_c161223.nc', 'a')
