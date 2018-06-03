@@ -52,8 +52,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'CESM Land Ice'
-copyright = u'2018, Bill Sacks, Gunter Leguy, William Lipscomb'
-author = u'Bill Sacks, Gunter Leguy, William Lipscomb'
+copyright = u'2018, Gunter Leguy, William Lipscomb, Bill Sacks'
+author = u'Gunter Leguy, William Lipscomb, Bill Sacks'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -133,7 +133,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'cismdoc.tex', u'CESM Land Ice Documentation',
-     u'Bill Sacks, Gunter Leguy, William Lipscomb', 'manual'),
+     u'Gunter Leguy, William Lipscomb, Bill Sacks', 'manual'),
 ]
 
 
