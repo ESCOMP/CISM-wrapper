@@ -1,8 +1,8 @@
 .. _tg-compsets:
 
-***************************************************************
-Running the standalone ice sheet model within CESM: TG compsets
-***************************************************************
+**************************************************************
+Running the standalone ice sheet model within CESM: T compsets
+**************************************************************
 
 ============
  Background
@@ -17,48 +17,48 @@ through the forcing data from a previous run (e.g., to spin up the ice
 sheet model), or run parameter sensitivity analyses much faster than you
 could within the coupled system.
 
-A run with standalone CISM in the CESM context is known as a TG compset.
-This compset uses the active ice sheet model forced by a data land
-model; all other components are stubs. Before running a TG compset, you
-must have coupler history files from a previous run that included CLM
-(see Section 3.2). Alternatively, you can run with existing forcing data
-(see Section 3.3).
+A run with standalone CISM in the CESM context is known as a T compset. (In the past this
+was referred to as a TG compset. Now the G appears near the end of the compset name, so
+compsets have names like T1850G.)  This compset uses the active ice sheet model forced by
+a data land model; all other components are stubs. Before running a T compset, you must
+have coupler history files from a previous run that included CLM (see
+:numref:`tg-with-existing-data`). Alternatively, you can run with existing forcing data
+(see :numref:`tg-with-your-own-data`).
+
+.. _tg-with-existing-data:
 
 ====================================
  Running with existing forcing data
 ====================================
 
-There are currently four out-of-the-box TG compsets, using different
-periods of forcing data, as shown in the following table:
+There is currently just a single set of forcing data available for running T
+compsets. These forcing data were created with software testing rather than scientific
+validity in mind. They were created from 30 years of an ``I1850Clm50Sp`` compset (CLM
+forced by a data atmosphere with GSWP3 forcing, starting from an already-near-spun-up
+state, with nominally year-1850 forcings and satellite phenology). The resolution was
+``f09_g17``. The code base was close to the final CESM2.0 release. For more details, see
+`<https://svn-ccsm-inputdata.cgd.ucar.edu/trunk/inputdata/lnd/dlnd7/CPLHIST_SNO/i.e20.I1850Clm50Sp.f09_g17.001_c180502/README>`__.
 
-+-----------------+----------------------+------------------------------------------------------------------------------------------------+
-| Compset alias   | Compset short name   | Forcing data                                                                                   |
-+=================+======================+================================================================================================+
-| TG              | TG2000\_G1           | From a BG20TRCN run (20:sup:`th` century transient, fully coupled), years 1976 – 2005          |
-+-----------------+----------------------+------------------------------------------------------------------------------------------------+
-| TG1850          | TG1850\_G1           | From a BG1850CN run (preindustrial spinup, fully coupled)                                      |
-+-----------------+----------------------+------------------------------------------------------------------------------------------------+
-| TG20TR          | TG20TR\_G1           | From a BG20TRCN run (20:sup:`th` century transient, fully coupled), years 1850 – 2005          |
-+-----------------+----------------------+------------------------------------------------------------------------------------------------+
-| TGRCP85         | TGRCP8\_G1           | From a BGRCP85 run (21:sup:`st` century, RCP 8.5 scenario, fully coupled), years 2006 – 2100   |
-+-----------------+----------------------+------------------------------------------------------------------------------------------------+
+There are two out-of-the-box T compsets that use these forcing data: T1850G, which uses
+CISM2, and T1850G1, which uses CISM1. **You should run these compsets at f09_g17
+resolution --- i.e., with the same land resolution and ocean mask used to create the
+forcing data.** You can use any CISM resolution, although the current forcing data only
+have complete forcings for Greenland, not Antarctica.
 
-The fully-coupled runs that provided the forcing data for these compsets
-are described in a file in the CESM inputdata repository, alongside the
-forcing data
-(https://svn-ccsm-inputdata.cgd.ucar.edu/trunk/inputdata/lnd/dlnd7/CPLHIST_SNO/run_documentation.txt_c120808.txt).
+So a typical ``create_newcase`` command when running with CISM2, with the standard 4-km
+Greenland grid, would look like:
 
-To run with one of these existing sets of forcing data, simply create a
-case with one of the above compsets. **The resolution for this run
-should be f09\_g16, since that is the resolution at which the forcing
-data were created.** (In theory, you can run using a different
-resolution, but that will involve a spatial interpolation of the forcing
-data.) You *can* run with a different CISM\_GRID than the one used to
-create the forcing data (gland5UM).
+.. code-block:: console
+
+   ./create_newcase --case my_t_case --compset T1850G --res f09_g17_gl4
+
+.. _tg-with-your-own-data:
 
 =================================================
  Creating and running with your own forcing data
 =================================================
+
+FIXME: Bill S needs to update this section
 
 Currently, TG compsets are only able to handle forcing data from a
 previous CESM run (although, in theory, it should be possible to “fake”
@@ -68,9 +68,8 @@ a two-step process: (1) Perform a CESM run that includes an active land
 model (CLM), saving the necessary forcing files, and (2) perform a TG
 run using these new forcing data.
 
-=========================================
- Performing a run to create forcing data
-=========================================
+Performing a run to create forcing data
+=======================================
 
 To create the necessary forcing data (surface mass balance and surface
 temperature in each glacier elevation class), you need to perform a CESM
@@ -100,9 +99,8 @@ modification prior to performing this run: In the routine
 *seq\_hist\_writeaux* in models/drv/driver/seq\_hist\_mod.F90, change
 the four instances of use\_float=.true. to use\_float=.false.
 
-=================================================
- Performing a TG run using your own forcing data
-=================================================
+Performing a TG run using your own forcing data
+===============================================
 
 To perform a standalone CISM run forced by your newly-created forcing
 data, first create a new case using one of the existing TG compsets (see
@@ -174,18 +172,15 @@ first remove the *user\_dlnd.streams.txt.sno.cplhist* file, then make
 necessary modifications to these xml variables. Finally, repeat the
 above procedure for modifying the domain file.
 
-===============================================
- Changes to some CESM defaults for TG compsets
-===============================================
+==============================================
+ Changes to some CESM defaults for T compsets
+==============================================
 
-TG compsets have much lower computational expense per simulation year
-and much greater typical run lengths compared to most CESM
-configurations. Thus, a number of settings are changed automatically
-when running with a TG compset. These include:
+T compsets have much lower computational expense per simulation year and much greater
+typical run lengths compared to most CESM configurations. Thus, a number of settings are
+changed automatically when running with a T compset. These include:
 
-Default run length: 10 years (rather than 5 days)
+- Default run length: 5 years (rather than 5 days)
 
-Default coupling frequency: annual (rather than daily or more frequent)
-
-Default PE layout: single processor
+- Default coupling frequency: annual (rather than daily or more frequent)
 
