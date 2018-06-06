@@ -7,28 +7,42 @@ Introduction
 This document accompanies the Community Earth System Model (CESM) User’s
 Guide and is intended for users who would like to run CESM with dynamic
 ice sheets and/or an improved surface mass balance scheme for glaciated
-regions. For more information, please see the CESM User’s Guide:
-http://www.cesm.ucar.edu/models/cesm1.2/.
+regions. For more information, please see the CESM User’s Guide.
 
 The introduction provides some scientific background, along with a brief
 history of land-ice model development within CESM. Section 2 is a
 quick-start guide for new users. Section 3 describes how to run the
 standalone ice sheet model within CESM, forced by output from a
-previous, coupled run. Section 4 describes Glimmer, the Community Ice
-Sheet Model (Glimmer-CISM), the dynamic ice sheet model in CESM. Section
+previous, coupled run. Section 4 describes the Community Ice
+Sheet Model (CISM), the dynamic ice sheet model in CESM. Section
 5 gives a detailed description of the surface-mass-balance scheme for
 ice sheets in the Community Land Model (CLM). Section 6 answers some
 common questions about model usage.
 
-It should be emphasized that this is an early implementation with a
-number of scientific limitations that are detailed below. Model
-developers are keenly aware of these limitations and are actively
-addressing them. Several major improvements are planned for the next one
-to two years and will be released as they become available.
+It should be emphasized that coupled land-ice modeling is a work in progress.
+Ice sheets are a relatively new CESM component, having been introduced in CESM1.0.
+CESM1 used version 1 of the Glimmer-CISM model, a serial code with shallow-ice dynamics.
+CESM2.0 uses CISM version 2.1, a parallel code with higher-order dynamics
+and more realistic physics (e.g., improved basal sliding and iceberg calving).
+The surface mass balance of the Greenland and Antarctic ice sheets is now computed
+by default in CLM, with or without dynamic ice sheets.
+The surface climate of ice sheets continues to improve, with recent additions
+such as a deep firn model, an atmospheric drag parameterization (for more accurate
+surface winds), and reduced biases in high-latitude longwave cloud forcing.
+CESM now supports interactive coupling of CISM with CLM and CAM, allowing the
+land topography and surface types to evolve as the ice sheet advances and retreats.
 
-This documentation is itself in progress. If you find errors, or if you
-would like to have some additional information included, please contact
-the authors at lipscomb@lanl.gov or sacks@ucar.edu.
+CESM continues to be actively developed for land-ice modeling.
+As detailed below, many scientific limitations remain.
+Notably, CESM2.0 does not incorporate a dynamic Antarctic ice sheet
+or interactive ice sheet--ocean coupling.
+CISM/CESM developments targeting Antarctica and other marine ice sheets
+will be added to CESM as they become available.
+
+This documentation is itself in progress. If you find errors or would like
+to have some additional information included, please contact the authors:
+William Lipscomb (lipscomb@ucar.edu), William Sacks (sacks@ucar.edu),
+and Gunter Leguy (gunterl@ucar.edu).
 
 =======================
  Scientific background
