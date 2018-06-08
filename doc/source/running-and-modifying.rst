@@ -9,7 +9,8 @@ Running and modifying the CESM land ice component
 This section provides an overview of some of the most important information needed when
 running a land ice-focused CESM case. This assumes you are familiar with the basic process
 of obtaining and running CESM, as described in the `CESM Quickstart guide
-<https://escomp.github.io/cesm>`_.
+<https://escomp.github.io/cesm>`_ and the `CIME documentation
+<http://esmci.github.io/cime/users_guide/>`__.
 
 In CESM, land ice processes are simulated by two components: The land ice (glc) component
 and the land (lnd) component. The land ice component is CISM, the Community Ice Sheet
@@ -28,7 +29,7 @@ Choosing a compset
 
 CESM high-level configurations are known as "compsets" (short for "component sets",
 described in more detail in the `CIME documentation
-<http://esmci.github.io/cime/users_guide/compsets.html>`_, the `CESM documentation
+<http://esmci.github.io/cime/users_guide/compsets.html>`__, the `CESM documentation
 <https://escomp.github.io/cesm/release-cesm2/cesm_configurations.html>`_, and the `table
 of available compsets <http://www.cesm.ucar.edu/models/cesm2.0/cesm/compsets.html>`_). At
 the compset level, there are three main modes for configuring CESM's ice sheet component:

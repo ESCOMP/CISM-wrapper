@@ -217,8 +217,9 @@ Limitations of other components of the CESM modeling system
    multiple elevation classes have not been found to improve the SMB outside of ice sheets.
 
 
-What’s new in CESM2.0 with respect to ice sheet modeling?
----------------------------------------------------------
+===========================================================
+ What's new in CESM2.0 with respect to ice sheet modeling?
+===========================================================
 
 Compared to the CESM1 series, there have been a number of improvements
 in CESM for land-ice modeling:
@@ -243,142 +244,6 @@ in CESM for land-ice modeling:
    now includes a deep firn model that allows for meltwater infiltration and refreezing,
    as well as realistic firn densification rates.
 
--  See below for more detailed descriptions of new land-ice capabilities.
-
-
-What’s new in CESM1.2 with respect to ice sheet modeling?
----------------------------------------------------------
-
-Compared to the CESM1.1 series, there have been a number of improvements
-in CESM that are relevant for ice sheet modeling:
-
--  CESM1.2 includes a new version of Glimmer-CISM (version 1.9). This
-   version includes extensive modifications that have been made in
-   preparation for the upcoming release of Glimmer-CISM version 2.0,
-   which will include 3d, 1st-order-accurate ice dynamics and support
-   for MPI-based distributed parallelism. When run with shallow-ice
-   dynamics, Glimmer-CISM 1.9 gives answers that are approximately the
-   same as version 1.6, which was the version included in CESM1.1.1 and
-   earlier.
-
--  Some changes to default parameter values: For a few configuration
-   settings, the numeric value corresponding to each option has changed
-   (see
-   `http://www.cesm.ucar.edu/models/cesm1.2/cesm/doc/modelnl/nl\_cism.html <http://www.cesm.ucar.edu/models/cesm1.1/cesm/doc/modelnl/nl_cism.html>`__).
-   In addition, there have been additional configuration options added
-   (the first two below) and changes to some existing default option
-   settings:
-
-   -  *temp\_init*
-
-      -  Old: 1 (Initialize temperature to surface air temperature)
-
-      -  New: 2 (Initialize temperature with a linear profile in each
-         column)
-
-   -  *basal\_mass\_balance*
-
-      -  Old: 0 (basal mass balance not included in continuity equation)
-
-      -  New: 1 (basal mass balance included in continuity equation)
-
-   -  *sigma*
-
-      -  Old: 2 (read sigma coordinates from config file)
-
-      -  New: 0 (compute standard Glimmer sigma coordinates)
-
--  New initial conditions have been provided for both CLM and CISM, when
-   running the BG1850CN compset at f09 resolution (currently, this is
-   the only compset involving CISM that is set up as a “hybrid”
-   compset). Importantly, this is the first time we have provided
-   spun-up ice sheet initial conditions, so that the ice sheet is in
-   rough equilibrium with the CESM climate. However, because of how
-   these initial conditions were generated, they will not be in full
-   equilibrium with recent versions of CESM. In addition, the ice sheet
-   spin-up was done with some altered configuration settings compared to
-   the current out-of-the-box settings. For more details, see the README
-   file in this subdirectory of CESM’s inputdata directory:
-   <ccsm4\_init/bg40.1850.track1.1deg.006b/0863-01-01>. Despite these
-   caveats, the CISM initial condition file in this directory
-   (bg40.1850.track1.1deg.006b.cism.r.0863-01-01-00000.nc) could be used
-   to start the ice sheet in a roughly spun-up state even when running
-   with a different compset and/or resolution than this BG1850CN f09
-   hybrid compset for which it is used out-of-the-box.
-
--  In CLM, fixed the *tsrf* field sent to CISM so that it is
-   appropriately time-averaged
-
--  Option to run with 36 elevation classes (200m each), rather than the
-   default 10. (Note that no surface datasets exist for this option, but
-   they can be created easily using CLM’s mksurfdata\_map tool.)
-
--  Option in CLM to write the CISM forcing fields (e.g., surface mass
-   balance) to history files, for each elevation class. (Previously,
-   only the grid cell average could be written to the CLM history file.)
-   (This is documented more extensively in Section 6.4.)
-
--  Added a *CISM\_OBSERVED\_IC* option to force use of observed initial
-   conditions rather than a restart file when performing a hybrid run.
-   (This is documented more extensively in Section 2.9.)
-
--  CISM SourceMods have been split into two directories: any changes to
-   source code in the *glimmer-cism* subdirectory need to go in
-   *SourceMods/src.cism/glimmer-cism/*
-
--  CISM is now built using the same cmake build system as is used for
-   building the standalone code
-
--  In the CESM xml files, the old *GLC\_GRID* variable has been renamed
-   to *CISM\_GRID*; *GLC\_GRID* is now used for a different purpose and
-   generally should not be changed once a case has been created
-
-
-What's new in CESM1.1 with respect to ice sheet modeling?
----------------------------------------------------------
-
-Compared to the CESM1.0 series, there have been a number of improvements
-in CESM that are relevant for ice sheet modeling:
-
--  A new compset type, *TG*, has been added. This allows running the
-   standalone ice sheet model forced by output from a previous, coupled
-   CESM simulation. We provide a variety of out-of-the-box forcing data,
-   or you can generate your own forcing data. See Section 3 for more
-   details.
-
--  Support for longer coupling intervals in CISM and in CESM scripts –
-   e.g., a 1-year coupling interval, useful for TG runs of centuries to
-   many millennia.
-
--  Changed the default Greenland ice sheet grid to 5 km (previously was
-   20 km)
-
--  Changed a number of other default CISM configuration settings to
-   produce more robust ice sheet evolution, especially at 5 km
-   resolution
-
--  Ensemble capability for all CESM components, including CISM (see
-   Section 6.1 for details)
-
--  More robust namelist generation facility, standardized across CESM
-   components (see Section 2.7 for details)
-
--  Enabled ESMF interface for CISM
-
--  Fixed memory leak in CISM
-
--  Bug fix for glacier virtual columns in CLM
-
--  New high-resolution *pct\_glacier* input file for CLM, based on the
-   Randolph Glacier Inventory, and new CLM surface datasets based on
-   this file (see Section 5.4 for details)
-
--  New diagnostic capabilities in CLM, including the ability to output
-   fields averaged only over the glacier portion of each grid cell (see
-   Section 6.5 for details)
-
--  New IG4804 compset
-
--  Improved testing capability for TG compsets in the CESM test
-   framework
+- See the other sections of this document for more detailed descriptions of new land-ice
+  capabilities.
 
