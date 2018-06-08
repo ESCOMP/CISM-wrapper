@@ -61,7 +61,7 @@ the compset level, there are three main modes for configuring CESM's ice sheet c
    - Ice and liquid runoff to the ocean
 
    Part or all of this two-way coupling can be turned off if desired.
-   Note that the liquid runoff sent to the ocean consist of meltwater computed in the interior
+   Note that the liquid runoff sent to the ocean consists of meltwater computed in the interior
    or at the base of the ice; surface liquid runoff is handled separately by CLM.
 
    |
