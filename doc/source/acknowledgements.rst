@@ -6,41 +6,60 @@ Acknowledgments
 
 Many researchers in the glaciology and climate modeling communities have
 contributed to this work. Development of the CESM land-ice component is
-overseen by the Land Ice Working Group, which has been co-chaired since
-2009 by William Lipscomb (LANL) and Jesse Johnson (U. Montana), with
-Stephen Price (LANL) serving as scientific liaison. Since 2011, William
-Sacks has served as LIWG software liaison; he is responsible for many
-ice-sheet model improvements since the initial CESM release in 2010. Jon
-Wolfe (NCAR) was the lead software engineer for the initial
-implementation of ice sheets in CESM. Tony Craig, Erik Kluzek, David
-Lawrence, and Mariana Vertenstein (NCAR) have supported overall software
-development, including the incorporation of ice sheets in CLM. Jeremy
-Fyke (LANL) and Miren Vizcaíno (Utrecht University) have worked closely
-on the analysis of output from the surface-mass-balance scheme and
-dynamic ice sheet model within CESM.
+overseen by the Land Ice Working Group (LIWG), which is currently led
+by co-chairs Jan Lenaerts and William Lipscomb, scientific liaison Gunter Leguy,
+and software liaison William Sacks. Others in LIWG leadership roles
+since the group's inception in 2009 have included co-chairs Jesse Johnson and Miren Vizcaíno
+and scientific liaisons Jeremy Fyke and Stephen Price.
 
-Development of Glimmer-CISM has been overseen by a steering committee
-consisting of Magnus Hagdorn (U. Edinburgh), Tony Payne (U. Bristol),
-and Ian Rutt (U. Swansea) in the U.K., along with Johnson, Lipscomb, and
-Price. They and many others have contributed to the dynamic ice sheet
-model. Participants in the DOE Ice Sheet Initiative for Climate Extremes
-(ISICLES) project and the new Predicting Ice Sheet and Climate Evolution
-at Extreme Scales (PISCEES) project are responsible for many model
-improvements that will be included in upcoming Glimmer-CISM releases.
-William Collins (LBNL) has led the Investigation of the Magnitudes and
-Probabilities of Abrupt Climate Transitions (IMPACTS) project, which is
-developing new ice-ocean coupling methods that will be incorporated in
-future versions of CESM.
+Land ice was first implemented in CESM1.0 by William Lipscomb and
+several NCAR scientists and software engineers, including Tony Craig,
+Erik Kluzek, David Lawrence, Mariana Vertenstein, and Jon Wolfe.
+William Sacks, who became LIWG software liaison in 2011,
+has been responsible for land-ice software development in CESM
+since the initial implementation.
+Jeremy Fyke and Miren Vizcaíno led the first analyses of output
+from the CESM1 land-ice component.
 
-Several DOE and NSF program managers, including Anjuli Bamzai, Lali
+Development of Glimmer-CISM was led by a steering committee
+consisting of Magnus Hagdorn, Tony Payne, and Ian Rutt in the U.K.,
+along with Johnson, Lipscomb, and Price.
+Participants in the DOE Ice Sheet Initiative for Climate Extremes
+(ISICLES) project and the Predicting Ice Sheet and Climate Evolution
+at Extreme Scales (PISCEES) project then led development of the parallel,
+higher-order version CISM2.0, which was released in 2014.
+William Lipscomb, Stephen Price, and Matthew Hoffman were
+primarily responsible for CISM2, with key contributions from
+Katherine Evans, Joseph Kennedy, Mauro Perego, Douglas Ranken,
+Andrew Salinger, and Patrick Worley.
+
+Development and testing of CISM2.1 (released in June 2018) was led by William Lipscomb,
+with additional contributions from Andrew Bennett, Sarah Bradley, Matthew Hoffman,
+Jeremy Fyke, Joseph Kennedy, Gunter Leguy, Stephen Price, William Sacks, and Lauren Vargo.
+
+Major improvements in ice-sheet surface climate in CESM2 were led
+by Jan Lenaerts and Leo van Kampenhout, with assistance from Julio Bacmeister,
+Andrew Gettelman, David Lawrence, and others in NCAR's Climate and Global
+Dynamics Laboratory.
+
+CISM2 development was supported primarily by the Earth System Modeling program,
+Office of Biological and Environmental Research (BER) of the DOE Office of Science.
+Additional support was provided by the DOE’s Office of Advanced Scientific Computing Research (ASCR),
+by BER’s Regional and Global Climate Modeling Program, and by the National Science Foundation.
+The National Center for Atmospheric Research is sponsored by the National Science Foundation.
+
+Since 2017, primary support for CISM and other land-ice development at NCAR
+has been provided by NSF.
+
+Many DOE and NSF program managers, including Anjuli Bamzai, Lali
 Chatterjee, Lisa Clough, Jay Fein, Renu Joseph, Dorothy Koch, Randall
-Laviolette, and Julie Palais (NSF), have provided essential support for
-ice sheet model development and integration into CESM. Phil Jones has
-supported this work as manager of LANL’s COSIM project and as PI of the
-DOE SciDAC projects that have funded much of this effort. William
-Collins, Peter Gent, James Hurrell, and Marika Holland have supported
-this project while managing overall CCSM/CESM development at NCAR.
+Laviolette, and Julie Palais, have provided essential support for
+ice sheet model development and integration into CESM.
+William Collins, Gokhan Danabasoglu, Peter Gent, Marika Holland,
+James Hurrell, Jean-François Lamarque, William Large, and
+Bette Otto-Bleisner have supported land-ice modeling while managing
+CCSM and CESM development at NCAR.
 
-Many others have actively participated in the Land Ice Working Group and
-have given advice and encouragement along the way.
+Many others have actively participated in the Land Ice Working Group
+and have given advice and encouragement along the way.
 
