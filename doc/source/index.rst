@@ -21,7 +21,6 @@ Table of contents
    running-and-modifying.rst
    tg-compsets.rst
    dynamic-ice-sheet-model.rst
-   ice-sheets-in-clm.rst
    controlling-output.rst
    acknowledgements.rst
    references.rst
