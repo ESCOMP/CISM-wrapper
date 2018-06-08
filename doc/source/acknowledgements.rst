@@ -57,7 +57,7 @@ Laviolette, and Julie Palais, have provided essential support for
 ice sheet model development and integration into CESM.
 William Collins, Gokhan Danabasoglu, Peter Gent, Marika Holland,
 James Hurrell, Jean-François Lamarque, William Large, and
-Bette Otto-Bleisner have supported land-ice modeling while managing
+Bette Otto-Bliesner have supported land-ice modeling while managing
 CCSM and CESM development at NCAR.
 
 Many others have actively participated in the Land Ice Working Group
