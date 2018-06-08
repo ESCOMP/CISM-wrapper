@@ -43,7 +43,7 @@ the compset level, there are three main modes for configuring CESM's ice sheet c
    - Over the CISM domain (typically Greenland in CESM2), CISM dictates glacier areas and
      topographic elevations, overriding the values on CLM's surface dataset. CISM also
      dictates the elevation of non-glacier land units in its domain, and only in this
-     domain are atmospheric fields downscaled to non-glacier land units.
+     domain does CLM downscale atmospheric fields to non-glacier land units.
 
    - CISM provides the grid onto which SMB is downscaled.
 
@@ -61,11 +61,13 @@ the compset level, there are three main modes for configuring CESM's ice sheet c
    - Ice and liquid runoff to the ocean
 
    Part or all of this two-way coupling can be turned off if desired.
+   Note that the liquid runoff sent to the ocean consist of meltwater computed in the interior
+   or at the base of the ice; surface liquid runoff is handled separately by CLM.
 
    |
 3. Using a stub glacier component (SGLC), completely avoiding the use of CISM.
 
-   This configuration has ``SGLC`` in the compset long name, and typically have ``Gs``
+   These configurations have ``SGLC`` in the compset long name, and typically have ``Gs``
    somewhere near the end of their alias. This is similar to (1), and CLM still computes
    ice sheet surface mass balance. However:
 
@@ -81,7 +83,7 @@ the compset level, there are three main modes for configuring CESM's ice sheet c
      run a dynamic ice sheet model.
 
    - Runs with a Gregorian calendar (i.e., with leap years): CISM does not currently
-     support a Gregorian calendar, so these runs need to use SGLC. This includes daa
+     support a Gregorian calendar, so these runs need to use SGLC. This includes data
      assimilation and CAM specified dynamics runs.
 
    - Other cases where you don't want to include CISM because of the extra complexity this
@@ -93,9 +95,9 @@ the compset level, there are three main modes for configuring CESM's ice sheet c
 After creating a case, you can switch between (1) and (2) by setting the xml variable,
 ``CISM_EVOLVE``.
 
-It is also possible to run with the older CISM1 physics, using the serial, shallow ice
-approximation glide dynamical core, rather than the parallel, higher-order glissade
-dynamical core. This can be selected at ``create_newcase`` time by changing CISM2 to CISM1
+It is also possible to run with the older CISM1 physics, using the serial, shallow-ice-
+approximation dynamical core (Glide), rather than the parallel, higher-order
+dynamical core (Glissade). This can be selected at ``create_newcase`` time by changing CISM2 to CISM1
 in the compset long name (aliases using CISM1 have ``G1`` in place of ``G``), or after
 case creation by setting the xml variable, ``CISM_PHYS``.
 
@@ -111,7 +113,7 @@ ice-sheet grids have limited domains. The current grids are polar stereographic
 projections with rectangular grid cells.
 
 Currently, CESM only supports running CISM over Greenland. When running with CISM2
-(glissade), the standard grid has a resolution of 4 km; when running with CISM1 (glide),
+(Glissade), the standard grid has a resolution of 4 km; when running with CISM1 (Glide),
 the standard grid has a resolution of 5 km. Both CISM1 and CISM2 also support a 20 km grid
 for software testing purposes. There is out-of-the-box support for running either the 4 km
 (CISM2) or 5 km (CISM1) grids with most or all of the commonly-used atmosphere/land and
