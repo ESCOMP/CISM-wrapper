@@ -8,33 +8,33 @@ FIXME: This section needs major review and rework. Portions of it could be delet
 pointing to the appropriate section in the CLM documentation.
 
 This section describes changes made in the Community Land Model to
-accommodate ice sheets. For more information, see the CLM4
+accommodate ice sheets. For more information, see the CLM
 documentation.
 
 ================================
  CISM's climate model interface
 ================================
 
-GLAD is the new climate model interface of CISM and is responsible for:
+Glad is the new climate model interface of CISM and is responsible for:
 
 1. handling time stepping and temporal averaging.
 2. providing a simpler interface to the climate model.
 3. translating inputs and outputs into appropriate quantities.
 
-In contrast with the old interface GLINT, GLAD receives already-dowscaled
-fields on the ice sheet grid. Consequently GLAD does not do any upscaling,
-dowscaling or interpolation. Additionaly it is no longer possible to
-use the positive-degree-day (PDD) scheme (while this option was previously
-available with GLINT it was unabled for CESM runs).
+In contrast with the old interface Glint, Glad receives already-dowscaled
+fields on the ice sheet grid. Consequently Glad does not do any upscaling,
+dowscaling or interpolation. Also, it is not possible to
+use the positive-degree-day (PDD) scheme with Glad. (While this option was previously
+available with Glint, it was disabled for CESM runs).
 
 In general there can be multiple non-overlapping ice sheet grids, but
 only Greenland is currently enabled.
 
-GLAD needs to know (1) one or more 2D fields necessary for computing
+Glad needs to know (1) one or more 2D fields necessary for computing
 the surface mass balance, (2) an upper boundary condition, usually
 surface temperature.
-The computation of the surface mass balance (SMB) for land ice embedded
-in CTSM. In this case the required input to GLAD is the SMB itself.
+The computation of the surface mass balance (SMB) for land ice is embedded
+in CTSM. In this case the required input to Glad is the SMB itself.
 This is the preferred approach for climate-change experiments. The mass
 balance is computed for a specified number of elevation classes for each
 grid cell on the coarser land grid (~100 km). This is much less
@@ -42,7 +42,7 @@ computationally expensive than computing the SMB for each cell on the
 finer ice sheet grid (~4 km). Values of 1, 3, 5, 10 and 36 elevation
 classes are currently supported, with 10 being the default.
 
-For the SMB scheme, the fields passed to GLAD are (1) the surface mass
+For the SMB scheme, the fields passed to Glad are (1) the surface mass
 balance, *qsmb* (kg/m:sup:`2`/s, positive for ice growing, negative for
 ice melting), (2) the surface temperature, *Tsfc* (deg C), and (3) the
 surface elevation, *topo* (m) for each elevation class. These fields are
@@ -53,16 +53,16 @@ downscaling occurs in two phases. First, the values on the global grid
 are interpolated in the horizontal to the local ice sheet grid. Next,
 for each local grid cell, values are linearly interpolated between
 adjacent elevation classes. For example, suppose that at a given
-location the coupler supplies a surface mass balance at elevations of
+location the coupler supplies the SMB at elevations of
 300 and 500 m, whereas the local grid cell has an elevation of 400 m.
 Then the local SMB is equal to the mean of the values at 300 and 500 m.
 
 In some parts of the ice sheet grid the fields supplied by CTSM are not
 valid, simply because there are no land-covered global grid cells in the
-vicinity. For this reason, GLAD computes a mask on the ice sheet grid at
+vicinity. For this reason, Glad computes a mask on the ice sheet grid at
 initialization. The mask has a value of 1 for global grid cells that
 have a nonzero land fraction (and hence supply valid data) and is zero
-otherwise. GLAD then computes a local mask for each grid cell on the
+otherwise. Glad then computes a local mask for each grid cell on the
 ice sheet grid. The local mask has a value of 1 if one or more of the
 four nearest global neighbors supplies valid data (i.e., has a global
 mask value of 1). Otherwise, the local mask has a value of zero. In this
@@ -72,16 +72,16 @@ masking has not been a restriction in practice, since the Greenland ice
 sheet does not extend far from the land margin. Alternatives may need to
 be considered for modeling the Antarctic ice sheet.
 
-After receiving the surface mass balance, GLAD calls the ice sheet
+After receiving the surface mass balance, Glad calls the ice sheet
 dynamics model, which returns a new profile of ice sheet area and
-extent. The following fields are returned from GLAD to the coupler:
+extent. The following fields are returned from Glad to the coupler:
 (1) the ice area fraction, *gfrac*, (2) the ice sheet elevation,
 *gtopo* (m), (3), the frozen portion of the freshwater runoff, *grofi*,
 (4) the liquid portion of the runoff, *grofl*, and (5) the heat flux
 from the ice sheet interior to the surface, *ghflx*. These fields
 are computed for each elevation class of each grid cell. The frozen
 runoff corresponds to iceberg calving and the liquid runoff to basal
-meltwater. Surface runoff is not supplied by GLAD because it has already
+meltwater. Surface runoff is not supplied by Glad because it has already
 been computed in CTSM.
 
 There are two modes of coupling CISM to CTSM: one-way and two-way.
@@ -121,15 +121,10 @@ models:
    the sum of the radiative, turbulent, and conductive fluxes reaching
    the surface.
 
-The current version of Glimmer-CISM has only a PDD scheme. It is
+The original version of Glimmer had only a PDD scheme. It is
 generally believed that PDD schemes are not appropriate for climate
 change studies, because empirical degree-day factors could change in a
-warming climate. Comparisons of PDD and energy-balance schemes (e.g.,
-van de Wal 1996; Bougamont et al. 2007) suggest that PDD schemes may be
-overly sensitive to warming temperatures. Bougamont et al. (2007) found
-that a PDD scheme generates runoff rates nearly twice as large as those
-computed by an SEB scheme.
-
+warming climate (e.g., Bougamont et al. 2007). 
 In CESM, the ice-sheet surface mass balance is computed using an SEB
 scheme in CLM. Before discussing the scheme, it is useful to describe
 CLM’s hierarchical data structure. Each grid cell is divided into one or
@@ -142,13 +137,12 @@ In the current version, landunit areas in each grid cell are fixed at
 initialization, but PFT and column areas can evolve during the
 simulation.
 
-Previously, CLM supported up to five landunits per grid cell: soil,
-urban, wetland, lake, and glacier. Each of these landunits generally
+CLM supports several landunits per grid cell: e.g., soil,
+urban, wetland, lake, glacier, and crop. Each of these landunits generally
 contains a single column, and soil columns (but not urban, wetland,
-lake, and glacier columns) consist of multiple PFTs. CLM now supports a
-sixth landunit, *glacier\_mec*, where “mec” denotes “multiple elevation
-classes”. Each glacier\_mec landunit is divided into a user-defined set
-of columns based on surface elevation. The default is 10 elevation
+lake, and glacier columns) consist of multiple PFTs.
+Glacier landunits, however, can be configured to contain multiple columns,
+The default for glacier landunits over ice sheets is 10 elevation
 classes whose lower limits are 0, 200, 400, 700, 1000, 1300, 1600, 2000,
 2500, and 3000 m. Each column is characterized by a fractional area and
 surface elevation that are read in during model initialization. The
@@ -162,21 +156,20 @@ mass balance from the relatively coarse (~100 km) land grid to the finer
 (~5 km) ice sheet grid. The SMB is computed for each elevation class in
 each grid cell and is accumulated, averaged, and passed to the GLC
 (dynamic ice-sheet) component via the coupler once per day. The mass
-balance is downscaled by GLINT to the ice-sheet grid as described in
-Section 4.
+balance is downscaled by the coupler, and then passed to Glad on the
+ice-sheet grid as described above.
 
-There are several reasons for computing the surface mass balance in CLM
-rather than in Glimmer-CISM:
+There are several reasons to compute the SMB in CLM rather than CISM:
 
 1. It is much cheaper to compute the SMB in CLM for ~10 elevation
-   classes than in Glimmer-CISM. For example, suppose we are running CLM
+   classes than in CISM. For example, suppose we are running CLM
    at a resolution of ~50 km and Glimmer at ~5 km. Greenland has
    dimensions of about 1000 x 2000 km. For CLM we would have 20 x 40 x
    10 = 8,000 columns, whereas for GLIMMER we would have 200 x 400 =
    80,000 columns.
 
 2. We can use the sophisticated snow physics parameterization already in
-   CLM instead of implementing a separate scheme for Glimmer-CISM. Any
+   CLM instead of implementing a separate scheme for CISM. Any
    improvements to the CLM are applied to ice sheets automatically.
 
 3. The atmosphere model can respond during runtime to ice-sheet surface
@@ -185,28 +178,26 @@ rather than in Glimmer-CISM:
    paleoclimate time scales. Without this feedback the atmosphere warms
    much less, and the retreat is delayed.
 
-4. Mass is more nearly conserved, given that the rate of surface ice
+4. It is easier to conserve mass, given that the rate of surface ice
    growth or melting computed in CLM is equal to the rate seen by the
-   dynamic ice sheet model. (Mass conservation is not exact, however,
-   because of approximations made in interpolating from the CLM grid to
-   the ice-sheet grid.)
-
-5. The improved surface mass balance is available in CLM for all
-   glaciated grid cells (e.g., in the Alps, Rockies, Andes, and
-   Himalayas), not just those which are part of ice sheets.
+   dynamic ice sheet model. (Ensuring exact mass conservation
+   turns out to be fairly intricate, because of approximations made 
+   in interpolating from the CLM grid to the ice-sheet grid.)
 
 ==========================================================
  Details of the surface-mass-balance and coupling schemes
 ==========================================================
 
+FIXME: Much of this section is now obsolete and needs to be rewritten.
+
 When the model is initialized, CLM reads a high-resolution data file
-classifying each point as soil, urban, lake, wetland, glacier, or
-glacier\_mec. For runs with dynamic ice sheets, the default is to
-classify all glaciated regions as glacier\_mec. If there are no dynamic
-ice sheets, then these regions are normally classified as glacier
-landunits with a single column per landunit. Glacier\_mec columns, like
-glacier columns, are initialized with a temperature of 250 K. While
-glacier columns are initialized with a snow liquid water equivalent
+classifying each point as soil, urban, lake, wetland, glacier, or glacier\_mec.
+For runs with dynamic ice sheets, the default is to classify all 
+glaciated regions as glacier\_mec. If there are no dynamic ice sheets,
+then these regions are normally classified as glacier landunits with a 
+single column per landunit. Glacier\_mec columns, like glacier columns,
+are initialized with a temperature of 250 K. 
+While glacier columns are initialized with a snow liquid water equivalent
 (LWE) equal to the maximum allowed value of 1 m, glacier\_mec columns
 begin with a snow LWE of 0.5 m so that they will reach their equilibrium
 mean snow depth sooner. Glacier\_mec columns typically require several
@@ -251,8 +242,8 @@ assumed to run off to the ocean, giving a negative surface mass balance.
 The net SMB associated with ice formation (by conversion from snow) and
 melting/runoff is computed for each column, averaged over the coupling
 interval, and sent to the coupler. This quantity, denoted *qice*, is
-then passed via the coupler to GLINT, along with the surface elevation
-*topo* in each column. GLINT downscales the SMB (renamed as *qsmb*) to
+then passed via the coupler to Glint, along with the surface elevation
+*topo* in each column. Glint downscales the SMB (renamed as *qsmb*) to
 the local elevation on the ice sheet grid, interpolating between values
 in adjacent elevation classes. The units of *qice* are mm/s, or
 equivalently km/m\ :sup:`2`/s. If desired, the downscaled quantities can
@@ -261,13 +252,13 @@ normalization is not yet implemented.)
 
 Note that the surface mass balance typically is defined as the total
 accumulation of ice and snow, minus the total ablation. The *qice* flux
-passed to GLINT is the mass balance for ice alone, not snow. We can
+passed to Glint is the mass balance for ice alone, not snow. We can
 think of CLM as owning the snow, whereas Glimmer owns the underlying
 ice. Fluctuations in snow depth between 0 and 1 m LWE are not reflected
-in the SMB passed to GLINT.
+in the SMB passed to Glint.
 
 In addition to *qice* and *topo*, the ground surface temperature *tsfc*
-is passed from CLM to GLINT via the coupler. This temperature serves as
+is passed from CLM to Glint via the coupler. This temperature serves as
 the upper boundary condition for Glimmer-CISM’s temperature calculation.
 
 Given the SMB from the land model, Glimmer-CISM executes one or more
@@ -279,7 +270,7 @@ meltwater) runoff *grofl*, frozen (calving) runoff *grofi*, and surface
 conductive heat flux *ghflx*.
 
 The current coupling is one-way only. That is, CLM sends the SMB and
-surface temperature to GLINT but does not do anything with the fields
+surface temperature to Glint but does not do anything with the fields
 that are returned. The CLM surface topography is therefore fixed in
 time. One-way coupling is reasonable for runs of ~100 years or less, in
 which ice-sheet elevation changes are modest. For longer runs with
