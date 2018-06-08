@@ -49,7 +49,7 @@ by BER’s Regional and Global Climate Modeling Program, and by the National Sci
 The National Center for Atmospheric Research is sponsored by the National Science Foundation.
 
 Since 2017, primary support for CISM and other land-ice development at NCAR
-has been provided by NSF.
+has been provided by the National Science Foundation under Cooperative Agreement #0856145.
 
 Many DOE and NSF program managers, including Anjuli Bamzai, Lali
 Chatterjee, Lisa Clough, Jay Fein, Renu Joseph, Dorothy Koch, Randall
