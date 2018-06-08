@@ -157,7 +157,7 @@ Meanwhile, other parts of CESM have evolved to support land-ice science.
 In CESM2.0 the surface mass balance of the Greenland and Antarctic ice sheets 
 is computed by default in CLM using multiple elevation classes, in simulations
 with or without dynamic ice sheets. Also, CESM now supports interactive coupling
-of CISM with CLM and CAM, allowing the land topography and surface types to evolve
+of CISM with CLM, allowing the land topography and surface types to evolve
 as the ice sheet advances and retreats.
 The surface melt climate of both ice sheets has improved with the inclusion of a 
 deep firn model that allows for meltwater infiltration and refreezing, 
@@ -174,8 +174,8 @@ CISM's land-ice capabilities continue to be actively developed, and
 some significant limitations remain, as decribed below.
 
 
-Limitations of the ice sheet model
-----------------------------------
+Limitations of the ice sheet model itself
+-----------------------------------------
 
 -  CISM2.1 has been designed primarily for simulating Greenland, and is missing 
    some features needed for optimal simulation of marine ice sheets.
@@ -190,15 +190,29 @@ Limitations of the ice sheet model
    at higher resolutions, but is less well tested and less robust.
 
 
+Limitations of CISM within CESM
+-------------------------------
+
+- CISM restarts can only occur on day boundaries
+
+- There are a number of bugs with the use of a calendar that includes leap years;
+  currently, you can only run CISM with a no-leap calendar.
+
+- There is a bug in the outputting of time-average history fields from CISM; currently,
+  only instantaneous fields are supported.
+
 Limitations of other components of the CESM modeling system
 -----------------------------------------------------------
 
--  In CESM2.0, CISM can be coupled interactively to CAM and CLM, but coupling to the ocean
+-  In CESM2.0, CISM can be coupled interactively to CLM, but coupling to the ocean
    is very limited. The ice sheet model can send calving fluxes to the ocean,
    but there is currently no mechanism to compute sub-ice-shelf melt rates
    based on ocean conditions, and ocean boundaries do not evolve in response to ice-shelf changes.
+   Offline scripts have been developed to support coupling to the Community Atmosphere
+   Model (CAM), adjusting CAM's notion of surface topography; however, this atmosphere
+   coupling is not available out-of-the-box and is not officially supported.
 
--  CESM2.0 does not include a prognostic glacier model. Also, the SMB for mountain glaciers
+-  CESM2.0 does not include a prognostic glacier model. Also, by default, the SMB for mountain glaciers
    is computed for a single elevation class at the mean topography, since
    multiple elevation classes have not been found to improve the SMB outside of ice sheets.
 
@@ -220,9 +234,14 @@ in CESM for land-ice modeling:
    An SMB downscaled to CISM's ice sheet grid is now available for all coupled simulations
    with an active land model, not just simulations with dynamic ice sheets.
 
--  CISM can be coupled interactively to CLM and CAM, with changes in
+-  CISM can be coupled interactively to CLM, with changes in
    ice sheet extent and thickness feeding back on land surface elevation
    and surface types.
+
+-  CLM includes many improved snow parameterizations. These include both improvements in
+   the properties of fresh snow and improvements in the evolution of the snow pack. CLM
+   now includes a deep firn model that allows for meltwater infiltration and refreezing,
+   as well as realistic firn densification rates.
 
 -  See below for more detailed descriptions of new land-ice capabilities.
 
@@ -363,13 +382,3 @@ in CESM that are relevant for ice sheet modeling:
 -  Improved testing capability for TG compsets in the CESM test
    framework
 
-Known problems in CESM2.0
--------------------------
-
-The following are known problems in CESM2.0 that are relevant for ice
-sheet modeling:
-
--  CISM restarts can only occur on year boundaries.
-
--  There are a number of bugs with the use of a calendar that includes
-   leap years; for now we recommend only using a no-leap calendar.
