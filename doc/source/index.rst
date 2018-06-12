@@ -19,7 +19,7 @@ Table of contents
 
    introduction.rst
    running-and-modifying.rst
-   tg-compsets.rst
+   t-compsets.rst
    dynamic-ice-sheet-model.rst
    controlling-output.rst
    acknowledgements.rst
