@@ -486,7 +486,7 @@ Basal melt rate for floating ice
 0: Basal melt rate = 0 for floating ice
 1: Depth-dependent basal melt rate for floating ice as prescribed for MISMIP+
 2: Basal melt rate = constant for floating ice (with option to selectively mask out melting)
-3: Basal melt rate based on thickness of sub-shelf cavity
+3: Depth-dependent basal melt rate for floating ice
 4: External basal melt rate field (from input file or coupler)
 5: [NOT SUPPORTED] Basal melt rate for floating ice from MISOMIP ocean forcing with plume model
 Default: 0
