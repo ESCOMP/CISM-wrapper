@@ -274,6 +274,21 @@ attributes to express the dependency.
 
 <beta_grounded_min>100.</beta_grounded_min>
 
+<!-- bmlt_float_depth_meltmax CISM default -->
+<bmlt_float_depth_meltmax>10.</bmlt_float_depth_meltmax>
+
+<!-- bmlt_float_depth_frzmax CISM default -->
+<bmlt_float_depth_frzmax>0.</bmlt_float_depth_frzmax>
+
+<!-- bmlt_float_depth_zmeltmax CISM default -->
+<bmlt_float_depth_zmeltmax>-500.</bmlt_float_depth_zmeltmax>
+
+<!-- bmlt_float_depth_zmelt0 CISM default -->
+<bmlt_float_depth_zmelt0>-200.</bmlt_float_depth_zmelt0>
+
+<!-- bmlt_float_depth_zfrzmax CISM default -->
+<bmlt_float_depth_zfrzmax>-100.</bmlt_float_depth_zfrzmax>
+
 <!-- =============================================================  -->
 <!-- group: cism.config: ho_options                                 -->
 <!-- =============================================================  -->

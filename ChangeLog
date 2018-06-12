@@ -4,6 +4,35 @@ This file describes what tags were created on master and why
 
 ================================================================================
 Originator: sacks
+Date: June 12, 2018
+Version: cism2_1_59
+One-line summary: Update to latest version of CISM
+
+Purpose of changes:
+
+   Small CISM updates. The biggest change is adding a depth-dependent
+   basal melt rate for floating ice, controlled by 5 new parameters.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: NO
+
+Bugs fixed (include github issue number): none
+
+Summary of testing:
+
+   Full aux_glc test suite on cheyenne and hobart
+
+================================================================================
+Originator: sacks
 Date: May 14, 2018
 Version: cism2_1_58
 One-line summary: Parameter and code changes to achieve greater stability

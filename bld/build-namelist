@@ -591,6 +591,11 @@ add_default($nl, 'effecpress_delta');
 add_default($nl, 'bwat_till_max');
 add_default($nl, 'c_drainage');
 add_default($nl, 'beta_grounded_min');
+add_default($nl, 'bmlt_float_depth_meltmax');
+add_default($nl, 'bmlt_float_depth_frzmax');
+add_default($nl, 'bmlt_float_depth_zmeltmax');
+add_default($nl, 'bmlt_float_depth_zmelt0');
+add_default($nl, 'bmlt_float_depth_zfrzmax');
 $nl->write_cism_config($fh, "cism_config_parameters");
 
 # The ho_options section only applies if dycore is not 0
