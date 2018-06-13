@@ -862,6 +862,15 @@ Default: (use hard-coded default - currently 0.2)
 </entry>
 
 <entry 
+id="calving_minthck"
+type="real" 
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Minimum thickness of floating ice at marine edge before it calves (m)
+Default: 100.
+</entry>
+
+<entry 
 id="taumax_cliff"
 type="real" 
 category="cism_config_parameters"
@@ -929,6 +938,17 @@ Number of times to cull calving_front cells at initialization
 Set to a larger value to remove thicker peninsulas
 To use this, also set cull_calving_front to .true.
 Default: (use hard-coded default - currently 0)
+</entry>
+
+<entry 
+id="calving_timescale"
+type="real" 
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Timescale for calving (yr) (Glissade only)
+calving_thck = thck*max(dt/calving_timescale,1)
+If calving_timescale = 0, then the full column calves at once
+Default: 0.
 </entry>
 
 <entry 
@@ -1188,6 +1208,15 @@ group="cism_config_parameters" >
 Minimum value of beta for grounded ice (Pa yr m-1)
 (Applies only to Glissade higher-order dycore)
 Default: 100.
+</entry>
+
+<entry
+id="bmlt_float_h0"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Scale for sub-shelf cavity thickness (m)
+Default: 75.
 </entry>
 
 <entry
@@ -1504,7 +1533,7 @@ id="which_ho_ground"
 type="integer"
 category="cism_config_ho_options"
 group="cism_config_ho_options"
-valid_values="0,2" >
+valid_values="0,1,2" >
 Flag that indicates how the grounded ice fraction is computed in the Glissade dycore
 Not valid for other dycores
 0: fground = 0 in floating cells (based on flotation condition), else fground = 1 
@@ -1523,6 +1552,21 @@ Flag that indicates how to compute bmlt_float in partly grounded cells
 0: Apply bmlt_float in all floating cells, including partly grounded cells
 1: Do not apply bmlt_float in partly grounded cells
 Default: 0
+</entry>
+
+<entry
+id="which_ho_flotation_function"
+type="integer"
+category="cism_config_ho_options"
+group="cism_config_ho_options"
+valid_values="0,1,2" >
+Flag that indicates how to compute the flotation function at and near vertices in the Glissade dycore
+Not valid for other dycores
+Only applicable for which_ho_ground=1
+0: f_flotation = (-rhow*b/rhoi*H) = f_pattyn; &lt;=1 for grounded, &gt; 1 for floating
+1: f_flotation = (rhoi*H)/(-rhow*b) = 1/f_pattyn; &gt;=1 for grounded, &lt; 1 for floating
+2: f_flotation = -rhow*b - rhoi*H = ocean cavity thickness; &lt;=0 for grounded, &gt; 0 for floating
+Default: 2
 </entry>
 
 <entry

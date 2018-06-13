@@ -574,8 +574,10 @@ add_default($nl, 'log_level');
 add_default($nl, 'ice_limit');
 add_default($nl, 'thck_gradient_ramp');
 add_default($nl, 'max_slope');
+add_default($nl, 'calving_minthck');
 add_default($nl, 'taumax_cliff');
 add_default($nl, 'cliff_timescale');
+add_default($nl, 'calving_timescale');
 add_default($nl, 'geothermal');
 add_default($nl, 'flow_factor');
 add_default($nl, 'flow_factor_float');
@@ -591,6 +593,7 @@ add_default($nl, 'effecpress_delta');
 add_default($nl, 'bwat_till_max');
 add_default($nl, 'c_drainage');
 add_default($nl, 'beta_grounded_min');
+add_default($nl, 'bmlt_float_h0');
 add_default($nl, 'bmlt_float_depth_meltmax');
 add_default($nl, 'bmlt_float_depth_frzmax');
 add_default($nl, 'bmlt_float_depth_zmeltmax');
@@ -620,6 +623,7 @@ if ($nl->get_value('dycore') != 0) {
     add_default($nl, 'which_ho_calving_front');
     add_default($nl, 'which_ho_ground');
     add_default($nl, 'which_ho_ground_bmlt');
+    add_default($nl, 'which_ho_flotation_function');
     add_default($nl, 'glissade_maxiter');
     $nl->write_cism_config($fh, "cism_config_ho_options");
 }
