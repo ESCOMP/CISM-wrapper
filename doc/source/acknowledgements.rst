@@ -15,11 +15,10 @@ and scientific liaisons Jeremy Fyke and Stephen Price.
 Land ice was first implemented in CESM1.0 by William Lipscomb and
 several NCAR scientists and software engineers, including Tony Craig,
 Erik Kluzek, David Lawrence, Mariana Vertenstein, and Jon Wolfe.
-William Sacks, who became LIWG software liaison in 2011,
-has been responsible for land-ice software development in CESM
-since the initial implementation.
 Jeremy Fyke and Miren Vizcaíno led the first analyses of output
 from the CESM1 land-ice component.
+William Sacks, who became LIWG software liaison in 2011, has been responsible for land-ice
+software development in CESM since the initial implementation.
 
 Development of Glimmer-CISM was led by a steering committee
 consisting of Magnus Hagdorn, Tony Payne, and Ian Rutt in the U.K.,
@@ -37,10 +36,11 @@ Development and testing of CISM2.1 (released in June 2018) was led by William Li
 with additional contributions from Andrew Bennett, Sarah Bradley, Matthew Hoffman,
 Jeremy Fyke, Joseph Kennedy, Gunter Leguy, Stephen Price, William Sacks, and Lauren Vargo.
 
-Major improvements in ice-sheet surface climate in CESM2 were led
-by Jan Lenaerts and Leo van Kampenhout, with assistance from Julio Bacmeister,
-Andrew Gettelman, David Lawrence, and others in NCAR's Climate and Global
-Dynamics Laboratory.
+Major improvements in ice-sheet surface climate in CESM2 were led by Jan Lenaerts and Leo
+van Kampenhout, with assistance from Julio Bacmeister, Andrew Gettelman, David Lawrence,
+Andrew Slater, Sean Swenson, and others in NCAR's Climate and Global Dynamics
+Laboratory. Development and testing of CISM-CESM two-way coupling has been led by Jeremy
+Fyke, William Lipscomb, Marcus Löfverström and William Sacks.
 
 CISM2 development was supported primarily by the Earth System Modeling program,
 Office of Biological and Environmental Research (BER) of the DOE Office of Science.
