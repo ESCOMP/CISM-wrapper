@@ -5,6 +5,51 @@ This file describes what tags were created on master and why
 ================================================================================
 Originator: sacks
 Date: July 7, 2018
+Version: cism2_1_62
+One-line summary: Fixes for new NAG compiler on hobart
+
+Purpose of changes:
+
+   Update the source_cism external to pull in some changes that are
+   needed for NAG 6.2 on hobart.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: NO
+
+   No answer changes in any tests, but in theory this could change
+   answers for certain compilers, if they do optimizations that were
+   unsafe with the old code.
+
+Bugs fixed (include github issue number):
+- https://github.com/ESCOMP/cism/issues/6
+
+Summary of testing:
+
+   Full aux_glc test suite on cheyenne and hobart
+
+   All cheyenne tests passed and were bit-for-bit.
+
+   Some hobart tests failed:
+
+   https://github.com/ESMCI/cime/issues/2705
+       FAIL SMS_D_Ly1_P24x1.f09_g17_gl4.T1850G.hobart_pgi MODEL_BUILD time=434
+       FAIL SMS_D_Ly3.f09_g17_gl5.T1850G1.hobart_pgi MODEL_BUILD time=483
+
+   https://github.com/ESCOMP/ctsm/issues/438
+       FAIL SMS_D_Ld5_P24x1.T31_g37_gl20.I1850Clm50SpG.hobart_nag.cism-test_coupling RUN time=214
+
+================================================================================
+Originator: sacks
+Date: July 7, 2018
 Version: cism2_1_61
 One-line summary: Update externals used in standalone checkout
 
