@@ -360,9 +360,6 @@ attributes to express the dependency.
 <!-- which_ho_ground_bmlt CISM default -->
 <which_ho_ground_bmlt>0</which_ho_ground_bmlt>
 
-<!-- which_ho_flotation_function CISM default -->
-<which_ho_flotation_function>2</which_ho_flotation_function>
-
 <glissade_maxiter>50</glissade_maxiter>
 
 </namelist_defaults>

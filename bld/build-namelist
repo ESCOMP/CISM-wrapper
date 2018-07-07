@@ -623,7 +623,6 @@ if ($nl->get_value('dycore') != 0) {
     add_default($nl, 'which_ho_calving_front');
     add_default($nl, 'which_ho_ground');
     add_default($nl, 'which_ho_ground_bmlt');
-    add_default($nl, 'which_ho_flotation_function');
     add_default($nl, 'glissade_maxiter');
     $nl->write_cism_config($fh, "cism_config_ho_options");
 }
