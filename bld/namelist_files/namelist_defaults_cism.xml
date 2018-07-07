@@ -228,10 +228,16 @@ attributes to express the dependency.
 
 <max_slope>0.1</max_slope>
 
+<!-- calving_minthck CISM default -->
+<calving_minthck>100.</calving_minthck>
+
 <!-- taumax_cliff CISM default -->
 <taumax_cliff>1.e6</taumax_cliff>
 
 <cliff_timescale>0.</cliff_timescale>
+
+<!-- calving_timescale CISM default -->
+<calving_timescale>0.</calving_timescale>
 
 <geothermal>-5.e-2</geothermal>
 
@@ -273,6 +279,24 @@ attributes to express the dependency.
 <c_drainage>1.e-3</c_drainage>
 
 <beta_grounded_min>100.</beta_grounded_min>
+
+<!-- bmlt_float_h0 CISM default -->
+<bmlt_float_h0>75.</bmlt_float_h0>
+
+<!-- bmlt_float_depth_meltmax CISM default -->
+<bmlt_float_depth_meltmax>10.</bmlt_float_depth_meltmax>
+
+<!-- bmlt_float_depth_frzmax CISM default -->
+<bmlt_float_depth_frzmax>0.</bmlt_float_depth_frzmax>
+
+<!-- bmlt_float_depth_zmeltmax CISM default -->
+<bmlt_float_depth_zmeltmax>-500.</bmlt_float_depth_zmeltmax>
+
+<!-- bmlt_float_depth_zmelt0 CISM default -->
+<bmlt_float_depth_zmelt0>-200.</bmlt_float_depth_zmelt0>
+
+<!-- bmlt_float_depth_zfrzmax CISM default -->
+<bmlt_float_depth_zfrzmax>-100.</bmlt_float_depth_zfrzmax>
 
 <!-- =============================================================  -->
 <!-- group: cism.config: ho_options                                 -->
@@ -335,6 +359,9 @@ attributes to express the dependency.
 
 <!-- which_ho_ground_bmlt CISM default -->
 <which_ho_ground_bmlt>0</which_ho_ground_bmlt>
+
+<!-- which_ho_flotation_function CISM default -->
+<which_ho_flotation_function>2</which_ho_flotation_function>
 
 <glissade_maxiter>50</glissade_maxiter>
 
