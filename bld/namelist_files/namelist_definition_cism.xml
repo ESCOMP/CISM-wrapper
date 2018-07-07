@@ -486,7 +486,7 @@ Basal melt rate for floating ice
 0: Basal melt rate = 0 for floating ice
 1: Depth-dependent basal melt rate for floating ice as prescribed for MISMIP+
 2: Basal melt rate = constant for floating ice (with option to selectively mask out melting)
-3: Basal melt rate based on thickness of sub-shelf cavity
+3: Depth-dependent basal melt rate for floating ice
 4: External basal melt rate field (from input file or coupler)
 5: [NOT SUPPORTED] Basal melt rate for floating ice from MISOMIP ocean forcing with plume model
 Default: 0
@@ -862,6 +862,15 @@ Default: (use hard-coded default - currently 0.2)
 </entry>
 
 <entry 
+id="calving_minthck"
+type="real" 
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Minimum thickness of floating ice at marine edge before it calves (m)
+Default: 100.
+</entry>
+
+<entry 
 id="taumax_cliff"
 type="real" 
 category="cism_config_parameters"
@@ -929,6 +938,17 @@ Number of times to cull calving_front cells at initialization
 Set to a larger value to remove thicker peninsulas
 To use this, also set cull_calving_front to .true.
 Default: (use hard-coded default - currently 0)
+</entry>
+
+<entry 
+id="calving_timescale"
+type="real" 
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Timescale for calving (yr) (Glissade only)
+calving_thck = thck*max(dt/calving_timescale,1)
+If calving_timescale = 0, then the full column calves at once
+Default: 0.
 </entry>
 
 <entry 
@@ -1188,6 +1208,70 @@ group="cism_config_parameters" >
 Minimum value of beta for grounded ice (Pa yr m-1)
 (Applies only to Glissade higher-order dycore)
 Default: 100.
+</entry>
+
+<entry
+id="bmlt_float_h0"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Scale for sub-shelf cavity thickness (m)
+Default: 75.
+</entry>
+
+<entry
+id="bmlt_float_depth_meltmax"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Parameter for bmlt_float=3 (depth-dependent basal melt rate for floating ice):
+Max melt rate at depth (m/yr).
+(Ignored for other bmlt_float options.)
+Default: 10.
+</entry>
+
+<entry
+id="bmlt_float_depth_frzmax"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Parameter for bmlt_float=3 (depth-dependent basal melt rate for floating ice):
+Max freezing rate near surface (m/yr).
+(Ignored for other bmlt_float options.)
+Default: 0.
+</entry>
+
+<entry
+id="bmlt_float_depth_zmeltmax"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Parameter for bmlt_float=3 (depth-dependent basal melt rate for floating ice):
+Depth (m) below which bmlt_float = meltmax.
+(Ignored for other bmlt_float options.)
+Default: -500.
+</entry>
+
+<entry
+id="bmlt_float_depth_zmelt0"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Parameter for bmlt_float=3 (depth-dependent basal melt rate for floating ice):
+Depth (m) where bmlt_float = 0.
+(Ignored for other bmlt_float options.)
+Default: -200.
+</entry>
+
+<entry
+id="bmlt_float_depth_zfrzmax"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Parameter for bmlt_float=3 (depth-dependent basal melt rate for floating ice):
+Depth (m) above which bmlt_float = -frzmax.
+(Ignored for other bmlt_float options.)
+Default: -100.
 </entry>
 
 <!-- =============================================================  -->
