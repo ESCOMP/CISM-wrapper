@@ -1274,6 +1274,30 @@ Depth (m) above which bmlt_float = -frzmax.
 Default: -100.
 </entry>
 
+<entry
+id="bmlt_float_depth_meltmin"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Parameter for bmlt_float=3 (depth-dependent basal melt rate for floating ice):
+Minimum melt rate in warm ocean (m/yr).
+Relies on having a warm_ocean_mask field on the input file.
+(Ignored for other bmlt_float options.)
+Default: 0.
+</entry>
+
+<entry
+id="bmlt_float_depth_zmeltmin"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Parameter for bmlt_float=3 (depth-dependent basal melt rate for floating ice):
+Depth (m) above which bmlt_float = meltmin.
+Relies on having a warm_ocean_mask field on the input file.
+(Ignored for other bmlt_float options.)
+Default: 0.
+</entry>
+
 <!-- =============================================================  -->
 <!-- group: cism.config: ho_options (higher-order options)          -->
 <!-- =============================================================  -->
