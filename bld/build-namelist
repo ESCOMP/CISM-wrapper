@@ -599,6 +599,8 @@ add_default($nl, 'bmlt_float_depth_frzmax');
 add_default($nl, 'bmlt_float_depth_zmeltmax');
 add_default($nl, 'bmlt_float_depth_zmelt0');
 add_default($nl, 'bmlt_float_depth_zfrzmax');
+add_default($nl, 'bmlt_float_depth_meltmin');
+add_default($nl, 'bmlt_float_depth_zmeltmin');
 $nl->write_cism_config($fh, "cism_config_parameters");
 
 # The ho_options section only applies if dycore is not 0

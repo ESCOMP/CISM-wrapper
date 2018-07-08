@@ -298,6 +298,12 @@ attributes to express the dependency.
 <!-- bmlt_float_depth_zfrzmax CISM default -->
 <bmlt_float_depth_zfrzmax>-100.</bmlt_float_depth_zfrzmax>
 
+<!-- bmlt_float_depth_meltmin CISM default -->
+<bmlt_float_depth_meltmin>0.</bmlt_float_depth_meltmin>
+
+<!-- bmlt_float_depth_zmeltmin CISM default -->
+<bmlt_float_depth_zmeltmin>0.</bmlt_float_depth_zmeltmin>
+
 <!-- =============================================================  -->
 <!-- group: cism.config: ho_options                                 -->
 <!-- =============================================================  -->
