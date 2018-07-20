@@ -50,6 +50,11 @@
     <lname>1850_SATM_DLND%SCPL_SICE_SOCN_SROF_CISM2%EVOLVE_SWAV</lname>
   </compset>
 
+  <compset>
+    <alias>TMISMIP</alias>
+    <lname>1850_SATM_SLND%SCPL_SICE_SOCN_SROF_CISM2%EVOLVE_SWAV</lname>
+  </compset>
+
   <entries>
     <entry id="RUN_STARTDATE"> 
       <values>
