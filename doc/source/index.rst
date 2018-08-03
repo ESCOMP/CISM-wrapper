@@ -22,6 +22,7 @@ Table of contents
    t-compsets.rst
    dynamic-ice-sheet-model.rst
    controlling-output.rst
+   clm-cism-coupling.rst
    acknowledgements.rst
    references.rst
 
