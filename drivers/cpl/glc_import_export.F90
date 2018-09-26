@@ -29,9 +29,11 @@ contains
     character(*), parameter :: subName = "(glc_import) "
     !-------------------------------------------------------------------
 
-    call vector_to_spatial(x2g(index_x2g_Sl_tsrf,:), tsfc)
-    call vector_to_spatial(x2g(index_x2g_Flgl_qice,:), qsmb)
-
+!    call vector_to_spatial(x2g(index_x2g_Sl_tsrf,:), tsfc)
+!    call vector_to_spatial(x2g(index_x2g_Flgl_qice,:), qsmb)
+    tsfc = 273.15
+! Need to divide by number of seconds in a year in order to convert CISM units to CLM units. 
+    qsmb = 275.4/31536000. 
     tsfc = tsfc - tkfrz
 
     !Jer hack fix: 

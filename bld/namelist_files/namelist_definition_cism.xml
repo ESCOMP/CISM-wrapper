@@ -802,6 +802,106 @@ Default: resolution-dependent
 <!-- group: cism.config: parameters                                 -->
 <!-- =============================================================  -->
 
+<entry
+id="rhoi"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters">
+Ice density
+Default: 910
+</entry>
+
+<entry
+id="rhoo"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters">
+Ocean density
+Default: 1028
+</entry>
+
+<entry
+id="grav"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters">
+Gravitational acceleration
+Default: 9.81
+</entry>
+
+<entry
+id="trpt"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters">
+Triple point of water
+Default: 273.15
+</entry>
+
+<entry
+id="shci"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters">
+Specific heat capacity
+Default: 2009
+</entry>
+
+<entry
+id="lhci"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters">
+Latent heat of melting ice
+Default: 335000
+</entry>
+
+<entry
+id="calving_front_x"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters">
+Specific calving front location along x-coordinate
+</entry>
+
+<entry
+id="beta_grounded_min"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters">
+Minimum basal friction coefficient value
+Default: 10.0
+</entry>
+
+<entry
+id="p_ocean_penetration"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters">
+Ocean connectivity coefficient
+Default: 1
+</entry>
+
+<entry
+id="coulomb_c"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters">
+Coulomb friction parameter
+Default: 0.5
+</entry>
+
+
+<entry
+id="log_level"
+type="integer"
+category="cism_config_parameters"
+group="cism_config_parameters"
+valid_values="0,1,2,3,4,5,6" >
+Set to a value between 0 (no messages) and 6 (all messages)
+Default: 6
+</entry>
+
 <entry 
 id="log_level"
 type="integer" 

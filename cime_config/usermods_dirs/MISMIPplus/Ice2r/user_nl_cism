@@ -1,0 +1,7 @@
+! Here I need to add the change in default variable for IceNr experiment for MISMIP+ experiment. It only needs the format name = values (not the same structure as in the default namelisti).
+
+
+cisminputfile = give the path of the spinup restart file
+restart = 1
+bmlt_float = 1
+
