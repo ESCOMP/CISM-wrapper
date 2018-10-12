@@ -148,6 +148,7 @@
                         ice_covered = ice_covered, topo = topo,        &
                         rofi = rofi, rofl = rofl, hflx = hflx,         &
                         ice_sheet_grid_mask=ice_sheet_grid_mask,       &
+                        melt_rate = melt_rate, thck = thck,            &
                         valid_inputs=valid_inputs,                     &
                         ice_tstep = ice_tstep)
 

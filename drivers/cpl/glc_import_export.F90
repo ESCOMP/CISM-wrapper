@@ -22,7 +22,7 @@ contains
 
     !-------------------------------------------------------------------
      use glc_indexing, only : vector_to_spatial
-     use glc_fields, only: tsfc, qsmb 
+     use glc_fields, only: tsfc, qsmb, melt_rate
 
     real(r8)   , intent(in) :: x2g(:,:)
 
@@ -35,6 +35,9 @@ contains
 ! Need to divide by number of seconds in a year in order to convert CISM units to CLM units. 
     qsmb = 275.4/31536000. 
     tsfc = tsfc - tkfrz
+
+    ! GL: adding the call to import melt_rate
+    call vector_to_spatial(x2g(index_x2g_Fogo_mr,:), melt_rate)
 
     !Jer hack fix: 
     !For some land points where CLM sees ocean, and all ocean points, CLM doesn't provide a temperature,
@@ -50,7 +53,7 @@ contains
 
     !-------------------------------------------------------------------
     use glc_indexing, only : nx, ny, spatial_to_vector
-    use glc_fields   , only: ice_covered, topo, rofi, rofl, hflx, &
+    use glc_fields   , only: ice_covered, topo, thck, rofi, rofl, hflx, &
                              ice_sheet_grid_mask
     use glc_route_ice_runoff, only: route_ice_runoff    
     use glc_override_frac   , only: frac_overrides_enabled, do_frac_overrides
@@ -79,6 +82,7 @@ contains
     real(r8), allocatable :: rofl_to_cpl(:,:)
     real(r8), allocatable :: rofi_to_ocn(:,:)
     real(r8), allocatable :: rofi_to_ice(:,:)
+    real(r8), allocatable :: thck_to_cpl(:,:)
 
     character(*), parameter :: subName = "(glc_export) "
     !-------------------------------------------------------------------
@@ -106,6 +110,7 @@ contains
     allocate(rofl_to_cpl(nx, ny))
     allocate(rofi_to_ocn(nx, ny))
     allocate(rofi_to_ice(nx, ny))
+    allocate(thck_to_cpl(nx, ny))
 
     if (zero_gcm_fluxes) then
        icemask_coupled_fluxes = 0._r8
@@ -113,17 +118,20 @@ contains
        rofl_to_cpl = 0._r8
        rofi_to_ocn = 0._r8
        rofi_to_ice = 0._r8
+       thck_to_cpl = 0._r8
     else
        icemask_coupled_fluxes = ice_sheet_grid_mask
        hflx_to_cpl = hflx
        rofl_to_cpl = rofl
        call route_ice_runoff(rofi, rofi_to_ocn, rofi_to_ice)
+       thck_to_cpl = thck
     end if
 
     call spatial_to_vector(rofi_to_ocn, g2x(index_g2x_Fogg_rofi,:))
     call spatial_to_vector(rofi_to_ice, g2x(index_g2x_Figg_rofi,:))
     call spatial_to_vector(rofl_to_cpl, g2x(index_g2x_Fogg_rofl,:))
 
+    call spatial_to_vector(thck_to_cpl, g2x(index_g2x_Sg_glcthck,:))
     call spatial_to_vector(ice_covered_to_cpl, g2x(index_g2x_Sg_ice_covered,:))
     call spatial_to_vector(topo_to_cpl, g2x(index_g2x_Sg_topo,:))
     call spatial_to_vector(hflx_to_cpl, g2x(index_g2x_Flgg_hflx,:))
@@ -136,6 +144,7 @@ contains
     deallocate(rofl_to_cpl)
     deallocate(rofi_to_ocn)
     deallocate(rofi_to_ice)
+    deallocate(thck_to_cpl)
     if (fields_to_cpl_allocated) then
        deallocate(ice_covered_to_cpl)
        deallocate(topo_to_cpl)

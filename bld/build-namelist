@@ -572,6 +572,7 @@ $nl->write_cism_config($fh, "cism_config_time");
 print $fh "\n[parameters]\n";
 #add_default($nl, 'log_level');
 add_default($nl, 'ice_limit');
+<<<<<<< HEAD
 #add_default($nl, 'thck_gradient_ramp');
 #add_default($nl, 'max_slope');
 #add_default($nl, 'taumax_cliff');
@@ -591,6 +592,37 @@ add_default($nl, 'flow_factor');
 #add_default($nl, 'bwat_till_max');
 #add_default($nl, 'c_drainage');
 #add_default($nl, 'beta_grounded_min');
+=======
+add_default($nl, 'thck_gradient_ramp');
+add_default($nl, 'max_slope');
+add_default($nl, 'calving_minthck');
+add_default($nl, 'taumax_cliff');
+add_default($nl, 'cliff_timescale');
+add_default($nl, 'calving_timescale');
+add_default($nl, 'geothermal');
+add_default($nl, 'flow_factor');
+add_default($nl, 'flow_factor_float');
+add_default($nl, 'pmp_offset');
+add_default($nl, 'pseudo_plastic_q');
+add_default($nl, 'pseudo_plastic_u0');
+add_default($nl, 'pseudo_plastic_phimin');
+add_default($nl, 'pseudo_plastic_phimax');
+add_default($nl, 'pseudo_plastic_bedmin');
+add_default($nl, 'pseudo_plastic_bedmax');
+add_default($nl, 'basal_tract_const');
+add_default($nl, 'effecpress_delta');
+add_default($nl, 'bwat_till_max');
+add_default($nl, 'c_drainage');
+add_default($nl, 'beta_grounded_min');
+add_default($nl, 'bmlt_float_h0');
+add_default($nl, 'bmlt_float_depth_meltmax');
+add_default($nl, 'bmlt_float_depth_frzmax');
+add_default($nl, 'bmlt_float_depth_zmeltmax');
+add_default($nl, 'bmlt_float_depth_zmelt0');
+add_default($nl, 'bmlt_float_depth_zfrzmax');
+add_default($nl, 'bmlt_float_depth_meltmin');
+add_default($nl, 'bmlt_float_depth_zmeltmin');
+>>>>>>> 2a4f43678879db89fb2b52fee82781e3a1e6fa16
 $nl->write_cism_config($fh, "cism_config_parameters");
 
 # The ho_options section only applies if dycore is not 0
@@ -614,7 +646,12 @@ if ($nl->get_value('dycore') != 0) {
     add_default($nl, 'which_ho_assemble_bfric');
 #    add_default($nl, 'which_ho_calving_front');
     add_default($nl, 'which_ho_ground');
+<<<<<<< HEAD
 #    add_default($nl, 'which_ho_ground_bmlt');
+=======
+    add_default($nl, 'which_ho_ground_bmlt');
+    add_default($nl, 'which_ho_flotation_function');
+>>>>>>> 2a4f43678879db89fb2b52fee82781e3a1e6fa16
     add_default($nl, 'glissade_maxiter');
     $nl->write_cism_config($fh, "cism_config_ho_options");
 }

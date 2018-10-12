@@ -77,7 +77,7 @@ The following default list is for the MISMIP+ experiment.
 <!-- group: cism.config: grid                                       -->
 <!-- =============================================================  -->
 
-<ewn >324</ewn>
+<ewn >402</ewn>
 <nsn>40</nsn>
 <upn>3</upn>
 
@@ -165,6 +165,7 @@ The following default list is for the MISMIP+ experiment.
 <!-- group: cism.config: parameters                                 -->
 <!-- =============================================================  -->
 
+<<<<<<< HEAD
 <rhoi>918.0</rhoi>
 <rhoo>1028.0</rhoo>
 <grav>9.8</grav>
@@ -182,6 +183,92 @@ The following default list is for the MISMIP+ experiment.
 <bmlt_float_h0>-75.</bmlt_float_h0>
 <bmlt_float_const>100.</bmlt_float_const>
 <bmlt_float_xlim>-480000.</bmlt_float_xlim>
+=======
+<log_level>6</log_level>
+
+<ice_limit cism_phys="cism1">100.</ice_limit>
+<ice_limit cism_phys="cism2">1.</ice_limit>
+
+<thck_gradient_ramp>50.</thck_gradient_ramp>
+
+<max_slope>0.1</max_slope>
+
+<!-- calving_minthck CISM default -->
+<calving_minthck>100.</calving_minthck>
+
+<!-- taumax_cliff CISM default -->
+<taumax_cliff>1.e6</taumax_cliff>
+
+<cliff_timescale>0.</cliff_timescale>
+
+<!-- calving_timescale CISM default -->
+<calving_timescale>0.</calving_timescale>
+
+<geothermal>-5.e-2</geothermal>
+
+<flow_factor cism_phys="cism1">3.</flow_factor>
+<flow_factor cism_phys="cism2">1.</flow_factor>
+
+<flow_factor_float>1.</flow_factor_float>
+
+<!-- pmp_offset CISM default -->
+<pmp_offset>5.</pmp_offset>
+
+<basal_tract_const>1.e-4</basal_tract_const>
+
+<!-- pseudo_plastic_q CISM default -->
+<pseudo_plastic_q>0.5</pseudo_plastic_q>
+
+<!-- pseudo_plastic_u0 CISM default -->
+<pseudo_plastic_u0>100.</pseudo_plastic_u0>
+
+<!-- pseudo_plastic_phimin CISM default -->
+<pseudo_plastic_phimin>5.</pseudo_plastic_phimin>
+
+<!-- pseudo_plastic_phimax CISM default -->
+<pseudo_plastic_phimax>40.</pseudo_plastic_phimax>
+
+<!-- pseudo_plastic_bedmin CISM default -->
+<pseudo_plastic_bedmin>-700.</pseudo_plastic_bedmin>
+
+<!-- pseudo_plastic_bedmax CISM default -->
+<pseudo_plastic_bedmax>700.</pseudo_plastic_bedmax>
+
+<!-- effecpress_delta CISM default -->
+<effecpress_delta>0.02</effecpress_delta>
+
+<!-- bwat_till_max CISM default -->
+<bwat_till_max>2.0</bwat_till_max>
+
+<!-- c_drainage CISM default -->
+<c_drainage>1.e-3</c_drainage>
+
+<beta_grounded_min>100.</beta_grounded_min>
+>>>>>>> 2a4f43678879db89fb2b52fee82781e3a1e6fa16
+
+<!-- bmlt_float_h0 CISM default -->
+<bmlt_float_h0>75.</bmlt_float_h0>
+
+<!-- bmlt_float_depth_meltmax CISM default -->
+<bmlt_float_depth_meltmax>10.</bmlt_float_depth_meltmax>
+
+<!-- bmlt_float_depth_frzmax CISM default -->
+<bmlt_float_depth_frzmax>0.</bmlt_float_depth_frzmax>
+
+<!-- bmlt_float_depth_zmeltmax CISM default -->
+<bmlt_float_depth_zmeltmax>-500.</bmlt_float_depth_zmeltmax>
+
+<!-- bmlt_float_depth_zmelt0 CISM default -->
+<bmlt_float_depth_zmelt0>-200.</bmlt_float_depth_zmelt0>
+
+<!-- bmlt_float_depth_zfrzmax CISM default -->
+<bmlt_float_depth_zfrzmax>-100.</bmlt_float_depth_zfrzmax>
+
+<!-- bmlt_float_depth_meltmin CISM default -->
+<bmlt_float_depth_meltmin>0.</bmlt_float_depth_meltmin>
+
+<!-- bmlt_float_depth_zmeltmin CISM default -->
+<bmlt_float_depth_zmeltmin>0.</bmlt_float_depth_zmeltmin>
 
 <!-- =============================================================  -->
 <!-- group: cism.config: ho_options                                 -->
@@ -223,6 +310,9 @@ The following default list is for the MISMIP+ experiment.
 
 <which_ho_resid>4</which_ho_resid>
 
+<which_ho_flotation_function>2</which_ho_flotation_function>
+
+<!-- which_ho_flotation_function CISM default -->
 <which_ho_flotation_function>2</which_ho_flotation_function>
 
 <glissade_maxiter>50</glissade_maxiter>

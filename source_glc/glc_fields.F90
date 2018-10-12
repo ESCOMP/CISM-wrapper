@@ -33,7 +33,8 @@ module glc_fields
   real(r8),dimension(:,:), allocatable ::  & 
      tsfc        ,&! surface temperature (Celsius)
                    ! received from coupler in Kelvin, must be converted
-     qsmb          ! flux of new glacier ice (kg/m^2/s)
+     qsmb        ,&! flux of new glacier ice (kg/m^2/s)
+     melt_rate     ! basal melt rates for floating ice (m/y)
 
   ! output to coupler
 
@@ -48,7 +49,8 @@ module glc_fields
      hflx         ! heat flux from glacier interior, positive down (W/m^2)
 
   real(r8),dimension(:,:), allocatable :: &
-     ice_sheet_grid_mask  ! mask of ice sheet grid coverage
+     ice_sheet_grid_mask  ,&! mask of ice sheet grid coverage
+     thck                   ! ice sheet thickness 
 
   type(glad_params) :: ice_sheet   ! Parameters relevant to all model instances
 
@@ -88,6 +90,7 @@ module glc_fields
    ! from coupler
    allocate(tsfc(nx,ny))
    allocate(qsmb(nx,ny))
+   allocate(melt_rate(nx,ny))
 
    ! to coupler
    allocate(ice_covered(nx,ny))
@@ -96,7 +99,8 @@ module glc_fields
    allocate(rofl(nx,ny))
    allocate(hflx(nx,ny))
    allocate(ice_sheet_grid_mask(nx,ny))
-   
+   allocate(thck(nx,ny))
+
  end subroutine glc_allocate_fields
 
 !***********************************************************************
@@ -128,6 +132,7 @@ module glc_fields
    ! from coupler
    deallocate(tsfc)
    deallocate(qsmb)
+   deallocate(melt_rate)
 
    ! to coupler
    deallocate(ice_covered)
@@ -136,7 +141,8 @@ module glc_fields
    deallocate(rofl)
    deallocate(hflx)
    deallocate(ice_sheet_grid_mask)
-  
+   deallocate(thck)  
+
    end subroutine glc_deallocate_fields
 
 !***********************************************************************

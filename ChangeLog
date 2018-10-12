@@ -4,6 +4,192 @@ This file describes what tags were created on master and why
 
 ================================================================================
 Originator: sacks
+Date: July 8, 2018
+Version: cism2_1_63
+One-line summary: Add warm ocean option for sub-shelf basal melting
+
+Purpose of changes:
+
+   This updates source_cism to include the changes in
+   https://github.com/ESCOMP/cism/pull/19 and adds the necessary config
+   parameters to build-namelist.
+
+   Note that these new options rely on having a warm_ocean_mask field on
+   the input file.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: NO
+
+Bugs fixed (include github issue number): none
+
+Summary of testing:
+
+   Full aux_glc test suite on cheyenne and hobart
+
+   All cheyenne tests passed and were bit-for-bit.
+
+   Some hobart tests failed, as in cism2_1_62
+
+   https://github.com/ESMCI/cime/issues/2705
+       FAIL SMS_D_Ly1_P24x1.f09_g17_gl4.T1850G.hobart_pgi MODEL_BUILD time=434
+       FAIL SMS_D_Ly3.f09_g17_gl5.T1850G1.hobart_pgi MODEL_BUILD time=483
+
+   https://github.com/ESCOMP/ctsm/issues/438
+       FAIL SMS_D_Ld5_P24x1.T31_g37_gl20.I1850Clm50SpG.hobart_nag.cism-test_coupling RUN time=214
+
+================================================================================
+Originator: sacks
+Date: July 7, 2018
+Version: cism2_1_62
+One-line summary: Fixes for new NAG compiler on hobart
+
+Purpose of changes:
+
+   Update the source_cism external to pull in some changes that are
+   needed for NAG 6.2 on hobart.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: NO
+
+   No answer changes in any tests, but in theory this could change
+   answers for certain compilers, if they do optimizations that were
+   unsafe with the old code.
+
+Bugs fixed (include github issue number):
+- https://github.com/ESCOMP/cism/issues/6
+
+Summary of testing:
+
+   Full aux_glc test suite on cheyenne and hobart
+
+   All cheyenne tests passed and were bit-for-bit.
+
+   Some hobart tests failed:
+
+   https://github.com/ESMCI/cime/issues/2705
+       FAIL SMS_D_Ly1_P24x1.f09_g17_gl4.T1850G.hobart_pgi MODEL_BUILD time=434
+       FAIL SMS_D_Ly3.f09_g17_gl5.T1850G1.hobart_pgi MODEL_BUILD time=483
+
+   https://github.com/ESCOMP/ctsm/issues/438
+       FAIL SMS_D_Ld5_P24x1.T31_g37_gl20.I1850Clm50SpG.hobart_nag.cism-test_coupling RUN time=214
+
+================================================================================
+Originator: sacks
+Date: July 7, 2018
+Version: cism2_1_61
+One-line summary: Update externals used in standalone checkout
+
+Purpose of changes:
+
+   Update externals to cesm2.0 release or later
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: YES
+
+   Just changes answers for standalone checkout, due to:
+
+   - New version of CTSM (and MOSART, but that probably didn't change
+     answers)
+
+   - CIME update changes gnu compiler version on cheyenne, and possibly
+     other changes
+
+Bugs fixed (include github issue number): None
+
+Summary of testing:
+
+   aux_glc test suite just on cheyenne
+
+================================================================================
+Originator: sacks
+Date: June 14, 2018
+Version: cism2_1_60
+One-line summary: Support some additional config options
+
+Purpose of changes:
+
+   Support some additional config options. Some of these relate to the
+   GLP. Others were left out unintentionally.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: NO
+
+Bugs fixed (include github issue number): None
+
+Summary of testing:
+
+   aux_glc tests, just on cheyenne
+
+================================================================================
+Originator: sacks
+Date: June 12, 2018
+Version: cism2_1_59
+One-line summary: Update to latest version of CISM; bring in doc source
+
+Purpose of changes:
+
+   Small CISM updates. The biggest change is adding a depth-dependent
+   basal melt rate for floating ice, controlled by 5 new parameters.
+
+   Also bring in the initial version of the source for the user's guide,
+   in the doc directory.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: NO
+
+Bugs fixed (include github issue number): none
+
+Summary of testing:
+
+   Full aux_glc test suite on cheyenne and hobart
+
+================================================================================
+Originator: sacks
 Date: May 14, 2018
 Version: cism2_1_58
 One-line summary: Parameter and code changes to achieve greater stability
