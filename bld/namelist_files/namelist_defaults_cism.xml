@@ -165,7 +165,6 @@ The following default list is for the MISMIP+ experiment.
 <!-- group: cism.config: parameters                                 -->
 <!-- =============================================================  -->
 
-<<<<<<< HEAD
 <rhoi>918.0</rhoi>
 <rhoo>1028.0</rhoo>
 <grav>9.8</grav>
@@ -183,7 +182,7 @@ The following default list is for the MISMIP+ experiment.
 <bmlt_float_h0>-75.</bmlt_float_h0>
 <bmlt_float_const>100.</bmlt_float_const>
 <bmlt_float_xlim>-480000.</bmlt_float_xlim>
-=======
+
 <log_level>6</log_level>
 
 <ice_limit cism_phys="cism1">100.</ice_limit>
