@@ -243,7 +243,6 @@ The following default list is for the MISMIP+ experiment.
 <c_drainage>1.e-3</c_drainage>
 
 <beta_grounded_min>100.</beta_grounded_min>
->>>>>>> 2a4f43678879db89fb2b52fee82781e3a1e6fa16
 
 <!-- bmlt_float_h0 CISM default -->
 <bmlt_float_h0>75.</bmlt_float_h0>

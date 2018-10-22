@@ -34,14 +34,15 @@ module glc_fields
      tsfc        ,&! surface temperature (Celsius)
                    ! received from coupler in Kelvin, must be converted
      qsmb        ,&! flux of new glacier ice (kg/m^2/s)
-     melt_rate     ! basal melt rates for floating ice (m/y)
+     qbmb          ! basal melt rates for floating ice (m/y)
 
   ! output to coupler
 
   ! the following need to be targets for the sake of the override code in glc_export
   real(r8),dimension(:,:), allocatable, target ::  &
-     ice_covered,&         ! whether each grid cell is ice-covered [0,1]
-     topo                  ! glacier surface elevation (m)
+     ice_covered     ,&! whether each grid cell is ice-covered [0,1]
+     topo            ,&! glacier surface elevation (m)
+     thck              ! ice sheet thickness
 
   real(r8),dimension(:,:), allocatable :: &
      rofi       ,&! ice runoff (calving) flux (kg/m^2/s)
@@ -49,8 +50,7 @@ module glc_fields
      hflx         ! heat flux from glacier interior, positive down (W/m^2)
 
   real(r8),dimension(:,:), allocatable :: &
-     ice_sheet_grid_mask  ,&! mask of ice sheet grid coverage
-     thck                   ! ice sheet thickness 
+     ice_sheet_grid_mask  ! mask of ice sheet grid coverage
 
   type(glad_params) :: ice_sheet   ! Parameters relevant to all model instances
 
@@ -90,16 +90,16 @@ module glc_fields
    ! from coupler
    allocate(tsfc(nx,ny))
    allocate(qsmb(nx,ny))
-   allocate(melt_rate(nx,ny))
+   allocate(qbmb(nx,ny))
 
    ! to coupler
    allocate(ice_covered(nx,ny))
    allocate(topo(nx,ny))
+   allocate(thck(nx,ny))
    allocate(rofi(nx,ny))
    allocate(rofl(nx,ny))
    allocate(hflx(nx,ny))
    allocate(ice_sheet_grid_mask(nx,ny))
-   allocate(thck(nx,ny))
 
  end subroutine glc_allocate_fields
 
@@ -132,16 +132,16 @@ module glc_fields
    ! from coupler
    deallocate(tsfc)
    deallocate(qsmb)
-   deallocate(melt_rate)
+   deallocate(qbmb)
 
    ! to coupler
    deallocate(ice_covered)
    deallocate(topo)
+   deallocate(thck)
    deallocate(rofi)
    deallocate(rofl)
    deallocate(hflx)
    deallocate(ice_sheet_grid_mask)
-   deallocate(thck)  
 
    end subroutine glc_deallocate_fields
 

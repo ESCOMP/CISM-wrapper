@@ -75,10 +75,9 @@
 ! !USES:
    use glad_main
 
-   use glc_fields, only: glc_allocate_fields, ice_sheet,   &
-                         tsfc, qsmb,       &
-                         melt_rate,        &
-                         thck,             &
+   use glc_fields, only: glc_allocate_fields, ice_sheet,            &
+                         tsfc, qsmb, qbmb,                          &
+                         thck,                                      &
                          ice_covered, topo,   rofi,   rofl,  hflx,  &
                          ice_sheet_grid_mask
 
@@ -314,12 +313,12 @@
 
   tsfc(:,:) = 0._r8
   qsmb(:,:) = 0._r8
-  melt_rate(:,:) = 0._r8 
+  qbmb(:,:) = 0._r8 
  
   call glad_get_initial_outputs(ice_sheet, instance_index = 1, &
                                 ice_covered = ice_covered, &
-                                thck = thck, &
                                 topo = topo, &
+                                thck = thck, &
                                 rofi = rofi, &
                                 rofl = rofl, &
                                 hflx = hflx, &

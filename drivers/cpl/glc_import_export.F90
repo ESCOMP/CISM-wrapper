@@ -22,7 +22,7 @@ contains
 
     !-------------------------------------------------------------------
      use glc_indexing, only : vector_to_spatial
-     use glc_fields, only: tsfc, qsmb, melt_rate
+     use glc_fields, only: tsfc, qsmb, qbmb
 
     real(r8)   , intent(in) :: x2g(:,:)
 
@@ -36,8 +36,8 @@ contains
     qsmb = 275.4/31536000. 
     tsfc = tsfc - tkfrz
 
-    ! GL: adding the call to import melt_rate
-    call vector_to_spatial(x2g(index_x2g_Fogo_mr,:), melt_rate)
+    ! GL: adding the call to import melt_rate (qbmb)
+    call vector_to_spatial(x2g(index_x2g_Fogo_mr,:), qbmb)
 
     !Jer hack fix: 
     !For some land points where CLM sees ocean, and all ocean points, CLM doesn't provide a temperature,
