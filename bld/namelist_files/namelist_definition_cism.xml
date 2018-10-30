@@ -891,6 +891,15 @@ Coulomb friction parameter
 Default: 0.5
 </entry>
 
+<entry
+id="powerlaw_c"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters">
+Powerlaw friction parameter
+Default: 1e4
+</entry>
+
 
 <entry
 id="log_level"

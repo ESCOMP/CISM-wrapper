@@ -18,7 +18,7 @@ The following default list is for the MISMIP+ experiment.
 <!-- =============================================================  -->
 
 <!-- this is the input file to be used to run MISMIP+ with cism2 -->
-<cisminputfile glc_grid="MISOMIPgrid" cism_phys="cism2">glc/cism/MISOMIP/mismipInit_2km.nc</cisminputfile>
+<cisminputfile glc_grid="MISOMIP" cism_phys="cism2">glc/cism/MISOMIP/mismipInit_2km.nc</cisminputfile>
 
 <!-- =============================================================  -->
 <!-- group: cism_params                                             -->

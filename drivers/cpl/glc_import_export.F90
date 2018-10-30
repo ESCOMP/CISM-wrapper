@@ -33,7 +33,8 @@ contains
 !    call vector_to_spatial(x2g(index_x2g_Flgl_qice,:), qsmb)
     tsfc = 273.15
 ! Need to divide by number of seconds in a year in order to convert CISM units to CLM units. 
-    qsmb = 275.4/31536000. 
+!    qsmb = 275.4/31536000. 
+    qsmb = 0.3
     tsfc = tsfc - tkfrz
 
     ! GL: adding the call to import melt_rate (qbmb)
@@ -44,6 +45,8 @@ contains
     !and so the incoming temperature is 0.d0.  This gets dropped to -273.15, in the above code.  So,
     !manually reverse this, below, to set to 0C.
     where (tsfc < -250.d0) tsfc=0.d0 
+
+    write(*,*) " GL qsmb = ", qsmb
 
   end subroutine glc_import
 
@@ -131,7 +134,7 @@ contains
     call spatial_to_vector(rofi_to_ice, g2x(index_g2x_Figg_rofi,:))
     call spatial_to_vector(rofl_to_cpl, g2x(index_g2x_Fogg_rofl,:))
 
-    call spatial_to_vector(thck_to_cpl, g2x(index_g2x_Sg_glcthck,:))
+    call spatial_to_vector(thck_to_cpl, g2x(index_g2x_Sg_thck,:))
     call spatial_to_vector(ice_covered_to_cpl, g2x(index_g2x_Sg_ice_covered,:))
     call spatial_to_vector(topo_to_cpl, g2x(index_g2x_Sg_topo,:))
     call spatial_to_vector(hflx_to_cpl, g2x(index_g2x_Flgg_hflx,:))
