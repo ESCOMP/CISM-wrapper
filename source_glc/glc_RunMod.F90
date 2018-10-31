@@ -124,6 +124,7 @@
 !  Take one GLAD time step 
 !  Note: For SMB scheme, tsfc = ground surface temperature (Celsius)
 !                        qsmb = flux of new glacier ice (kg/m^2s)
+!                        qbmb = flux of new floating glacier ice (kg/m^2s)
 !
 !        For PDD scheme, tsfc = 2m reference temperature (Celsius)
 !                        qsmb = precipitation (kg/m^2/s)
@@ -144,7 +145,7 @@
          call glad_gcm (params = ice_sheet, &
                         instance_index = instance_index,               &
                         time = nint(thour),                            &
-                        qsmb = qsmb, tsfc = tsfc,                      &
+                        qsmb = qsmb, qbmb = qbmb, tsfc = tsfc,         &
                         ice_covered = ice_covered, topo = topo,        &
                         rofi = rofi, rofl = rofl, hflx = hflx,         &
                         ice_sheet_grid_mask=ice_sheet_grid_mask,       &

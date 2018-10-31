@@ -14,6 +14,7 @@ module glc_cpl_indices
 
   integer, public :: index_x2g_Sl_tsrf   = 0
   integer, public :: index_x2g_Flgl_qice = 0
+  integer, public :: index_x2g_Fogo_mr   = 0
 
   ! glc -> drv
 
@@ -54,6 +55,7 @@ contains
     ! drv -> glc
     index_x2g_Sl_tsrf = mct_avect_indexra(x2g,'Sl_tsrf')
     index_x2g_Flgl_qice = mct_avect_indexra(x2g,'Flgl_qice')
+    index_x2g_Fogo_mr = mct_avect_indexra(x2g,'Fogo_mr')
 
     call mct_aVect_clean(x2g)
     call mct_aVect_clean(g2x)

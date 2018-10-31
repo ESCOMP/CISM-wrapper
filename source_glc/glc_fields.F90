@@ -33,8 +33,8 @@ module glc_fields
   real(r8),dimension(:,:), allocatable ::  & 
      tsfc        ,&! surface temperature (Celsius)
                    ! received from coupler in Kelvin, must be converted
-     qsmb          ! flux of new glacier ice (kg/m^2/s)
-
+     qsmb        ,&! flux of new glacier ice (kg/m^2/s)
+     qbmb          ! flux of basal mass under floating ice (kg/m^2/s)
   ! output to coupler
 
   ! the following need to be targets for the sake of the override code in glc_export
@@ -88,6 +88,7 @@ module glc_fields
    ! from coupler
    allocate(tsfc(nx,ny))
    allocate(qsmb(nx,ny))
+   allocate(qbmb(nx,ny))
 
    ! to coupler
    allocate(ice_covered(nx,ny))
@@ -128,6 +129,7 @@ module glc_fields
    ! from coupler
    deallocate(tsfc)
    deallocate(qsmb)
+   deallocate(qbmb)
 
    ! to coupler
    deallocate(ice_covered)
