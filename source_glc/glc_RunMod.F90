@@ -147,6 +147,7 @@
                         time = nint(thour),                            &
                         qsmb = qsmb, qbmb = qbmb, tsfc = tsfc,         &
                         ice_covered = ice_covered, topo = topo,        &
+                        thck = thck,                                   &
                         rofi = rofi, rofl = rofl, hflx = hflx,         &
                         ice_sheet_grid_mask=ice_sheet_grid_mask,       &
                         valid_inputs=valid_inputs,                     &

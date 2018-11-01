@@ -51,7 +51,7 @@ contains
 
     !-------------------------------------------------------------------
     use glc_indexing, only : nx, ny, spatial_to_vector
-    use glc_fields   , only: ice_covered, topo, rofi, rofl, hflx, &
+    use glc_fields   , only: ice_covered, topo, thck, rofi, rofl, hflx, &
                              ice_sheet_grid_mask
     use glc_route_ice_runoff, only: route_ice_runoff    
     use glc_override_frac   , only: frac_overrides_enabled, do_frac_overrides
@@ -76,6 +76,7 @@ contains
     ! over (e.g.)  Greenland, but 0 over Antarctica.
     real(r8), allocatable :: icemask_coupled_fluxes(:,:)  ! mask of ice sheet grid coverage where we are potentially sending non-zero fluxes
 
+    real(r8), allocatable :: thck_to_cpl(:,:)
     real(r8), allocatable :: hflx_to_cpl(:,:)
     real(r8), allocatable :: rofl_to_cpl(:,:)
     real(r8), allocatable :: rofi_to_ocn(:,:)
@@ -103,6 +104,7 @@ contains
     end if
 
     allocate(icemask_coupled_fluxes(nx, ny))
+    allocate(thck_to_cpl(nx, ny))
     allocate(hflx_to_cpl(nx, ny))
     allocate(rofl_to_cpl(nx, ny))
     allocate(rofi_to_ocn(nx, ny))
@@ -110,12 +112,14 @@ contains
 
     if (zero_gcm_fluxes) then
        icemask_coupled_fluxes = 0._r8
+       thck_to_cpl = 0._r8
        hflx_to_cpl = 0._r8
        rofl_to_cpl = 0._r8
        rofi_to_ocn = 0._r8
        rofi_to_ice = 0._r8
     else
        icemask_coupled_fluxes = ice_sheet_grid_mask
+       thck_to_cpl = thck
        hflx_to_cpl = hflx
        rofl_to_cpl = rofl
        call route_ice_runoff(rofi, rofi_to_ocn, rofi_to_ice)
@@ -128,12 +132,14 @@ contains
     call spatial_to_vector(ice_covered_to_cpl, g2x(index_g2x_Sg_ice_covered,:))
     call spatial_to_vector(topo_to_cpl, g2x(index_g2x_Sg_topo,:))
     call spatial_to_vector(hflx_to_cpl, g2x(index_g2x_Flgg_hflx,:))
+    call spatial_to_vector(thck_to_cpl, g2x(index_g2x_Sg_thck,:))
 
     call spatial_to_vector(ice_sheet_grid_mask, g2x(index_g2x_Sg_icemask,:))
     call spatial_to_vector(icemask_coupled_fluxes, g2x(index_g2x_Sg_icemask_coupled_fluxes,:))
 
     deallocate(icemask_coupled_fluxes)
     deallocate(hflx_to_cpl)
+    deallocate(thck_to_cpl)
     deallocate(rofl_to_cpl)
     deallocate(rofi_to_ocn)
     deallocate(rofi_to_ice)

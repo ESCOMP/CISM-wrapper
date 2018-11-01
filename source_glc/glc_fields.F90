@@ -45,7 +45,8 @@ module glc_fields
   real(r8),dimension(:,:), allocatable :: &
      rofi       ,&! ice runoff (calving) flux (kg/m^2/s)
      rofl       ,&! ice runoff (calving) flux (kg/m^2/s)
-     hflx         ! heat flux from glacier interior, positive down (W/m^2)
+     hflx       ,&! heat flux from glacier interior, positive down (W/m^2)
+     thck         ! ice sheet thickness (m)
 
   real(r8),dimension(:,:), allocatable :: &
      ice_sheet_grid_mask  ! mask of ice sheet grid coverage
@@ -96,6 +97,7 @@ module glc_fields
    allocate(rofi(nx,ny))
    allocate(rofl(nx,ny))
    allocate(hflx(nx,ny))
+   allocate(thck(nx,ny))
    allocate(ice_sheet_grid_mask(nx,ny))
    
  end subroutine glc_allocate_fields
@@ -137,6 +139,7 @@ module glc_fields
    deallocate(rofi)
    deallocate(rofl)
    deallocate(hflx)
+   deallocate(thck)
    deallocate(ice_sheet_grid_mask)
   
    end subroutine glc_deallocate_fields

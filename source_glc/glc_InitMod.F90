@@ -77,7 +77,7 @@
 
    use glc_fields, only: glc_allocate_fields, ice_sheet,   &
                          tsfc, qsmb, qbmb,       &
-                         ice_covered, topo,   rofi,   rofl,  hflx,  &
+                         ice_covered, topo, thck,  rofi,   rofl,  hflx,  &
                          ice_sheet_grid_mask
 
    use glc_override_frac, only: init_glc_frac_overrides
@@ -317,6 +317,7 @@
   call glad_get_initial_outputs(ice_sheet, instance_index = 1, &
                                 ice_covered = ice_covered, &
                                 topo = topo, &
+                                thck = thck, &
                                 rofi = rofi, &
                                 rofl = rofl, &
                                 hflx = hflx, &
