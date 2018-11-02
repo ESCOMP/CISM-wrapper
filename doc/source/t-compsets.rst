@@ -149,8 +149,9 @@ forcing data:
      to find domain information on the first year's file; typically, this domain
      information (variable names beginning with ``doml``) only appears on the first
      coupler history file. So, to start with something later than the first year, you will
-     need to copy these ``doml_xxx`` fields from the first file onto the file
-     corresponding to ``DLND_CPLHIST_YR_START``.
+     need to copy all of these ``doml_xxx`` fields from the first file onto the file
+     corresponding to ``DLND_CPLHIST_YR_START``. **Make sure you copy ALL of the**
+     ``doml_xxx`` **fields (otherwise you may get garbage results).**
 
 - ``DLND_CPLHIST_YR_END``: Last year of forcing data (can be set earlier
   than the last existing year of data if you want to use a subset of the
