@@ -39,7 +39,7 @@ The following default list is for the MISMIP+ experiment.
 <!-- group: cism_history                                            -->
 <!-- =============================================================  -->
 
-<cesm_history_vars cism_phys="cism2" cism_evolve="TRUE" >'smb artm thk usurf topg uvel vvel temp bmlt bwat beta_internal floating_mask grounded_mask bpmp acab_applied bmlt_applied calving_rate iareaf iareag imass imass_above_flotation total_smb_flux total_bmb_flux total_calving_flux total_gl_flux'</cesm_history_vars>
+<cesm_history_vars cism_phys="cism2" cism_evolve="TRUE" >'smb artm thk usurf topg uvel vvel temp bmlt bwat beta_internal floating_mask grounded_mask bpmp acab_applied bmlt_applied bmlt_float_external calving_rate iareaf iareag imass imass_above_flotation total_smb_flux total_bmb_flux total_calving_flux total_gl_flux'</cesm_history_vars>
 <cesm_history_vars cism_phys="cism2" cism_evolve="FALSE">'smb artm thk usurf topg'</cesm_history_vars>
 
 <history_option>nyears</history_option>
