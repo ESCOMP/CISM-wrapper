@@ -627,7 +627,7 @@
    logical (log_kind) ::     &
       leapyear_test           ! test for leap year
 
-   character (4) ::          &
+   character (10) ::         &
       cyear_end_run           ! character version of ending year
 
    character (2) ::          &
@@ -635,7 +635,7 @@
       cday_end_run            ! character version of ending day
 
    character (*), parameter :: &
-      date_fmt = "(a17, 2x, a4,'-',a2,'-',a2)"
+      date_fmt = "(a17, 2x, a10,'-',a2,'-',a2)"
  
 !-----------------------------------------------------------------------
 !
@@ -728,7 +728,7 @@
 
    call get_tday
 
-   call int_to_char(4,iyear,cyear)
+   call int_to_char(10,iyear,cyear)
    cday    = cdays     (iday)
    cmonth  = cmonths   (imonth)
    cmonth3 = month3_all(imonth)
@@ -789,7 +789,7 @@
    case ('never')   !*** coupler or signal catcher stops glc     
 
       stop_iopt = stop_opt_never     
-      iyear_end_run  = 9999
+      iyear_end_run  = 2000000000
       imonth_end_run = 1        
       iday_end_run   = 1              
       elapsed_days_max = 1e9  
@@ -967,7 +967,7 @@
                          (dtt+dt_tol)/seconds_in_day
 
    if (elapsed_days_end_run < elapsed_days ) then
-      call int_to_char(4, iyear_end_run, cyear_end_run)
+      call int_to_char(10, iyear_end_run, cyear_end_run)
       cmonth_end_run = cmonths(imonth_end_run)
       cday_end_run   = cdays  (iday_end_run  )
       if (my_task == master_task) then
@@ -1209,7 +1209,7 @@
         call shr_sys_flush(stdout)
     endif
    endif
-1000 format (' (time_manager)', ' glc date ', i4.4, '-', a3, '-', &
+1000 format (' (time_manager)', ' glc date ', i10.10, '-', a3, '-', &
                                   i2.2,', ', 1pe12.6, ' sec') 
 
 !-----------------------------------------------------------------------
@@ -2156,7 +2156,7 @@
 !
 !-----------------------------------------------------------------------
       
-   if (iyear  /= iyear_last ) call int_to_char(4, iyear, cyear)
+   if (iyear  /= iyear_last ) call int_to_char(10, iyear, cyear)
  
    if (imonth /= imonth_last) then
       cmonth  = cmonths   (imonth)
@@ -3225,9 +3225,9 @@
    character (1), parameter :: &
       time_separator=':'
 
-   character (16), parameter ::       &! format strings
-      ymd_date_fmt1 = '(i4.4,2(a,i2.2))', &
-      ymd_date_fmt2 = '(i4.4,2(i2.2))  ', &
+   character (18), parameter ::       &! format strings
+      ymd_date_fmt1 = '(i10.10,2(a,i2.2))', &
+      ymd_date_fmt2 = '(i10.10,2(i2.2))  ', &
       mdy_date_fmt1 = '(2(i2.2,a),i4.4)', &
       mdy_date_fmt2 = '(2(i2.2),i4.4)  ', &
       time_fmt  = '(i2.2,2(a,i2.2))'
@@ -3449,7 +3449,7 @@
 !    use unmodified ixxx variables if printing ymds information
 !---------------------------------------------------------------------
        itotal_second = isecond + 60*iminute + 3600*ihour
-       call int_to_char (4,iyear        , cesm_cyear  )
+       call int_to_char (10,iyear       , cesm_cyear  )
        call int_to_char (2,imonth       , cesm_cmonth )
        call int_to_char (2,iday         , cesm_cday   )
        call int_to_char (5,itotal_second, cesm_csecond)
@@ -3457,18 +3457,18 @@
                                 cesm_csecond
 
      case ('ymd')
-        call int_to_char (4,iyear_stamp  , cesm_cyear )
+        call int_to_char (10,iyear_stamp , cesm_cyear )
         call int_to_char (2,imonth_stamp , cesm_cmonth)
         call int_to_char (2,iday_stamp   , cesm_cday  )
         write (date_string,1000) cesm_cyear, cesm_cmonth, cesm_cday
 
      case ('ym')
-        call int_to_char (4,iyear_stamp  , cesm_cyear )
+        call int_to_char (10,iyear_stamp , cesm_cyear )
         call int_to_char (2,imonth_stamp , cesm_cmonth)
         write (date_string,1000) cesm_cyear, cesm_cmonth
 
      case ('y')
-        call int_to_char (4,iyear_stamp  , cesm_cyear)
+        call int_to_char (10,iyear_stamp  , cesm_cyear)
         write (date_string,1000) cesm_cyear
         
         case default 
@@ -3477,7 +3477,7 @@
    end select
  
 
- 1000 format (a4,:,'-',a2:,'-',a2,:,'-',a5)
+ 1000 format (a10,:,'-',a2:,'-',a2,:,'-',a5)
   
 !EOC
 
@@ -3874,7 +3874,7 @@
       cyear_end_run    !
 
    character (*), parameter :: &! output formats
-      out_fmt1 = "('       date(month-day-year):',2x,2(a2,'-'),a4)", &
+      out_fmt1 = "('       date(month-day-year):',2x,2(a2,'-'),a10)", &
       out_fmt2 = "('                    ',a7,2x,i10)",               &
       out_fmt3 = "('This run will terminate ',/,a)",                 &
       out_fmt4 = "(a, :i7, a,a)",                                    &
@@ -3895,11 +3895,11 @@
 !
 !-----------------------------------------------------------------------
 
-      call int_to_char(4, iyear0 , cyear0)
+      call int_to_char(10, iyear0 , cyear0)
       cmonth0 = cmonths(imonth0)
       cday0   = cdays  (iday0)
 
-      call int_to_char(4, iyear_end_run  , cyear_end_run )
+      call int_to_char(10, iyear_end_run  , cyear_end_run )
       cmonth_end_run = cmonths(imonth_end_run)
       cday_end_run   = cdays  (iday_end_run)
 
