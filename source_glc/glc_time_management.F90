@@ -224,7 +224,7 @@
       allow_leapyear    ,&! allow leap years?
       leapyear            ! is this a leapyear?
 
-   character (4) ::      &
+   character (6) ::      &
       cyear               ! character version of year
 
    character (2) ::      &
@@ -3407,7 +3407,7 @@
 !EOP
 !BOC
 
-  character (4) :: cesm_cyear
+  character (6) :: cesm_cyear
   character (2) :: cesm_cmonth
   character (2) :: cesm_cday  
   character (5) :: cesm_csecond
@@ -3869,7 +3869,7 @@
       cmonth0,        &!
       cday0            !
  
-   character (4) ::   &
+   character (6) ::   &
       cyear0,         &!
       cyear_end_run    !
 
