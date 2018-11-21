@@ -789,7 +789,7 @@
    case ('never')   !*** coupler or signal catcher stops glc     
 
       stop_iopt = stop_opt_never     
-      iyear_end_run  = 200000
+      iyear_end_run  = 214747       ! Last year possible to encapsulate in a 4-byte integer as: yyyyyymmdd
       imonth_end_run = 1        
       iday_end_run   = 1              
       elapsed_days_max = 1e9  
