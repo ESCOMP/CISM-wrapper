@@ -22,8 +22,9 @@
    use glimmer_global,      only: fname_length
    use glc_constants
    use glc_kinds_mod
-   use esmf,            only: ESMF_Clock
-   use seq_timemgr_mod,     only: seq_timemgr_EClockGetData
+   use esmf,                only: ESMF_Clock, ESMF_Time, ESMF_ClockGet, ESMF_TimeGet, &
+                                  ESMF_SUCCESS
+   use shr_cal_mod,         only: shr_cal_ymd2date
    use shr_sys_mod
    use shr_kind_mod,        only: CL=>SHR_KIND_CL, CX=>SHR_KIND_CX, &
                                   IN=>SHR_KIND_IN
@@ -71,16 +72,16 @@
     use glc_files, only : ptr_filename
 
     implicit none
-    integer(IN),             intent(out) :: nhour_glad
-    integer(IN),             intent(out) :: av_start_time_restart
+    integer    ,             intent(out) :: nhour_glad
+    integer    ,             intent(out) :: av_start_time_restart
     character(fname_length), intent(out) :: filename
 
     ! local variables
     character(fname_length) :: filename0
-    integer(IN)             :: rst_elapsed_days  ! 
-    integer(IN)             :: ptr_unit          ! unit for pointer file
-    integer(IN)             :: rst_unit          ! unit for restart file
-    integer(IN)             :: status            !
+    integer                 :: rst_elapsed_days  ! 
+    integer                 :: ptr_unit          ! unit for pointer file
+    integer                 :: rst_unit          ! unit for restart file
+    integer                 :: status            !
 
 !-----------------------------------------------------------------------
 
@@ -156,18 +157,19 @@
     type(glimmer_nc_output),  pointer :: oc => null()
 
     character(len=32) :: file_type
-    character(CL) :: filename
-    integer(IN)   :: cesmYMD           ! cesm model date
-    integer(IN)   :: cesmTOD           ! cesm model sec
-    integer(IN)   :: cesmYR            ! cesm model year
-    integer(IN)   :: cesmMON           ! cesm model month
-    integer(IN)   :: cesmDAY           ! cesm model day
-    integer(IN)   :: glcYMD            ! cism model date
-    integer(IN)   :: glcTOD            ! cism model sec
-    integer(IN)   :: rst_elapsed_days  ! 
-    integer(IN)   :: ptr_unit          ! unit for pointer file
-    integer(IN)   :: status            !
-
+    character(CL)     :: filename
+    type(ESMF_TIME)   :: CurrentTime
+    integer           :: cesmYMD           ! cesm model date
+    integer           :: cesmTOD           ! cesm model sec
+    integer           :: cesmYR            ! cesm model year
+    integer           :: cesmMON           ! cesm model month
+    integer           :: cesmDAY           ! cesm model day
+    integer           :: glcYMD            ! cism model date
+    integer           :: glcTOD            ! cism model sec
+    integer           :: rst_elapsed_days  ! 
+    integer           :: ptr_unit          ! unit for pointer file
+    integer           :: status            !
+    integer           :: rc
 !-----------------------------------------------------------------------
 
     ! Error checking on arguments
@@ -178,8 +180,14 @@
     end if
 
     ! figure out history filename
-    call seq_timemgr_EClockGetData(EClock, curr_ymd=cesmYMD, curr_tod=cesmTOD, &
-                                   curr_yr=cesmYR, curr_mon=cesmMON, curr_day=cesmDAY)
+    call ESMF_ClockGet(EClock, currTime=CurrentTime, rc=rc)
+    if ( rc /= ESMF_SUCCESS ) call shr_sys_abort("ERROR: glc_io_write_history")
+
+    call ESMF_TimeGet( CurrentTime, yy=cesmYR, mm=cesmMON, dd=cesmDAY, s=cesmTOD, rc=rc )
+    if ( rc /= ESMF_SUCCESS ) call shr_sys_abort("ERROR: glc_io_write_history")
+
+    call shr_cal_ymd2date(cesmYR, cesmMON, cesmDAY, cesmYMD)
+
     if (initial_history) then
        file_type = 'initial_history'
     else
@@ -371,31 +379,33 @@
 
    subroutine glc_io_write_restart(instance, EClock)
 
-    use glc_files, only : ptr_filename
+    use glc_files           , only : ptr_filename
     use glad_type
-    use glide_io, only : glide_io_create, glide_io_write
-    use glad_io, only : glad_io_create, glad_io_write
-    use glide_nc_custom, only: glide_nc_filldvars
-    use glad_main, only : glad_okay_to_restart
-    use glad_input_averages, only : get_av_start_time
+    use glide_io            , only : glide_io_create, glide_io_write
+    use glad_io             , only : glad_io_create, glad_io_write
+    use glide_nc_custom     , only : glide_nc_filldvars
+    use glad_main           , only : glad_okay_to_restart
+    use glad_input_averages , only : get_av_start_time
+
     implicit none
     type(glad_instance), intent(inout) :: instance
     type(ESMF_Clock),     intent(in)    :: EClock
 
     ! local variables
     type(glimmer_nc_output),  pointer :: oc => null()
-    character(CL) :: filename
-    integer(IN)   :: cesmYMD           ! cesm model date
-    integer(IN)   :: cesmTOD           ! cesm model sec
-    integer(IN)   :: cesmYR            ! cesm model year
-    integer(IN)   :: cesmMON           ! cesm model month
-    integer(IN)   :: cesmDAY           ! cesm model day
-    integer(IN)   :: glcYMD            ! cism model date
-    integer(IN)   :: glcTOD            ! cism model sec
-    integer(IN)   :: rst_elapsed_days  ! 
-    integer(IN)   :: ptr_unit          ! unit for pointer file
-    integer(IN)   :: status            !
-
+    type(ESMF_TIME) :: CurrentTime
+    character(CL)   :: filename
+    integer         :: cesmYMD           ! cesm model date
+    integer         :: cesmTOD           ! cesm model sec
+    integer         :: cesmYR            ! cesm model year
+    integer         :: cesmMON           ! cesm model month
+    integer         :: cesmDAY           ! cesm model day
+    integer         :: glcYMD            ! cism model date
+    integer         :: glcTOD            ! cism model sec
+    integer         :: rst_elapsed_days  ! 
+    integer         :: ptr_unit          ! unit for pointer file
+    integer         :: status            !
+    integer           :: rc
 !-----------------------------------------------------------------------
 
     if (.not. glad_okay_to_restart(instance)) then
@@ -415,8 +425,14 @@
     end if
 
     ! figure out restart filename
-    call seq_timemgr_EClockGetData(EClock, curr_ymd=cesmYMD, curr_tod=cesmTOD, &
-                                   curr_yr=cesmYR, curr_mon=cesmMON, curr_day=cesmDAY)
+    call ESMF_ClockGet(EClock, currTime=CurrentTime, rc=rc)
+    if ( rc /= ESMF_SUCCESS ) call shr_sys_abort("ERROR: glc_io_write_restart")
+
+    call ESMF_TimeGet( CurrentTime, yy=cesmYR, mm=cesmMON, dd=cesmDAY, s=cesmTOD, rc=rc )
+    if ( rc /= ESMF_SUCCESS ) call shr_sys_abort("ERROR: glc_io_write_restart")
+
+    call shr_cal_ymd2date(cesmYR, cesmMON, cesmDAY, cesmYMD)
+
     filename = glc_filename(cesmYR, cesmMON, cesmDAY, cesmTOD, 'restart')
 
     if (my_task == master_task) then

@@ -61,10 +61,11 @@ CONTAINS
 
     ! uses:
 
+    use seq_comm_mct       , only : seq_comm_suffix, seq_comm_inst, seq_comm_name
     use glc_ensemble       , only : set_inst_vars, write_inst_vars, get_inst_name
     use glc_files          , only : set_filenames, ionml_filename
     use glc_coupling_flags , only : has_ocn_coupling, has_ice_coupling
-    use glc_indexing  , only : nx_tot, ny_tot, npts
+    use glc_indexing       , only : nx_tot, ny_tot, npts
     
     ! input/output parameters:
 
@@ -85,7 +86,10 @@ CONTAINS
     character(CS)            :: myModelName
     logical                  :: lnd_present
     logical                  :: glc_coupled_fluxes ! are we sending fluxes to other components?
-
+    integer                  :: inst_index    ! number of current instance (e.g., 1)
+    character(len=16)        :: inst_name     ! full name of current instance (e.g., GLC_0001)
+    character(len=16)        :: inst_suffix   ! character string associated with instance number
+                                              ! (e.g., "_0001", or "" for the single-instance case)
     !--- formats ---
     character(*), parameter :: F00   = "('(glc_init_mct) ',8a)"
     character(*), parameter :: F01   = "('(glc_init_mct) ',a,8i8)"
@@ -113,7 +117,11 @@ CONTAINS
     ! set variables that depend on ensemble index
     !---------------------------------------------------------------------------
 
-    call set_inst_vars(COMPID)
+    inst_name   = seq_comm_name(COMPID)
+    inst_index  = seq_comm_inst(COMPID)
+    inst_suffix = seq_comm_suffix(COMPID)
+
+    call set_inst_vars(inst_index, inst_name, inst_suffix)
     call get_inst_name(myModelName)
     call set_filenames()
 

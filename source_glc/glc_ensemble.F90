@@ -1,36 +1,26 @@
-!|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-
  module glc_ensemble
 
-!BOP
-! !MODULE: glc_ensemble
-
-! !DESCRIPTION:
-!  Contains data and routines for running an ensemble with multiple, independent
-!  instances of GLC. This module is also used in the standard (non-ensemble) case.
-!
-!  This should not be confused with the ability to have multiple instances of cism
-!  running in different places (e.g., Greenland & Antarctica). 
-!
-! !REVISION HISTORY:
-!  Created by Bill Sacks
-!
-! !USES:
-
-   use shr_kind_mod, only : IN=>SHR_KIND_IN
+   ! !DESCRIPTION:
+   !  Contains data and routines for running an ensemble with multiple, independent
+   !  instances of GLC. This module is also used in the standard (non-ensemble) case.
+   !
+   !  This should not be confused with the ability to have multiple instances of cism
+   !  running in different places (e.g., Greenland & Antarctica). 
+   !
+   ! !REVISION HISTORY:
+   !  Created by Bill Sacks
 
    implicit none
    private
-   save
 
-! !PUBLIC MEMBER FUNCTIONS:
+   ! !PUBLIC MEMBER FUNCTIONS:
 
    public :: set_inst_vars
    public :: write_inst_vars
    public :: get_inst_suffix
    public :: get_inst_name
 
-! !PRIVATE DATA MEMBERS:
+   ! !PRIVATE DATA MEMBERS:
 
    integer          , private :: inst_index    ! number of current instance (e.g., 1)
    character(len=16), private :: inst_name     ! full name of current instance (e.g., GLC_0001)
@@ -39,33 +29,25 @@
 
    logical, private :: initialized = .false.   ! has the module data been initialized?
 
-!EOP
-
 !***********************************************************************
-!***********************************************************************
-
  contains
-
 !***********************************************************************
-!BOP
-! !IROUTINE: set_inst_vars
-! !INTERFACE:
-   subroutine set_inst_vars(COMPID)
-!
-! !DESCRIPTION:
-! Set instance variables; this should be done in model initialization
-!
-! !USES:
-     use seq_comm_mct, only : seq_comm_suffix, seq_comm_inst, seq_comm_name
+
+   subroutine set_inst_vars(inst_index_in, inst_name_in, inst_suffix_in )
+
+     ! Set instance variables; this should be done in model initialization
+
+     ! !USES:
      use shr_sys_mod , only : shr_sys_abort
-!
-! !ARGUMENTS:
-     integer(IN), intent(in) :: COMPID  ! component ID for this instance
-!
-! !LOCAL VARIABLES:
+
+     ! !ARGUMENTS:
+     integer          , intent(in) :: inst_index_in
+     character(len=*) , intent(in) :: inst_name_in
+     character(len=*) , intent(in) :: inst_suffix_in
+
+     ! !LOCAL VARIABLES:
      character(len=*), parameter :: subname = 'set_inst_vars'
-!EOP
-!-----------------------------------------------------------------------
+     !-----------------------------------------------------------
 
      if (initialized) then
         ! Need to write to unit=* because stdout hasn't necessarily been initialized yet
@@ -73,34 +55,30 @@
         call shr_sys_abort()
      end if
      
-     inst_name   = seq_comm_name(COMPID)
-     inst_index  = seq_comm_inst(COMPID)
-     inst_suffix = seq_comm_suffix(COMPID)
+     inst_name   = inst_name_in
+     inst_index  = inst_index_in
+     inst_suffix = inst_suffix_in
 
      initialized = .true.
 
    end subroutine set_inst_vars
 
 !***********************************************************************
-!BOP
-! !IROUTINE: get_inst_suffix
-! !INTERFACE:
+
    subroutine get_inst_suffix(inst_suffix_out)
-!
-! !DESCRIPTION:
-! Return the instance suffix
-!
-! !USES:
+
+     ! Return the instance suffix
+
+     ! uses
      use glc_constants, only : stdout
      use shr_sys_mod  , only : shr_sys_abort
-!
-! !ARGUMENTS:
+
+     ! input/output variables
      character(len=*), intent(out) :: inst_suffix_out ! instance suffix
-!
-! !LOCAL VARIABLES:
+
+     ! local variables
      character(len=*), parameter :: subname = 'get_inst_suffix'
-!EOP
-!-----------------------------------------------------------------------
+     !-----------------------------------------------------------
 
      if (.not. initialized) then
         write(stdout,*) subname, ' ERROR: instance variables have not been initialized'
@@ -116,25 +94,21 @@
    end subroutine get_inst_suffix
 
 !***********************************************************************
-!BOP
-! !IROUTINE: get_inst_name
-! !INTERFACE:
+
    subroutine get_inst_name(inst_name_out)
-!
-! !DESCRIPTION:
-! Return the instance name
-!
-! !USES:
+
+     ! Return the instance name
+
+     ! uses
      use glc_constants, only : stdout
      use shr_sys_mod  , only : shr_sys_abort
-!
-! !ARGUMENTS:
+
+     ! input/output variables
      character(len=*), intent(out) :: inst_name_out ! instance name
-!
-! !LOCAL VARIABLES:
+
+     ! !local variables
      character(len=*), parameter :: subname = 'get_inst_name'
-!EOP
-!-----------------------------------------------------------------------
+     !-----------------------------------------------------------
 
      if (.not. initialized) then
         write(stdout,*) subname, ' ERROR: instance variables have not been initialized'
@@ -150,25 +124,18 @@
    end subroutine get_inst_name
 
 !***********************************************************************
-!BOP
-! !IROUTINE: write_inst_vars
-! !INTERFACE:
-   subroutine write_inst_vars
-!
-! !DESCRIPTION:
-! Write instance variables to stdout
-!
-! !USES:
+
+   subroutine write_inst_vars()
+
+     ! Write instance variables to stdout
+
+     ! uses
      use glc_constants, only : stdout
      use shr_sys_mod  , only : shr_sys_abort
 
-!
-! !ARGUMENTS:
-!
-! !LOCAL VARIABLES:
+     ! local variables
      character(len=*), parameter :: subname = 'write_inst_vars'
-!EOP
-!-----------------------------------------------------------------------
+     !-----------------------------------------------------------
 
      if (.not. initialized) then
         write(stdout,*) subname, ' ERROR: instance variables have not been initialized'
