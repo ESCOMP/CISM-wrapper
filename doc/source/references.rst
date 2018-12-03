@@ -4,6 +4,9 @@
 References
 ***********
 
+FIXME: This list needs to be updated to include some new references
+and remove references that are no longer cited.
+
 Arendt, A., Bolch, T., Cogley, J. G., Gardner, A., Hagen, J.-O., Hock,
 R., Kaser, G., Pfeffer, W. T., Moholdt, G., Paul, F., Radić, V.,
 Andreassen, L., Bajracharya, S., Beedle, M., Berthier, E., Bhambri, R.,

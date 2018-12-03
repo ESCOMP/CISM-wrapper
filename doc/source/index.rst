@@ -5,23 +5,35 @@
 
 .. _users-guide:
 
-##########################################
+******************************************
 CESM Land Ice Documentation and User Guide
-##########################################
+******************************************
+
+=================
+Table of contents
+=================
 
 .. toctree::
    :maxdepth: 2
    :numbered:
 
    introduction.rst
-   quick-start.rst
-   developing-and-modifying.rst
-   tg-compsets.rst
+   running-and-modifying.rst
+   t-compsets.rst
    dynamic-ice-sheet-model.rst
-   ice-sheets-in-clm.rst
    controlling-output.rst
+   clm-cism-coupling.rst
    acknowledgements.rst
    references.rst
+
+==========
+Appendices
+==========
+
+.. toctree::
+   :maxdepth: 2
+
+   new-grids.rst
 
 ----
 
