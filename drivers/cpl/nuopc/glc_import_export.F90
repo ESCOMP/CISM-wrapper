@@ -40,8 +40,8 @@ module glc_import_export
 
   integer :: debug_export = 1
   integer :: debug_import = 1
-  character(*),parameter :: F01 = "('(glc_import): ',a,2(i5,2x),i8,2x,d21.14)"
-  character(*),parameter :: F02 = "('(glc_export): ',a,2(i5,2x),i8,2x,d21.14)"
+  character(*),parameter :: F01 = "('(glc_import): ',a,2(i8,2x),i8,2x,d21.6)"
+  character(*),parameter :: F02 = "('(glc_export): ',a,2(i8,2x),i8,2x,d21.6)"
 
   character(*), parameter :: u_FILE_u = &
        __FILE__
@@ -508,10 +508,9 @@ contains
        if (debug_import > 0 .and. my_task == master_task) then
           glcYMD = iyear*10000 + imonth*100 + iday
           glcTOD = ihour*3600 + iminute*60 + isecond
-          string = ' glcYMD, glcTOD, n, '// trim(fldname) // ' = '
           do n = 1,size(fldptr)
              if (fldptr(n) /= 0.0_r8) then
-                write(stdout,F01)trim(string),glcYMD, glcTOD, n, fldptr(n)
+                write(stdout,F01)' glcYMD, glcTOD, n,'// trim(fldname) // ' = ',glcYMD, glcTOD, n, fldptr(n)
              end if
           end do
        end if
@@ -568,10 +567,9 @@ contains
        if (debug_export > 0 .and. my_task == master_task) then
           glcYMD = iyear*10000 + imonth*100 + iday
           glcTOD = ihour*3600 + iminute*60 + isecond
-          string = ' glcYMD, glcTOD, n, ' // trim(fldname) // ' = '
           do n = 1,size(fldptr)
              if (fldptr(n) /= 0.0_r8) then
-                write(stdout,F02) trim(string),glcYMD, glcTOD, n, fldptr(n)
+                write(stdout,F02) ' glcYMD, glcTOD, n,' // trim(fldname) // ' = ',glcYMD, glcTOD, n, fldptr(n)
              end if
           end do
        end if

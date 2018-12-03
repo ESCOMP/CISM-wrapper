@@ -17,8 +17,8 @@ module glc_import_export
 
   integer :: debug_export = 1
   integer :: debug_import = 1
-  character(*),parameter :: F01 = "('(glc_import): ',a,2(i8,2x),i8,2x,d21.14)"
-  character(*),parameter :: F02 = "('(glc_export): ',a,2(i8,2x),i8,2x,d21.14)"
+  character(*),parameter :: F01 = "('(glc_import): ',a,2(i8,2x),i8,2x,d21.6)"
+  character(*),parameter :: F02 = "('(glc_export): ',a,2(i8,2x),i8,2x,d21.6)"
 
 !=================================================================================
 contains

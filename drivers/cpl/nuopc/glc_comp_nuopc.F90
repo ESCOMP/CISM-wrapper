@@ -60,7 +60,8 @@ module glc_comp_nuopc
   !--------------------------------------------------------------------------
 
   integer                    :: lmpicom
-  character(CS)              :: str                 ! cpp  defined model name
+  character(CS)              :: str       ! cpp  defined model name
+  character(len=16)          :: inst_name ! full name of current instance (e.g., GLC_0001)
   integer, parameter         :: dbug = 1
   character(len=*),parameter :: modName =  "(glc_comp_nuopc)"
   character(len=*),parameter :: u_FILE_u = &
@@ -175,7 +176,6 @@ contains
     character(CL)          :: starttype
     character(CS)          :: myModelName
     integer                :: inst_index    ! number of current instance (e.g., 1)
-    character(len=16)      :: inst_name     ! full name of current instance (e.g., GLC_0001)
     character(len=16)      :: inst_suffix   ! character string associated with instance number
     logical                :: lnd_present
     logical                :: glc_coupled_fluxes ! are we sending fluxes to other components?
@@ -205,14 +205,6 @@ contains
     call init_communicate(lmpicom)
 
     !----------------------------------------------------------------------------
-    ! determine instance information
-    !----------------------------------------------------------------------------
-
-    ! the following sets the module instance variables in glc_ensemble
-    call shr_nuopc_get_component_instance(gcomp, inst_suffix, inst_index)
-    inst_name = "GLC"//trim(inst_suffix)
-
-    !----------------------------------------------------------------------------
     ! Open glc log file
     !----------------------------------------------------------------------------
 
@@ -229,6 +221,7 @@ contains
     ! determine instance information
     !----------------------------------------------------------------------------
 
+    ! the following sets the module instance variables in glc_ensemble
     call shr_nuopc_get_component_instance(gcomp, inst_suffix, inst_index)
     inst_name = "GLC"//trim(inst_suffix)
 
@@ -327,8 +320,9 @@ contains
     real(r8)                :: tolerance = 1.e-5_r8
     integer                 :: dbrc
     character(len=*),parameter :: subname=trim(modName)//':(InitializeRealize) '
-    character(*), parameter :: F00   = "('(trim(subname))',8a)"
-    character(*), parameter :: F01   = "('(trim(subname)) ',a,8i8)"
+    character(*), parameter :: F00   = "('(InitializeRealize) ',8a)"
+    character(*), parameter :: F01   = "('(InitializeRealize) ',a,8i8)"
+    character(*), parameter :: F91   = "('(InitializeRealize) ',73('-'))"
     integer :: elementCount
     integer, allocatable, target :: seqIndexList(:)
     !-------------------------------------------------------------------------------
@@ -466,7 +460,7 @@ contains
     global_index(:) = local_to_global_indices()
     DistGrid = ESMF_DistGridCreate(arbSeqIndexList=global_index, rc=rc)
     if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
-    deallocate(global_index)
+    !deallocate(global_index)
 
     ! recreate the mesh using the above distGrid
    !EMesh = ESMF_MeshCreate(filename=trim(cvalue), fileformat=ESMF_FILEFORMAT_ESMFMESH, addUserArea=.true., rc=rc)
@@ -580,10 +574,20 @@ contains
     ! Write diagnostics if appropriate
     !--------------------------------
 
+   if (my_task == master_task) then
+      write(stdout,F91) 
+      write(stdout,F00) trim(inst_name),': start of main integration loop'
+      write(stdout,F91) 
+   end if
+
     if (dbug > 1) then
        call shr_nuopc_methods_State_diagnose(exportState,subname//':ES',rc=rc)
        if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
     endif
+
+    !--------------------------------
+    ! Reset shr logging to original values
+    !--------------------------------
 
     call shr_file_setLogLevel(shrloglev)
     call shr_file_setLogUnit (shrlogunit)
@@ -633,7 +637,7 @@ contains
     type(ESMF_clock)  :: clock
     type(ESMF_STATE)  :: importState
     type(ESMF_STATE)  :: exportState
-    type(ESMF_Time)   :: CurrentTime
+    type(ESMF_Time)   :: NextTime
     integer           :: glcYMD     ! glc model date
     integer           :: glcTOD     ! glc model sec
     integer           :: cesmYMD    ! cesm model date
@@ -657,9 +661,7 @@ contains
     logical           :: valid_inputs
     real(r8)          :: valid_inputs_real
     integer           :: dbrc
-    character(*), parameter :: F00   = "('(glc_comp_nuopc: ModelAdvance) ',8a)"
     character(*), parameter :: F01   = "('(glc_comp_nuopc: ModelAdvance) ',a,8i8)"
-    character(*), parameter :: F04   = "('(glc_comp_nuopc: ModelAdvance) ',2a,2i8,'s')"
     character(*), parameter :: subName = "(glc_comp_nuopc: ModelAdvance) "
     !----------------------------------------------------------------
 
@@ -678,28 +680,34 @@ contains
     call shr_file_setLogUnit (stdout)
 
     !--------------------------------
-    ! Query the Component for its clock
+    ! Query the Component for its clock at the next time step
     !--------------------------------
 
     call NUOPC_ModelGet(gcomp, modelClock=clock, importState=importState, exportState=exportState, rc=rc)
     if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
 
-    call ESMF_ClockGet(clock, currTime=CurrentTime, rc=rc)
-    if ( rc /= ESMF_SUCCESS ) call shr_sys_abort("ERROR: glc_io_write_restart")
+    ! Need to get the next time here since the clock in the nuopc driver does not get advanced until the end
+    ! of the time loop and in the mct case it was advanced in the beginning
+    call ESMF_ClockGetNextTime(clock, nextTime=nextTime, rc=rc)
+    if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
 
-    call ESMF_TimeGet( CurrentTime, yy=cesmYR, mm=cesmMON, dd=cesmDAY, s=cesmTOD, rc=rc )
+    call ESMF_TimeGet( NextTime, yy=cesmYR, mm=cesmMON, dd=cesmDAY, s=cesmTOD, rc=rc )
     if ( rc /= ESMF_SUCCESS ) call shr_sys_abort("ERROR: glc_io_write_restart")
 
     call shr_cal_ymd2date(cesmYR, cesmMON, cesmDAY, cesmYMD)
+    if (verbose .and. my_task == master_task) then
+       write(stdout,F01) ' CESM Run Starting ',cesmYMD, cesmTOD
+    endif
+
+    !--------------------------------
+    ! Obtain the CISM internal time
+    !--------------------------------
 
     glcYMD = iyear*10000 + imonth*100 + iday
     glcTOD = ihour*3600 + iminute*60 + isecond
     if (verbose .and. my_task == master_task) then
-       write(stdout,F01) ' Run Starting ',glcYMD,glcTOD
+       write(stdout,F01) ' CISM Run Starting ',glcYMD,glcTOD
     endif
-
-    done = .false.
-    if (glcYMD == cesmYMD .and. glcTOD == cesmTOD) done = .true.
 
     !--------------------------------
     ! Unpack import state
@@ -724,12 +732,18 @@ contains
     else
        valid_inputs = .false.
     end if
-    write(6,*)'DEBUG: cesmTOD, valid_inputs = ',cesmTOD, valid_inputs
 
     !--------------------------------
     ! Run CISM
     !--------------------------------
 
+    ! NOTE: in mct the cesmYMD is advanced at the beginning of the time loop 
+
+    write(stdout,*)'DEBUG: glcYMD, cesmYMD= ',glcYMD,cesmYMD
+    write(stdout,*)'DEBUG: glcTOD, cesmTOD= ',glcTOD,cesmTOD
+
+    done = .false.
+    if (glcYMD == cesmYMD .and. glcTOD == cesmTOD) done = .true.
     do while (.not. done)
        if (glcYMD > cesmYMD .or. (glcYMD == cesmYMD .and. glcTOD > cesmTOD)) then
           write(stdout,*) subname,' ERROR overshot coupling time ',glcYMD,glcTOD,cesmYMD,cesmTOD
@@ -899,8 +913,8 @@ contains
 
     ! local variables
     integer                 :: dbrc
-    character(*), parameter :: F00   = "('(mosart_comp_nuopc) ',8a)"
-    character(*), parameter :: F91   = "('(mosart_comp_nuopc) ',73('-'))"
+    character(*), parameter :: F00   = "('(glc_comp_nuopc) ',8a)"
+    character(*), parameter :: F91   = "('(glc_comp_nuopc) ',73('-'))"
     character(len=*),parameter  :: subname=trim(modName)//':(ModelFinalize) '
     !-------------------------------------------------------------------------------
 

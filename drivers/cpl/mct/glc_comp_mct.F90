@@ -312,8 +312,6 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
 
     glcYMD = iyear*10000 + imonth*100 + iday
     glcTOD = ihour*3600 + iminute*60 + isecond
-    done = .false.
-    if (glcYMD == cesmYMD .and. glcTOD == cesmTOD) done = .true.
     if (verbose .and. my_task == master_task) then
        write(stdout,F01) ' Run Starting ',glcYMD,glcTOD
        call shr_sys_flush(stdout)
@@ -327,6 +325,11 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
 
     call seq_infodata_GetData( infodata, glc_valid_input=valid_inputs)
 
+    write(stdout,*)'DEBUG: glcYMD, cesmYMD= ',glcYMD,cesmYMD
+    write(stdout,*)'DEBUG: glcTOD, cesmTOD= ',glcTOD,cesmTOD
+
+    done = .false.
+    if (glcYMD == cesmYMD .and. glcTOD == cesmTOD) done = .true.
     do while (.not. done) 
        if (glcYMD > cesmYMD .or. (glcYMD == cesmYMD .and. glcTOD > cesmTOD)) then
           write(stdout,*) subname,' ERROR overshot coupling time ',glcYMD,glcTOD,cesmYMD,cesmTOD
