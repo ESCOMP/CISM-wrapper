@@ -25,13 +25,11 @@ fields written to the history file are the ice thickness (``thk``), upper surfac
 elevation (``usurf``), bedrock elevation (``topg``), and the surface mass balance
 (``smb``) and surface temperature (``artm``) downscaled to the ice sheet grid.
 
-To modify the list of history fields, set ``cesm_history_vars`` in ``user_nl_cism``. The
-source files with names ``*_io.F90.default`` specify the fields than can be written out:
-for CESM, these get copied to files with the same name but with the ``.default`` stripped
-off. The easiest way to write out new variables for your case is to add them to a file
-ending in ``vars.def`` and then rebuild the ``*_io.F90`` files using a python script. The
-necessary script can be found in ``$CASEROOT/Buildconf/cismIOconf``. See the
-``README.cismIO`` file in that directory for details.
+To modify the list of history fields, set ``cesm_history_vars`` in ``user_nl_cism``. Files
+with names ending in ``vars.def`` in the source tree specify the fields that can be
+written out. You can add new variables to one of these ``vars.def`` files and rebuild the
+model in order to enable new output fields. (Note: These ``vars.def`` files can NOT be
+placed in SourceMods: they need to be changed in-place in the source tree.)
 
 Model restart frequency is coordinated by the CESM coupler. The restart file contains all
 the fields required for exact restart.  However, the restart will be exact only if the
