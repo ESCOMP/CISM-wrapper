@@ -121,7 +121,7 @@ documentation at once, you should do the following:
   **From cism-docs**:
   
   ```
-  git add ...
+  git add .
   git commit -m "Update html"
   git push
   ```

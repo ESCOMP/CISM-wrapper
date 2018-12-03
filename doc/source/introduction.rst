@@ -7,364 +7,243 @@ Introduction
 This document accompanies the Community Earth System Model (CESM) User’s
 Guide and is intended for users who would like to run CESM with dynamic
 ice sheets and/or an improved surface mass balance scheme for glaciated
-regions. For more information, please see the CESM User’s Guide:
-http://www.cesm.ucar.edu/models/cesm1.2/.
+regions. For more information, please see the CESM User’s Guide.
 
 The introduction provides some scientific background, along with a brief
 history of land-ice model development within CESM. Section 2 is a
 quick-start guide for new users. Section 3 describes how to run the
 standalone ice sheet model within CESM, forced by output from a
-previous, coupled run. Section 4 describes Glimmer, the Community Ice
-Sheet Model (Glimmer-CISM), the dynamic ice sheet model in CESM. Section
+previous, coupled run. Section 4 describes the Community Ice
+Sheet Model (CISM), the dynamic ice sheet model in CESM. Section
 5 gives a detailed description of the surface-mass-balance scheme for
 ice sheets in the Community Land Model (CLM). Section 6 answers some
 common questions about model usage.
 
-It should be emphasized that this is an early implementation with a
-number of scientific limitations that are detailed below. Model
-developers are keenly aware of these limitations and are actively
-addressing them. Several major improvements are planned for the next one
-to two years and will be released as they become available.
+It should be emphasized that coupled land-ice modeling is a work in progress.
+Ice sheets are a relatively new CESM component, having been introduced in CESM1.0.
+Ice sheet dynamics and physics in CISM continue to evolve, as do CESM coupling
+capabilities and the ice sheet surface climate.
+Many scientific limitations remain; in particular, CESM2.0 does not
+incorporate a dynamic Antarctic ice sheet or interactive ice sheet--ocean coupling.
+New developments targeting Antarctica and other marine ice sheets
+will be added to CESM as they become available.
 
-This documentation is itself in progress. If you find errors, or if you
-would like to have some additional information included, please contact
-the authors at lipscomb@lanl.gov or sacks@ucar.edu.
+This documentation is itself in progress. If you find errors or would like
+to have some additional information included, please contact the authors:
+William Lipscomb (lipscomb@ucar.edu), William Sacks (sacks@ucar.edu),
+and Gunter Leguy (gunterl@ucar.edu).
 
 =======================
  Scientific background
 =======================
 
 Historically, ice sheet models were not included in global climate
-models (GCMs), because they were thought to be too sluggish to respond
+models, because they were thought to be too sluggish to respond
 to climate change on decade-to-century time scales. In the Community
 Climate System Model (CCSM), as in many other global climate models, the
-extent and elevation of the Greenland and Antarctic ice sheets were
-assumed to be fixed in time. Interactions between ice sheets and other
-parts of the climate system were largely ignored.
+extent and elevation of the Greenland and Antarctic ice sheets were held fixed.
+Interactions between ice sheets and other parts of the climate system were
+largely ignored.
 
 Recent observations, however, have established that the Greenland and
-Antarctic ice sheets can respond to atmospheric and ocean warming on
-time scales of a decade or less. Satellite gravity measurements have
-shown that both ice sheets are losing mass at a rate of ~200 Gt/yr
-(Velicogna 2009). (A mass loss of 360 Gt corresponds to global sea-level
-rise of 1 mm.) Greenland mass loss is caused by increased surface
-melting and the acceleration of large outlet glaciers (van den Broeke et
-al. 2009). In Antarctica, mass is being lost primarily because of the
-acceleration of outlet glaciers, especially in the Amundsen Sea
-Embayment of West Antarctica (Rignot et al. 2008).
+Antarctic ice sheets are losing mass in response to atmospheric and
+ocean warming (Shepherd et al. 2012, Church et al. 2013).
+The current ice sheet contribution to global mean sea level rise
+is about 1 mm/yr, with somewhat greater losses from Greenland
+than from Antarctica. 
+Greenland mass loss is caused primarily by increased surface melting
+and runoff, and secondarily by increased glacier outflow.
+In Antarctica, where there is little surface ablation,
+mass is lost primarily because of greater outflow, triggered in part
+by ocean warming and increased melting beneath ice shelves.
 
-Small glaciers and ice caps (GIC) also have retreated in recent years.
-Although the total volume of GIC (~0.6 m sea-level equivalent; Radić and
-Hock 2010) is much less than that of the Greenland ice sheet (~7 m) and
-the Antarctic ice sheet (~60 m), glaciers and ice caps can respond
-quickly to climate change. Mass loss from GIC has grown in recent years
-and has been estimated at ~400 Gt/yr (Meier et al. 2007). GCMs generally
-assume that the mass of glaciers and ice caps, like that of ice sheets,
-is fixed.
+Glaciers outside the two ice sheets also have retreated in recent years
+(Vaughan et al. 2013).
+Although the total volume of the Earth's glaciers (~0.4 m sea-level equivalent)
+is much less than that of the Greenland ice sheet (~7 m) and
+the Antarctic ice sheet (~60 m), glaciers can respond
+quickly to climate change. Total glacier mass loss is ~1 mm/yr,
+similar to the loss from the two ice sheets. Together, glaciers and
+ice sheets account for the majority of recent sea level rise,
+with ocean thermal expansion contributing most of the remainder.
 
-Global sea level is rising at a rate of about 30 cm/century, with
-primary contributions from land ice retreat and ocean thermal expansion
-(Cazenave et al. 2008). Estimates of 21\ :sup:`st` century ice-sheet
-mass loss and sea-level rise are highly uncertain. The IPCC Fourth
-Assessment Report (Meehl et al. 2007) projected 18 to 59 cm of sea-level
-rise by 2100 but specifically excluded ice-sheet dynamical feedbacks, in
-part because existing ice sheet models were deemed inadequate. A widely
-cited semi-empirical study (Rahmstorf 2007) estimated 40 to 150 cm of
-21\ :sup:`st` century sea-level rise, based on the assumption that the
-rate of rise is linearly proportional to the increase in global mean
-temperatures from preindustrial values. The assumptions of
-semi-empirical models, however, may not be valid as additional land-ice
-processes come into play.
-
-Modeling of land ice has therefore taken on increased urgency. Several
-workshops (e.g., Little et al. 2007; Lipscomb et al. 2009) have called
-for developing improved ice sheet models. There is general agreement on
-the need for (1) “higher-order” flow models with a unified treatment of
-vertical shear stresses and horizontal-plane stresses, (2) finer grid
-resolution (~5 km or less) for ice streams, outlet glaciers, and other
-regions where the flow varies rapidly on small scales, and (3) improved
-treatments of key physical processes such as basal sliding, subglacial
-water transport, iceberg calving, and grounding-line migration. These
-improvements are beginning to be incorporated in numerical ice sheet
-models. One such model is the Glimmer Community Ice Sheet Model
-(Glimmer-CISM), which has been coupled to CESM and is described below.
+As land ice modeling has become more urgent, there have been major advances
+in ice sheet models (ISMs). Early ISMs used either the
+shallow-ice approximation (SIA) or the shallow-shelf approximation (SSA).
+The SIA, which assumes that vertical shear stresses are dominant, is valid
+for slow-moving ice-sheet interiors, whereas the SSA, which assumes that flow
+is dominated by lateral and longitudinal stresses in the horizontal plane,
+applies to floating ice shelves. Neither approximation is valid for ice streams
+and outlet glaciers where both vertical-shear and horizontal-plane stresses are important.
+Advanced ISMs developed in recent years solve the more accurate Stokes equations 
+or various higher-order (also known as first-order) approximations (Pattyn et al., 2008).
+Among the models that solve Stokes or higher-order equations are the Parallel Ice Sheet Model
+(Bueler and Brown, 2009; Winkelmann et al., 2011), the Ice Sheet System Model (Larour et al., 2012),
+the Penn State Model (Pollard and DeConto, 2012), BISICLES (Cornford et al., 2013),
+Elmer-Ice (Gagliardini et al., 2013), MPAS-Albany Land Ice (Hoffman et al., 2018), 
+and CISM (Lipscomb et al. 2018).
 
 Although much can be learned from ice sheet models in standalone mode,
-coupled models are required to capture important feedbacks. For example,
-surface ablation may be underestimated if an ice sheet model is forced
-by an atmospheric model that does not respond to changes in surface
-albedo and elevation (Pritchard et al. 2008). At ice sheet margins,
-floating ice shelves are closely coupled to the ocean in ways that are
-just beginning to be understood and modeled (Holland et al. 2008a,
-2008b). Also, changes in ice sheet elevation and surface runoff could
-have significant effects on the regional and global circulation of the
-atmosphere and ocean. The inclusion of dynamic ice sheets in CESM and
-other GCMs will likely lead to scientific insights that cannot be
-obtained from standalone ice sheet models.
+coupled models are required to capture important feedbacks (Vizcaino et al. 2014).
+For example, changes in ice sheet albedo and elevation can affect
+regional atmospheric circulation and climate.  Also, ice sheet changes
+can modify the climate through modified freshwater fluxes to the ocean.
+The addition of interactive ice sheets to CESM and other Earth System models (ESMs)
+will likely lead to scientific insights that would not be possible with
+standalone ice sheet models.
 
 ====================
  Ice sheets in CESM
 ====================
 
-Since 2006, researchers in the Climate, Ocean and Sea Ice Modeling
-(COSIM) group at Los Alamos National Laboratory (LANL) have worked with
+Starting in 2006, researchers in the Climate, Ocean and Sea Ice Modeling
+(COSIM) group at Los Alamos National Laboratory (LANL) worked with
 scientists at the National Center for Atmospheric Research (NCAR) to
-incorporate an ice sheet model in the CCSM/CESM framework. This work has
-been funded primarily by the Department of Energy (DOE) Scientific
+incorporate an ice sheet model in the CCSM/CESM framework. This work was
+funded primarily by the Department of Energy (DOE) Scientific
 Discovery through Advanced Computing (SciDAC) program, with additional
 support from the National Science Foundation (NSF). The Glimmer ice
 sheet model (Rutt et al. 2009), developed by Tony Payne and colleagues
 at the University of Bristol, was chosen for coupling. Although
 Glimmer’s dynamical core was relatively basic, a higher-order dynamics
 scheme was under development. In addition, the model was well structured
-and well documented, with an interface (GLINT) to enable coupling to
-GCMs.
-
-Glimmer was initially coupled to CCSM version 3.5. The surface mass
-balance (SMB; the difference between annual accumulation and ablation)
-was computed using Glimmer’s positive-degree-scheme, which uses
-empirical formulas to relate surface temperatures to summer melting. It
-was decided that the PDD scheme was not appropriate for climate change
-modeling, because empirical relationships that are valid for present-day
-climate may not hold in the future. Instead, a surface-mass-balance
-scheme for ice sheets was developed for the Community Land Model (CLM).
-This scheme computes the SMB in each of ~10 elevation classes per grid
-cell in glaciated regions. The SMB is passed via the coupler to the ice
-sheet component, where it is averaged, downscaled, and used to force the
-dynamic ice sheet model at the upper surface. (See Section 4 for
-details.) When the CCSM4 coupling framework became available, the
-coupling was redone for the new framework.
+and well documented, with an interface (Glint) to enable coupling to ESMs.
 
 In 2009, the U.K. researchers who designed Glimmer joined efforts with
 U.S. scientists who were developing a Community Ice Sheet Model (CISM),
 and the model was renamed Glimmer-CISM. Model development was overseen
 by a six-member steering committee including Magnus Hagdorn (U.
 Edinburgh), Jesse Johnson (U. Montana), William Lipscomb (LANL), Tony
-Payne (U. Bristol), Stephen Price (LANL), and Ian Rutt (U. Swansea). The
-model resides on the BerliOS repository
-(http://glimmer-cism.berlios.de/). It is an open-source code governed by
-the GNU General Public License and is freely available to all. The
-version included in the initial CESM release is a close approximation of
-Glimmer-CISM version 1.6.
+Payne (U. Bristol), Stephen Price (LANL), and Ian Rutt (U. Swansea).
 
-Subsequent ice-sheet model development targeted for CESM has taken place
-in a Subversion repository at the National Center for Atmospheric
-Research (https://svn-cism-model.cgd.ucar.edu/). CESM1.2 includes a new
-version of Glimmer-CISM (version 1.9). This version includes extensive
-modifications that have been made in preparation for the upcoming
-release of Glimmer-CISM version 2.0, which will include 3d,
-1st-order-accurate ice dynamics, support for MPI-based distributed
-parallelism, and support for linking to Trilinos solver libraries. When
-run with shallow-ice dynamics, Glimmer-CISM 1.9 gives answers that are
-approximately the same as version 1.6, which was the version included in
-CESM1.1.1 and earlier.
+Glimmer had a positive-degree-day (PDD) scheme, which uses
+empirical formulas to relate surface temperatures to summer melting.
+PDDs schemes, however, are not ideal for climate change
+modeling, because empirical relationships that are valid for present-day
+climate may not hold in the future. Instead, a surface-mass-balance
+scheme for ice sheets was developed for the Community Land Model (CLM).
+This scheme computes the SMB in each of ~10 elevation classes per grid
+cell in glaciated regions. The SMB is passed via the coupler to the ice
+sheet component, where it is averaged, downscaled, and used to force the
+dynamic ice sheet model at the upper surface. (See Section 4 for details.)
+
+In 2010, CESM1.0 was released with an initial implementation of ice sheets
+(Lipscomb et al. 2013). The dynamic ice sheet model was a close approximation
+of Glimmer-CISM version 1.6, a serial code with shallow-ice dynamics.
+Optionally, the SMB was computed by CLM in multiple elevation classes 
+for glaciated regions. 
+
+Subsequent ice-sheet model development targeted for CESM 
+was led by DOE-funded researchers at LANL, Oak Ridge National Laboratory (ORNL),
+and Sandia National Laboratories (SNL). Much of this work was done
+under the Ice Sheet Initiative for CLimate ExtremeS (ISICLES) project,
+followed by the Predicting Ice Sheet and Climate Evolution at Extreme Scales
+(PISCEES) project, culminating in the 2014 release of CISM 2.0
+(Price et al. 2014). CISM2.0 was a major advance over Glimmer, 
+with support for parallel simulations using higher-order dynamics,
+as well as a suite of test cases and links to third-party solver libraries.
+
+Subsequently, CISM development shifted to NCAR, with primary support from
+the National Science Foundation. Recent work has focused on making the model
+more practical and robust for century-to-millenial scale Greenland simulations.
+CISM2.1, released concurrently with CESM2.0 in 2018, includes an efficient
+depth-integrated velocity solver and more realistic options for basal sliding
+and iceberg calving, among other innovations.
+CISM participated in the initMIP-Greenland project on ice sheet initialization
+(Goelzer et al. 2018), and a developmental model version was used
+for the follow-up initMIP-Antarctica experiments.
+
+Meanwhile, other parts of CESM have evolved to support land-ice science.
+In CESM2.0 the surface mass balance of the Greenland and Antarctic ice sheets 
+is computed by default in CLM using multiple elevation classes, in simulations
+with or without dynamic ice sheets. Also, CESM now supports interactive coupling
+of CISM with CLM, allowing the land topography and surface types to evolve
+as the ice sheet advances and retreats.
+The surface melt climate of both ice sheets has improved with the inclusion of a 
+deep firn model that allows for meltwater infiltration and refreezing, 
+as well as realistic firn densification rates. Surface winds over ice sheets
+are more accurate with a new drag parameterization, and a bias in high-latitude 
+longwave cloud forcing is much reduced.
+
 
 =============
  Limitations
 =============
 
-There are a number of significant limitations of the ice sheet model
-within CESM. Most of these are under active development by members of
-the Land Ice Working Group.
+CISM's land-ice capabilities continue to be actively developed, and
+some significant limitations remain, as decribed below.
 
-Limitations of the ice sheet model
-----------------------------------
 
--  The model is technically supported but is still undergoing scientific
-       testing and validation. We cannot guarantee that the default
-       values of model parameters will yield an optimal simulation.
+Limitations of the ice sheet model itself
+-----------------------------------------
 
--  The dynamical core is similar to that in the original Glimmer code
-       and is based on the shallow-ice approximation (SIA). The SIA is
-       valid in the interior of ice sheets, but not in fast-flowing
-       regions such as ice shelves, ice streams, and outlet glaciers. A
-       higher-order scheme that is valid in all parts of the ice sheet
-       is being tested and will become part of CESM in 2014 with the
-       release of Glimmer-CISM version 2.0.
+-  CISM2.1 has been designed primarily for simulating Greenland, and is missing 
+   some features needed for optimal simulation of marine ice sheets.
+   By default, CISM uses a "no-float" scheme in which floating ice immediately calves.
+   Although calving and sub-shelf melting schemes are available, they are relatively simple
+   and may require hand tuning.
+   Also, the CISM2.1 release does not have a grounding-line parameterization (GLP).
+   A developmental branch of CISM includes a GLP that will be part of a future release,
+   and more realistic calving and basal melting schemes are under development.
 
--  The current Glimmer-CISM code is serial. This is not a limitation for
-       the SIA model, which is computationally fast, but will be an
-       issue for the higher-order model. A parallel version of the code
-       is under development and is expected to be released by 2014.
+-  To date, CISM has been run for Greenland mainly on 4-km grids. The model can be run
+   at higher resolutions, but is less well tested and less robust.
 
--  Glimmer-CISM simulates only the large ice sheets (Greenland and
-       Antarctica). There is currently no ability in CESM to simulate
-       evolution of smaller glaciers. A separate model for simulating
-       smaller glaciers is under development and is expected to be
-       released in 2014.
+
+Limitations of CISM within CESM
+-------------------------------
+
+- CISM restarts can only occur on day boundaries
+
+- There are a number of bugs with the use of a calendar that includes leap years;
+  currently, you can only run CISM with a no-leap calendar.
+
+- There is a bug in the outputting of time-average history fields from CISM; currently,
+  only instantaneous fields are supported.
 
 Limitations of other components of the CESM modeling system
 -----------------------------------------------------------
 
-- There is no out-of-the-box capability for topography in the atmosphere model (CAM) to
-  respond to changes in ice sheet geometry. (However, members of the Land Ice Working
-  Group have developed an offline script that can be used for these purposes.)
+-  In CESM2.0, CISM can be coupled interactively to CLM, but coupling to the ocean
+   is very limited. The ice sheet model can send calving fluxes to the ocean,
+   but there is currently no mechanism to compute sub-ice-shelf melt rates
+   based on ocean conditions, and ocean boundaries do not evolve in response to ice-shelf changes.
+   Offline scripts have been developed to support coupling to the Community Atmosphere
+   Model (CAM), adjusting CAM's notion of surface topography; however, this atmosphere
+   coupling is not available out-of-the-box and is not officially supported.
 
--  The ice sheet model has not been fully coupled to the ocean model; that
-       coupling is under development. For this reason the initial
-       implementation is for the Greenland ice sheet only. Since
-       ice-ocean coupling is critical for the dynamics of the Antarctic
-       ice sheet, it was decided that Antarctic simulations without
-       ocean coupling would be of limited scientific value.
+-  CESM2.0 does not include a prognostic glacier model. Also, by default, the SMB for mountain glaciers
+   is computed for a single elevation class at the mean topography, since
+   multiple elevation classes have not been found to improve the SMB outside of ice sheets.
 
--  The division of glaciers into elevation classes in CLM is fairly
-       coarse and static in space. The current scheme is reasonable for
-       Greenland, but not ideal for mountain glaciers.
 
-What’s new in CESM1.2 with respect to ice sheet modeling?
----------------------------------------------------------
+===========================================================
+ What's new in CESM2.0 with respect to ice sheet modeling?
+===========================================================
 
-Compared to the CESM1.1 series, there have been a number of improvements
-in CESM that are relevant for ice sheet modeling:
+Compared to the CESM1 series, there have been a number of improvements
+in CESM for land-ice modeling:
 
--  CESM1.2 includes a new version of Glimmer-CISM (version 1.9). This
-   version includes extensive modifications that have been made in
-   preparation for the upcoming release of Glimmer-CISM version 2.0,
-   which will include 3d, 1st-order-accurate ice dynamics and support
-   for MPI-based distributed parallelism. When run with shallow-ice
-   dynamics, Glimmer-CISM 1.9 gives answers that are approximately the
-   same as version 1.6, which was the version included in CESM1.1.1 and
-   earlier.
+-  CESM includes CISM2.1, with a suite of velocity solvers including a 3D higher-order solver
+   and a depth-integrated higher-order solver in addition to the SIA and SSA.
+   New physics options are available, in particular for basal sliding and iceberg calving.
+   Associated with these options are many new default options and parameters for Greenland simulations.
 
--  Some changes to default parameter values: For a few configuration
-   settings, the numeric value corresponding to each option has changed
-   (see
-   `http://www.cesm.ucar.edu/models/cesm1.2/cesm/doc/modelnl/nl\_cism.html <http://www.cesm.ucar.edu/models/cesm1.1/cesm/doc/modelnl/nl_cism.html>`__).
-   In addition, there have been additional configuration options added
-   (the first two below) and changes to some existing default option
-   settings:
+-  The default Greenland grid resolution is now 4 km.
 
-   -  *temp\_init*
+-  By default, the SMB is computed by CLM in multiple elevation classes for ice sheets.
+   An SMB downscaled to CISM's ice sheet grid is now available for all coupled simulations
+   with an active land model, not just simulations with dynamic ice sheets.
 
-      -  Old: 1 (Initialize temperature to surface air temperature)
+-  CISM can be coupled interactively to CLM, with changes in
+   ice sheet extent and thickness feeding back on land surface elevation
+   and surface types.
 
-      -  New: 2 (Initialize temperature with a linear profile in each
-         column)
+-  CLM includes many improved snow parameterizations. These include both improvements in
+   the properties of fresh snow and improvements in the evolution of the snow pack. CLM
+   now includes a deep firn model that allows for meltwater infiltration and refreezing,
+   as well as realistic firn densification rates.
 
-   -  *basal\_mass\_balance*
-
-      -  Old: 0 (basal mass balance not included in continuity equation)
-
-      -  New: 1 (basal mass balance included in continuity equation)
-
-   -  *sigma*
-
-      -  Old: 2 (read sigma coordinates from config file)
-
-      -  New: 0 (compute standard Glimmer sigma coordinates)
-
--  New initial conditions have been provided for both CLM and CISM, when
-   running the BG1850CN compset at f09 resolution (currently, this is
-   the only compset involving CISM that is set up as a “hybrid”
-   compset). Importantly, this is the first time we have provided
-   spun-up ice sheet initial conditions, so that the ice sheet is in
-   rough equilibrium with the CESM climate. However, because of how
-   these initial conditions were generated, they will not be in full
-   equilibrium with recent versions of CESM. In addition, the ice sheet
-   spin-up was done with some altered configuration settings compared to
-   the current out-of-the-box settings. For more details, see the README
-   file in this subdirectory of CESM’s inputdata directory:
-   <ccsm4\_init/bg40.1850.track1.1deg.006b/0863-01-01>. Despite these
-   caveats, the CISM initial condition file in this directory
-   (bg40.1850.track1.1deg.006b.cism.r.0863-01-01-00000.nc) could be used
-   to start the ice sheet in a roughly spun-up state even when running
-   with a different compset and/or resolution than this BG1850CN f09
-   hybrid compset for which it is used out-of-the-box.
-
--  In CLM, fixed the *tsrf* field sent to CISM so that it is
-   appropriately time-averaged
-
--  Option to run with 36 elevation classes (200m each), rather than the
-   default 10. (Note that no surface datasets exist for this option, but
-   they can be created easily using CLM’s mksurfdata\_map tool.)
-
--  Option in CLM to write the CISM forcing fields (e.g., surface mass
-   balance) to history files, for each elevation class. (Previously,
-   only the grid cell average could be written to the CLM history file.)
-   (This is documented more extensively in Section 6.4.)
-
--  Added a *CISM\_OBSERVED\_IC* option to force use of observed initial
-   conditions rather than a restart file when performing a hybrid run.
-   (This is documented more extensively in Section 2.9.)
-
--  CISM SourceMods have been split into two directories: any changes to
-   source code in the *glimmer-cism* subdirectory need to go in
-   *SourceMods/src.cism/glimmer-cism/*
-
--  CISM is now built using the same cmake build system as is used for
-   building the standalone code
-
--  In the CESM xml files, the old *GLC\_GRID* variable has been renamed
-   to *CISM\_GRID*; *GLC\_GRID* is now used for a different purpose and
-   generally should not be changed once a case has been created
-
-What's new in CESM1.1 with respect to ice sheet modeling?
----------------------------------------------------------
-
-Compared to the CESM1.0 series, there have been a number of improvements
-in CESM that are relevant for ice sheet modeling:
-
--  A new compset type, *TG*, has been added. This allows running the
-   standalone ice sheet model forced by output from a previous, coupled
-   CESM simulation. We provide a variety of out-of-the-box forcing data,
-   or you can generate your own forcing data. See Section 3 for more
-   details.
-
--  Support for longer coupling intervals in CISM and in CESM scripts –
-   e.g., a 1-year coupling interval, useful for TG runs of centuries to
-   many millennia.
-
--  Changed the default Greenland ice sheet grid to 5 km (previously was
-   20 km)
-
--  Changed a number of other default CISM configuration settings to
-   produce more robust ice sheet evolution, especially at 5 km
-   resolution
-
--  Ensemble capability for all CESM components, including CISM (see
-   Section 6.1 for details)
-
--  More robust namelist generation facility, standardized across CESM
-   components (see Section 2.7 for details)
-
--  Enabled ESMF interface for CISM
-
--  Fixed memory leak in CISM
-
--  Bug fix for glacier virtual columns in CLM
-
--  New high-resolution *pct\_glacier* input file for CLM, based on the
-   Randolph Glacier Inventory, and new CLM surface datasets based on
-   this file (see Section 5.4 for details)
-
--  New diagnostic capabilities in CLM, including the ability to output
-   fields averaged only over the glacier portion of each grid cell (see
-   Section 6.5 for details)
-
--  New IG4804 compset
-
--  Improved testing capability for TG compsets in the CESM test
-   framework
-
-Known problems in CESM1.2
--------------------------
-
-The following are known problems in CESM1.2 that are relevant for ice
-sheet modeling:
-
--  CISM restarts can only occur on year boundaries.
-
--  CLM's interpinic tool does not work properly for input files with
-   multiple glacier elevation classes.
-
--  The current TG forcing data were generated with a bug in the *tsrf*
-   field: each day, the value from a single timestep was sent from CLM
-   to CISM, rather than this field being time-averaged.
-
--  CLM's code for multiple elevation classes (and thus coupling to CISM)
-   does not work correctly for GLC\_NEC=1 (i.e., a single elevation
-   class, but using the glc\_mec code)
-
--  There are a number of bugs with the use of a calendar that includes
-   leap years; for now we recommend only using a no-leap calendar.
+- See the other sections of this document for more detailed descriptions of new land-ice
+  capabilities.
 
