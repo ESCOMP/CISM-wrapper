@@ -79,15 +79,17 @@ all: $(EXENAME)
 # Get list of files and build dependency file for all .o files
 #   using perl script Mkdepends
 
+# if a source is of form .F90.in strip the .in before creating the list of objects
 SOURCES   := $(shell cat Srcfiles)
+BASENAMES := $(basename $(basename $(SOURCES)))
 
-OBJS      := $(addsuffix .o, $(basename $(SOURCES)))
+OBJS      := $(addsuffix .o, $(basename $(BASENAMES)))
 
 # Newer makes set the CURDIR variable.
 CURDIR := $(shell pwd)
 
 # Set path to mkDepends script
-mkDepends := ../../../../../../scripts/ccsm_utils/Machines/mkDepends
+mkDepends := ../../../../cime/scripts/Tools/mkDepends
 
 # WJS (12-7-11): TODO: I think this Depends file should really be
 # remade any time a source file changes, since the dependencies
@@ -297,6 +299,7 @@ ifeq ($(UNAMES),Linux)
   endif
   ifeq ($(FCTYP),ifort)
 
+    CPPDEF      += -DCPRINTEL
     FFLAGS      += -ftz -g -fp-model precise -convert big_endian -assume byterecl -traceback -FR
     CFLAGS      += -m64 -g
     LDFLAGS   += -m64
@@ -321,7 +324,7 @@ endif
 #------------------------------------------------------------------------
 
 .SUFFIXES:
-.SUFFIXES: .F90 .c .o
+.SUFFIXES: .F90 .c .o .F90.in
 
 # Append user defined compiler and load flags to Makefile defaults
 CFLAGS   += $(USER_CFLAGS)
@@ -334,6 +337,10 @@ ifeq ($(USER_LINKER),$(null))
 else
   LINKER := $(USER_LINKER)
 endif
+
+# Process template files
+%.F90: %.F90.in
+	../../../../cime/src/externals/genf90/genf90.pl $< > $@
 
 .F90.o:
 	$(FC) $(FFLAGS) $<

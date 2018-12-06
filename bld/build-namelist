@@ -375,13 +375,13 @@ if ($CALENDAR ne "NO_LEAP") {
 
 my $startdate = $RUN_STARTDATE;
 if ($RUN_TYPE eq 'branch') { $startdate = $RUN_REFDATE; }
+my $startymd = $startdate;
+$startymd =~ s/-//g;
 
-my $iyear0  = `echo $startdate | cut -c1-4  | sed -e 's/^0*//'`;
-$iyear0 =~ s/\n/ /g; # remove imbedded newline   
-my $imonth0 = `echo $startdate | cut -c6-7  | sed -e 's/^0*//'`;
-$imonth0 =~ s/\n/ /g; # remove imbedded newline   
-my $iday0   = `echo $startdate | cut -c9-10 | sed -e 's/^0*//'`;
-$iday0 =~ s/\n/ /g; # remove imbedded newline   
+my $iyear0 = int( $startymd / 10000);
+my $date = $startymd - $iyear0*10000;
+my $imonth0 = int( $date / 100 );
+my $iday0   = $date - $imonth0*100;
 my $ihour0  = 0;
 
 my ($dt_option, $dt_count) = get_glc_dt($NCPL_BASE_PERIOD, $GLC_NCPL);
