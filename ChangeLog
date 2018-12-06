@@ -4,7 +4,7 @@ This file describes what tags were created on master and why
 
 ================================================================================
 Originator: @ekluzek
-Date: 12/05/2018
+Date: 12/06/2018
 Version: cism2_1_64
 One-line summary: Fix time-manager so can go simulate up to year 214,747
 
@@ -19,12 +19,16 @@ Also updated README files in cime_config and bld directories. And added
 a test directory that allows you to run the build-namelist outside of a
 CESM case directory.
 
+Also fixed the time_management unit test so it now works. It's not
+neccessarily a useful test, but I did get it to work.
+
 Standalone checkout supported in this tag (Yes/No): Yes
 
 Changes answers relative to previous tag: NO
 
-Bugs fixed (include github issue number): Fixes #19
+Bugs fixed (include github issue number): Fixes #19, #21
    #19 -- Time manager doesn't support years greater than 9999
+   #21 -- Fix unit test for time_manager
 
 Summary of testing:
 
