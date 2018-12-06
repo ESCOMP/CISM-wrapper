@@ -1,6 +1,7 @@
 .
-../unit_test_shr
-../unit_test_replacements
+../../../test/unit/unit_test_shr
+../../../test/unit/unit_test_replacements
+../../../serial
 ../../../source_glc
-../../../source_glimmer-cism
-../../../../../csm_share/shr
+../../../source_cism/libglimmer
+../../../cime/src/share/util
