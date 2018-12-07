@@ -6,7 +6,7 @@ Assuming you have done the setup as suggested below: To build the
 documentation, run:
 
 ```
-build_docs -r ../../cism-docs -i cism-in-cesm
+build_docs -r ../../cism-docs/cism-in-cesm
 ```
 
 ## Overview
@@ -61,11 +61,11 @@ details.)
    tool (which wraps a `make` command, using the `Makefile` here):
    
    ```
-   build_docs -r ../../cism-docs -i cism-in-cesm
+   build_docs -r ../../cism-docs/cism-in-cesm
    ```
    
    By default, this will generate documentation in a subdirectory of
-   `cism-in-cesm` whose name matches the name of the current
+   `cism-in-cesm/versions` whose name matches the name of the current
    branch. There are various other options to this tool. For more
    details, run:
    
@@ -77,7 +77,7 @@ details.)
    the name of the current branch for VERSION):
 
    ```
-   open ../../cism-docs/cism-in-cesm/VERSION/html/index.html
+   open ../../cism-docs/cism-in-cesm/versions/VERSION/html/index.html
    ```
 
 4. Commit and push the changes from the `cism-docs` repository.
