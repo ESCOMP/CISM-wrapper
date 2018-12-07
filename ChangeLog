@@ -4,6 +4,25 @@ This file describes what tags were created on master and why
 
 ================================================================================
 Originator: @katetc (Kate Thayer-Calder)
+Date: December 7, 2018
+Version: cism2_1_66
+One-line summary: New code to prevent inception of ice caps around Greenland
+
+Purpose of changes:
+	This code points to and supports updates to the CISM source master that 
+	were added last summer (July & August) plus new code to prevent the 
+	inception of new ice sheets that will be used in the JG-BG spinup runs.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+
+Changes answers relative to previous tag: Yes
+
+Bugs fixed (include github issue number): Nothing specific, this is scientific development
+
+Summary of testing: Currently in progress
+
+================================================================================
+Originator: @katetc (Kate Thayer-Calder)
 Date: December 6,2018
 Version: cism2_1_65
 One-line summary: Automatically generate _io files in CESM builds and py3 support

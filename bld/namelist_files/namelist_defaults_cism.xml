@@ -47,7 +47,7 @@ attributes to express the dependency.
 <cesm_history_vars cism_phys="cism1" cism_evolve="TRUE" >'smb artm thk usurf topg uvel vvel uflx vflx temp bmlt bwat'</cesm_history_vars>
 <cesm_history_vars cism_phys="cism1" cism_evolve="FALSE">'smb artm thk usurf topg'</cesm_history_vars>
 
-<cesm_history_vars cism_phys="cism2" cism_evolve="TRUE" >'smb artm thk usurf topg uvel vvel temp bmlt bwat beta_internal floating_mask grounded_mask bpmp acab_applied bmlt_applied calving_rate iareaf iareag imass imass_above_flotation total_smb_flux total_bmb_flux total_calving_flux total_gl_flux'</cesm_history_vars>
+<cesm_history_vars cism_phys="cism2" cism_evolve="TRUE" >'smb artm thk usurf topg uvel vvel temp bmlt bwat beta_internal floating_mask grounded_mask bpmp acab_applied bmlt_applied calving_rate iareaf iareag imass imass_above_flotation total_smb_flux total_bmb_flux total_calving_flux total_gl_flux ice_sheet_mask ice_cap_mask'</cesm_history_vars>
 <cesm_history_vars cism_phys="cism2" cism_evolve="FALSE">'smb artm thk usurf topg'</cesm_history_vars>
 
 <history_option>nyears</history_option>
@@ -370,5 +370,11 @@ attributes to express the dependency.
 <which_ho_flotation_function>2</which_ho_flotation_function>
 
 <glissade_maxiter>50</glissade_maxiter>
+
+<!-- block_inception CISM default -->
+<block_inception>false</block_inception>
+
+<!-- remove_ice_caps CISM default -->
+<remove_ice_caps>false</remove_ice_caps>
 
 </namelist_defaults>

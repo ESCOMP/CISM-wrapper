@@ -1602,6 +1602,23 @@ Maximum number of nonlinear iterations to be used by the Glissade velocity solve
 Default: 50
 </entry>
 
+<entry
+id="block_inception"
+type="logical"
+category="cism_config_ho_options"
+group="cism_config_ho_options" >
+Flag that indicates whether ice inception away from the main ice sheet is blocked
+Default: false
+</entry>
+
+<entry
+id="remove_ice_caps"
+type="logical"
+category="cism_config_ho_options"
+group="cism_config_ho_options" >
+Flag that indicates whether ice caps are removed and added to the calving flux
+Default: false
+</entry>
 
 <!-- =============================================================  -->
 <!-- group: cism.config: GTHF (geothermal heat flux)                -->
