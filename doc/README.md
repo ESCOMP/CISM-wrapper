@@ -126,6 +126,20 @@ documentation at once, you should do the following:
   git push
   ```
 
+## Adding a new version of the documentation
+
+When adding a new version of the documentation, you need to do two
+things:
+
+1. In `source/conf.py`,change the `version` and `release` variables.
+
+2. In the documentation build repository, add a line to
+   `versions/versions.json` giving a mapping between the new version's
+   directory (which will typically match the version's branch name) and
+   the version name you want to see in the drop-down menu. This will
+   typically be the same as the `version` in `conf.py`, but it does not
+   have to be.
+
 ## Resources for learning markup with reStructuredText and using Sphinx
 
 * [reStructuredText Primer](http://www.sphinx-doc.org/en/stable/rest.html)
