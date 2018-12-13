@@ -33,7 +33,7 @@ contains
 !    call vector_to_spatial(x2g(index_x2g_Flgl_qice,:), qsmb)
     tsfc = 273.15
 ! Need to divide by number of seconds in a year in order to convert CISM units to CLM units. 
-    qsmb = 275.1/31536000. 
+    qsmb = 275.4/31536000. 
     tsfc = tsfc - tkfrz
 
     call vector_to_spatial(x2g(index_x2g_Fogo_mr,:), qbmb)
