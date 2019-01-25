@@ -4,27 +4,127 @@
 Coupling CLM and CISM
 ************************
 
-TODO: This section is under construction.  Several section heads are just placeholders for now.
-
-
 ==============================
 Modes of coupling CLM and CISM
 ==============================
 
+Non-evolving ice sheet
+----------------------
 
-One-way (diagnostic) coupling
------------------------------
+In typical CESM runs, CISM is not evolving; CLM computes the ice sheet surface mass
+balance and sends it to CISM, but CISM's ice sheet geometry remains fixed over the course
+of the run, and CISM does not send any fluxes to other CESM components. These
+configurations use compsets with ``CISM2%NOEVOLVE`` in their long name (or this can be set
+after setting up a case via the xml variable, ``CISM_EVOLVE``). In these runs, CISM serves
+two roles in the system:
+
+#. Over the CISM domain (typically Greenland in CESM2), CISM dictates
+   glacier areas and topographic elevations, overriding the values on
+   CLM's surface dataset. CISM also dictates the elevation of
+   non-glacier land units in its domain, and only in this domain are
+   atmospheric fields downscaled to non-glacier land units.
+
+#. CISM provides the grid onto which SMB is downscaled.
 
 
-Two-way (interactive) coupling
-------------------------------
+Evolving ice sheet with two-way (interactive) coupling
+------------------------------------------------------
 
+Dynamic ice sheet evolution can be turned on by using a compset with ``CISM2%EVOLVE`` in
+its long name, or by setting the xml variable ``CISM_EVOLVE`` after setting up a case. In
+this configuration, CISM sends updated glacier areas and topographic elevations to CLM at
+the end of each year. In addition, CISM sends fluxes of ice and liquid water to the
+ocean. CLM responds to these changes by adjusting the areas of the glacier land unit and
+each elevation class within this land unit, as well as the mean topographic heights of
+each elevation class. Thus, CLM's glacier areas and elevations remain in sync with
+CISM's.
+
+When running with two-way coupling, conservation of water and energy in the CLM-CISM
+coupling becomes important. There are still some unhandled edge cases in this regard (one
+significant case being when CLM dictates an amount of glacial melt that exceeds the
+available ice in a CISM grid cell), but we do take pains to achieve conservation in most
+cases. An important mechanism to achieve this conservation is via a global renormalization
+step done when mapping SMB from CLM to CISM, as described in :numref:`remapping_smb`. **By
+default, this renormalization is done when running with a two-way-coupled ice sheet that
+sends fluxes to other components (which is typically true in this case of an evolving ice
+sheet), but is turned off in other cases. This leads to small differences in the remapped
+SMB field in runs with an evolving vs. non-evolving ice sheet. This default can be
+overridden via the driver namelist variable,** ``glc_renormalize_smb``, **keeping in mind
+that setting this to** ``off`` **will break conservation for a configuration with an
+evolving, two-way-coupled ice sheet.**
+
+Evolving ice sheet with one-way (diagnostic) coupling
+-----------------------------------------------------
+
+A hybrid mode is also possible, in which CISM evolves dynamically but does not feed back
+to the rest of the system. This configuration is enabled by turning on CISM evolution (via
+using a ``CISM2%EVOLVE`` compset or changing the ``CISM_EVOLVE`` xml variable to
+``TRUE``), but then changing the xml variable ``GLC_TWO_WAY_COUPLING`` to ``FALSE``. This
+change results in changes to CLM and CISM:
+
+- CLM will not respond to changes in CISM's glacier areas and topographic elevations. In
+  addition, even at initialization, CLM is not affected by CISM's glacier areas and
+  topographic elevations, instead specifying these from its initial conditions file, or
+  from its surface dataset in a cold start or interpolated-start run (as would be the case
+  when running with a stub GLC model, as described below). (In the future, we may want to
+  allow the option that CLM synchronizes its glacier areas and topographic elevations at
+  initialization, but then does not respond to any changes throughout the run.)
+
+- CISM does not send fluxes of ice or liquid water to the ocean. Instead, fluxes from CLM
+  are treated the same as in the non-evolving ice sheet case. Note that this behavior of
+  whether or not CISM sends fluxes to the ocean can also be controlled independently from
+  ``GLC_TWO_WAY_COUPLING``, via the CISM namelist variable, ``zero_gcm_fluxes``.
+
+Stub GLC model (CISM absent)
+----------------------------
+
+It is also possible to run CESM with a stub glacier model rather than CISM by using
+compsets with ``SGLC`` in place of ``CISM2%NOEVOLVE``. These configurations are similar to
+those with a non-evolving ice sheet, with the following differences:
+
+#. CLM's glacier areas and elevations will be taken entirely from CLM's initial conditions
+   file, or from its surface dataset in a cold start or interpolated-start run.
+
+#. In CLM, no downscaling of atmospheric forcings is done over non-glacier land units (but
+   atmospheric forcings are still downscaled over glacier land units in areas with
+   multiple glacier elevation classes).
+
+#. There is no downscaling of CLM's surface mass balance and temperature fields to a
+   higher-resolution glacier grid.
+
+This configuration is useful for single-point or regional CLM simulations, or for
+configurations not supported by CISM (such as runs with a Gregorian, rather than no-leap,
+calendar), or simply to avoid needing to make CLM-CISM mapping files when running with a
+new land/atmosphere grid.
 
 ===================================
 Brief overview of CLM-CISM coupling
 ===================================
 
+This section provides a brief overview of the two-way coupling between CLM and
+CISM. Details on the coupling fields and their remapping are given in the following
+sections.
 
+CLM passes two fields to CISM: surface temperature and surface mass balance (SMB). Surface
+temperature is provided only for glacier land units, whereas SMB is provided for both
+glacier and vegetated land units. Over the CISM domain, CLM runs with "virtual" vegetated
+and glacier land units, so that it is able to provide forcing fields even for grid cells
+where a given land unit has zero area. SMB over glacier land units can be positive (ice
+accumulation), negative (ice melt) or zero; SMB over vegetated land units can only be
+positive or zero. A positive SMB over vegetated land units will trigger glacial inception
+in any underlying CISM cell that is currently unglaciated.
+
+These forcing fields are sent from CLM to the CESM coupler every time step (typically 1/2
+hour). The coupler creates annual averages, remaps and downscales these annual averages to
+the CISM grid, then calls CISM at the end of the year. CISM then uses these forcings to
+drive its dynamics for the year, likely resulting in changes to glacier area and
+topographic elevations. These new areas and elevations are sent back to CLM (via the
+coupler); CLM updates its own areas and elevations over the CISM domain to match these for
+the following year's computations.
+
+There is an important but subtle point here: Although CLM is responsible for computing
+SMB, including glacial inception, its glacier areas and elevations do not change until it
+receives a signal to do so from CISM.
 
 =====================================
 Fields exchanged between CLM and CISM
@@ -33,20 +133,170 @@ Fields exchanged between CLM and CISM
 CLM to CISM
 -----------
 
+Overview
+~~~~~~~~
+
+CLM passes three fields to the coupler for the sake of CLM-CISM coupling: surface mass
+balance (SMB), surface temperature, and surface topographic height. The first two are
+remapped/downscaled and sent to CISM, whereas surface topographic height is just used by
+the coupler itself in the downscaling routine. Each CLM grid cell sends :math:`N+1` copies
+of each of these fields, where :math:`N` is the number of elevation classes, and the
+additional :math:`1` is for the bare/vegetated portion of the grid cell. (However, surface
+temperature and topographic height are irrelevant for the bare/vegetated portion.) CLM
+sends values of these fields every time step (typically 1/2 hour). The coupler creates
+annual averages of the fields before remapping and downscaling them to the CISM grid.
+
+Details of CLM's glacier treatment, including the surface mass balance calculation, are
+given in the "Glaciers" chapter of the `CLM Technical Note`_.
+
+Note that the CLM-CISM coupling does *not* currently have the capability to couple using a
+positive degree day (PDD) scheme.
+
+Surface mass balance (SMB)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The SMB calculation is described in detail in the "Glaciers" chapter of the `CLM Technical
+Note`_. Here we just summarize a few important points.
+
+CLM's SMB currently only considers changes in the ice column, *not* changes in the snow
+pack. A positive SMB (ice accumulation) is generated when the snow pack grows beyond its
+prescribed limit (snow capping). A negative SMB (ice melt) is generated when CLM's ice
+column experiences melt. A positive (but *not* negative) SMB can be generated over CLM's
+vegetated land unit; this condition triggers glacial inception in CISM.
+
+Surface temperature
+~~~~~~~~~~~~~~~~~~~
+
+CLM sends surface temperature to provide an upper boundary condition for CISM's
+temperature calculations. In CLM, this is the temperature of the top ice layer.
+
+Surface topographic height
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The average topographic height of each glacier elevation class is needed for the
+downscaling, as described below. When running two-way-coupled, CLM's topographic heights
+are obtained via averages of the underlying CISM grid cells. However, CLM sends these
+heights back to the coupler so that the downscaling routine has access to these values
+regardless of whether we are running one-way or two-way coupled.
 
 CISM to CLM
 -----------
 
+Mask of ice-covered vs. ice-free points
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each grid cell in CISM is classified as either ice-covered or ice-free (there are no
+partially-ice-covered cells). CISM uses different definitions of ice-covered for different
+purposes; for the purposes of this coupling, any cell with ice thickness greater than zero
+is considered to be ice-covered. This field is used in conjunction with surface height to
+determine the total glacier fraction in each CLM grid cell, as well as the fractional
+cover of each CLM glacier elevation class.
+
+This field is needed even when running one-way-coupled, because it is used in the
+CLM-to-CISM downscaling (to determine which CISM grid cells should receive SMB from
+glacier land units vs. vegetated land units).
+
+Surface height
+~~~~~~~~~~~~~~
+
+CISM sends the surface height of each grid cell. For glaciers, this is the height of the
+ice surface. For ice-free points, this is the topographic height. This field is used to
+determine the fractional cover and mean elevation of each CLM glacier elevation class, as
+well as the mean elevation of the vegetated land unit in each CLM grid cell within the
+CISM domain.
+
+This field is needed even when running one-way-coupled, because it is used in the
+CLM-to-CISM downscaling.
+
+Ice sheet grid mask
+~~~~~~~~~~~~~~~~~~~
+
+CLM needs a way to know where CISM is sending valid data, and thus knowing where it should
+update its glacier areas and elevations. This is provided via the "ice sheet grid
+mask". CISM sets this field to 1 for all points that are either bare land or ice-covered
+(including floating ice), and 0 for open ocean (this is determined based on the criterion,
+``usrf > 0``; in principle, this criterion could cause problems if there were a grid cell
+with ``usrf <= 0`` despite having non-zero ice thickness). This mask is important so that
+CLM maintains the values specified by its surface dataset outside the CISM domain, as well
+as in areas that CISM considers to be open ocean but CLM considers to be at least
+partially land-covered.
+
+One subtlety regards the treatment of land points that fall within CISM's rectangular grid
+but are outside of Greenland - chiefly, Ellesmere Island. We do not want CISM to handle
+these points, and we want CLM to maintain the glacier cover from its surface dataset
+there. To accomplish this, all land points outside of Greenland are artificially submerged
+to below sea level in a preprocessing step applied to CISM's input file. Thus, these
+points are not included in the ice sheet grid mask.
+
+This mask is (slightly) dynamic in time, both because of its inclusion of ice shelves and
+because (with isostasy) CISM's land-ocean boundary can change in time.
+
+This mask is regridded to the CLM grid using simple area-conservative
+remapping. (Elevation classes are irrelevant here.)
+
+Ice sheet mask where we are potentially sending non-zero fluxes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+CLM also needs to know where CISM is a fully-coupled part of the climate system - i.e.,
+where it is potentially sending non-zero runoff fluxes to the ocean. CLM uses this
+information to determine how to route its positive and negative SMB terms in order to
+conserve water. This is described in detail in the "Glaciers" chapter of the `CLM
+Technical Note`_. In particular, see the discussion of the dependence on
+*glc\_dyn\_runoff\_routing* in that chapter: CLM's *glc\_dyn\_runoff\_routing* is true
+within this mask and false outside of it.
+
+This mask is currently a subset of the ice sheet grid mask. Currently, it is identical to
+the ice sheet grid mask if we are running with an evolving, two-way-coupled ice sheet, and
+otherwise is zero everywhere. In the future, when we allow multiple ice sheets in CESM
+(e.g., Greenland and Antarctica), it is possible that one ice sheet will operate
+two-way-coupled while another is one-way-coupled. In this case, this mask would match the
+ice sheet grid mask for the two-way-coupled ice sheet and would be zero for the other.
+
+Note that, like the ice sheet grid mask, this mask excludes CISM's open ocean grid
+cells. CISM does not currently have code in place to handle inputs of SMB over open ocean
+(e.g., routing this SMB directly to the ocean), so CLM needs to treat these open ocean
+areas the same as points completely outside CISM's domain for conservation reasons.
+
+This mask, like the ice sheet grid mask, is regridded to the CLM grid using simple
+area-conservative remapping. (Elevation classes are irrelevant here.)
+
+Heat flux
+~~~~~~~~~
+
+Hooks are in place for CISM to send the heat flux from the ice interior to the surface to
+each CLM elevation class. However, this is not yet fully implemented, leading to a small
+loss of energy conservation.
+
+This flux is only applicable when running with an evolving, two-way-coupled ice sheet.
 
 Other fields sent from CISM
 ---------------------------
 
+Ice runoff (calving)
+~~~~~~~~~~~~~~~~~~~~
 
+CISM sends an ice runoff - i.e., calving - flux directly to the ocean (POP). When this flux
+reaches the ocean, POP immediately melts the ice, so this ice flux is equivalent to a
+negative salinity flux together with a negative heat flux. Hooks are in place to instead
+direct this flux to the sea ice model, but CESM's sea ice model is not yet capable of
+simulating icebergs.
+
+This flux is only applicable when running with an evolving, two-way-coupled ice sheet.
+
+Liquid runoff (basal melting)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+CISM sends a liquid runoff flux directly to the ocean; this is generated from basal
+melting. Note that this term does *not* include surface melting: the surface melt term is
+sent from CLM to the ocean via the runoff routing model.
+
+This flux is only applicable when running with an evolving, two-way-coupled ice sheet.
 
 =====================================
 Remapping fields between CLM and CISM
 =====================================
 
+.. _remapping_smb:
 
 Remapping surface mass balance from CLM to CISM
 -----------------------------------------------
@@ -155,3 +405,5 @@ by up to 10%.  If we used conservative rather than bilinear remapping, differenc
 because of area distortions on CISM's polar stereographic grid.
 Thus the local errors for bilinear remapping and renormalization are similar to the local errors for conservative remapping.
 Bilinear remapping, however, is far smoother; smoothness is obtained at the cost of local conservation.
+
+.. _CLM Technical Note: https://escomp.github.io/ctsm-docs
