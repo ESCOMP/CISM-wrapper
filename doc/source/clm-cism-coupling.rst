@@ -208,6 +208,8 @@ CISM domain.
 This field is needed even when running one-way-coupled, because it is used in the
 CLM-to-CISM downscaling.
 
+.. _ice_sheet_grid_mask:
+
 Ice sheet grid mask
 ~~~~~~~~~~~~~~~~~~~
 
@@ -220,6 +222,16 @@ with ``usrf <= 0`` despite having non-zero ice thickness). This mask is importan
 CLM maintains the values specified by its surface dataset outside the CISM domain, as well
 as in areas that CISM considers to be open ocean but CLM considers to be at least
 partially land-covered.
+
+This mask is also used in the coupler to determine the ice sheet region over which SMB
+must be conserved in the SMB remapping process (see :numref:`remapping_smb`). We assume
+that we can use the same mask for these two purposes (i.e., for both defining where CISM
+is sending valid data and defining where CISM can receive SMB). (This use of the ice sheet
+grid mask more closely aligns with the use of the mask where we are potentially sending
+non-zero fluxes, described in :numref:`mask_for_nonzero_fluxes`. However, we can't use
+that mask for the remapping, because we then could only perform renormalization if we were
+running with two-way coupling. For this reason, it is important that these two masks are
+defined in the same way.)
 
 One subtlety regards the treatment of land points that fall within CISM's rectangular grid
 but are outside of Greenland - chiefly, Ellesmere Island. We do not want CISM to handle
@@ -234,6 +246,8 @@ because (with isostasy) CISM's land-ocean boundary can change in time.
 This mask is regridded to the CLM grid using simple area-conservative
 remapping. (Elevation classes are irrelevant here.)
 
+.. _mask_for_nonzero_fluxes:
+
 Ice sheet mask where we are potentially sending non-zero fluxes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -247,10 +261,13 @@ within this mask and false outside of it.
 
 This mask is currently a subset of the ice sheet grid mask. Currently, it is identical to
 the ice sheet grid mask if we are running with an evolving, two-way-coupled ice sheet, and
-otherwise is zero everywhere. In the future, when we allow multiple ice sheets in CESM
-(e.g., Greenland and Antarctica), it is possible that one ice sheet will operate
-two-way-coupled while another is one-way-coupled. In this case, this mask would match the
-ice sheet grid mask for the two-way-coupled ice sheet and would be zero for the other.
+otherwise is zero everywhere (and, as described in :numref:`ice_sheet_grid_mask`, this
+relationship should remain true, because the ice sheet grid mask is used in the coupler in
+a way that more closely matches the use of this second mask). In the future, when we allow
+multiple ice sheets in CESM (e.g., Greenland and Antarctica), it is possible that one ice
+sheet will operate two-way-coupled while another is one-way-coupled. In this case, this
+mask would match the ice sheet grid mask for the two-way-coupled ice sheet and would be
+zero for the other.
 
 Note that, like the ice sheet grid mask, this mask excludes CISM's open ocean grid
 cells. CISM does not currently have code in place to handle inputs of SMB over open ocean
