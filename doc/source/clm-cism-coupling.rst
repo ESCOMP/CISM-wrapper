@@ -423,4 +423,39 @@ because of area distortions on CISM's polar stereographic grid.
 Thus the local errors for bilinear remapping and renormalization are similar to the local errors for conservative remapping.
 Bilinear remapping, however, is far smoother; smoothness is obtained at the cost of local conservation.
 
+=========================================
+CLM's glacier regions and their behaviors
+=========================================
+
+CLM divides the world's glaciers and ice sheets into multiple regions that differ in
+various respects. For a detailed description of these different glacier behaviors, see the
+"Glaciers" chapter of the `CLM Technical Note`_. Here we focus on the user interface for
+controlling these behaviors.
+
+Two sets of CLM inputs work together to determine glacier physics in each grid cell: the
+``GLACIER_REGION`` field on the surface dataset and a set of namelist options (whose names
+begin with ``glacier_region``; see the `CLM Namelist Definitions`_ for details). The
+``GLACIER_REGION`` field is an integer from 1 through the number of glacier regions, as
+well as 0 for all grid cells that are not part of a distinct other region. The various
+``glacier_region`` namelist options then specify the behavior for each of these
+regions. The first element in each namelist array specifies the behavior of
+``GLACIER_REGION`` 0, the second element specifies the behavior of ``GLACIER_REGION`` 1,
+etc.
+
+(We rely on CLM's surface dataset rather than making behaviors dependent on CISM's ice
+sheet grid mask because we don't want CLM physics to change just because CISM is using a
+different grid.)
+
+.. note::
+
+   If you want ice sheet forcings (SMB and surface temperature) for regions other than the
+   standard Greenland CISM domain, it is **critical** that you give some thought to this
+   ``GLACIER_REGION`` field and the associated namelist options: You will need to ensure
+   that your glacier regions are set up to have virtual elevation classes
+   (``glacier_region_behavior = 'virtual'``), and that glaciers produce a valid SMB field
+   (``glacier_region_melt_behavior = 'replaced_by_ice'``) wherever you want forcings for
+   CISM.
+
 .. _CLM Technical Note: https://escomp.github.io/ctsm-docs
+
+.. _CLM Namelist Definitions: http://www.cesm.ucar.edu/models/cesm2/settings/current/clm5_0_nml.html
