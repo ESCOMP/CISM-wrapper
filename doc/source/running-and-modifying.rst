@@ -157,6 +157,13 @@ a startup run.
 Note that ``CISM_OBSERVED_IC`` is ignored for startup runs; for branch runs, it must be
 FALSE.
 
+If you are doing a hybrid run where you have changed ``cisminputfile`` to point to a
+restart file from a standalone CISM case (i.e., a run done outside of CESM) or a case with
+different physics options, then you must also set ``restart = 0`` in
+``user_nl_cism``. (Otherwise ``restart`` has a default value of 1 for a hybrid case, which
+can give incorrect behavior if you are using a restart file from a case with different
+physics options.)
+
 =============================
  Modifying namelist settings
 =============================
