@@ -423,6 +423,24 @@ because of area distortions on CISM's polar stereographic grid.
 Thus the local errors for bilinear remapping and renormalization are similar to the local errors for conservative remapping.
 Bilinear remapping, however, is far smoother; smoothness is obtained at the cost of local conservation.
 
+Remapping surface temperature from CLM to CISM
+----------------------------------------------
+
+Surface temperature is remapped similarly to surface mass balance (see
+:numref:`remapping_smb`), but without the renormalization and without separation into
+accumulation vs. ablation zones:
+
+1. CLM computes surface temperature for each grid cell and elevation class (EC).
+
+2. The coupler accumulates and averages surface temperature for each EC over the CLM-CISM
+   coupling interval (typically 1 year).
+
+3. For each EC, the coupler does a bilinear remapping of surface temperature from the CLM
+   grid to the CISM grid.
+
+4. For each CISM grid cell, the coupler does a linear interpolation in elevation space
+   between adjacent ECs, to compute the surface temperature at the CISM cell elevation.
+
 =========================================
 CLM's glacier regions and their behaviors
 =========================================
