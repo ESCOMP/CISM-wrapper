@@ -309,9 +309,9 @@ sent from CLM to the ocean via the runoff routing model.
 
 This flux is only applicable when running with an evolving, two-way-coupled ice sheet.
 
-=====================================
-Remapping fields between CLM and CISM
-=====================================
+======================================
+Remapping fields sent from CLM to CISM
+======================================
 
 .. _remapping_smb:
 
