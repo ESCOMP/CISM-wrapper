@@ -18,6 +18,7 @@ my $LIBROOT   = `./xmlquery LIBROOT   --value`;
 my $GMAKE_J   = `./xmlquery GMAKE_J   --value`;
 my $GMAKE     = `./xmlquery GMAKE     --value`;
 my $CISM_USE_TRILINOS = `./xmlquery  CISM_USE_TRILINOS --value`;
+my $GMAKE_OPTS = `./Tools/get_standard_makefile_args`;
 
 # directory in which glc is built
 my $glc_dir = "$OBJROOT/glc";
@@ -112,7 +113,11 @@ my $mkdepends_opts = "-d $cism_libdir/libglimmercismfortran.a";
 # create the source_cism makefile by running cmake (done via a rule
 # in the system-level makefile)
 # ----------------------------------------------------------------------
-my $sysmod = "$GMAKE $glc_dir/Makefile MODEL=cism USER_CMAKE_OPTS=\"$cmake_opts\" USER_MKDEPENDS_OPTS=\"$mkdepends_opts\" GLCROOT=$GLCROOT GLC_DIR=$glc_dir -f $CASETOOLS/Makefile EXEROOT=$EXEROOT";
+my $sysmod = "$GMAKE $glc_dir/Makefile MODEL=cism USER_CMAKE_OPTS=\"$cmake_opts\" USER_MKDEPENDS_OPTS=\"$mkdepends_opts\" GLCROOT=$GLCROOT GLC_DIR=$glc_dir -f $CASETOOLS/Makefile EXEROOT=$EXEROOT $GMAKE_OPTS";
+
+print "GMAKE_OPTS=$GMAKE_OPTS\n";
+print "cmd = $sysmod\n";
+
 system($sysmod) == 0 or die "ERROR cism.buildexe: $sysmod failed: $?\n";
 
 # ----------------------------------------------------------------------
@@ -129,7 +134,7 @@ chdir "$glc_obj_dir";
 # ----------------------------------------------------------------------
 # create the cesm-specific portion of the glc library using cesm's makefile
 # ----------------------------------------------------------------------
-my $sysmod = "$GMAKE complib -j $GMAKE_J MODEL=cism COMPLIB=$LIBROOT/libglc.a USER_MKDEPENDS_OPTS=\"$mkdepends_opts\" GLC_DIR=$glc_dir -f $CASETOOLS/Makefile";
+my $sysmod = "$GMAKE complib -j $GMAKE_J MODEL=cism COMPLIB=$LIBROOT/libglc.a USER_MKDEPENDS_OPTS=\"$mkdepends_opts\" GLC_DIR=$glc_dir -f $CASETOOLS/Makefile $GMAKE_OPTS";
 system($sysmod) == 0 or die "ERROR cism.buildexe: $sysmod failed: $?\n";
 
 exit 0
