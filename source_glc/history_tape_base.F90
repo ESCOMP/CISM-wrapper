@@ -75,10 +75,12 @@ contains
     ! in initialization. This is written regardless of the check for whether it's time to
     ! do so, with a different extension than standard history files.
     !
+
     ! !USES:
-    use glc_io, only : glc_io_write_history
+    use glc_io, only : glc_io_write_history, glc_io_write_history_tavg_helper
     use glad_type, only : glad_instance
     use esmf, only: ESMF_Clock
+
     !
     ! !ARGUMENTS:
     class(history_tape_base_type), intent(in) :: this
@@ -90,6 +92,7 @@ contains
     logical :: l_initial_history   ! local version of initial_history
 
     character(len=*), parameter :: subname = 'write_history'
+
     !-----------------------------------------------------------------------
 
     l_initial_history = .false.
@@ -98,14 +101,22 @@ contains
     end if
 
     if (l_initial_history) then
+
        call glc_io_write_history(instance, EClock, &
             this%history_vars, initial_history = .true.)
+
     else if (this%is_time_to_write_hist(EClock)) then
+
        call glc_io_write_history(instance, EClock, &
             this%history_vars, initial_history = .false., &
             history_frequency_metadata = this%history_frequency_string())
+
     end if
-    
+
+    ! This subroutine manages an auxiliary output structure that is used to accumulate
+    ! time-average fields in history files.
+    call glc_io_write_history_tavg_helper(instance, this%history_vars)
+
   end subroutine write_history
 
   !-----------------------------------------------------------------------

@@ -15,7 +15,7 @@
    use glc_time_management, only: iyear, imonth, iday, ihour, iminute, isecond, &
                                   runtype, cesm_date_stamp, elapsed_days, elapsed_days0
    use glc_communicate,     only: my_task, master_task
-   use glimmer_ncdf,        only: add_output, delete_output, nc_errorhandle
+   use glimmer_ncdf,        only: add_output, delete_output, nc_errorhandle, glimmer_nc_output
    use glc_broadcast,       only: broadcast_scalar
    use glimmer_ncio,        only: glimmer_nc_checkwrite, &
                                   glimmer_nc_createfile
@@ -36,8 +36,9 @@
 
 ! !PUBLIC MEMBER FUNCTIONS:
 
-   public :: glc_io_read_restart_time,  &
-             glc_io_write_history,      &
+   public :: glc_io_read_restart_time,         &
+             glc_io_write_history,             &
+             glc_io_write_history_tavg_helper, &
              glc_io_write_restart
 
 ! !PRIVATE MEMBER DATA:
@@ -47,6 +48,10 @@
    ! specification of external_time in the calls to glimmer_nc_checkwrite - so if we use
    ! a baseline year other than 0, we'd need to change how we specify that external_time.
    integer, parameter :: baseline_year = 0
+
+   ! This output structure is accessible to CISM throughout the run, and is
+   ! used to accumulate and average the time-average ("tavg") output fields.
+   type(glimmer_nc_output),  save, pointer :: oc_tavg_helper => null()
 
 !EOP
 !BOC
@@ -120,6 +125,7 @@
 
   subroutine glc_io_write_history(instance, EClock, history_vars, &
        initial_history, history_frequency_metadata)
+
     ! Write a CISM history file
     !
     ! If initial_history is present and true, that means that we're writing a history file
@@ -127,12 +133,15 @@
     !
     ! history_frequency_metadata gives the text to use for the time_period_freq global
     ! attribute. It must be present if initial_history is .false.
-
+    !
     use glad_type
     use glide_io, only : glide_io_create, glide_io_write
     use glad_io, only : glad_io_create, glad_io_write
+
     use glide_nc_custom, only: glide_nc_filldvars
+
     implicit none
+
     type(glad_instance) , intent(inout) :: instance
     type(ESMF_Clock)    , intent(in)    :: EClock
     character(len=*)    , intent(in)    :: history_vars
@@ -145,6 +154,7 @@
     
     ! local variables
     type(glimmer_nc_output),  pointer :: oc => null()
+
     character(len=32) :: file_type
     character(CL) :: filename
     integer(IN)   :: cesmYMD           ! cesm model date
@@ -191,6 +201,7 @@
     oc%nc%filename   = trim(filename)
     oc%nc%vars       = trim(history_vars)
     oc%nc%vars_copy  = oc%nc%vars
+
 !jw TO DO: fill out the rest of the metadata
 !jw    oc%metadata%title =
 !jw    oc%metadata%institution =
@@ -234,9 +245,19 @@
     end if
     
     call glide_nc_filldvars(oc, instance%model)
+
     call glimmer_nc_checkwrite(oc, instance%model, forcewrite=.true., &
          time=instance%glide_time, &
          external_time = real(cesmYR, r8))
+
+    ! Copy oc%total_time from oc_tavg_helper, which has been accumulating the total time.
+    ! We need this total_time in glide_io_write to do time averaging correctly.
+    if (associated(oc_tavg_helper)) then
+       oc%total_time = oc_tavg_helper%total_time
+    else
+       oc%total_time = 0.0d0
+    end if
+
     call glide_io_write(oc, instance%model)
     call glad_io_write(oc, instance)
 
@@ -246,10 +267,103 @@
     end if
 
     oc => null()
+
 !jw TO DO: figure out why deallocate statement crashes the code
 !jw    deallocate(oc)
 
   end subroutine glc_io_write_history
+
+!***********************************************************************
+!BOP
+! !IROUTINE: glc_io_write_history_tavg_helper
+! !INTERFACE:
+
+  subroutine glc_io_write_history_tavg_helper(instance, history_vars)
+
+    ! Manage an auxiliary output structure that is used to handle time-average ("tavg") fields
+    ! in history files.
+    !
+    ! The tavg fields are accumulated after every ice dynamic timestep. Accumulation works as follows:
+    !    * At initialization, we create an auxiliary glimmer_nc_output structure ("oc_tavg_helper") and
+    !      let model%funits%out_first point to it.
+    !    * Within glad_i_step_gcm, there is a call to glide_io_writeall, which calls glide_avg_accumulate
+    !      provided that model%funits%out_first is associated, and has do_averages = .true.
+    !      Thus, all tavg fields contained in the model derived type are accumulated,
+    !      and oc_tavg_helper%total_time is incremented.
+    !    * When it is time to write a CESM history file (in subroutine glc_io_write_history),
+    !      we set oc%total_time = oc_tavg_helper%total_time, so the time average is computed correctly.
+    !    * Then we pass oc_tavg_helper to glide_avg_reset, zeroing out oc_tavg_helper%total_time and the tavg variables.
+    !
+    ! Note: Restart files do not contain tavg fields, so this extra structure is not needed for restarts.
+
+    use glad_type
+    use glide_io, only : glide_io_create, glide_avg_reset
+    use glad_io, only : glad_io_create
+    use glide_nc_custom, only: glide_nc_filldvars
+
+    !WHL - debug
+    use glimmer_log
+
+    implicit none
+
+    type(glad_instance) , intent(inout) :: instance
+    character(len=*)    , intent(in)    :: history_vars
+
+    character(CL) :: filename
+
+    !WHL - debug
+    character(len=150) :: message
+
+!-----------------------------------------------------------------------
+
+    if (associated(oc_tavg_helper)) then
+
+       call write_log('WHL, oc_tavg_helper is already associated; reset the tavg fields')
+
+       ! If tavg fields are present, then reset them now. 
+       if (oc_tavg_helper%do_averages) then
+          call glide_avg_reset(oc_tavg_helper, instance%model)
+          ! Note: Currently Glad has no tavg files, and subroutine glad_avg_reset is not generated.
+          !       If this changes, then uncomment the following line and add 'use glad_io' above.
+!!       call glad_avg_reset(oc_tavg_helper, instance%model)
+       end if
+
+    else
+
+       call write_log('WHL: oc_tavg_helper is not associated; associate now')
+       allocate(oc_tavg_helper)
+
+       ! assign a generic filename
+       !TODO - Create a new dummy filename so this file will not be written to the archive.
+       filename = glc_filename(0, 0, 0, 0, 'history')
+       write(message,*) '   filename =', trim(filename)
+       call write_log(trim(message))
+
+       ! set up a structure that includes all the history vars but will not be written out
+       oc_tavg_helper%freq           = 9999999      ! large number such that output will not be written
+       oc_tavg_helper%append         = .false.
+       oc_tavg_helper%write_init     = .false.
+       oc_tavg_helper%default_xtype  = NF90_DOUBLE  ! WHL - same as oc above.  Wondering why this is not NF90_FLOAT
+       oc_tavg_helper%nc%filename    = ''
+       oc_tavg_helper%nc%filename    = trim(filename)
+       oc_tavg_helper%nc%vars        = trim(history_vars)
+       oc_tavg_helper%nc%vars_copy   = oc_tavg_helper%nc%vars
+
+       ! create the output unit
+       ! Note: With tavg files present, oc_tavg_helper%do_averages is set to .true. in glide_io_create and/or glad_io_create
+       call glimmer_nc_createfile(oc_tavg_helper, instance%model, baseline_year=baseline_year)
+       call glide_io_create(oc_tavg_helper, instance%model, instance%model)
+       call glad_io_create(oc_tavg_helper, instance%model, instance)  !WHL - not sure this is needed
+       call glide_nc_filldvars(oc_tavg_helper, instance%model)
+
+       ! Let model%funits%out_first point to this structure.
+       ! Then it can be accessed from within subroutine glide_io_writeall during calls from glad_i_tstep_gcm.
+       instance%model%funits%out_first => oc_tavg_helper
+
+    end if
+
+  end subroutine glc_io_write_history_tavg_helper
+
 
 !***********************************************************************
 !BOP
