@@ -51,7 +51,7 @@
 
    ! This output structure is accessible to CISM throughout the run, and is
    ! used to accumulate and average the time-average ("tavg") output fields.
-   type(glimmer_nc_output),  save, pointer :: oc_tavg_helper => null()
+   type(glimmer_nc_output), pointer :: oc_tavg_helper => null()
 
 !EOP
 !BOC
@@ -334,8 +334,7 @@
        allocate(oc_tavg_helper)
 
        ! assign a generic filename
-       !TODO - Create a new dummy filename so this file will not be written to the archive.
-       filename = glc_filename(0, 0, 0, 0, 'history')
+       filename = glc_filename(0, 0, 0, 0, 'tavg_helper')
        write(message,*) '   filename =', trim(filename)
        call write_log(trim(message))
 
@@ -543,6 +542,8 @@
   filename_spec = ' '
   if (file_type.eq.'history') then
      filename_spec = '%c.cism%i.h.%y-%m-%d-%s'
+  else if (file_type.eq.'tavg_helper')
+     filename_spec = '%c.cism%i.tavg_helper.%y-%m-%d-%s'
   else if (file_type.eq.'initial_history') then
      ! Give the initial history file (i.e., the file generated based on the diagnostic
      ! solve in initialization) a different extension so that it isn't picked up by the
