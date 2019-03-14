@@ -542,7 +542,7 @@
   filename_spec = ' '
   if (file_type.eq.'history') then
      filename_spec = '%c.cism%i.h.%y-%m-%d-%s'
-  else if (file_type.eq.'tavg_helper')
+  else if (file_type.eq.'tavg_helper') then
      filename_spec = '%c.cism%i.tavg_helper.%y-%m-%d-%s'
   else if (file_type.eq.'initial_history') then
      ! Give the initial history file (i.e., the file generated based on the diagnostic
