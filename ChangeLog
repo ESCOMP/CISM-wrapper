@@ -3,8 +3,60 @@ This file describes what tags were created on master and why
 ================================================================================
 
 ================================================================================
+	Originator: @katetc (Kate Thayer-Calder)
+	Date: March 14, 2019
+	Version: cism2_1_67
+	One-line summary: Addition of tavg history and cime and ctsm updates
+
+	Purpose of changes:
+	        This tag includes updates to write time average history fields in 
+	        CISM-wrapper and code to write out time average total fluxes in CISM. 
+	        Recently, needed modules on Cheyenne have been updated, so this tag 
+	        also includes updates to the Externals.cfg to point to cime tag
+	        ctsm/ctsm1.0/cime5.7.9/n01 and ctsm tag ctsm1.0.dev030 .
+
+	Standalone checkout supported in this tag (Yes/No): Yes
+
+	Changes answers relative to previous tag: For compsets including CTSM
+
+	Bugs fixed (include github issue number): Changes for future CIME and Cheyenne 
+	        module changes.
+
+	Summary of testing: Tests that failed the baseline namelist compare (as expected due to cime and ctsm updates)
+	ERI_Ly15.f09_g17_gl4.T1850G.cheyenne_intel.cism-isostasy_period4 (Overall: NLFAIL)
+	ERI_Ly44.f09_g17_gl20.T1850G.cheyenne_intel.cism-isostasy_period4 (Overall: NLFAIL)
+	ERS_D_Ly3.f09_g17_gl4.T1850G.cheyenne_intel.cism-cmip6_evolving_icesheet (Overall: NLFAIL)
+	ERS_D_Ly3.f09_g17_gl4.T1850G.cheyenne_intel.cism-noevolve (Overall: NLFAIL)
+	ERS_Ly3_N2_D.f09_g17_gl20.T1850G.cheyenne_intel (Overall: NLFAIL)
+	ERS_Ly7.f09_g17_gl4.T1850G.cheyenne_intel (Overall: NLFAIL)
+	SMS_D.f09_g17_gl5.T1850G1.cheyenne_intel (Overall: NLFAIL)
+	SMS_D_Ly1.f09_g17_gl4.T1850G.cheyenne_intel.cism-isostasy_period1 (Overall: NLFAIL)
+	SMS_D_Ly1.f09_g17_gl4.T1850G.cheyenne_intel (Overall: NLFAIL)
+	ERI_N2_Ly9.f09_g17_gl20.T1850G.cheyenne_gnu (Overall: NLFAIL)
+	ERS_D_Ly3.f09_g17_gl5.T1850G1.cheyenne_gnu.cism-noevolve (Overall: NLFAIL)
+	ERS_Ly11.f09_g17_gl20.T1850G.cheyenne_gnu.cism-oneway (Overall: NLFAIL)
+	ERS_Ly11.f09_g17_gl20.T1850G.cheyenne_gnu (Overall: NLFAIL)
+	ERS_Ly20_N2_P2.f09_g17_gl20.T1850G1.cheyenne_gnu (Overall: NLFAIL)
+	ERS_Ly3.f09_g17_gl4.T1850G.cheyenne_gnu.cism-isostasy_period1 (Overall: NLFAIL)
+	ERS_Ly5.f09_g17_gl4.T1850G.cheyenne_gnu.cism-isostasy_period4 (Overall: NLFAIL)
+	NCK_Ly3.f09_g17_gl20.T1850G.cheyenne_gnu (Overall: NLFAIL)
+	SMS_D.f09_g17_gl20.T1850G1.cheyenne_gnu (Overall: NLFAIL)
+	SMS_D_Ly1.f09_g17_gl4.T1850G.cheyenne_gnu (Overall: NLFAIL)
+
+	Tests that differ from baselines (expected due to CTSM update)
+	ERI_Lm24.f10_f10_musgs.I1850Clm50SpG.cheyenne_intel.cism-isostasy_period4 (Overall: DIFF)
+	ERS_Lm24.f10_f10_musgs.I1850Clm50SpG.cheyenne_intel (Overall: DIFF)
+	ERS_Ly3.f10_f10_musgs.I1850Clm50SpG.cheyenne_intel (Overall: DIFF)
+	SMS_Lm13.f10_f10_musgs.I2000Clm50Sp.cheyenne_intel (Overall: DIFF)
+	ERI.f10_f10_musgs.I1850Clm50SpG.cheyenne_gnu.cism-test_coupling (Overall: DIFF)
+	ERS_D_Ld9.f10_f10_musgs.I1850Clm50SpG.cheyenne_gnu.cism-override_glc_frac (Overall: DIFF)
+	SMS_D.T31_g37_gl20.I1850Clm50SpG.cheyenne_gnu.cism-test_coupling (Overall: DIFF)
+
+	All tests on Hobart pass (no baseline compares).
+
+================================================================================
 Originator: @katetc (Kate Thayer-Calder)
-Date: December 7, 2018
+Date: Dcember 7, 2018
 Version: cism2_1_66
 One-line summary: New code to prevent inception of ice caps around Greenland
 
