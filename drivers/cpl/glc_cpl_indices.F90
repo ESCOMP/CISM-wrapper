@@ -14,6 +14,20 @@ module glc_cpl_indices
 
   integer, public :: index_x2g_Sl_tsrf   = 0
   integer, public :: index_x2g_Flgl_qice = 0
+  integer, public :: index_x2g_So_t      = 0  ! ocean temperature at surface
+  integer, public :: index_x2g_So_t_10   = 0  ! ocean temperature at level 10
+  integer, public :: index_x2g_So_t_19   = 0  ! ocean temperature at level 19
+  integer, public :: index_x2g_So_t_26   = 0  ! ocean temperature at level 26
+  integer, public :: index_x2g_So_t_30   = 0  ! ocean temperature at level 30
+  integer, public :: index_x2g_So_t_33   = 0  ! ocean temperature at level 33
+  integer, public :: index_x2g_So_t_35   = 0  ! ocean temperature at level 35
+  integer, public :: index_x2g_So_s      = 0  ! ocean salinity at surface
+  integer, public :: index_x2g_So_s_10   = 0  ! ocean salinity at level 10
+  integer, public :: index_x2g_So_s_19   = 0  ! ocean salinity at level 19
+  integer, public :: index_x2g_So_s_26   = 0  ! ocean salinity at level 26
+  integer, public :: index_x2g_So_s_30   = 0  ! ocean salinity at level 30
+  integer, public :: index_x2g_So_s_33   = 0  ! ocean salinity at level 33
+  integer, public :: index_x2g_So_s_35   = 0  ! ocean salinity at level 35
 
   ! glc -> drv
 
@@ -25,6 +39,9 @@ module glc_cpl_indices
   integer, public :: index_g2x_Flgg_hflx      = 0
   integer, public :: index_g2x_Sg_icemask     = 0
   integer, public :: index_g2x_Sg_icemask_coupled_fluxes = 0
+
+
+
 
 contains
 
@@ -54,6 +71,21 @@ contains
     ! drv -> glc
     index_x2g_Sl_tsrf = mct_avect_indexra(x2g,'Sl_tsrf')
     index_x2g_Flgl_qice = mct_avect_indexra(x2g,'Flgl_qice')
+    index_x2g_So_t    = mct_avect_indexra(x2g,'So_t')
+    index_x2g_So_t_10 = mct_avect_indexra(x2g,'So_t_10')
+    index_x2g_So_t_19 = mct_avect_indexra(x2g,'So_t_19')
+    index_x2g_So_t_26 = mct_avect_indexra(x2g,'So_t_26')
+    index_x2g_So_t_30 = mct_avect_indexra(x2g,'So_t_30')
+    index_x2g_So_t_33 = mct_avect_indexra(x2g,'So_t_33')
+    index_x2g_So_t_35 = mct_avect_indexra(x2g,'So_t_35')
+    index_x2g_So_s    = mct_avect_indexra(x2g,'So_s')
+    index_x2g_So_s_10 = mct_avect_indexra(x2g,'So_s_10')
+    index_x2g_So_s_19 = mct_avect_indexra(x2g,'So_s_19')
+    index_x2g_So_s_26 = mct_avect_indexra(x2g,'So_s_26')
+    index_x2g_So_s_30 = mct_avect_indexra(x2g,'So_s_30')
+    index_x2g_So_s_33 = mct_avect_indexra(x2g,'So_s_33')
+    index_x2g_So_s_35 = mct_avect_indexra(x2g,'So_s_35')
+
 
     call mct_aVect_clean(x2g)
     call mct_aVect_clean(g2x)

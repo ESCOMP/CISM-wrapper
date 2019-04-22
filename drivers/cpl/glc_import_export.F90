@@ -31,6 +31,20 @@ contains
 
     call vector_to_spatial(x2g(index_x2g_Sl_tsrf,:), tsfc)
     call vector_to_spatial(x2g(index_x2g_Flgl_qice,:), qsmb)
+    call vector_to_spatial(x2g(index_x2g_So_s,;), salinity1)
+    call vector_to_spatial(x2g(index_x2g_So_s_10,;), salinity2)
+    call vector_to_spatial(x2g(index_x2g_So_s_19,;), salinity3)
+    call vector_to_spatial(x2g(index_x2g_So_s_26,;), salinity4)
+    call vector_to_spatial(x2g(index_x2g_So_s_30,;), salinity5)
+    call vector_to_spatial(x2g(index_x2g_So_s_33,;), salinity6)
+    call vector_to_spatial(x2g(index_x2g_So_s_35,;), salinity7)
+    call vector_to_spatial(x2g(index_x2g_So_t,;), tocn1)
+    call vector_to_spatial(x2g(index_x2g_So_t_10,;), tocn2)
+    call vector_to_spatial(x2g(index_x2g_So_t_19,;), tocn3)
+    call vector_to_spatial(x2g(index_x2g_So_t_26,;), tocn4)
+    call vector_to_spatial(x2g(index_x2g_So_t_30,;), tocn5)
+    call vector_to_spatial(x2g(index_x2g_So_t_33,;), tocn6)
+    call vector_to_spatial(x2g(index_x2g_So_t_35,;), tocn7)
 
     tsfc = tsfc - tkfrz
 
