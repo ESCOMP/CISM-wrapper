@@ -33,7 +33,22 @@ module glc_fields
   real(r8),dimension(:,:), allocatable ::  & 
      tsfc        ,&! surface temperature (Celsius)
                    ! received from coupler in Kelvin, must be converted
+     salinity1   ,&! POP salinity at level0
+     salinity2   ,&! POP salinity at level10
+     salinity3   ,&! POP salinity at level19
+     salinity4   ,&! POP salinity at level26
+     salinity5   ,&! POP salinity at level30
+     salinity6   ,&! POP salinity at level33
+     salinity7   ,&! POP salinity at level35
+     tocn1       ,&! POP temperature at level0
+     tocn2       ,&! POP temperature at level10
+     tocn3       ,&! POP temperature at level19
+     tocn4       ,&! POP temperature at level26
+     tocn5       ,&! POP temperature at level30
+     tocn6       ,&! POP temperature at level33
+     tocn7       ,&! POP temperature at level35
      qsmb          ! flux of new glacier ice (kg/m^2/s)
+
 
   ! output to coupler
 
@@ -87,6 +102,20 @@ module glc_fields
 
    ! from coupler
    allocate(tsfc(nx,ny))
+   allocate(salinity1(nx,ny))
+   allocate(salinity2(nx,ny))
+   allocate(salinity3(nx,ny))
+   allocate(salinity4(nx,ny))
+   allocate(salinity5(nx,ny))
+   allocate(salinity6(nx,ny))
+   allocate(salinity7(nx,ny))
+   allocate(tocn1(nx,ny))
+   allocate(tocn2(nx,ny))
+   allocate(tocn3(nx,ny))
+   allocate(tocn4(nx,ny))
+   allocate(tocn5(nx,ny))
+   allocate(tocn6(nx,ny))
+   allocate(tocn7(nx,ny))
    allocate(qsmb(nx,ny))
 
    ! to coupler
@@ -127,6 +156,20 @@ module glc_fields
 
    ! from coupler
    deallocate(tsfc)
+   deallocate(salinity1(nx,ny))
+   deallocate(salinity2(nx,ny))
+   deallocate(salinity3(nx,ny))
+   deallocate(salinity4(nx,ny))
+   deallocate(salinity5(nx,ny))
+   deallocate(salinity6(nx,ny))
+   deallocate(salinity7(nx,ny))
+   deallocate(tocn1(nx,ny))
+   deallocate(tocn2(nx,ny))
+   deallocate(tocn3(nx,ny))
+   deallocate(tocn4(nx,ny))
+   deallocate(tocn5(nx,ny))
+   deallocate(tocn6(nx,ny))
+   deallocate(tocn7(nx,ny))
    deallocate(qsmb)
 
    ! to coupler

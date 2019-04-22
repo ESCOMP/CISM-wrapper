@@ -76,7 +76,12 @@
    use glad_main
 
    use glc_fields, only: glc_allocate_fields, ice_sheet,   &
-                         tsfc, qsmb,       &
+                         tsfc, 
+                         salinity1, salinity2, salinity3,  &
+                         salinity4, salinity5, salinity6,  &
+                         salinity7, tocn1, tocn2, tocn3,   &
+                         tocn4, tocn5, tocn6, tocn7,       &
+                         qsmb,                             &
                          ice_covered, topo,   rofi,   rofl,  hflx,  &
                          ice_sheet_grid_mask
 
@@ -311,6 +316,20 @@
   call glc_allocate_fields(nx, ny)
 
   tsfc(:,:) = 0._r8
+  salinity1(:,:) = 0._r8
+  salinity2(:,:) = 0._r8
+  salinity3(:,:) = 0._r8
+  salinity4(:,:) = 0._r8
+  salinity5(:,:) = 0._r8
+  salinity6(:,:) = 0._r8
+  salinity7(:,:) = 0._r8
+  tocn1(:,:) = 0._r8
+  tocn2(:,:) = 0._r8
+  tocn3(:,:) = 0._r8
+  tocn4(:,:) = 0._r8
+  tocn5(:,:) = 0._r8
+  tocn6(:,:) = 0._r8
+  tocn7(:,:) = 0._r8
   qsmb(:,:) = 0._r8
   
   call glad_get_initial_outputs(ice_sheet, instance_index = 1, &

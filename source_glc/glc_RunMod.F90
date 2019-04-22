@@ -127,6 +127,21 @@
 !
 !        For PDD scheme, tsfc = 2m reference temperature (Celsius)
 !                        qsmb = precipitation (kg/m^2/s)
+!
+!        salinity1 = POP ocean salinity at level0
+!        salinity2 = POP ocean salinity at level10
+!        salinity3 = POP ocean salinity at level19
+!        salinity4 = POP ocean salinity at level26
+!        salinity5 = POP ocean salinity at level30
+!        salinity6 = POP ocean salinity at level33
+!        salinity7 = POP ocean salinity at level35
+!        tocn1 = POP ocean temperature at level0
+!        tocn2 = POP ocean temperature at level10
+!        tocn3 = POP ocean temperature at level19
+!        tocn4 = POP ocean temperature at level26
+!        tocn5 = POP ocean temperature at level30
+!        tocn6 = POP ocean temperature at level33
+!        tocn7 = POP ocean temperature at level35
 !-----------------------------------------------------------------------
 
      if (glc_smb) then
@@ -145,6 +160,12 @@
                         instance_index = instance_index,               &
                         time = nint(thour),                            &
                         qsmb = qsmb, tsfc = tsfc,                      &
+                        salinit1 = salinit1, salinity2 = salinity2,    &
+                        salinit3 = salinit3, salinity4 = salinity4,    &
+                        salinit5 = salinit5, salinity6 = salinity6,    &
+                        salinit7 = salinit7, tocn1 = tocn1,            &   
+                        tocn2 = tocn2, tocn3 = tocn3, tocn4 = tocn4,   &
+                        tocn5 = tocn5, tocn6 = tocn6, tocn7 = tocn7,   &
                         ice_covered = ice_covered, topo = topo,        &
                         rofi = rofi, rofl = rofl, hflx = hflx,         &
                         ice_sheet_grid_mask=ice_sheet_grid_mask,       &
