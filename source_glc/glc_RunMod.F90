@@ -160,12 +160,19 @@
                         instance_index = instance_index,               &
                         time = nint(thour),                            &
                         qsmb = qsmb, tsfc = tsfc,                      &
-                        salinit1 = salinit1, salinity2 = salinity2,    &
-                        salinit3 = salinit3, salinity4 = salinity4,    &
-                        salinit5 = salinit5, salinity6 = salinity6,    &
-                        salinit7 = salinit7, tocn1 = tocn1,            &   
+                        salinity1 = salinity1, salinity2 = salinity2   &
+                        salinity3 = salinity3, salinity4 = salinity4,  &
+                        salinity5 = salinity5, salinity6 = salinity6   &
+                        salinity7 = salinity7, tocn1 = tocn1,          &   
                         tocn2 = tocn2, tocn3 = tocn3, tocn4 = tocn4,   &
                         tocn5 = tocn5, tocn6 = tocn6, tocn7 = tocn7,   &
+                        thermal_forcing1 = thermal_forcing1,           &
+                        thermal_forcing2 = thermal_forcing2,           &
+                        thermal_forcing3 = thermal_forcing3,           &
+                        thermal_forcing4 = thermal_forcing4,           &
+                        thermal_forcing5 = thermal_forcing5,           &
+                        thermal_forcing6 = thermal_forcing6,           &
+                        thermal_forcing7 = thermal_forcing7,           &
                         ice_covered = ice_covered, topo = topo,        &
                         rofi = rofi, rofl = rofl, hflx = hflx,         &
                         ice_sheet_grid_mask=ice_sheet_grid_mask,       &
