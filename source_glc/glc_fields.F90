@@ -49,6 +49,9 @@ module glc_fields
      tocn7       ,&! POP temperature at level35
      qsmb          ! flux of new glacier ice (kg/m^2/s)
 
+  real(r8),dimension(:,:,:), allocatable ::  &
+     salinity    ,&! POP 3D salinity 
+     tocn          ! POP 3D ocean temperature
 
   ! output to coupler
 
@@ -118,6 +121,10 @@ module glc_fields
    allocate(tocn7(nx,ny))
    allocate(qsmb(nx,ny))
 
+! GL (2019-05-01) Hard coding a 3D allocation for now
+   allocate(salinity(7,nx,ny))
+   allocate(tocn(7,nx,ny))
+
    ! to coupler
    allocate(ice_covered(nx,ny))
    allocate(topo(nx,ny))
@@ -156,21 +163,25 @@ module glc_fields
 
    ! from coupler
    deallocate(tsfc)
-   deallocate(salinity1(nx,ny))
-   deallocate(salinity2(nx,ny))
-   deallocate(salinity3(nx,ny))
-   deallocate(salinity4(nx,ny))
-   deallocate(salinity5(nx,ny))
-   deallocate(salinity6(nx,ny))
-   deallocate(salinity7(nx,ny))
-   deallocate(tocn1(nx,ny))
-   deallocate(tocn2(nx,ny))
-   deallocate(tocn3(nx,ny))
-   deallocate(tocn4(nx,ny))
-   deallocate(tocn5(nx,ny))
-   deallocate(tocn6(nx,ny))
-   deallocate(tocn7(nx,ny))
+   deallocate(salinity1)
+   deallocate(salinity2)
+   deallocate(salinity3)
+   deallocate(salinity4)
+   deallocate(salinity5)
+   deallocate(salinity6)
+   deallocate(salinity7)
+   deallocate(tocn1)
+   deallocate(tocn2)
+   deallocate(tocn3)
+   deallocate(tocn4)
+   deallocate(tocn5)
+   deallocate(tocn6)
+   deallocate(tocn7)
    deallocate(qsmb)
+
+   ! Used to store from coupler fields
+   deallocate(salinity)
+   deallocate(tocn)
 
    ! to coupler
    deallocate(ice_covered)

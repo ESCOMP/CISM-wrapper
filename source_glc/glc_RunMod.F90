@@ -135,6 +135,7 @@
 !        salinity5 = POP ocean salinity at level30
 !        salinity6 = POP ocean salinity at level33
 !        salinity7 = POP ocean salinity at level35
+!        salinity  = POP ocean salinity 3D field containing layers 1-7
 !        tocn1 = POP ocean temperature at level0
 !        tocn2 = POP ocean temperature at level10
 !        tocn3 = POP ocean temperature at level19
@@ -142,6 +143,7 @@
 !        tocn5 = POP ocean temperature at level30
 !        tocn6 = POP ocean temperature at level33
 !        tocn7 = POP ocean temperature at level35
+!        tocn  = POP ocean temperature 3D field containing layers 1-7
 !-----------------------------------------------------------------------
 
      if (glc_smb) then
@@ -155,24 +157,24 @@
          ! TODO(wjs, 2015-03-23) We will need a loop over instances, either here or
          ! around the call to glc_run
          instance_index = 1
+        
+
+         ! TODO(GL,2019-05-01) Right now I am hard coding the nunber of ocean layer to 
+         ! fill the salinity and ocean temperature field. I should find a way to get its 
+         ! value in a more general way.
+      
          
-         call glad_gcm (params = ice_sheet, &
+         call compute_field_3D(tocn1,tocn2,tocn3,tocn4,tocn5,tocn6,tocn7,tocn) 
+         call compute_field_3D(salinity1,salinity2,salinity3,salinity4,&
+                               salinity5,salinity6,salinity7,salinity)
+
+
+ 
+         call glad_gcm( params = ice_sheet,                            &
                         instance_index = instance_index,               &
                         time = nint(thour),                            &
                         qsmb = qsmb, tsfc = tsfc,                      &
-                        salinity1 = salinity1, salinity2 = salinity2   &
-                        salinity3 = salinity3, salinity4 = salinity4,  &
-                        salinity5 = salinity5, salinity6 = salinity6   &
-                        salinity7 = salinity7, tocn1 = tocn1,          &   
-                        tocn2 = tocn2, tocn3 = tocn3, tocn4 = tocn4,   &
-                        tocn5 = tocn5, tocn6 = tocn6, tocn7 = tocn7,   &
-                        thermal_forcing1 = thermal_forcing1,           &
-                        thermal_forcing2 = thermal_forcing2,           &
-                        thermal_forcing3 = thermal_forcing3,           &
-                        thermal_forcing4 = thermal_forcing4,           &
-                        thermal_forcing5 = thermal_forcing5,           &
-                        thermal_forcing6 = thermal_forcing6,           &
-                        thermal_forcing7 = thermal_forcing7,           &
+                        salinity = salinity, tocn = tocn,              &        
                         ice_covered = ice_covered, topo = topo,        &
                         rofi = rofi, rofl = rofl, hflx = hflx,         &
                         ice_sheet_grid_mask=ice_sheet_grid_mask,       &
@@ -191,7 +193,7 @@
 
      endif   ! glc_smb
 
-!-----------------------------------------------------------------------
+!!-----------------------------------------------------------------------
 !
 !  update timestep counter, set corresponding model time, set
 !  time-dependent logical switches to determine program flow.
@@ -215,6 +217,35 @@
 !EOC
 
    end subroutine glc_run
+
+!***********************************************************************
+
+  subroutine compute_field_3D(field1, field2, field3,    &
+                              field4, field5, field6,    &
+                              field7, field3D)
+
+    ! This subroutine puts individual 2D fields into a 3D field variable.
+
+    real(r8),dimension(:,:),intent(in)    :: field1   
+    real(r8),dimension(:,:),intent(in)    :: field2  
+    real(r8),dimension(:,:),intent(in)    :: field3   
+    real(r8),dimension(:,:),intent(in)    :: field4   
+    real(r8),dimension(:,:),intent(in)    :: field5   
+    real(r8),dimension(:,:),intent(in)    :: field6   
+    real(r8),dimension(:,:),intent(in)    :: field7  
+    real(r8),dimension(:,:,:),intent(out) :: field3D   
+
+    field3D(1,:,:) = field1
+    field3D(2,:,:) = field2
+    field3D(3,:,:) = field3
+    field3D(4,:,:) = field4
+    field3D(5,:,:) = field5
+    field3D(6,:,:) = field6
+    field3D(7,:,:) = field7
+
+  end subroutine compute_field_3D
+
+
 
 !***********************************************************************
 !BOP

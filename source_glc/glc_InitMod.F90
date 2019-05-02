@@ -76,7 +76,7 @@
    use glad_main
 
    use glc_fields, only: glc_allocate_fields, ice_sheet,   &
-                         tsfc, 
+                         tsfc,                             &
                          salinity1, salinity2, salinity3,  &
                          salinity4, salinity5, salinity6,  &
                          salinity7, tocn1, tocn2, tocn3,   &
@@ -280,7 +280,7 @@
                        climate_tstep,                        &
                        (/paramfile/),                        &
                        daysinyear = days_in_year,            &
-                       start_time = nhour_glad,             &
+                       start_time = nhour_glad,              &
                        gcm_restart = cesm_restart,           &
                        gcm_restart_file = cesm_restart_file, &
                        gcm_debug = cism_debug,               &
@@ -333,11 +333,11 @@
   qsmb(:,:) = 0._r8
   
   call glad_get_initial_outputs(ice_sheet, instance_index = 1, &
-                                ice_covered = ice_covered, &
-                                topo = topo, &
-                                rofi = rofi, &
-                                rofl = rofl, &
-                                hflx = hflx, &
+                                ice_covered = ice_covered,     &
+                                topo = topo,                   &
+                                rofi = rofi,                   &
+                                rofl = rofl,                   &
+                                hflx = hflx,                   &
                                 ice_sheet_grid_mask = ice_sheet_grid_mask)
   
   call glad_initialization_wrapup(ice_sheet)
