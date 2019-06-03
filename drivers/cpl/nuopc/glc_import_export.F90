@@ -12,7 +12,8 @@ module glc_import_export
   use glc_constants       , only : verbose, stdout, stderr, tkfrz, zero_gcm_fluxes
   use glc_communicate     , only : my_task, master_task
   use glc_time_management , only : iyear,imonth,iday,ihour,iminute,isecond,runtype
-  use med_constants_mod   , only : R8, CS
+  use shr_kind_mod        , only : r8 => shr_kind_r8, cl=>shr_kind_cl, cs=>shr_kind_cs
+  use glc_shr_methods     , only : chkerr
 
   implicit none
   private ! except
@@ -50,16 +51,14 @@ module glc_import_export
 contains
 !===============================================================================
 
-  subroutine advertise_fields(gcomp, rc)
+  subroutine advertise_fields(gcomp, flds_scalar_name, rc)
 
-    ! uses
-    use glc_constants         , only : glc_smb
-    use shr_nuopc_methods_mod , only : shr_nuopc_methods_ChkErr
-    use shr_nuopc_scalars_mod , only : flds_scalar_name
+    use glc_constants, only : glc_smb
 
     ! input/output variables
-    type(ESMF_GridComp)  :: gcomp
-    integer, intent(out) :: rc
+    type(ESMF_GridComp)            :: gcomp
+    character(len=*) , intent(in)  :: flds_scalar_name
+    integer          , intent(out) :: rc
 
     ! local variables
     type(ESMF_State)       :: importState
@@ -72,7 +71,7 @@ contains
     rc = ESMF_SUCCESS
 
     call NUOPC_ModelGet(gcomp, importState=importState, exportState=exportState, rc=rc)
-    if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
+    if (chkErr(rc,__LINE__,u_FILE_u)) return
 
     !--------------------------------
     ! Advertise export fields
@@ -93,7 +92,9 @@ contains
     do n = 1,fldsFrGlc_num
        call NUOPC_Advertise(exportState, standardName=fldsFrGlc(n)%stdname, &
             TransferOfferGeomObject='will provide', rc=rc)
-       if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
+       if (chkErr(rc,__LINE__,u_FILE_u)) return
+       call ESMF_LogWrite(subname//'Export field'//': '//trim(fldsFrGlc(n)%stdname), ESMF_LOGMSG_INFO)
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
     enddo
 
     !--------------------------------
@@ -109,7 +110,9 @@ contains
     do n = 1,fldsToGlc_num
        call NUOPC_Advertise(importState, standardName=fldsToGlc(n)%stdname, &
             TransferOfferGeomObject='will provide', rc=rc)
-       if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
+       if (chkErr(rc,__LINE__,u_FILE_u)) return
+       call ESMF_LogWrite(subname//'Import field'//': '//trim(FldsToGlc(n)%stdname), ESMF_LOGMSG_INFO)
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
     enddo
 
     ! Set glc_smb
@@ -123,28 +126,21 @@ contains
 
   !===============================================================================
 
-  subroutine realize_fields(gcomp, Emesh, rc)
-
-    ! uses
-    use shr_nuopc_scalars_mod , only : flds_scalar_name, flds_scalar_num
-    use shr_nuopc_methods_mod , only : shr_nuopc_methods_ChkErr
+  subroutine realize_fields(importState, exportState, Emesh, flds_scalar_name, flds_scalar_num, rc)
 
     ! input/output variables
-    type(ESMF_GridComp)  :: gcomp
-    type(ESMF_Mesh)      :: Emesh
-    integer, intent(out) :: rc
+    type(ESMF_State)    , intent(inout) :: importState
+    type(ESMF_State)    , intent(inout) :: exportState
+    type(ESMF_Mesh)     , intent(in)    :: Emesh
+    character(len=*)    , intent(in)    :: flds_scalar_name
+    integer             , intent(in)    :: flds_scalar_num 
+    integer             , intent(out)   :: rc
 
     ! local variables
-    type(ESMF_State)     :: importState
-    type(ESMF_State)     :: exportState
-    integer              :: dbrc
     character(len=*), parameter :: subname='(glc_import_export:realize_fields)'
     !---------------------------------------------------------------------------
 
     rc = ESMF_SUCCESS
-
-    call NUOPC_ModelGet(gcomp, importState=importState, exportState=exportState, rc=rc)
-    if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
 
     call fldlist_realize( &
          state=ExportState, &
@@ -154,7 +150,7 @@ contains
          flds_scalar_num=flds_scalar_num, &
          tag=subname//':cismExport',&
          mesh=Emesh, rc=rc)
-    if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
+    if (chkErr(rc,__LINE__,u_FILE_u)) return
 
     call fldlist_realize( &
          state=importState, &
@@ -164,7 +160,7 @@ contains
          flds_scalar_num=flds_scalar_num, &
          tag=subname//':cismImport',&
          mesh=Emesh, rc=rc)
-    if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
+    if (chkErr(rc,__LINE__,u_FILE_u)) return
 
   end subroutine realize_fields
 
@@ -176,9 +172,7 @@ contains
     ! Convert the input data from the mediator to cism
     !---------------------------------------------------------------------------
 
-    ! uses
-    use glc_fields            , only : tsfc, qsmb 
-    use shr_nuopc_methods_mod , only : shr_nuopc_methods_ChkErr
+    use glc_fields, only : tsfc, qsmb 
 
     ! input/output variabes
     type(ESMF_State)     :: importState 
@@ -194,10 +188,10 @@ contains
 
     ! Get cism import fields
     call state_getimport(importState, 'Sl_tsrf', tsfc, rc=rc)
-    if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
+    if (chkErr(rc,__LINE__,u_FILE_u)) return
 
     call state_getimport(importState, 'Flgl_qice', qsmb, rc=rc)
-    if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
+    if (chkErr(rc,__LINE__,u_FILE_u)) return
 
     tsfc = tsfc - tkfrz
 
@@ -218,13 +212,11 @@ contains
     ! Convert the cism data to export data to the mediator
     !---------------------------------------------------------------------------
 
-    ! uses
-    use glc_indexing          , only : nx, ny
-    use glc_fields            , only : ice_covered, topo, rofi, rofl 
-    use glc_fields            , only : hflx, ice_sheet_grid_mask
-    use glc_route_ice_runoff  , only : route_ice_runoff    
-    use glc_override_frac     , only : frac_overrides_enabled, do_frac_overrides
-    use shr_nuopc_methods_mod , only : shr_nuopc_methods_ChkErr
+    use glc_indexing         , only : nx, ny
+    use glc_fields           , only : ice_covered, topo, rofi, rofl 
+    use glc_fields           , only : hflx, ice_sheet_grid_mask
+    use glc_route_ice_runoff , only : route_ice_runoff    
+    use glc_override_frac    , only : frac_overrides_enabled, do_frac_overrides
 
     ! input/output variabes
     type(ESMF_State)     :: exportState
@@ -303,28 +295,28 @@ contains
    ! Fill export state 
 
     call state_setexport(exportState, 'Fogg_rofi', rofi_to_ocn, rc=rc)
-    if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
+    if (chkErr(rc,__LINE__,u_FILE_u)) return
 
     call state_setexport(exportState, 'Figg_rofi', rofi_to_ice, rc=rc)
-    if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
+    if (chkErr(rc,__LINE__,u_FILE_u)) return
 
     call state_setexport(exportState, 'Fogg_rofl', rofl_to_cpl, rc=rc)
-    if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
+    if (chkErr(rc,__LINE__,u_FILE_u)) return
 
     call state_setexport(exportState, 'Sg_ice_covered', ice_covered_to_cpl, rc=rc)
-    if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
+    if (chkErr(rc,__LINE__,u_FILE_u)) return
 
     call state_setexport(exportState, 'Sg_topo', topo_to_cpl, rc=rc)
-    if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
+    if (chkErr(rc,__LINE__,u_FILE_u)) return
 
     call state_setexport(exportState, 'Flgg_hflx', hflx_to_cpl, rc=rc)
-    if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
+    if (chkErr(rc,__LINE__,u_FILE_u)) return
 
     call state_setexport(exportState, 'Sg_icemask', ice_sheet_grid_mask, rc=rc)
-    if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
+    if (chkErr(rc,__LINE__,u_FILE_u)) return
 
     call state_setexport(exportState, 'Sg_icemask_coupled_fluxes', icemask_coupled_fluxes, rc=rc)
-    if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
+    if (chkErr(rc,__LINE__,u_FILE_u)) return
 
     deallocate(icemask_coupled_fluxes)
     deallocate(hflx_to_cpl)
@@ -341,6 +333,8 @@ contains
   !===============================================================================
 
   subroutine fldlist_add(num, fldlist, stdname)
+
+    ! intput/output variables
     integer,                    intent(inout) :: num
     type(fld_list_type),        intent(inout) :: fldlist(:)
     character(len=*),           intent(in)    :: stdname
@@ -373,6 +367,7 @@ contains
     use ESMF  , only : ESMF_LogFoundError, ESMF_LOGMSG_INFO, ESMF_SUCCESS
     use ESMF  , only : ESMF_LogWrite, ESMF_LOGMSG_ERROR, ESMF_LOGERR_PASSTHRU
 
+    ! intput/output variables
     type(ESMF_State)    , intent(inout) :: state
     type(fld_list_type) , intent(in)    :: fldList(:)
     integer             , intent(in)    :: numflds
@@ -453,7 +448,7 @@ contains
       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=u_FILE_u)) return
 
       field = ESMF_FieldCreate(name=trim(flds_scalar_name), grid=grid, typekind=ESMF_TYPEKIND_R8, &
-           ungriddedLBound=(/1/), ungriddedUBound=(/flds_scalar_num/), rc=rc)
+           ungriddedLBound=(/1/), ungriddedUBound=(/flds_scalar_num/), gridToFieldMap=(/2/), rc=rc)
       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=u_FILE_u)) return
 
     end subroutine SetScalarField
@@ -468,9 +463,7 @@ contains
     ! Map import state field to output array
     ! ----------------------------------------------
 
-    ! uses
-    use glc_indexing          , only : vector_to_spatial
-    use shr_nuopc_methods_mod , only : shr_nuopc_methods_ChkErr
+    use glc_indexing, only : vector_to_spatial
 
     ! input/output variables
     type(ESMF_State)    , intent(in)    :: state
@@ -493,14 +486,14 @@ contains
 
     ! Determine if field with name fldname exists in state
     call ESMF_StateGet(state, trim(fldname), itemFlag, rc=rc)
-    if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
+    if (chkErr(rc,__LINE__,u_FILE_u)) return
 
     ! If field exists then create output array - else do nothing
     if (itemflag /= ESMF_STATEITEM_NOTFOUND) then
 
        ! get field pointer
        call state_getfldptr(state, trim(fldname), fldptr, rc)
-       if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
+       if (chkErr(rc,__LINE__,u_FILE_u)) return
 
        ! determine output array
        call vector_to_spatial(fldptr, output)
@@ -529,7 +522,6 @@ contains
 
     ! uses
     use glc_indexing          , only : spatial_to_vector
-    use shr_nuopc_methods_mod , only : shr_nuopc_methods_ChkErr
 
     ! input/output variables
     type(ESMF_State)    , intent(inout) :: state
@@ -552,14 +544,14 @@ contains
 
     ! Determine if field with name fldname exists in state
     call ESMF_StateGet(state, trim(fldname), itemFlag, rc=rc)
-    if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
+    if (chkErr(rc,__LINE__,u_FILE_u)) return
 
     ! if field exists then create output array - else do nothing
     if (itemflag /= ESMF_STATEITEM_NOTFOUND) then
 
        ! get field pointer
        call state_getfldptr(state, trim(fldname), fldptr, rc)
-       if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
+       if (chkErr(rc,__LINE__,u_FILE_u)) return
 
        ! set fldptr values to input array
        call spatial_to_vector(input, fldptr)
@@ -586,11 +578,9 @@ contains
     ! Get pointer to a state field
     ! ----------------------------------------------
 
-    ! uses
-    use ESMF                  , only : ESMF_State, ESMF_Field, ESMF_Mesh, ESMF_FieldStatus_Flag
-    use ESMF                  , only : ESMF_StateGet, ESMF_FieldGet, ESMF_MeshGet
-    use ESMF                  , only : ESMF_FIELDSTATUS_COMPLETE, ESMF_FAILURE
-    use shr_nuopc_methods_mod , only : shr_nuopc_methods_ChkErr
+    use ESMF , only : ESMF_State, ESMF_Field, ESMF_Mesh, ESMF_FieldStatus_Flag
+    use ESMF , only : ESMF_StateGet, ESMF_FieldGet, ESMF_MeshGet
+    use ESMF , only : ESMF_FIELDSTATUS_COMPLETE, ESMF_FAILURE
 
     ! input/output variables
     type(ESMF_State),  intent(in)    :: State
@@ -611,10 +601,10 @@ contains
     call ESMF_LogWrite(trim(subname)//": called", ESMF_LOGMSG_INFO, rc=dbrc)
 
     call ESMF_StateGet(State, itemName=trim(fldname), field=lfield, rc=rc)
-    if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
+    if (chkErr(rc,__LINE__,u_FILE_u)) return
 
     call ESMF_FieldGet(lfield, status=status, rc=rc)
-    if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
+    if (chkErr(rc,__LINE__,u_FILE_u)) return
 
     if (status /= ESMF_FIELDSTATUS_COMPLETE) then
        call ESMF_LogWrite(trim(subname)//": ERROR data not allocated ", ESMF_LOGMSG_INFO, rc=rc)
@@ -622,10 +612,10 @@ contains
        return
     else
        call ESMF_FieldGet(lfield, mesh=lmesh, rc=rc)
-       if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
+       if (chkErr(rc,__LINE__,u_FILE_u)) return
 
        call ESMF_MeshGet(lmesh, numOwnedNodes=nnodes, numOwnedElements=nelements, rc=rc)
-       if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
+       if (chkErr(rc,__LINE__,u_FILE_u)) return
 
        if (nnodes == 0 .and. nelements == 0) then
           call ESMF_LogWrite(trim(subname)//": no local nodes or elements ", ESMF_LOGMSG_INFO, rc=dbrc)
@@ -634,7 +624,7 @@ contains
        end if
 
        call ESMF_FieldGet(lfield, farrayPtr=fldptr, rc=rc)
-       if (shr_nuopc_methods_ChkErr(rc,__LINE__,u_FILE_u)) return
+       if (chkErr(rc,__LINE__,u_FILE_u)) return
     endif  ! status
 
     call ESMF_LogWrite(trim(subname)//": done", ESMF_LOGMSG_INFO, rc=dbrc)
