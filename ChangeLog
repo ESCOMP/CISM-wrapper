@@ -4,6 +4,32 @@ This file describes what tags were created on master and why
 
 ================================================================================
 	Originator: @katetc (Kate Thayer-Calder)
+	Date: June 21, 2019
+	Version: cism2_1_68
+	One-line summary: Fix to tavg to support longer filenames and cime and ctsm updates
+
+	Purpose of changes:
+	      Removed a debug write statement that caused errors when filenames get
+	      too long. This addresses github issue #27 in cism-wrapper. This tag
+	      also includes an update to cime tag ctsm/ctsm1.0/cime5.7.9/n05 and an
+	      update to cism hash 9f57475aaa. This hash only adds support for the
+	      new Cheyenne modules in CISM-standalone builds.
+
+	Standalone checkout supported in this tag (Yes/No): Yes
+
+	Changes answers relative to previous tag: For just a few compsets including CTSM
+
+	Bugs fixed (include github issue number): Changes for future CIME and Cheyenne
+	        module changes.
+
+	Summary of testing: 	Tests that differ from baselines (expected due to CTSM update)
+	ERS_D_Ld9.f10_f10_musgs.I1850Clm50SpG.cheyenne_gnu.cism-override_glc_frac (Overall: DIFF)
+	SMS_Lm13.f10_f10_musgs.I2000Clm50Sp.cheyenne_intel (Overall: DIFF)
+
+	All tests on Hobart pass (no baseline compares).
+
+================================================================================
+	Originator: @katetc (Kate Thayer-Calder)
 	Date: March 14, 2019
 	Version: cism2_1_67
 	One-line summary: Addition of tavg history and cime and ctsm updates
