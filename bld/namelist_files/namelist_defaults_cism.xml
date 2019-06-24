@@ -147,6 +147,10 @@ attributes to express the dependency.
 
 <bmlt_float>0</bmlt_float>
 
+<bmlt_float_thermal_forcing_param>0</bmlt_float_thermal_forcing_param>
+
+<ocea_data_domain>0</ocea_data_domain>
+
 <!-- basal_mass_balance CISM default -->
 <basal_mass_balance>1</basal_mass_balance>
 

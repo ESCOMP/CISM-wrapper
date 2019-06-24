@@ -490,7 +490,7 @@ id="bmlt_float"
 type="integer" 
 category="cism_config_options"
 group="cism_config_options"
-valid_values="0,1,2,3,4,5,6,7" >
+valid_values="0,1,2,3,4,5,6" >
 Basal melt rate for floating ice
 0: Basal melt rate = 0 for floating ice
 1: Depth-dependent basal melt rate for floating ice as prescribed for MISMIP+
@@ -498,8 +498,32 @@ Basal melt rate for floating ice
 3: Depth-dependent basal melt rate for floating ice
 4: External basal melt rate field (from input file or coupler)
 5: [NOT SUPPORTED] Basal melt rate for floating ice from MISOMIP ocean forcing with plume model
-6: [NOT SUPPORTED] Basal melt rate for floating ice from ISMIP6 ocean forcing
-7: [NOT SUPPORTED] Basal melt rate for floating ice from POP ocean forcing with thermal forcing interpolation
+6: [NOT SUPPORTED] Basal melt rate for floating ice computed as a function of 3D thermal-forcing field. 
+Default: 0
+</entry>
+
+<entry
+id="bmlt_float_thermal_forcing_param"
+type="integer"
+category="cism_config_options"
+group="cism_config_options"
+valid_values="0,1,2" >
+Parameterization on how to compute thermal forcing (TF)
+0: bmlt_float is a quadratic function of TF
+1: ISMIP6 local quadratic function with deltaT_basin correction
+2: ISMIP6 nonlocal quadratic function with deltaT_basin correction
+Default: 0
+</entry>
+
+<entry
+id="ocean_data_domain:"
+type="integer"
+category="cism_config_options"
+group="cism_config_options"
+valid_values="0,1,2" >
+Option to supply ocean data to CISM
+0: ocean data supplied for ocean domain only; extrapolation needed to sub-shelf cavities
+1: ocean data already extrapolated to potential shelf cavities
 Default: 0
 </entry>
 
