@@ -601,6 +601,18 @@ Options 3, 4 and 5 are for Glissade dycore only
 Default: 0 for cism1, 3 for cism2
 </entry>
 
+<entry
+id="enable_acab_anomaly"
+type="logical"
+category="cism_config_options"
+group="cism_config_options"
+valid_values="" >
+false: acab is only applied to model
+true: an anomaly is applied to acab
+This option has been tested for cism2 only.
+Default: false
+</entry>
+
 <entry 
 id="vertical_integration"
 type="integer" 

@@ -172,6 +172,9 @@ attributes to express the dependency.
 <evolution cism_phys="cism1">0</evolution>
 <evolution cism_phys="cism2">3</evolution>
 
+<!-- possibility of adding an anomaly to existing acab -->>
+<enable_acab_anomaly cism_phys="cism2">false</enable_acab_anomaly>
+
 <!-- vertical_integration CISM default -->
 <vertical_integration>0</vertical_integration>
 
