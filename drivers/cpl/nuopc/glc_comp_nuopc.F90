@@ -8,6 +8,7 @@ module glc_comp_nuopc
   use NUOPC                 , only : NUOPC_CompDerive, NUOPC_CompSetEntryPoint, NUOPC_CompSpecialize
   use NUOPC                 , only : NUOPC_CompFilterPhaseMap, NUOPC_CompAttributeGet, NUOPC_CompAttributeSet
   use NUOPC_Model           , only : model_routine_SS           => SetServices
+  use NUOPC_Model           , only : model_routine_Run          => routine_Run
   use NUOPC_Model           , only : model_label_Advance        => label_Advance
   use NUOPC_Model           , only : model_label_DataInitialize => label_DataInitialize
   use NUOPC_Model           , only : model_label_SetRunClock    => label_SetRunClock
@@ -44,6 +45,9 @@ module glc_comp_nuopc
   private :: ModelAdvance
   private :: ModelFinalize
 
+  public  :: cism_valid_inputs
+  public  :: cism_invalid_inputs
+
   !--------------------------------------------------------------------------
   ! Private module data
   !--------------------------------------------------------------------------
@@ -52,7 +56,6 @@ module glc_comp_nuopc
   integer                    :: flds_scalar_num = 0
   integer                    :: flds_scalar_index_nx = 0
   integer                    :: flds_scalar_index_ny = 0
-  integer                    :: flds_scalar_index_valid_glc_input = 0
 
   integer                    :: lmpicom
   character(len=16)          :: inst_name ! full name of current instance (e.g., GLC_0001)
@@ -95,8 +98,18 @@ contains
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     ! attach specializing method(s)
+    call NUOPC_CompSetEntryPoint(gcomp, ESMF_METHOD_RUN, &
+         phaseLabelList=(/"cism_valid_inputs"/), userRoutine=model_routine_Run, rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
     call NUOPC_CompSpecialize(gcomp, specLabel=model_label_Advance, &
-         specRoutine=ModelAdvance, rc=rc)
+         specPhaseLabel="cism_valid_inputs", specRoutine=cism_valid_inputs, rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+
+    call NUOPC_CompSetEntryPoint(gcomp, ESMF_METHOD_RUN, &
+         phaseLabelList=(/"cism_invalid_inputs"/), userRoutine=model_routine_Run, rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    call NUOPC_CompSpecialize(gcomp, specLabel=model_label_Advance, &
+         specPhaseLabel="cism_invalid_inputs", specRoutine=cism_invalid_inputs, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     call ESMF_MethodRemove(gcomp, label=model_label_SetRunClock, rc=rc)
@@ -293,6 +306,7 @@ contains
 
   subroutine InitializeRealize(gcomp, importState, exportState, clock, rc)
 
+    use glc_indexing , only : local_indices, global_indices
     use glc_indexing , only : nx_tot, ny_tot, local_to_global_indices
     use glc_indexing , only : npts, nx, ny, spatial_to_vector
     use glad_main    , only : glad_get_lat_lon, glad_get_areas
@@ -350,8 +364,9 @@ contains
     character(*), parameter :: F00   = "('(InitializeRealize) ',8a)"
     character(*), parameter :: F01   = "('(InitializeRealize) ',a,8i8)"
     character(*), parameter :: F91   = "('(InitializeRealize) ',73('-'))"
-    integer :: elementCount
-    integer, allocatable, target :: seqIndexList(:)
+    integer                 :: elementCount
+    integer                 :: i,j
+    integer, pointer        :: gindex(:) 
     !-------------------------------------------------------------------------------
 
     rc = ESMF_SUCCESS
@@ -482,15 +497,20 @@ contains
     end if
 
     ! create distGrid from global index array
-    DistGrid = ESMF_DistGridCreate(arbSeqIndexList=local_to_global_indices(), rc=rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    allocate(gindex(npts))
+    do j = 1,ny
+       do i = 1,nx
+          n = local_indices(i,j)
+          gindex(n) = global_indices(i,j)
+       end do
+    end do
 
+    DistGrid = ESMF_DistGridCreate(arbSeqIndexList=gindex, rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    !deallocate(gindex)
+    
     ! read in the mesh
-    EMeshTemp = ESMF_MeshCreate(filename=trim(cvalue), fileformat=ESMF_FILEFORMAT_ESMFMESH, rc=rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-
-    ! recreate the mesh using the above distGrid
-    EMesh = ESMF_MeshCreate(EMeshTemp, elementDistgrid=Distgrid, rc=rc)
+    EMesh = ESMF_MeshCreate(filename=trim(cvalue), fileformat=ESMF_FILEFORMAT_ESMFMESH, elementDistgrid=Distgrid, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     ! elemAreaArray = ESMF_ArrayCreate(DistGrid, mesh_areas, rc=rc)
@@ -518,6 +538,9 @@ contains
     end if
 
     allocate(ownedElemCoords(spatialDim*numOwnedElements))
+    call ESMF_MeshGet(Emesh, ownedElemCoords=ownedElemCoords, rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+
     allocate(mesh_lons(numOwnedElements))
     allocate(mesh_lats(numOwnedElements))
     allocate(mesh_areas(numOwnedElements))
@@ -548,18 +571,18 @@ contains
 
     areas_vec(:) = areas_vec(:)/(radius*radius) ! convert from m^2 to radians^2
     do n = 1, npts
-       if ( abs(mesh_lons(n) - lons_vec(n)) > 360._r8 + tolerance) then
-          write(6,101),n, lons_vec(n), mesh_lons(n)
-101       format('ERROR: CISM n, lon, mesh_lon = ',i6,2(f20.10,2x))
-          write(6,102) abs(mesh_lons(n) - lons_vec(n) - 360._r8)
-102       format('ERROR: CISM lon diff = ',f20.10,' is too large')
+       if ( abs(mesh_lons(n) - lons_vec(n)) > tolerance) then
+          write(6,101),n, lons_vec(n), mesh_lons(n), gindex(n)
+101       format('ERROR: CISM n, lon, mesh_lon, gindex = ',i6,2(f20.10,2x),i8)
+          !          write(6,102) abs(mesh_lons(n) - lons_vec(n))
+          !102       format('ERROR: CISM lon diff = ',f20.10,' is too large')
           !call shr_sys_abort()
        end if
        if (abs(mesh_lats(n) - lats_vec(n)) > tolerance) then
-          write(6,103),n, lats_vec(n), mesh_lats(n)
-103       format('ERROR: CISM n, lat, mesh_lat = ',i6,2(f20.10,2x))
-          write(6,104) abs(mesh_lats(n)-lats_vec(n))
-104       format('ERROR: CISM lat diff = ',f20.10,' too large')
+          write(6,103),n, lats_vec(n), mesh_lats(n), gindex(n)
+103       format('ERROR: CISM n, lat, mesh_lat, gindex = ',i6,2(f20.10,2x),i8)
+          !          write(6,104) abs(mesh_lats(n)-lats_vec(n))
+          !104       format('ERROR: CISM lat diff = ',f20.10,' too large')
           !call shr_sys_abort()
        end if
        if (abs(mesh_areas(n) - areas_vec(n)) > 1.e-5) then
@@ -640,7 +663,23 @@ contains
 
   !===============================================================================
 
-  subroutine ModelAdvance(gcomp, rc)
+  subroutine cism_valid_inputs(gcomp, rc)
+    type(ESMF_GridComp)  :: gcomp
+    integer, intent(out) :: rc
+
+    call ModelAdvance(gcomp, valid_inputs=.true., rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+  end subroutine cism_valid_inputs
+
+  subroutine cism_invalid_inputs(gcomp, rc)
+    type(ESMF_GridComp)  :: gcomp
+    integer, intent(out) :: rc
+
+    call ModelAdvance(gcomp, valid_inputs=.false., rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+  end subroutine cism_invalid_inputs
+
+  subroutine ModelAdvance(gcomp, valid_inputs, rc)
 
     !------------------------
     ! Run CISM
@@ -648,6 +687,7 @@ contains
 
     ! arguments:
     type(ESMF_GridComp)  :: gcomp
+    logical, intent(in)  :: valid_inputs 
     integer, intent(out) :: rc
 
     ! local variables:
@@ -674,8 +714,6 @@ contains
     integer           :: num
     character(len= 2) :: cnum
     character(len=64) :: name
-    logical           :: valid_inputs
-    real(r8)          :: valid_inputs_real
     character(*), parameter :: F01   = "('(glc_comp_nuopc: ModelAdvance) ',a,8i8)"
     character(*), parameter :: subName = "(glc_comp_nuopc: ModelAdvance) "
     !----------------------------------------------------------------
@@ -733,27 +771,13 @@ contains
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     !--------------------------------
-    ! Determine if have valid inputs to CISM
-    !--------------------------------
-
-    call State_GetScalar(importState, flds_scalar_index_valid_glc_input, valid_inputs_real, &
-         flds_scalar_name, flds_scalar_num, rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-
-    if (valid_inputs_real > 0.) then
-       valid_inputs = .true.
-    else
-       valid_inputs = .false.
-    end if
-
-    !--------------------------------
     ! Run CISM
     !--------------------------------
 
     ! NOTE: in mct the cesmYMD is advanced at the beginning of the time loop 
 
-    write(stdout,*)'DEBUG: glcYMD, cesmYMD= ',glcYMD,cesmYMD
-    write(stdout,*)'DEBUG: glcTOD, cesmTOD= ',glcTOD,cesmTOD
+    !write(stdout,*)'DEBUG: glcYMD, cesmYMD= ',glcYMD,cesmYMD
+    !write(stdout,*)'DEBUG: glcTOD, cesmTOD= ',glcTOD,cesmTOD
 
     done = .false.
     if (glcYMD == cesmYMD .and. glcTOD == cesmTOD) done = .true.
@@ -847,11 +871,12 @@ contains
 
        call ESMF_GridCompGet(gcomp, name=name, rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
-       call ESMF_LogWrite(subname//'setting alarms for' // trim(name), ESMF_LOGMSG_INFO)
+       call ESMF_LogWrite(subname//'setting alarms for cism', ESMF_LOGMSG_INFO)
 
        !----------------
        ! Restart alarm
        !----------------
+       call ESMF_LogWrite(subname//'setting restart alarm for cism' , ESMF_LOGMSG_INFO)
        call NUOPC_CompAttributeGet(gcomp, name="restart_option", value=restart_option, rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
@@ -876,6 +901,7 @@ contains
        !----------------
        ! Stop alarm
        !----------------
+       call ESMF_LogWrite(subname//'setting stop alarm for cism' , ESMF_LOGMSG_INFO)
        call NUOPC_CompAttributeGet(gcomp, name="stop_option", value=stop_option, rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
@@ -903,9 +929,11 @@ contains
     ! Advance model clock to trigger alarms then reset model clock back to currtime
     !--------------------------------
 
+    call ESMF_LogWrite(subname//'advancing clock for cism' , ESMF_LOGMSG_INFO)
     call ESMF_ClockAdvance(mclock,rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
+    call ESMF_LogWrite(subname//'setting clock for cism' , ESMF_LOGMSG_INFO)
     call ESMF_ClockSet(mclock, currTime=dcurrtime, timeStep=dtimestep, stopTime=mstoptime, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 

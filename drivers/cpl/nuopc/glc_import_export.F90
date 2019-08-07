@@ -498,7 +498,7 @@ contains
        ! determine output array
        call vector_to_spatial(fldptr, output)
 
-       if (debug_import > 0 .and. my_task == master_task) then
+       !if (debug_import > 0 .and. my_task == master_task) then
           glcYMD = iyear*10000 + imonth*100 + iday
           glcTOD = ihour*3600 + iminute*60 + isecond
           do n = 1,size(fldptr)
@@ -506,7 +506,7 @@ contains
                 write(stdout,F01)' glcYMD, glcTOD, n,'// trim(fldname) // ' = ',glcYMD, glcTOD, n, fldptr(n)
              end if
           end do
-       end if
+       !end if
 
     end if
 
