@@ -522,6 +522,12 @@ add_default($nl, 'dns');
 add_default($nl, 'global_bc');
 $nl->write_cism_config($fh, "cism_config_grid");
 
+print $fh "\n[grid_ocn]\n";
+add_default($nl, 'nzocn');
+add_default($nl, 'zocn');
+add_default($nl, 'dzocn');
+$nl->write_cism_config($fh, "cism_config_grid_ocn");
+
 print $fh "\n[GLAD climate]\n";
 add_default($nl, 'evolve_ice',
             'cism_evolve'=>"$CISM_EVOLVE");
