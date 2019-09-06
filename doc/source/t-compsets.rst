@@ -110,11 +110,11 @@ A T compset run that later uses these coupler history files as forcing should gi
 *nearly* identical CISM results as the original run, **as long as you ensure that SMB
 renormalization is done (or not done) in both cases, as described in**
 :numref:`clm-cism-coupling`. **(For example, if the coupler history files were generated
-from a fully-coupled case, then in the T case you should set** ``glc_renormalize_smb =
-'on'`` **in** ``user_nl_cpl`` **in order to reproduce the results of the fully-coupled
-case.)** Small differences arise because these forcing files are written with single
-precision, leading to roundoff error on the order of 10\ :sup:`-7`. If you need more
-precision, you can add the following to ``user_nl_cpl``:
+from a fully-coupled case with an evolving, two-way-coupled ice sheet, then in the T case
+you should set** ``glc_renormalize_smb = 'on'`` **in** ``user_nl_cpl`` **in order to
+reproduce the results of the fully-coupled case.)** Small differences arise because these
+forcing files are written with single precision, leading to roundoff error on the order of
+10\ :sup:`-7`. If you need more precision, you can add the following to ``user_nl_cpl``:
 
 .. code-block:: console
 
