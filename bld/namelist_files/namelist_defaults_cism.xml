@@ -93,7 +93,6 @@ attributes to express the dependency.
 <nsn glc_grid="gland5UM">561</nsn>
 <nsn glc_grid="gland4"  >704</nsn>
 
-<nzocn>7</nzocn>
 <upn>11</upn>
 
 <dew glc_grid="gland20" >20000.</dew>
@@ -106,6 +105,17 @@ attributes to express the dependency.
 
 <global_bc cism_phys="cism1">0</global_bc>
 <global_bc cism_phys="cism2">1</global_bc>
+
+<!-- =============================================================  -->
+<!-- group: cism.config: grid_ocn                                   -->
+<!-- =============================================================  -->
+
+<!-- This group is only relevant if receiving data from an ocean model. -->
+<nzocn>1</nzocn>
+
+<zocn>0.0</zocn>
+
+<dzocn>0.0</dzocn>
 
 <!-- =============================================================  -->
 <!-- group: cism.config: sigma                                      -->

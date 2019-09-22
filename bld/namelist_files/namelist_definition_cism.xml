@@ -320,15 +320,6 @@ Number of nodes in y-direction
 Default: resolution-dependent
 </entry>
 
-<entry
-id="nzocn"
-type="integer"
-category="cism_config_grid"
-group="cism_config_grid" >
-Number of vertical ocean layers
-Default: POP-coupling dependent
-</entry>
-
 <entry 
 id="upn" 
 type="integer" 
@@ -367,6 +358,37 @@ Global boundary conditions
 1: Free outflow; scalars in global halo set to zero
 2: No penetration; outflow set to zero at global boundaries (only supported for Glissade dycore)
 Default: 0 for cism1, 1 for cism2
+</entry>
+
+<!-- =============================================================  -->
+<!-- group: cism.config: grid_ocn                                   -->
+<!-- =============================================================  -->
+
+<entry 
+id="nzocn"
+type="integer"
+category="cism_config_grid_ocn"
+group="cism_config_grid_ocn" >
+Number of levels for ocean data
+Default: 1
+</entry>
+
+<entry 
+id="zocn" 
+type="real(100)"
+category="cism_config_grid_ocn"
+group="cism_config_grid_ocn" >
+Levels for ocean forcing (m), negative below sea level
+Default: 0.0
+</entry>
+
+<entry 
+id="dzocn" 
+type="real"
+category="cism_config_grid_ocn"
+group="cism_config_grid_ocn" >
+Uniform thickness of ocean levels (m)
+Default: 0.0
 </entry>
 
 <!-- =============================================================  -->
