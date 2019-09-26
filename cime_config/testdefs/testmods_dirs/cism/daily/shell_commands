@@ -1,0 +1,2 @@
+./xmlchange HIST_OPTION=nhours
+./xmlchange HIST_N=1

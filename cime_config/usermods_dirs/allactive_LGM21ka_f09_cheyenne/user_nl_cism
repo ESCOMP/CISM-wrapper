@@ -20,7 +20,5 @@ which_ho_calving_front = 1
 which_ho_babc = 3
 which_ho_bwat = 2
 which_ho_effecpress = 4
-restart=0
-history_frequency= 10
 pmp_offset = 20
 max_slope = 0.1
