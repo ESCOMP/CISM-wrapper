@@ -172,8 +172,8 @@ print $fh  <<"EOF";
 EOF
 $fh->close;
 if ($print>=2) { print "Wrote file $config_cache $eol"; }
-(-f "config_cache.xml")  or  die <<"EOF";
-** $ProgName - Cannot find configuration cache file: config_cache.xml\" **
+(-f "$config_cache")  or  die <<"EOF";
+** $ProgName - Cannot find configuration cache file:  $config_cache\" **
 EOF
 
 #-----------------------------------------------------------------------------------------------
@@ -244,7 +244,7 @@ require Config::SetupTools;
 #-----------------------------------------------------------------------------------------------
 # Create a configuration object from the CISM config_cache.xml file-  created by 
 # cism.cpl7.template in $CASEROOT/Buildconf/cismconf
-my $cfg = Build::Config->new('config_cache.xml');
+my $cfg = Build::Config->new($config_cache);
 
 # Create a namelist definition object.  This object provides a method for verifying that the
 # output namelist variables are in the definition file, and are output in the correct

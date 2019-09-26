@@ -1,0 +1,2 @@
+../build-namelist -cimeroot ../../../../cime -caseroot . -paramfile cism.config -lnd_grid 0.9x1.25 \
+                  -glc_grid gland4 -cism_phys cism2 -verbose

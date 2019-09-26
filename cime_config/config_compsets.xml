@@ -36,6 +36,12 @@
     - grid  (optional regular expression match for grid to work with the compset)
   </help>
 
+  <!-- JG compsets with POP, and CICE and CLM, RTM and CISM added in -->
+  <compset>
+    <alias>J1850GR_CPLHIST</alias>
+    <lname>1850_DATM%CPLHIST_CLM50%SP_CICE_POP2_RTM_CISM2%EVOLVE_SWAV</lname>
+  </compset>
+
   <!--- TG compsets
       The final G (or G1) denotes that ice evolution is turned on
   -->

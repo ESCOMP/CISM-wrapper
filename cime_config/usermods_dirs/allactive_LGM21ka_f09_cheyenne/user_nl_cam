@@ -1,0 +1,10 @@
+ bnd_topo = '/gpfs/fs1/work/sbradley/CESM2.0_SETUP/CAM/LGM_Sarah_fv_0.9x1.25_nc3000_Nsw042_Nrs008_Co060_Fi001.nc'
+fv_nspltvrm = 6
+fv_nspltrac = 6
+fv_nsplit = 12
+
+ch4vmr = 375.0e-9
+co2vmr = 190.0e-6
+n2ovmr = 200.0e-9
+f11vmr = 0.0
+f12vmr= 0.0 

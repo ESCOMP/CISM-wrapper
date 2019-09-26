@@ -1,0 +1,3 @@
+ frivinp_rtm= '/gpfs/fs1/work/sbradley/CESM2.0_SETUP/RTM/0.5deg/rdirc.huy3-s1d_0.5deg_fort13.nc'
+finidat_rtm = '/gpfs/fs1/work/sbradley/CESM2.0_SETUP/RTM/0.5deg/R05_init_test.nc'
+rtm_effvel = 'NULL' 

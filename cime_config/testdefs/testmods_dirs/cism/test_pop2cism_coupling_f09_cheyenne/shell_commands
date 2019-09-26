@@ -1,0 +1,72 @@
+#!/usr/bin/csh
+set BASEDIR=/glade/work/sbradley/
+
+set RUNDIR=`./xmlquery --value RUNDIR`
+
+./xmlchange OCN_C2_GLC=TRUE
+
+## coupler/mapping files
+
+# New POP to CISM files
+
+./xmlchange OCN2GLC_FMAPNAME="$BASEDIR/CESM2.0_SETUP/CPL/OCN-CISM/wgt_gx1v7_TO_nh4km_aavg.nc"
+./xmlchange OCN2GLC_SMAPNAME=$BASEDIR/CESM2.0_SETUP/CPL/OCN-CISM/BLIN/map_gx1v7_TO_nh4km_blin_1.nc
+./xmlchange OCN2GLC_10_SMAPNAME=$BASEDIR/CESM2.0_SETUP/CPL/OCN-CISM/BLIN/map_gx1v7_TO_nh4km_blin_2.nc
+./xmlchange OCN2GLC_19_SMAPNAME=$BASEDIR/CESM2.0_SETUP/CPL/OCN-CISM/BLIN/map_gx1v7_TO_nh4km_blin_3.nc
+./xmlchange OCN2GLC_26_SMAPNAME=$BASEDIR/CESM2.0_SETUP/CPL/OCN-CISM/BLIN/map_gx1v7_TO_nh4km_blin_4.nc
+./xmlchange OCN2GLC_30_SMAPNAME=$BASEDIR/CESM2.0_SETUP/CPL/OCN-CISM/BLIN/map_gx1v7_TO_nh4km_blin_5.nc
+./xmlchange OCN2GLC_33_SMAPNAME=$BASEDIR/CESM2.0_SETUP/CPL/OCN-CISM/BLIN/map_gx1v7_TO_nh4km_blin_6.nc
+./xmlchange OCN2GLC_35_SMAPNAME=$BASEDIR/CESM2.0_SETUP/CPL/OCN-CISM/BLIN/map_gx1v7_TO_nh4km_blin_7.nc
+
+# These aren't actually used
+./xmlchange GLC2OCN_SMAPNAME=$BASEDIR/CESM2.0_SETUP/CPL/CISM-OCN/wgt_nh4km_TO_gx1v7_aavg.nc
+
+# CLM-CISM
+
+### domain files
+./xmlchange --id ATM_DOMAIN_PATH --val "$BASEDIR/CESM2.0_SETUP/CPL/DOMAIN/"
+./xmlchange --id LND_DOMAIN_PATH --val "$BASEDIR/CESM2.0_SETUP/CPL/DOMAIN/"
+./xmlchange --id OCN_DOMAIN_PATH --val "$BASEDIR/CESM2.0_SETUP/CPL/DOMAIN/"
+./xmlchange --id ICE_DOMAIN_PATH --val "$BASEDIR/CESM2.0_SETUP/CPL/DOMAIN/"
+./xmlchange --id ATM_DOMAIN_FILE --val "domain.lnd.fv0.9x1.25_gx1v7.190426.nc"
+./xmlchange --id LND_DOMAIN_FILE --val "domain.lnd.fv0.9x1.25_gx1v7.190426.nc" 
+./xmlchange --id OCN_DOMAIN_FILE --val "domain.ocn.gx1v7.190426.nc"
+./xmlchange --id ICE_DOMAIN_FILE --val "domain.ocn.gx1v7.190426.nc"
+
+
+## coupler/mapping files
+
+
+############## namelist settings
+
+
+# CLM-CISM (1deg to 4km)
+./xmlchange --id LND2GLC_FMAPNAME --val "$BASEDIR/CESM2.0_SETUP/CPL/CLM-CISM/map_fv0.9x1.25_TO_4km_aave.190515.nc"
+./xmlchange --id LND2GLC_SMAPNAME --val "$BASEDIR/CESM2.0_SETUP/CPL/CLM-CISM/map_fv0.9x1.25_TO_4km_blin.190515.nc"
+./xmlchange --id  GLC2LND_FMAPNAME --val "$BASEDIR/CESM2.0_SETUP/CPL/CLM-CISM/map_4km_TO_fv0.9x1.25_aave.190515.nc"
+./xmlchange --id GLC2LND_SMAPNAME --val  "$BASEDIR/CESM2.0_SETUP/CPL/CLM-CISM/map_4km_TO_fv0.9x1.25_aave.190515.nc"
+
+
+# RTM-OCN (0.5deg to gx1v7)
+./xmlchange --id ROF2OCN_LIQ_RMAPNAME --val  "$BASEDIR/CESM2.0_SETUP/CPL/RTM-OCN/RMAP/map_r0.5_gx1v7_190426.liq.rmap.nc"
+./xmlchange --id ROF2OCN_ICE_RMAPNAME --val "$BASEDIR/CESM2.0_SETUP/CPL/RTM-OCN/RMAP/map_r0.5_to_gx1v7_190426.ice.rmap.nc"
+./xmlchange --id ROF2OCN_FMAPNAME --val "$BASEDIR/CESM2.0_SETUP/CPL/RTM-OCN/FMAP/map_r05deg_TO_gx1v7-21ka_aave.fmap.190427.nc"
+
+#RTM-CLM: (0.5deg to 1deg)
+
+
+./xmlchange --id LND2ROF_FMAPNAME --val  "$BASEDIR/CESM2.0_SETUP/CPL/RTM-CLM/AUG/map_fv0.9x1.25_TO_r05_aave.190802.nc"
+./xmlchange --id ROF2LND_FMAPNAME --val  "$BASEDIR/CESM2.0_SETUP/CPL/RTM-CLM/AUG/map_r05_TO_fv0.9x1.25_aave.190802.nc"
+
+# CISM-OCN (4km gx1v7)
+./xmlchange --id GLC2OCN_ICE_RMAPNAME --val "$BASEDIR/CESM2.0_SETUP/CPL/CISM-OCN/map_nh4km_to_gx1v7.190515.ice.rmap.nc" 
+./xmlchange --id GLC2OCN_LIQ_RMAPNAME --val "$BASEDIR/CESM2.0_SETUP/CPL/CISM-OCN/map_nh4km_to_gx1v7.190515.liq.rmap.nc"
+
+### ATM-OCN/CICE (1deg to gx1v7)
+./xmlchange --id ATM2OCN_VMAPNAME --val  "$BASEDIR/CESM2.0_SETUP/CPL/OCN-ATM/map_fv0.9x1.25_TO_gx1v7_patc.190426.nc" 
+
+./xmlchange --id ATM2OCN_FMAPNAME --val  "$BASEDIR/CESM2.0_SETUP/CPL/OCN-ATM/map_fv0.9x1.25_TO_gx1v7_aave.190426.nc" 
+./xmlchange --id ATM2OCN_SMAPNAME --val  "$BASEDIR/CESM2.0_SETUP/CPL/OCN-ATM/map_fv0.9x1.25_TO_gx1v7_blin.190426.nc" 
+ 
+./xmlchange --id OCN2ATM_SMAPNAME --val  "$BASEDIR/CESM2.0_SETUP/CPL/OCN-ATM/map_gx1v7_TO_fv0.9x1.25_aave.190426.nc" 
+./xmlchange --id OCN2ATM_FMAPNAME --val  "$BASEDIR/CESM2.0_SETUP/CPL/OCN-ATM/map_gx1v7_TO_fv0.9x1.25_aave.190426.nc" 
