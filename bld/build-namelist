@@ -1068,6 +1068,24 @@ sub check_consistency {
 	 print "$ProgName: ERROR: If nzocn is set to more than 1 either zocn or nzocn MUST be set to an array of that size";
 	 $num_errors += 1;
       }
+      if ( $var eq "dzocn" ) {
+         my @values = split( /,/, $nl->get_value("zocn") );
+         if ( $#values+1 == $nzocn ) {
+	    print "$ProgName: ERROR: If nzocn is set, and dzocn is also set, then zocn should NOT be set";
+	    $num_errors += 1;
+         }
+      }
+      if ( $var eq "zocn" ) {
+         my @values = split( /,/, $nl->get_value("zocn") );
+         my $prev = 0.0;
+         foreach my $val ( @values ) {
+            if ( $val >= $prev ) {
+	       print "$ProgName: ERROR: If zocn is set it must be monotone decreasing";
+	       $num_errors += 1;
+            }
+            $prev = $val;
+         }
+      }
     }
 # ----------------------------------------------------------------------
 # Requirements for use of trilinos solver
