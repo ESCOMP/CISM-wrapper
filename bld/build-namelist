@@ -524,8 +524,8 @@ $nl->write_cism_config($fh, "cism_config_grid");
 
 print $fh "\n[grid_ocn]\n";
 add_default($nl, 'nzocn');
-add_default($nl, 'zocn');
-add_default($nl, 'dzocn');
+add_default($nl, 'zocn',  'nzocn'=>$nl->get_value('nzocn'));
+add_default($nl, 'dzocn', 'nzocn'=>$nl->get_value('nzocn'));
 $nl->write_cism_config($fh, "cism_config_grid_ocn");
 
 print $fh "\n[GLAD climate]\n";
@@ -1049,6 +1049,26 @@ sub check_consistency {
        }
     }
 
+
+# ----------------------------------------------------------------------
+# Requirements for ocean levels
+# ----------------------------------------------------------------------
+
+    my $nzocn = $nl->get_value('nzocn');
+    if ($nzocn > 1) {
+      my $var;
+      my $dzocn = $nl->get_value('dzocn');
+      if ( $dzocn eq "0.0" ) {
+         $var = "zocn";
+      } else {
+         $var = "dzocn";
+      }
+      my @values = split( /,/, $nl->get_value($var) );
+      if ( $#values+1 != $nzocn ) {
+	 print "$ProgName: ERROR: If nzocn is set to more than 1 either zocn or nzocn MUST be set to an array of that size";
+	 $num_errors += 1;
+      }
+    }
 # ----------------------------------------------------------------------
 # Requirements for use of trilinos solver
 # ----------------------------------------------------------------------

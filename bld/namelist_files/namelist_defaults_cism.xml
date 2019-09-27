@@ -113,9 +113,10 @@ attributes to express the dependency.
 <!-- This group is only relevant if receiving data from an ocean model. -->
 <nzocn>1</nzocn>
 
-<zocn>0.0</zocn>
+<zocn           >0.0</zocn>
+<zocn  nzocn="7">-5., -105., -198., -305., -408., -527., -638.</zocn>
 
-<dzocn>0.0</dzocn>
+<dzocn          >0.0</dzocn>
 
 <!-- =============================================================  -->
 <!-- group: cism.config: sigma                                      -->

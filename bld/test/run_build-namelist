@@ -1,2 +1,22 @@
-../build-namelist -cimeroot ../../../../cime -caseroot . -paramfile cism.config -lnd_grid 0.9x1.25 \
-                  -glc_grid gland4 -cism_phys cism2 -verbose
+#!/bin/csh -f
+# Run a few namelists that should work or not
+
+echo "Run namelists that should work\n\n"
+foreach work ( 'history_frequency=1', 'nzocn=7,bmlt_float=6' )
+   ../build-namelist -cimeroot ../../../../cime -caseroot . -paramfile cism.config -lnd_grid 0.9x1.25 \
+                     -glc_grid gland4 -cism_phys cism2 -verbose -namelist "&a $work /" >> /dev/null
+   if ( $? != 0 )then
+      echo "Namelist should have worked and it did NOT"
+      exit -1
+   endif
+end
+# A namelist that should fail
+echo "Run namelists that should fail\n\n"
+foreach faillist ( 'nzocn=6,bmlt_float=6' )
+   ../build-namelist -cimeroot ../../../../cime -caseroot . -paramfile cism.config -lnd_grid 0.9x1.25 \
+                     -glc_grid gland4 -cism_phys cism2 -verbose -namelist "&a $faillist /" >>& /dev/null
+   if ( $? == 0 )then
+      echo "Namelist should have failed and it did NOT"
+      exit -1
+   endif
+end
