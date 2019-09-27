@@ -1,7 +1,6 @@
-#!/usr/bin/csh
-set BASEDIR=/glade/work/sbradley/
-
-set RUNDIR=`./xmlquery --value RUNDIR`
+# NOTE: Assumes a Bourne shell will be used
+BASEDIR=/glade/work/sbradley/
+RUNDIR=`./xmlquery --value RUNDIR`
 
 ./xmlchange OCN_C2_GLC=TRUE
 
