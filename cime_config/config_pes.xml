@@ -49,9 +49,9 @@
 	  <ntasks_atm>-1</ntasks_atm>
 	  <ntasks_lnd>-21</ntasks_lnd>
 	  <ntasks_rof>-21</ntasks_rof>
-	  <ntasks_ice>-6</ntasks_ice>
-	  <ntasks_ocn>-48</ntasks_ocn>
-	  <ntasks_glc>-76</ntasks_glc>
+	  <ntasks_ice>-9</ntasks_ice>
+	  <ntasks_ocn>-12</ntasks_ocn>
+	  <ntasks_glc>-43</ntasks_glc>
 	  <ntasks_wav>1</ntasks_wav>
 	  <ntasks_cpl>-28</ntasks_cpl>
 	</ntasks>
@@ -68,11 +68,11 @@
         <!-- glc runs on all processors, lnd/rof/glc/wav/cpl start at 0, ice starts after lnd, atm is after ice, ocn is after atm -->
         <!-- If wav was added in, it would be between ice and atm -->
 	<rootpe>
-	  <rootpe_atm>-27</rootpe_atm> 
+	  <rootpe_atm>-30</rootpe_atm> 
 	  <rootpe_lnd>0</rootpe_lnd> 
 	  <rootpe_rof>0</rootpe_rof> 
 	  <rootpe_ice>-21</rootpe_ice>    
-	  <rootpe_ocn>-28</rootpe_ocn>   
+	  <rootpe_ocn>-31</rootpe_ocn>   
 	  <rootpe_glc>0</rootpe_glc> 
 	  <rootpe_wav>0</rootpe_wav> 
 	  <rootpe_cpl>0</rootpe_cpl>                         
