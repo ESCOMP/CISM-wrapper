@@ -695,6 +695,7 @@ contains
     type(ESMF_STATE)  :: importState
     type(ESMF_STATE)  :: exportState
     type(ESMF_Time)   :: NextTime
+    type(ESMF_Alarm)  :: alarm
     integer           :: glcYMD     ! glc model date
     integer           :: glcTOD     ! glc model sec
     integer           :: cesmYMD    ! cesm model date
@@ -807,6 +808,17 @@ contains
 
     call State_diagnose(exportState, subname//':ES',rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
+
+    !--------------------------------
+    ! If time to write restart, do so
+    !--------------------------------
+
+    call ESMF_ClockGetAlarm(clock, alarmname='alarm_restart', alarm=alarm, rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    if (ESMF_AlarmIsRinging(alarm, rc=rc)) then
+       ! TODO loop over instances
+       call glc_io_write_restart(ice_sheet%instances(1), clock)
+    endif
 
   end subroutine ModelAdvance
 

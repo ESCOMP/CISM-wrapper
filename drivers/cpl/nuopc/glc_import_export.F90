@@ -39,8 +39,8 @@ module glc_import_export
   type (fld_list_type)   :: fldsToGlc(fldsMax)
   type (fld_list_type)   :: fldsFrGlc(fldsMax)
 
-  integer :: debug_export = 1
-  integer :: debug_import = 1
+  integer :: debug_export = 0
+  integer :: debug_import = 0
   character(*),parameter :: F01 = "('(glc_import): ',a,2(i8,2x),i8,2x,d21.6)"
   character(*),parameter :: F02 = "('(glc_export): ',a,2(i8,2x),i8,2x,d21.6)"
 
