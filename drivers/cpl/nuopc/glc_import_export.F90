@@ -51,13 +51,14 @@ module glc_import_export
 contains
 !===============================================================================
 
-  subroutine advertise_fields(gcomp, flds_scalar_name, rc)
+  subroutine advertise_fields(gcomp, flds_scalar_name, cism_evolve, rc)
 
     use glc_constants, only : glc_smb
 
     ! input/output variables
     type(ESMF_GridComp)            :: gcomp
     character(len=*) , intent(in)  :: flds_scalar_name
+    logical          , intent(in)  :: cism_evolve
     integer          , intent(out) :: rc
 
     ! local variables
@@ -101,26 +102,28 @@ contains
     ! Advertise import fields
     !--------------------------------
 
-    call fldlist_add(fldsToGlc_num, fldsToGlc, trim(flds_scalar_name))
+    if (cism_evolve) then
+       call fldlist_add(fldsToGlc_num, fldsToGlc, trim(flds_scalar_name))
 
-    call fldlist_add(fldsToGlc_num, fldsToGlc, 'Sl_tsrf')  
-    call fldlist_add(fldsToGlc_num, fldsToGlc, 'Flgl_qice')
+       call fldlist_add(fldsToGlc_num, fldsToGlc, 'Sl_tsrf')  
+       call fldlist_add(fldsToGlc_num, fldsToGlc, 'Flgl_qice')
 
-    ! Now advertise import fields
-    do n = 1,fldsToGlc_num
-       call NUOPC_Advertise(importState, standardName=fldsToGlc(n)%stdname, &
-            TransferOfferGeomObject='will provide', rc=rc)
-       if (chkErr(rc,__LINE__,u_FILE_u)) return
-       call ESMF_LogWrite(subname//'Import field'//': '//trim(FldsToGlc(n)%stdname), ESMF_LOGMSG_INFO)
-       if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    enddo
+       ! Now advertise import fields
+       do n = 1,fldsToGlc_num
+          call NUOPC_Advertise(importState, standardName=fldsToGlc(n)%stdname, &
+               TransferOfferGeomObject='will provide', rc=rc)
+          if (chkErr(rc,__LINE__,u_FILE_u)) return
+          call ESMF_LogWrite(subname//'Import field'//': '//trim(FldsToGlc(n)%stdname), ESMF_LOGMSG_INFO)
+          if (ChkErr(rc,__LINE__,u_FILE_u)) return
+       enddo
 
-    ! Set glc_smb
-    ! true  => get surface mass balance from land model via coupler (in multiple elev classes)
-    ! false => use PDD scheme in GLIMMER
-    ! For now, we always use true
+       ! Set glc_smb
+       ! true  => get surface mass balance from land model via coupler (in multiple elev classes)
+       ! false => use PDD scheme in GLIMMER
+       ! For now, we always use true
 
-    glc_smb = .true.
+       glc_smb = .true.
+    end if
 
   end subroutine advertise_fields
 

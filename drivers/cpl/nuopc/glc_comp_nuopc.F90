@@ -5,33 +5,38 @@ module glc_comp_nuopc
   !----------------------------------------------------------------------------
 
   use ESMF
-  use NUOPC                 , only : NUOPC_CompDerive, NUOPC_CompSetEntryPoint, NUOPC_CompSpecialize
-  use NUOPC                 , only : NUOPC_CompFilterPhaseMap, NUOPC_CompAttributeGet, NUOPC_CompAttributeSet
-  use NUOPC_Model           , only : model_routine_SS           => SetServices
-  use NUOPC_Model           , only : model_routine_Run          => routine_Run
-  use NUOPC_Model           , only : model_label_Advance        => label_Advance
-  use NUOPC_Model           , only : model_label_DataInitialize => label_DataInitialize
-  use NUOPC_Model           , only : model_label_SetRunClock    => label_SetRunClock
-  use NUOPC_Model           , only : model_label_Finalize       => label_Finalize
-  use NUOPC_Model           , only : NUOPC_ModelGet
-  use shr_sys_mod           , only : shr_sys_abort
-  use shr_file_mod          , only : shr_file_getlogunit, shr_file_setlogunit, shr_file_getUnit
-  use shr_cal_mod           , only : shr_cal_ymd2date
-  use shr_kind_mod          , only : r8 => shr_kind_r8, cl=>shr_kind_cl, cs=>shr_kind_cs
-  use glc_import_export     , only : advertise_fields, realize_fields
-  use glc_import_export     , only : export_fields, import_fields 
-  use glc_constants         , only : verbose, stdout, stderr, nml_in, radius
-  use glc_constants         , only : zero_gcm_fluxes, model_doi_url
-  use glc_InitMod           , only : glc_initialize
-  use glc_RunMod            , only : glc_run
-  use glc_FinalMod          , only : glc_final
-  use glc_io                , only : glc_io_write_restart
-  use glc_communicate       , only : init_communicate, my_task, master_task
-  use glc_time_management   , only : iyear,imonth,iday,ihour,iminute,isecond,runtype
-  use glc_fields            , only : ice_sheet
-  use glc_shr_methods       , only : chkerr, state_setscalar, state_getscalar, state_diagnose, alarmInit
-  use glc_shr_methods       , only : set_component_logging, get_component_instance, log_clock_advance
-  use perf_mod              , only : t_startf, t_stopf, t_barrierf
+  use NUOPC               , only : NUOPC_CompDerive, NUOPC_CompSetEntryPoint, NUOPC_CompSpecialize
+  use NUOPC               , only : NUOPC_CompFilterPhaseMap, NUOPC_CompAttributeGet, NUOPC_CompAttributeSet
+  use NUOPC_Model         , only : model_routine_SS           => SetServices
+  use NUOPC_Model         , only : model_routine_Run          => routine_Run
+  use NUOPC_Model         , only : model_label_Advance        => label_Advance
+  use NUOPC_Model         , only : model_label_DataInitialize => label_DataInitialize
+  use NUOPC_Model         , only : model_label_SetRunClock    => label_SetRunClock
+  use NUOPC_Model         , only : model_label_Finalize       => label_Finalize
+  use NUOPC_Model         , only : NUOPC_ModelGet
+  use shr_sys_mod         , only : shr_sys_abort
+  use shr_file_mod        , only : shr_file_getlogunit, shr_file_setlogunit, shr_file_getUnit
+  use shr_cal_mod         , only : shr_cal_ymd2date
+  use shr_kind_mod        , only : r8 => shr_kind_r8, cl=>shr_kind_cl, cs=>shr_kind_cs
+  use glc_import_export   , only : advertise_fields, realize_fields
+  use glc_import_export   , only : export_fields, import_fields 
+  use glc_constants       , only : verbose, stdout, stderr, nml_in, radius
+  use glc_constants       , only : zero_gcm_fluxes, model_doi_url
+  use glc_InitMod         , only : glc_initialize
+  use glc_RunMod          , only : glc_run
+  use glc_FinalMod        , only : glc_final
+  use glc_io              , only : glc_io_write_restart
+  use glc_communicate     , only : init_communicate, my_task, master_task
+  use glc_time_management , only : iyear,imonth,iday,ihour,iminute,isecond,runtype
+  use glc_fields          , only : ice_sheet
+  use glc_shr_methods     , only : chkerr, state_setscalar, state_getscalar, state_diagnose, alarmInit
+  use glc_shr_methods     , only : set_component_logging, get_component_instance, log_clock_advance
+  use glc_indexing        , only : local_indices, global_indices, nx_tot, ny_tot, local_to_global_indices
+  use glc_indexing        , only : npts, nx, ny, spatial_to_vector
+  use glc_ensemble        , only : set_inst_vars
+  use glc_files           , only : set_filenames, ionml_filename
+  use glad_main           , only : glad_get_lat_lon, glad_get_areas
+  use perf_mod            , only : t_startf, t_stopf, t_barrierf
 
   implicit none
   private ! except
@@ -45,9 +50,6 @@ module glc_comp_nuopc
   private :: ModelAdvance
   private :: ModelFinalize
 
-  public  :: cism_valid_inputs
-  public  :: cism_invalid_inputs
-
   !--------------------------------------------------------------------------
   ! Private module data
   !--------------------------------------------------------------------------
@@ -57,6 +59,7 @@ module glc_comp_nuopc
   integer                    :: flds_scalar_index_nx = 0
   integer                    :: flds_scalar_index_ny = 0
 
+  logical                    :: cism_evolve
   integer                    :: lmpicom
   character(len=16)          :: inst_name ! full name of current instance (e.g., GLC_0001)
   integer, parameter         :: dbug = 1
@@ -99,17 +102,10 @@ contains
 
     ! attach specializing method(s)
     call NUOPC_CompSetEntryPoint(gcomp, ESMF_METHOD_RUN, &
-         phaseLabelList=(/"cism_valid_inputs"/), userRoutine=model_routine_Run, rc=rc)
+         phaseLabelList=(/"ModelAdvance"/), userRoutine=model_routine_Run, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     call NUOPC_CompSpecialize(gcomp, specLabel=model_label_Advance, &
-         specPhaseLabel="cism_valid_inputs", specRoutine=cism_valid_inputs, rc=rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-
-    call NUOPC_CompSetEntryPoint(gcomp, ESMF_METHOD_RUN, &
-         phaseLabelList=(/"cism_invalid_inputs"/), userRoutine=model_routine_Run, rc=rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    call NUOPC_CompSpecialize(gcomp, specLabel=model_label_Advance, &
-         specPhaseLabel="cism_invalid_inputs", specRoutine=cism_invalid_inputs, rc=rc)
+         specPhaseLabel="ModelAdvance", specRoutine=ModelAdvance, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     call ESMF_MethodRemove(gcomp, label=model_label_SetRunClock, rc=rc)
@@ -153,8 +149,6 @@ contains
   subroutine InitializeAdvertise(gcomp, importState, exportState, clock, rc)
 
     ! uses
-    use glc_ensemble , only : set_inst_vars
-    use glc_files    , only : set_filenames, ionml_filename
 
     ! input/output variables
     type(ESMF_GridComp)  :: gcomp
@@ -286,9 +280,18 @@ contains
        call shr_sys_abort(subname//'Need to set attribute ScalarFieldIdxGridNY')
     endif
 
-    ! Add the scalar name to determine if input is valid
+    ! Determine if cism will evolve - if not will not import any fields from the mediator 
+    call NUOPC_CompAttributeGet(gcomp, name="cism_evolve", value=cvalue, isPresent=isPresent, isSet=isSet, rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    if (isPresent .and. isSet) then
+       write (cism_evolve,*) cvalue
+       call ESMF_LogWrite(trim(subname)//' cism_evolve = '//trim(cvalue), ESMF_LOGMSG_INFO)
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    else
+       call shr_sys_abort(subname//'Need to set cism_evolve')
+    endif
 
-    call advertise_fields(gcomp, flds_scalar_name,  rc)
+    call advertise_fields(gcomp, flds_scalar_name, cism_evolve, rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     !----------------------------------------------------------------------------
@@ -306,11 +309,6 @@ contains
 
   subroutine InitializeRealize(gcomp, importState, exportState, clock, rc)
 
-    use glc_indexing , only : local_indices, global_indices
-    use glc_indexing , only : nx_tot, ny_tot, local_to_global_indices
-    use glc_indexing , only : npts, nx, ny, spatial_to_vector
-    use glad_main    , only : glad_get_lat_lon, glad_get_areas
-
     ! input/output variables
     type(ESMF_GridComp)  :: gcomp
     type(ESMF_State)     :: importState
@@ -319,7 +317,7 @@ contains
     integer, intent(out) :: rc
 
     ! local variables
-    type(ESMF_Mesh)         :: Emesh, Emeshtemp      ! esmf meshes
+    type(ESMF_Mesh)         :: Emesh                 ! esmf meshes
     type(ESMF_DistGrid)     :: DistGrid              ! esmf global index space descriptor
     type(ESMF_Time)         :: currTime              ! Current time
     type(ESMF_Time)         :: startTime             ! Start time
@@ -340,17 +338,10 @@ contains
     character(ESMF_MAXSTR)  :: cvalue                ! config data
     integer                 :: g,n                   ! indices
     character(len=CL)       :: caseid                ! case identifier name
-    character(len=CL)       :: ctitle                ! case description title
     character(len=CL)       :: starttype             ! start-type (startup, continue, branch, hybrid)
     character(len=CL)       :: calendar              ! calendar type name
-    character(len=CL)       :: hostname              ! hostname of machine running on
-    character(len=CL)       :: model_version         ! Model version
-    character(len=CL)       :: username              ! user running the model
-    integer                 :: nsrest                ! ctsm restart type
-    logical                 :: brnch_retain_casename ! flag if should retain the case name on a branch start type
     integer                 :: lbnum                 ! input to memory diagnostic
     integer                 :: shrlogunit            ! original log unit
-    character(ESMF_MAXSTR)  :: convCIM, purpComp
     integer                 :: spatialDim
     integer                 :: numOwnedElements
     real(r8), pointer       :: ownedElemCoords(:)
@@ -360,13 +351,13 @@ contains
     type(ESMF_Array)        :: elemAreaArray
     type(ESMF_Array)        :: elemAreaArrayTemp
     real(r8)                :: tolerance = 1.e-5_r8
-    character(len=*),parameter :: subname=trim(modName)//':(InitializeRealize) '
-    character(*), parameter :: F00   = "('(InitializeRealize) ',8a)"
-    character(*), parameter :: F01   = "('(InitializeRealize) ',a,8i8)"
-    character(*), parameter :: F91   = "('(InitializeRealize) ',73('-'))"
     integer                 :: elementCount
     integer                 :: i,j
     integer, pointer        :: gindex(:) 
+    character(*), parameter :: F00   = "('(InitializeRealize) ',8a)"
+    character(*), parameter :: F01   = "('(InitializeRealize) ',a,8i8)"
+    character(*), parameter :: F91   = "('(InitializeRealize) ',73('-'))"
+    character(len=*),parameter :: subname=trim(modName)//':(InitializeRealize) '
     !-------------------------------------------------------------------------------
 
     rc = ESMF_SUCCESS
@@ -389,49 +380,36 @@ contains
 #endif
 
     !----------------------
-    ! Obtain attribute values
+    ! Determine caseid
     !----------------------
 
     call NUOPC_CompAttributeGet(gcomp, name='case_name', value=cvalue, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     read(cvalue,*) caseid
 
-    !TODO: case_desc does not appear in the esm_AddAttributes in esm.F90
-    ! just hard-wire from now - is this even needed?
-    ! call NUOPC_CompAttributeGet(gcomp, name='case_desc', value=cvalue, rc=rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    ! read(cvalue,*) ctitle
-    ctitle='UNSET'
-
-    call NUOPC_CompAttributeGet(gcomp, name='brnch_retain_casename', value=cvalue, rc=rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    read(cvalue,*) brnch_retain_casename
+    !----------------------
+    ! Determine start type
+    !----------------------
 
     call NUOPC_CompAttributeGet(gcomp, name='start_type', value=cvalue, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     read(cvalue,*) starttype
 
-    call NUOPC_CompAttributeGet(gcomp, name='model_version', value=cvalue, rc=rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    read(cvalue,*) model_version
-
-    call NUOPC_CompAttributeGet(gcomp, name='hostname', value=cvalue, rc=rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    read(cvalue,*) hostname
-
-    call NUOPC_CompAttributeGet(gcomp, name='username', value=cvalue, rc=rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    read(cvalue,*) username
-
-    !TODO: the following strings must not be hard-wired - must have module variables
-    if (     trim(starttype) == trim('startup')) then
-       runtype = 'initial'
-    else if (trim(starttype) == trim('continue') ) then
-       runtype='continue'
-    else if (trim(starttype) == trim('branch')) then
-       runtype='branch'
+    if (cism_evolve) then
+       if (     trim(starttype) == trim('startup')) then
+          runtype = 'initial'
+       else if (trim(starttype) == trim('continue')) then
+          runtype='continue'
+       else if (trim(starttype) == trim('branch')) then
+          runtype='branch'
+       else
+          call shr_sys_abort(subname//' ERROR: unknown starttype' )
+       end if
     else
-       call shr_sys_abort(subname//' ERROR: unknown starttype' )
+       if (my_task == master_task) then
+          write(stdout,*)' GLC cism is not evolving, runtype is always set to initial' 
+          runtype = 'initial'
+       end if
     end if
 
     !----------------------
@@ -443,13 +421,13 @@ contains
          timeStep=timeStep, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
-    call ESMF_TimeGet( currTime, yy=yy, mm=mm, dd=dd, s=curr_tod, rc=rc )
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    call shr_cal_ymd2date(yy,mm,dd,curr_ymd)
-
     call ESMF_TimeGet( startTime, yy=yy, mm=mm, dd=dd, s=start_tod, rc=rc )
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     call shr_cal_ymd2date(yy,mm,dd,start_ymd)
+
+    call ESMF_TimeGet( currTime, yy=yy, mm=mm, dd=dd, s=curr_tod, rc=rc )
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    call shr_cal_ymd2date(yy,mm,dd,curr_ymd)
 
     call ESMF_TimeGet( stopTime, yy=yy, mm=mm, dd=dd, s=stop_tod, rc=rc )
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
@@ -510,7 +488,8 @@ contains
     !deallocate(gindex)
     
     ! read in the mesh
-    EMesh = ESMF_MeshCreate(filename=trim(cvalue), fileformat=ESMF_FILEFORMAT_ESMFMESH, elementDistgrid=Distgrid, rc=rc)
+    EMesh = ESMF_MeshCreate(filename=trim(cvalue), fileformat=ESMF_FILEFORMAT_ESMFMESH, &
+          elementDistgrid=Distgrid,  rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     ! elemAreaArray = ESMF_ArrayCreate(DistGrid, mesh_areas, rc=rc)
@@ -632,20 +611,6 @@ contains
 
     call shr_file_setLogUnit (shrlogunit)
 
-#ifdef USE_ESMF_METADATA
-    convCIM  = "CIM"
-    purpComp = "Model Component Simulation Description"
-    call ESMF_AttributeAdd(comp, convention=convCIM, purpose=purpComp, rc=rc)
-    call ESMF_AttributeSet(comp, "ShortName", "CTSM", convention=convCIM, purpose=purpComp, rc=rc)
-    call ESMF_AttributeSet(comp, "LongName", "Community Land Model", convention=convCIM, purpose=purpComp, rc=rc)
-    call ESMF_AttributeSet(comp, "Description", "Community Land Model", convention=convCIM, purpose=purpComp, rc=rc)
-    call ESMF_AttributeSet(comp, "ReleaseDate", "2017", convention=convCIM, purpose=purpComp, rc=rc)
-    call ESMF_AttributeSet(comp, "ModelType", "Terrestrial", convention=convCIM, purpose=purpComp, rc=rc)
-    call ESMF_AttributeSet(comp, "Name", "TBD", convention=convCIM, purpose=purpComp, rc=rc)
-    call ESMF_AttributeSet(comp, "EmailAddress", TBD, convention=convCIM, purpose=purpComp, rc=rc)
-    call ESMF_AttributeSet(comp, "ResponsiblePartyRole", "contact", convention=convCIM, purpose=purpComp, rc=rc)
-#endif
-
 #if (defined _MEMTRACE)
     if(my_task == master_task) then
        write(stdout,*) TRIM(Sub) // ':end::'
@@ -663,23 +628,7 @@ contains
 
   !===============================================================================
 
-  subroutine cism_valid_inputs(gcomp, rc)
-    type(ESMF_GridComp)  :: gcomp
-    integer, intent(out) :: rc
-
-    call ModelAdvance(gcomp, valid_inputs=.true., rc=rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-  end subroutine cism_valid_inputs
-
-  subroutine cism_invalid_inputs(gcomp, rc)
-    type(ESMF_GridComp)  :: gcomp
-    integer, intent(out) :: rc
-
-    call ModelAdvance(gcomp, valid_inputs=.false., rc=rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-  end subroutine cism_invalid_inputs
-
-  subroutine ModelAdvance(gcomp, valid_inputs, rc)
+  subroutine ModelAdvance(gcomp, rc)
 
     !------------------------
     ! Run CISM
@@ -687,7 +636,6 @@ contains
 
     ! arguments:
     type(ESMF_GridComp)  :: gcomp
-    logical, intent(in)  :: valid_inputs 
     integer, intent(out) :: rc
 
     ! local variables:
@@ -712,6 +660,7 @@ contains
     logical           :: stop_alarm ! is it time to stop
     logical           :: rest_alarm ! is it time to write a restart
     logical           :: done       ! time loop logical
+    logical           :: valid_inputs 
     integer           :: num
     character(len= 2) :: cnum
     character(len=64) :: name
@@ -779,6 +728,13 @@ contains
 
     !write(stdout,*)'DEBUG: glcYMD, cesmYMD= ',glcYMD,cesmYMD
     !write(stdout,*)'DEBUG: glcTOD, cesmTOD= ',glcTOD,cesmTOD
+
+    ! Get the noupc attribute on the import state determining if the inputs are valid
+    ! for now hard-wire this to true
+    ! call NUOPC_CompAttributeGet(gcomp, name="cism_valid_inputs", value=cvalue, rc=rc)
+    ! if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    ! read(cvalue,*) valid_inputs
+    valid_inputs = .true.
 
     done = .false.
     if (glcYMD == cesmYMD .and. glcTOD == cesmTOD) done = .true.
