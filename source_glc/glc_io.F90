@@ -320,7 +320,7 @@
     character(CL) :: filename
 
     !WHL - debug
-    character(len=150) :: message
+    character(len=1024) :: message
 
 !-----------------------------------------------------------------------
 

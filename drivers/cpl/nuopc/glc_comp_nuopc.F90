@@ -19,7 +19,7 @@ module glc_comp_nuopc
   use shr_cal_mod         , only : shr_cal_ymd2date
   use shr_kind_mod        , only : r8 => shr_kind_r8, cl=>shr_kind_cl, cs=>shr_kind_cs
   use glc_import_export   , only : advertise_fields, realize_fields
-  use glc_import_export   , only : export_fields, import_fields 
+  use glc_import_export   , only : export_fields, import_fields
   use glc_constants       , only : verbose, stdout, stderr, nml_in, radius
   use glc_constants       , only : zero_gcm_fluxes, model_doi_url
   use glc_InitMod         , only : glc_initialize
@@ -101,11 +101,8 @@ contains
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     ! attach specializing method(s)
-    call NUOPC_CompSetEntryPoint(gcomp, ESMF_METHOD_RUN, &
-         phaseLabelList=(/"ModelAdvance"/), userRoutine=model_routine_Run, rc=rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
     call NUOPC_CompSpecialize(gcomp, specLabel=model_label_Advance, &
-         specPhaseLabel="ModelAdvance", specRoutine=ModelAdvance, rc=rc)
+         specRoutine=ModelAdvance, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     call ESMF_MethodRemove(gcomp, label=model_label_SetRunClock, rc=rc)
@@ -280,11 +277,11 @@ contains
        call shr_sys_abort(subname//'Need to set attribute ScalarFieldIdxGridNY')
     endif
 
-    ! Determine if cism will evolve - if not will not import any fields from the mediator 
+    ! Determine if cism will evolve - if not will not import any fields from the mediator
     call NUOPC_CompAttributeGet(gcomp, name="cism_evolve", value=cvalue, isPresent=isPresent, isSet=isSet, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     if (isPresent .and. isSet) then
-       write (cism_evolve,*) cvalue
+       read(cvalue,*) cism_evolve
        call ESMF_LogWrite(trim(subname)//' cism_evolve = '//trim(cvalue), ESMF_LOGMSG_INFO)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
     else
@@ -353,7 +350,7 @@ contains
     real(r8)                :: tolerance = 1.e-5_r8
     integer                 :: elementCount
     integer                 :: i,j
-    integer, pointer        :: gindex(:) 
+    integer, pointer        :: gindex(:)
     character(*), parameter :: F00   = "('(InitializeRealize) ',8a)"
     character(*), parameter :: F01   = "('(InitializeRealize) ',a,8i8)"
     character(*), parameter :: F91   = "('(InitializeRealize) ',73('-'))"
@@ -407,7 +404,7 @@ contains
        end if
     else
        if (my_task == master_task) then
-          write(stdout,*)' GLC cism is not evolving, runtype is always set to initial' 
+          write(stdout,*)' GLC cism is not evolving, runtype is always set to initial'
           runtype = 'initial'
        end if
     end if
@@ -459,7 +456,7 @@ contains
        write(stdout,F00) ' Initialize Done'
     endif
 
-    ! TODO (mvertens, 2018-11-28): Determine if land is present as a sanity check - do we need this? 
+    ! TODO (mvertens, 2018-11-28): Determine if land is present as a sanity check - do we need this?
     ! TODO (mvertens, 2018-11-28): read in model_doi_url
 
     !--------------------------------
@@ -486,7 +483,7 @@ contains
     DistGrid = ESMF_DistGridCreate(arbSeqIndexList=gindex, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     !deallocate(gindex)
-    
+
     ! read in the mesh
     EMesh = ESMF_MeshCreate(filename=trim(cvalue), fileformat=ESMF_FILEFORMAT_ESMFMESH, &
           elementDistgrid=Distgrid,  rc=rc)
@@ -595,9 +592,9 @@ contains
     !--------------------------------
 
    if (my_task == master_task) then
-      write(stdout,F91) 
+      write(stdout,F91)
       write(stdout,F00) trim(inst_name),': start of main integration loop'
-      write(stdout,F91) 
+      write(stdout,F91)
    end if
 
     if (dbug > 1) then
@@ -639,31 +636,23 @@ contains
     integer, intent(out) :: rc
 
     ! local variables:
-    type(ESMF_clock)  :: clock
-    type(ESMF_STATE)  :: importState
-    type(ESMF_STATE)  :: exportState
-    type(ESMF_Time)   :: NextTime
-    type(ESMF_Alarm)  :: alarm
-    integer           :: glcYMD     ! glc model date
-    integer           :: glcTOD     ! glc model sec
-    integer           :: cesmYMD    ! cesm model date
-    integer           :: cesmTOD    ! cesm model sec
-    integer           :: cesmYR     ! cesm model year
-    integer           :: cesmMON    ! cesm model month
-    integer           :: cesmDAY    ! cesm model day
-    integer           :: n          ! index
-    integer           :: nf         ! fields loop index
-    integer           :: ki         ! index of ifrac
-    real(R8)          :: lat        ! latitude
-    real(R8)          :: lon        ! longitude
-    integer           :: shrlogunit
-    logical           :: stop_alarm ! is it time to stop
-    logical           :: rest_alarm ! is it time to write a restart
-    logical           :: done       ! time loop logical
-    logical           :: valid_inputs 
-    integer           :: num
-    character(len= 2) :: cnum
-    character(len=64) :: name
+    type(ESMF_clock)       :: clock
+    type(ESMF_STATE)       :: importState
+    type(ESMF_STATE)       :: exportState
+    type(ESMF_Time)        :: NextTime
+    type(ESMF_Alarm)       :: alarm
+    integer                :: glcYMD       ! glc model date
+    integer                :: glcTOD       ! glc model sec
+    integer                :: cesmYMD      ! cesm model date
+    integer                :: cesmTOD      ! cesm model sec
+    integer                :: cesmYR       ! cesm model year
+    integer                :: cesmMON      ! cesm model month
+    integer                :: cesmDAY      ! cesm model day
+    integer                :: n            ! index
+    logical                :: done         ! time loop logical
+    logical                :: valid_inputs ! if true, inputs from mediator are valid
+    character(ESMF_MAXSTR) :: cvalue
+    integer                :: shrlogunit
     character(*), parameter :: F01   = "('(glc_comp_nuopc: ModelAdvance) ',a,8i8)"
     character(*), parameter :: subName = "(glc_comp_nuopc: ModelAdvance) "
     !----------------------------------------------------------------
@@ -697,7 +686,7 @@ contains
 
     call shr_cal_ymd2date(cesmYR, cesmMON, cesmDAY, cesmYMD)
     if (my_task == master_task) then
-       write(stdout,F01) ' CESM Run Starting ',cesmYMD, cesmTOD
+       write(stdout,F01) ' CISM Run Starting ',cesmYMD, cesmTOD
     endif
 
     !--------------------------------
@@ -724,17 +713,23 @@ contains
     ! Run CISM
     !--------------------------------
 
-    ! NOTE: in mct the cesmYMD is advanced at the beginning of the time loop 
+    ! NOTE: in mct the cesmYMD is advanced at the beginning of the time loop
+    ! write(stdout,*)'DEBUG: glcYMD, cesmYMD= ',glcYMD,cesmYMD
+    ! write(stdout,*)'DEBUG: glcTOD, cesmTOD= ',glcTOD,cesmTOD
 
-    !write(stdout,*)'DEBUG: glcYMD, cesmYMD= ',glcYMD,cesmYMD
-    !write(stdout,*)'DEBUG: glcTOD, cesmTOD= ',glcTOD,cesmTOD
-
-    ! Get the noupc attribute on the import state determining if the inputs are valid
-    ! for now hard-wire this to true
-    ! call NUOPC_CompAttributeGet(gcomp, name="cism_valid_inputs", value=cvalue, rc=rc)
-    ! if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    ! read(cvalue,*) valid_inputs
-    valid_inputs = .true.
+    ! Determine if inputs from mediator are valid
+    call ESMF_ClockGetAlarm(clock, alarmname='alarm_valid_inputs', alarm=alarm, rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    if (ESMF_AlarmIsRinging(alarm, rc=rc)) then
+       valid_inputs = .true.
+       call ESMF_AlarmRingerOff( alarm, rc=rc )
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    else
+       valid_inputs = .false.
+    endif
+    write(cvalue,*) valid_inputs
+    call ESMF_LogWrite(subname//' valid_input for cism is '//trim(cvalue), ESMF_LOGMSG_INFO)
+    write(stdout,*)' valid_input for cism is ',valid_inputs
 
     done = .false.
     if (glcYMD == cesmYMD .and. glcTOD == cesmTOD) done = .true.
@@ -774,6 +769,8 @@ contains
     if (ESMF_AlarmIsRinging(alarm, rc=rc)) then
        ! TODO loop over instances
        call glc_io_write_restart(ice_sheet%instances(1), clock)
+       call ESMF_AlarmRingerOff( alarm, rc=rc )
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
     endif
 
   end subroutine ModelAdvance
@@ -787,20 +784,21 @@ contains
     integer, intent(out) :: rc
 
     ! local variables
-    type(ESMF_Clock)         :: mclock, dclock
-    type(ESMF_Time)          :: mcurrtime, dcurrtime
-    type(ESMF_Time)          :: mstoptime
-    type(ESMF_TimeInterval)  :: mtimestep, dtimestep
-    character(len=256)       :: cvalue
+    type(ESMF_Clock)         :: mclock         ! model clock
+    type(ESMF_Clock)         :: dclock         ! driver clock
+    type(ESMF_Time)          :: mcurrtime      ! model current time
+    type(ESMF_Time)          :: dcurrtime      ! driver current time
+    type(ESMF_TimeInterval)  :: mtimestep      ! model time step
+    type(ESMF_TimeInterval)  :: dtimestep      ! driver time step
+    type(ESMF_Time)          :: mstoptime      ! model stop time
+    character(len=256)       :: cvalue         ! temporary
     character(len=256)       :: restart_option ! Restart option units
     integer                  :: restart_n      ! Number until restart interval
     integer                  :: restart_ymd    ! Restart date (YYYYMMDD)
-    type(ESMF_ALARM)         :: restart_alarm
     character(len=256)       :: stop_option    ! Stop option units
     integer                  :: stop_n         ! Number until stop interval
     integer                  :: stop_ymd       ! Stop date (YYYYMMDD)
-    type(ESMF_ALARM)         :: stop_alarm
-    character(len=128)       :: name
+    type(ESMF_ALARM)         :: alarm          ! model alarm
     integer                  :: alarmcount
     character(len=*),parameter :: subname=trim(modName)//':(ModelSetRunClock) '
     !-------------------------------------------------------------------------------
@@ -829,7 +827,7 @@ contains
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     !--------------------------------
-    ! set restart and stop alarms
+    ! initialize valid input, restart and stop alarms
     !--------------------------------
 
     call ESMF_ClockGetAlarmList(mclock, alarmlistflag=ESMF_ALARMLIST_ALL, alarmCount=alarmCount, rc=rc)
@@ -837,9 +835,29 @@ contains
 
     if (alarmCount == 0) then
 
-       call ESMF_GridCompGet(gcomp, name=name, rc=rc)
+       !----------------
+       ! glc alarm for valid input
+       !----------------
+       call NUOPC_CompAttributeGet(gcomp, name="glc_avg_period", value=cvalue, rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
-       call ESMF_LogWrite(subname//'setting alarms for cism', ESMF_LOGMSG_INFO)
+
+       if (trim(cvalue) == 'hour') then
+          cvalue = 'nhours'
+       else if (trim(cvalue) == 'day') then
+          cvalue = 'ndays'
+       else if (trim(cvalue) == 'yearly') then
+          cvalue = 'nyears'
+       else
+          call ESMF_LogWrite(trim(subname)//&
+               ": ERROR glc_avg_period = "//trim(cvalue)//" not supported", ESMF_LOGMSG_INFO)
+          rc = ESMF_FAILURE
+          RETURN
+       end if
+
+       call alarmInit(mclock, alarm, trim(cvalue), opt_n = 1, alarmname = 'alarm_valid_inputs', rc=rc)
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
+       call ESMF_AlarmSet(alarm, clock=mclock, rc=rc)
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
        !----------------
        ! Restart alarm
@@ -856,14 +874,14 @@ contains
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
        read(cvalue,*) restart_ymd
 
-       call alarmInit(mclock, restart_alarm, restart_option, &
+       call alarmInit(mclock, alarm, restart_option, &
             opt_n   = restart_n,           &
             opt_ymd = restart_ymd,         &
             RefTime = mcurrTime,           &
             alarmname = 'alarm_restart', rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
-       call ESMF_AlarmSet(restart_alarm, clock=mclock, rc=rc)
+       call ESMF_AlarmSet(alarm, clock=mclock, rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
        !----------------
@@ -881,14 +899,14 @@ contains
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
        read(cvalue,*) stop_ymd
 
-       call alarmInit(mclock, stop_alarm, stop_option, &
+       call alarmInit(mclock, alarm, stop_option, &
             opt_n   = stop_n,           &
             opt_ymd = stop_ymd,         &
             RefTime = mcurrTime,           &
             alarmname = 'alarm_stop', rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
-       call ESMF_AlarmSet(stop_alarm, clock=mclock, rc=rc)
+       call ESMF_AlarmSet(alarm, clock=mclock, rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     end if
