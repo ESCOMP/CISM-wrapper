@@ -641,6 +641,7 @@ contains
     type(ESMF_STATE)       :: exportState
     type(ESMF_Time)        :: NextTime
     type(ESMF_Alarm)       :: alarm
+    type(ESMF_Time)        :: currtime
     integer                :: glcYMD       ! glc model date
     integer                :: glcTOD       ! glc model sec
     integer                :: cesmYMD      ! cesm model date
@@ -670,6 +671,16 @@ contains
     call shr_file_setLogUnit (stdout)
 
     !--------------------------------
+    ! Obtain the CISM internal time
+    !--------------------------------
+
+    glcYMD = iyear*10000 + imonth*100 + iday
+    glcTOD = ihour*3600 + iminute*60 + isecond
+    if (my_task == master_task) then
+       write(stdout,F01) ' Clock at beginning of time step ',glcYMD,glcTOD
+    endif
+
+    !--------------------------------
     ! Query the Component for its clock at the next time step
     !--------------------------------
 
@@ -686,17 +697,7 @@ contains
 
     call shr_cal_ymd2date(cesmYR, cesmMON, cesmDAY, cesmYMD)
     if (my_task == master_task) then
-       write(stdout,F01) ' CISM Run Starting ',cesmYMD, cesmTOD
-    endif
-
-    !--------------------------------
-    ! Obtain the CISM internal time
-    !--------------------------------
-
-    glcYMD = iyear*10000 + imonth*100 + iday
-    glcTOD = ihour*3600 + iminute*60 + isecond
-    if (my_task == master_task) then
-       write(stdout,F01) ' CISM Run Starting ',glcYMD,glcTOD
+       write(stdout,F01) ' Clock at end of run step ',cesmYMD, cesmTOD
     endif
 
     !--------------------------------
@@ -714,8 +715,8 @@ contains
     !--------------------------------
 
     ! NOTE: in mct the cesmYMD is advanced at the beginning of the time loop
-    ! write(stdout,*)'DEBUG: glcYMD, cesmYMD= ',glcYMD,cesmYMD
-    ! write(stdout,*)'DEBUG: glcTOD, cesmTOD= ',glcTOD,cesmTOD
+    write(stdout,*)'DEBUG: glcYMD, cesmYMD= ',glcYMD,cesmYMD
+    write(stdout,*)'DEBUG: glcTOD, cesmTOD= ',glcTOD,cesmTOD
 
     ! Determine if inputs from mediator are valid
     call ESMF_ClockGetAlarm(clock, alarmname='alarm_valid_inputs', alarm=alarm, rc=rc)
@@ -739,7 +740,18 @@ contains
           call shr_sys_abort('glc error overshot time')
        endif
 
+       ! To be consistent with mct - advance the model clock here so
+       ! that the history output is consistent
+       call ESMF_ClockGet(clock, currTime=currtime,  rc=rc)
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
+       call ESMF_ClockAdvance(clock,rc=rc)
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
+
        call glc_run(clock, valid_inputs)
+
+       ! Now reset the model clock back
+       call ESMF_ClockSet(clock, currTime=currtime, rc=rc)
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
        glcYMD = iyear*10000 + imonth*100 + iday
        glcTOD = ihour*3600 + iminute*60 + isecond
