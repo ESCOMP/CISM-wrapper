@@ -6,7 +6,7 @@ Assuming you have done the setup as suggested below: To build the
 documentation, run:
 
 ```
-build_docs -r ../../cism-docs -i cism-in-cesm
+build_docs -r ../../cism-docs/cism-in-cesm
 ```
 
 ## Overview
@@ -61,11 +61,11 @@ details.)
    tool (which wraps a `make` command, using the `Makefile` here):
    
    ```
-   build_docs -r ../../cism-docs -i cism-in-cesm
+   build_docs -r ../../cism-docs/cism-in-cesm
    ```
    
    By default, this will generate documentation in a subdirectory of
-   `cism-in-cesm` whose name matches the name of the current
+   `cism-in-cesm/versions` whose name matches the name of the current
    branch. There are various other options to this tool. For more
    details, run:
    
@@ -77,7 +77,7 @@ details.)
    the name of the current branch for VERSION):
 
    ```
-   open ../../cism-docs/cism-in-cesm/VERSION/html/index.html
+   open ../../cism-docs/cism-in-cesm/versions/VERSION/html/index.html
    ```
 
 4. Commit and push the changes from the `cism-docs` repository.
@@ -121,10 +121,24 @@ documentation at once, you should do the following:
   **From cism-docs**:
   
   ```
-  git add ...
+  git add .
   git commit -m "Update html"
   git push
   ```
+
+## Adding a new version of the documentation
+
+When adding a new version of the documentation, you need to do two
+things:
+
+1. In `source/conf.py`,change the `version` and `release` variables.
+
+2. In the documentation build repository, add a line to
+   `versions/versions.json` giving a mapping between the new version's
+   directory (which will typically match the version's branch name) and
+   the version name you want to see in the drop-down menu. This will
+   typically be the same as the `version` in `conf.py`, but it does not
+   have to be.
 
 ## Resources for learning markup with reStructuredText and using Sphinx
 

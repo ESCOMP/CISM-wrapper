@@ -1,36 +1,42 @@
 .. _controlling-output:
 
 ************************************
-Controlling output from CLM and CISM
+Controlling output from CISM and CLM
 ************************************
-
-FIXME: bring this section up to date.
 
 =========================
  Controlling CISM output
 =========================
 
-Model history frequency is controlled by *HIST\_OPTION* and *HIST\_N* in
-*env\_run.xml*. By default, history files are written once a year. Among
-the standard fields written to the history file are the ice thickness
-(*thk*), upper surface elevation (*usurf*), bedrock elevation (*topg*)
-along with the surface mass balance (*acab*) and surface air temperature
-(*artm*) downscaled to the ice sheet grid; these fields are set by the
-variable *cesm\_history\_vars* in *cism\_in*.
+The default CISM output frequency is yearly. Most of the CISM output fields are
+instantaneous, so this default frequency means that you get a snapshot of the current
+state at the end of each year. You can change the output to be less frequent via the
+namelist variable ``history_frequency``, which can be set in ``user_nl_cism``. For
+example, to give output every 10 years, set:
 
-Model restart frequency is coordinated by the CESM coupler. The restart
-or hotstart file contains all the fields required for exact restart.
-However, the restart will be exact only if the file is written
-immediately after an ice dynamics time step. This will normally be the
+.. code-block:: Fortran
+
+   history_frequency = 10
+
+The set of variables written to each history file is controlled by the namelist variable
+``cesm_history_vars``. To see the variables output by default, examine
+``CaseDocs/cism_in`` after running ``preview_namelists`` for your case. Among the standard
+fields written to the history file are the ice thickness (``thk``), upper surface
+elevation (``usurf``), bedrock elevation (``topg``), and the surface mass balance
+(``smb``) and surface temperature (``artm``) downscaled to the ice sheet grid.
+
+To modify the list of history fields, set ``cesm_history_vars`` in ``user_nl_cism``. The
+source files with names ``*_io.F90.default`` specify the fields than can be written out:
+for CESM, these get copied to files with the same name but with the ``.default`` stripped
+off. The easiest way to write out new variables for your case is to add them to a file
+ending in ``vars.def`` and then rebuild the ``*_io.F90`` files using a python script. The
+necessary script can be found in ``$CASEROOT/Buildconf/cismIOconf``. See the
+``README.cismIO`` file in that directory for details.
+
+Model restart frequency is coordinated by the CESM coupler. The restart file contains all
+the fields required for exact restart.  However, the restart will be exact only if the
+file is written immediately after an ice dynamics time step. This will normally be the
 case for restart files written at the end of any model year.
-
-Many other fields can be written out if desired, simply by adding them
-to the variable list, *cesm\_history\_vars*. The source files with names
-"\*\_io.F90" specify the fields than can be written out. The easiest way
-to write out new variables is to add them to a file ending in "vars.def"
-and then rebuild the "\*\_io.F90" files using a python script. The
-necessary script can be found in $CASEROOT/Buildconf/cismIOconf. See the
-README.cismIO file in that directory for details.
 
 =============================================
  Producing land ice-specific output from CLM
@@ -39,46 +45,69 @@ README.cismIO file in that directory for details.
 Outputting forcing fields sent from CLM to CISM
 ===============================================
 
-CLM sends three sets of fields to CISM, for each elevation class: *qice,
-tsrf* and *topo* (see Section 5.2). It can often be useful to view the
-values of these forcing fields for each elevation class within each grid
-cell. To do this, you can use the three CLM history variables,
-*QICE\_FORC, TSRF\_FORC* and *TOPO\_FORC.* These history variables are
-inactive by default, but can be added to any of CLM’s history files
-using the *hist\_fincl* CLM namelist variables. For example, to add
-*QICE\_FORC* and *TSRF\_FORC* to CLM’s default (monthly) history file,
-you would add the following in *user\_nl\_clm*:
+CLM sends two sets of fields to CISM for each elevation class: ``qice`` and ``tsrf``. In
+addition, it sends a third set of fields to the coupler for downscaling purposes:
+``topo``. It can often be useful to view the values of these forcing fields for each
+elevation class within each grid cell. To do this, you can use the three CLM history
+variables, ``QICE_FORC``, ``TSRF_FORC`` and ``TOPO_FORC``. These history variables are
+inactive by default, but can be added to any of CLM's history files using the
+``hist_fincl`` CLM namelist variables. For example, to add ``QICE_FORC`` and ``TSRF_FORC``
+to CLM's default (monthly) history file, you would add the following in ``user_nl_clm``:
 
-hist\_fincl1 = 'QICE\_FORC','TSRF\_FORC'
+.. code-block:: Fortran
 
-As with other CLM history variables, additional history files can be
-created with different time frequencies. See the CLM User’s Guide for
-details on how to do this.
+   hist_fincl1 = 'QICE_FORC','TSRF_FORC'
+
+As with other CLM history variables, additional history files can be created with
+different time frequencies. See the `CLM User's Guide
+<https://escomp.github.io/ctsm-docs>`__ for details on how to do this.
 
 Adding a CLM history field that provides averages only over ice
 ===============================================================
 
-In general, CLM history fields give weighted averages over the entire
-grid cell. If you are interested in diagnostics just over ice landunits
-for certain history fields, you can make a source code modification for
-each field of interest. This is done in
-*models/lnd/clm/src/main/histFldsMod.F90*: Find the history field(s) of
-interest in this file, and add the following optional argument to the
-*hist\_addfld1d* or *hist\_addfld2d* call for that history field:
-*l2g\_scale\_type='ice'*. You may want to copy and paste the call in
-order to maintain the original history field and add a new field that
-applies just over ice (being sure to change *fname*). For example,
-examine the difference between the fields *TSOI* and *TSOI\_ICE*:
+In general, CLM history fields give weighted averages over the entire grid cell. If you
+are interested in diagnostics just over ice landunits for certain history fields, you can
+make a source code modification for each field of interest.
 
-call hist\_addfld2d (fname='TSOI', units='K', type2d='levgrnd', &
+CLM history field definitions are distributed throughout the CLM source code. The first
+step is to find the ``hist_addfld1d`` or ``hist_addfld2d`` subroutine call for the history
+field(s) of interest, by searching the code for the history field name. Then add a new
+``hist_addfld1d`` or ``hist_addfld2d`` call that is mostly the same as the original, but:
 
-avgflag='A', long\_name='soil temperature (vegetated landunits only)', &
+1. Change the field name (``fname``), for example, changing ``TSOI`` to ``TSOI_ICE``
 
-ptr\_col=clm3%g%l%c%ces%t\_soisno, l2g\_scale\_type='veg')
+2. Change ``long_name`` to call out that this field just applies over ice landunits
 
-call hist\_addfld2d (fname='TSOI\_ICE', units='K', type2d='levgrnd', &
+3. Add a new argument to the call: ``l2g_scale_type='ice'``.
 
-avgflag='A', long\_name='soil temperature (ice landunits only)', &
+4. Possibly add ``default='inactive'`` so that this field only appears if explicitly
+   requested in ``user_nl_clm``.
 
-ptr\_col=clm3%g%l%c%ces%t\_soisno, l2g\_scale\_type='ice')
+Here are some examples of currently-defined ``_ICE`` fields and their non-``_ICE``
+counterparts:
 
+.. code-block:: Fortran
+
+   call hist_addfld2d (fname='TSOI',  units='K', type2d='levgrnd', &
+        avgflag='A', long_name='soil temperature (vegetated landunits only)', &
+        ptr_col=this%t_soisno_col, l2g_scale_type='veg')
+
+   call hist_addfld2d (fname='TSOI_ICE',  units='K', type2d='levgrnd', &
+        avgflag='A', long_name='soil temperature (ice landunits only)', &
+        ptr_col=this%t_soisno_col, l2g_scale_type='ice')
+
+.. code-block:: Fortran
+
+   call hist_addfld1d (fname='FSH', units='W/m^2',  &
+        avgflag='A', long_name='sensible heat not including correction for land use change and rain/snow conversion', &
+        ptr_patch=this%eflx_sh_tot_patch, c2l_scale_type='urbanf')
+
+   call hist_addfld1d (fname='FSH_ICE', units='W/m^2',  &
+        avgflag='A', &
+        long_name='sensible heat not including correction for land use change and rain/snow conversion (ice landunits only)', &
+        ptr_patch=this%eflx_sh_tot_patch, c2l_scale_type='urbanf', l2g_scale_type='ice', &
+        default='inactive')
+
+Note that there are already many ``_ICE`` fields defined in the code, but many of these
+are inactive by default (meaning that they need to be explicitly added to history field
+lists via CLM's ``hist_fincl`` mechanism).
