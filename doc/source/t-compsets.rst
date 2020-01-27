@@ -72,9 +72,9 @@ To create the necessary forcing data (surface mass balance and surface temperatu
 glacier elevation class, along with surface elevation for the coupler's vertical
 downscaling), you need to perform a CESM run using a compset that includes an active land
 model (CLM). It does not matter whether the glc component is fully-active
-(``CISM2%EVOLVE``) or active but non-evolving (``CISM2%NOEVOLVE``). However, a stub model
-(``SGLC``) will not work for this purpose. CISM's domain and resolution
-also do not matter (because forcing data are saved prior to downscaling to the CISM grid).
+(``CISM2%EVOLVE``), active but non-evolving (``CISM2%NOEVOLVE``) or a stub model
+(``SGLC``). If running with CISM, CISM's domain and resolution also do not matter (because
+forcing data are saved prior to downscaling to the CISM grid).
 
 However, CLM's ``GLACIER_REGION`` field (on the surface dataset) *does* matter: Surface
 mass balance and temperature forcing fields will only be valid in regions whose glacier
