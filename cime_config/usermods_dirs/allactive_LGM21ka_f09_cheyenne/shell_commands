@@ -1,20 +1,11 @@
-#!/usr/bin/csh
-set echo
-set BASEDIR=/glade/work/sbradley/
-
-set RUNDIR=`./xmlquery --value RUNDIR`
-\cp $BASEDIR/CESM2.0_SETUP/RESTART/b.e20.B1850.f09_g17.pi_control.all.299/* $RUNDIR
-\cp $BASEDIR/CESM2.0_SETUP/RESTART/b.e20.B1850.f09_g17.pi_control.all.299/POP/* $RUNDIR
-\cp $BASEDIR/CESM2.0_SETUP/RESTART/b.e20.B1850.f09_g17.pi_control.all.299/CICE/* $RUNDIR
-\cp $BASEDIR/CESM2.0_SETUP/RESTART/b.e20.B1850.f09_g17.pi_control.all.299/CISM/* $RUNDIR
-gunzip --force$RUNDIR/*.gz
+#!/bin/bash
+# NOTE: Assumes a Bourne shell will be used
+BASEDIR=/glade/work/sbradley/
 
 ./xmlchange RUN_TYPE='hybrid'
-./xmlchange RUN_REFCASE=b.e20.B1850.f09_g17.pi_control.all.299
-./xmlchange RUN_REFDIR='$RUNDIR'
-./xmlchange RUN_REFDATE=0263-01-01
+./xmlchange RUN_REFCASE=b.e21.B1850GRnoanthro.f09_g17_gl4.cesm2.1.1-rc.03_cism_popn01
+./xmlchange RUN_REFDATE=0002-01-01
 ./xmlchange RUN_STARTDATE=0001-01-01
-./xmlchange GET_REFCASE='FALSE'
 
 
 ./xmlchange OCN_C2_GLC=TRUE
