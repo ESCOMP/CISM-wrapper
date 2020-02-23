@@ -2,7 +2,7 @@
 # Run a few namelists that should work or not
 
 echo "Run namelists that should work\n\n"
-foreach work ( 'history_frequency=1', 'nzocn=7,bmlt_float=6', 'nzocn=2,zocn=-1,-2,bmlt_float=6', 'nzocn=2,dzocn=1,1,bmlt_float=6' )
+foreach work ( 'history_frequency=1', 'nzocn=7,bmlt_float=6', 'nzocn=2,zocn=-1,-2,bmlt_float=6', 'nzocn=2,dzocn=1,1,bmlt_float=6', 'gamma0=1.0' )
    ../build-namelist -cimeroot ../../../../cime -caseroot . -paramfile cism.config -lnd_grid 0.9x1.25 \
                      -glc_grid gland4 -cism_phys cism2 -verbose -namelist "&a $work /" >> /dev/null
    if ( $? != 0 )then

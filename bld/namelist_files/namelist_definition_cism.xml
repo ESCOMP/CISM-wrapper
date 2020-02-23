@@ -360,6 +360,22 @@ Global boundary conditions
 Default: 0 for cism1, 1 for cism2
 </entry>
 
+<entry
+id="nx_block"
+type="integer"
+category="cism_config_options"
+group="cism_config_options"
+Blocks to compute over the in "x" direction (if compute_blocks is non zero)
+</entry>
+
+<entry
+id="ny_block"
+type="integer"
+category="cism_config_options"
+group="cism_config_options"
+Blocks to compute over the in "y" direction (if compute_blocks is non zero)
+</entry>
+
 <!-- =============================================================  -->
 <!-- group: cism.config: grid_ocn                                   -->
 <!-- =============================================================  -->
@@ -448,6 +464,18 @@ Which dycore to use
    Note that this option is not allowed within CESM, because it is buggy
 2: Glissade dycore (HO, FEM, serial or parallel)
 Default: 0 for cism1, 2 for cism2
+</entry>
+
+<entry
+id="compute_blocks"
+type="integer"
+category="cism_config_options"
+group="cism_config_options"
+valid_values="0,1,2" >
+0: compute on all blocks
+1: compute on active blocks only
+2: inquire the number of active blocks
+Default: 0
 </entry>
 
 <entry 
@@ -768,6 +796,24 @@ valid_values="0,1" >
 Restart the model if set to 1. 
 This allows for exact restarts from previous initial conditions
 Default: 0 for startup or hybrid with CISM_OBSERVED_IC=TRUE, 1 for hybrid/branch with CISM_OBSERVED_IC=FALSE
+</entry>
+
+<entry
+id="adjust_input_thickness"
+type="logical"
+category="cism_config_options"
+group="cism_config_options"
+If initial thickness will be adjusted
+Default: .false.
+</entry>
+
+<entry
+id="adjust_input_topography"
+type="logical"
+category="cism_config_options"
+group="cism_config_options"
+If initial topography will be adjusted
+Default: .false.
 </entry>
 
 <!-- =============================================================  -->
@@ -1355,6 +1401,95 @@ Relies on having a warm_ocean_mask field on the input file.
 Default: 0.
 </entry>
 
+<entry
+id="bmlt_cavity_h0"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Amount to reduce bmlt_float in shallow cavities
+(If > 0)
+Default: 0.
+</entry>
+
+<entry
+id="gamma0"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Coefficient for sub-shelf melt rates (m/yr)
+Default: 0.
+</entry>
+
+<entry
+id="adjust_topg_xmin"
+type="real"
+category="cism_config_options"
+group="cism_config_options"
+min x value (m) of the region with adjusted topography
+(only used if adjust_input_topography=T)
+Default: 0.0
+</entry>
+
+<entry
+id="adjust_topg_xmax"
+type="real"
+category="cism_config_options"
+group="cism_config_options"
+max x value (m) of the region with adjusted topography
+(only used if adjust_input_topography=T)
+Default: 0.0
+</entry>
+
+<entry
+id="adjust_topg_ymin"
+type="real"
+category="cism_config_options"
+group="cism_config_options"
+min y value (m) of the region with adjusted topography
+(only used if adjust_input_topography=T)
+Default: 0.0
+</entry>
+
+<entry
+id="adjust_topg_ymax"
+type="real"
+category="cism_config_options"
+group="cism_config_options"
+max y value (m) of the region with adjusted topography
+(only used if adjust_input_topography=T)
+Default: 0.0
+</entry>
+
+<entry
+id="adjust_topg_lo"
+type="real"
+category="cism_config_options"
+group="cism_config_options"
+lower threshold (m); adjust where topg > topg_lo
+(only used if adjust_input_topography=T)
+Default: 0.0
+</entry>
+
+<entry
+id="adjust_topg_hi"
+type="real"
+category="cism_config_options"
+group="cism_config_options"
+upper threshold (m); apply max adjustment topg_delta where topg > topg_hi
+(only used if adjust_input_topography=T)
+Default: 0.0
+</entry>
+
+<entry
+id="adjust_topg_delta"
+type="real"
+category="cism_config_options"
+group="cism_config_options"
+max adjustment, applied where topg > topg_hi
+(only used if adjust_input_topography=T)
+Default: 0.0
+</entry>
+
 <!-- =============================================================  -->
 <!-- group: cism.config: ho_options (higher-order options)          -->
 <!-- =============================================================  -->
@@ -1492,7 +1627,7 @@ group="cism_config_ho_options"
 valid_values="0,1" >
 Method for solving the nonlinear iteration when solving the first-order momentum balance
 0: use the standard Picard iteration
-1: use Jacobian Free Newton Krylov (JFNK) method [GLAM only]
+1: use Picard iteration with acceleration 
 Default: 1 for dycore = 1, 0 for dycore = 2
 </entry>
 
@@ -1633,6 +1768,54 @@ Flag that indicates how to compute bmlt_float in partly grounded cells
 0: Apply bmlt_float in all floating cells, including partly grounded cells
 1: Do not apply bmlt_float in partly grounded cells
 Default: 0
+</entry>
+
+<entry
+id="which_ho_cp_inversion"
+type="integer"
+category="cism_config_ho_options"
+group="cism_config_ho_options"
+valid_values="0,1,2" >
+basal inversion option
+0: none
+1: compute
+2: apply
+Default: 0
+</entry>
+
+<entry
+id="which_ho_bmlt_inversion"
+type="integer"
+category="cism_config_ho_options"
+group="cism_config_ho_options"
+valid_values="0,1,2" >
+basal melt float inversion option
+0: none
+1: compute
+2: apply
+Default: 0
+</entry>
+
+<entry
+id="which_ho_bmlt_basin_inversion"
+type="integer"
+category="cism_config_ho_options"
+group="cism_config_ho_options"
+valid_values="0,1,2" >
+basal melt float inversion basin option
+0: none
+1: compute
+2: apply
+Default: 0
+</entry>
+
+<entry
+id="linear_solve_ncheck"
+type="integer"
+category="cism_config_ho_options"
+group="cism_config_ho_options"
+number of iterations between convergence checks in the linear solver
+Default: 5
 </entry>
 
 <entry
