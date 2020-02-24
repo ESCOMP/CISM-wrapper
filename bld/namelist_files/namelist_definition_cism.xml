@@ -474,7 +474,7 @@ group="cism_config_options"
 valid_values="0,1,2" >
 0: compute on all blocks
 1: compute on active blocks only
-2: inquire the number of active blocks
+2: inquire the number of active blocks in preparation to resubmitting with option 1
 Default: 0
 </entry>
 
@@ -1407,7 +1407,7 @@ type="real"
 category="cism_config_parameters"
 group="cism_config_parameters" >
 Amount to reduce bmlt_float in shallow cavities
-(If > 0)
+(If > 0 and bmlt_float != MISMIP option (1))
 Default: 0.
 </entry>
 
@@ -1417,6 +1417,8 @@ type="real"
 category="cism_config_parameters"
 group="cism_config_parameters" >
 Coefficient for sub-shelf melt rates (m/yr)
+Only used for bmlt_float options local, nonlocal and slope (1,2,3)
+IF not set, will use set parameter values from the source
 Default: 0.
 </entry>
 
@@ -1763,10 +1765,11 @@ id="which_ho_ground_bmlt"
 type="integer"
 category="cism_config_ho_options"
 group="cism_config_ho_options"
-valid_values="0,1" >
+valid_values="0,1,2" >
 Flag that indicates how to compute bmlt_float in partly grounded cells
 0: Apply bmlt_float in all floating cells, including partly grounded cells
-1: Do not apply bmlt_float in partly grounded cells
+1: Weigh bmlt by floating fraction of cell if 0 < f_ground < 1
+2: Set bmlt_float = 0 in partly grounded cells (f_ground > 0)
 Default: 0
 </entry>
 
@@ -1777,9 +1780,10 @@ category="cism_config_ho_options"
 group="cism_config_ho_options"
 valid_values="0,1,2" >
 basal inversion option
-0: none
-1: compute
-2: apply
+Can only be non-zero for Schoof sliding law and basic power law (which_ho_babc 9 and 11)
+0: no inversion
+1: compute inversion for basal friction parameter Cp
+2: apply Cp from a previous inversion
 Default: 0
 </entry>
 
@@ -1790,9 +1794,9 @@ category="cism_config_ho_options"
 group="cism_config_ho_options"
 valid_values="0,1,2" >
 basal melt float inversion option
-0: none
-1: compute
-2: apply
+0: no inversion
+1: compute inversion for basin-based melting parameters
+2: apply basin-based melting parameters from a previous inversion
 Default: 0
 </entry>
 
@@ -1803,9 +1807,10 @@ category="cism_config_ho_options"
 group="cism_config_ho_options"
 valid_values="0,1,2" >
 basal melt float inversion basin option
-0: none
-1: compute
-2: apply
+Only supported for thermal forcing option of Basal melt rate for floating ice (bmlt_float == 6)
+0: no inversion
+1: compute inversion for for basin-based melting parameters
+2: apply basin-based melting parameters from a previous inversion
 Default: 0
 </entry>
 
@@ -1823,7 +1828,7 @@ id="which_ho_flotation_function"
 type="integer"
 category="cism_config_ho_options"
 group="cism_config_ho_options"
-valid_values="0,1,2" >
+valid_values="0,1,2,3" >
 Flag that indicates how to compute the flotation function at and near vertices in the Glissade dycore
 Not valid for other dycores
 Only applicable for which_ho_ground=1

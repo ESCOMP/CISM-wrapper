@@ -2,7 +2,10 @@
 # Run a few namelists that should work or not
 
 echo "Run namelists that should work\n\n"
-foreach work ( 'history_frequency=1', 'nzocn=7,bmlt_float=6', 'nzocn=2,zocn=-1,-2,bmlt_float=6', 'nzocn=2,dzocn=1,1,bmlt_float=6', 'gamma0=1.0' )
+foreach work ( 'history_frequency=1', 'nzocn=7,bmlt_float=6', 'nzocn=2,zocn=-1,-2,bmlt_float=6', 'nzocn=2,dzocn=1,1,bmlt_float=6', 'gamma0=1.0', \
+               'adjust_input_topography=T, adjust_topg_xmin=1.', 'compute_blocks=1,nx_block=1,ny_block=1', 'bmlt_cavity_h0=1.,bmlt_float=1', \
+               'gamma0=1.0,bmlt_float=1', 'which_ho_cp_inversion=1,which_ho_babc=9', 'which_ho_bmlt_basin_inversion=1,bmlt_float=6', \
+               'which_ho_flotation_function=3'  )
    ../build-namelist -cimeroot ../../../../cime -caseroot . -paramfile cism.config -lnd_grid 0.9x1.25 \
                      -glc_grid gland4 -cism_phys cism2 -verbose -namelist "&a $work /" >> /dev/null
    if ( $? != 0 )then
@@ -12,7 +15,9 @@ foreach work ( 'history_frequency=1', 'nzocn=7,bmlt_float=6', 'nzocn=2,zocn=-1,-
 end
 # A namelist that should fail
 echo "Run namelists that should fail\n\n"
-foreach faillist ( 'nzocn=6,bmlt_float=6', 'nzocn=2,dzocn=1,1,zocn=-1,-2', 'nzocn=2,zocn=-1,-1' )
+foreach faillist ( 'nzocn=6,bmlt_float=6', 'nzocn=2,dzocn=1,1,zocn=-1,-2', 'nzocn=2,zocn=-1,-1', 'nx_block=1', 'compute_blocks=1,nx_block=1', \
+                   'adjust_input_topography=F, adjust_topg_xmin=1.', 'bmlt_cavity_h0=1.,bmlt_float=1', 'gamma0=1.0,bmlt_float=0', \
+                   'which_ho_cp_inversion=1,which_ho_babc=8', 'bmlt_float=5,which_ho_bmlt_basin_inversion=1' )
    ../build-namelist -cimeroot ../../../../cime -caseroot . -paramfile cism.config -lnd_grid 0.9x1.25 \
                      -glc_grid gland4 -cism_phys cism2 -verbose -namelist "&a $faillist /" >>& /dev/null
    if ( $? == 0 )then
