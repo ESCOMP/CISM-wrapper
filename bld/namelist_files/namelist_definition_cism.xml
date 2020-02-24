@@ -1419,7 +1419,7 @@ category="cism_config_parameters"
 group="cism_config_parameters" >
 Coefficient for sub-shelf melt rates (m/yr)
 Only used for bmlt_float options local, nonlocal and slope (1,2,3)
-IF not set, will use set parameter values from the source
+If not set, will use set parameter values set in CISM
 Default: 0.
 </entry>
 

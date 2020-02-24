@@ -1191,6 +1191,23 @@ sub check_consistency {
 # ----------------------------------------------------------------------
 # Requirements for bmlt_cavity_h0 option
 # ----------------------------------------------------------------------
+    my $bmlt_cavity_h0 = $nl->get_value('bmlt_cavity_h0');
+    my $bmlt_float     = $nl->get_value('bmlt_float');
+
+    if ( defined($bmlt_cavity_h0) ) {
+       if ( ! defined($bmlt_float) ) {
+          print( "When bmlt_cavity_h0 is set, bmlt_float must be MISMIP option (1)\n" );
+          $num_errors += 1;
+       } elsif ( $bmlt_float != 1 ) {
+          print( "When bmlt_cavity_h0 is set, bmlt_float must be MISMIP option (1)\n" );
+          $num_errors += 1;
+       } else {
+          if ( $bmlt_cavity_h0 < 0.0 ) {
+             print( "bmlt_cavity_h0 must be positive\n" );
+             $num_errors += 1;
+          }
+       }
+    }
 
 # ----------------------------------------------------------------------
 # Requirements for gamma0 parameter
