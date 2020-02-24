@@ -1212,6 +1212,23 @@ sub check_consistency {
 # ----------------------------------------------------------------------
 # Requirements for gamma0 parameter
 # ----------------------------------------------------------------------
+    my $gamma0     = $nl->get_value('gamma0');
+    my $bmlt_float = $nl->get_value('bmlt_float');
+
+    if ( defined($gamma0) ) {
+       if ( ! defined($bmlt_float) ) {
+          print( "When gamma0 is set, bmlt_float must be local, nonlocal or slope option (1,2,3)\n" );
+          $num_errors += 1;
+       } elsif ( ($bmlt_float < 1) || ($bmlt_float > 3) ) {
+          print( "When gamma0 is set, bmlt_float must be local, nonlocal or slope option (1,2,3)\n" );
+          $num_errors += 1;
+       } else {
+          if ( $gamma0 < 0.0 ) {
+             print( "gamma0 must be positive\n" );
+             $num_errors += 1;
+          }
+       }
+    }
 
 # ----------------------------------------------------------------------
 # Requirements for which_ho_cp_inversion option
