@@ -1241,7 +1241,7 @@ sub check_consistency {
           print( "When which_ho_cp_inversion is set, which_ho_babc must be Schoof sliding law and basic power law option (9 or 11)\n" );
           $num_errors += 1;
        } else {
-          if ( ($which_ho_cp_inversion > 1) && ($which_ho_babc != 9) && ($which_ho_babc != 11) ) {
+          if ( ($which_ho_cp_inversion > 0) && ($which_ho_babc != 9) && ($which_ho_babc != 11) ) {
              print( "When which_ho_cp_inversion is set to non-zero, which_ho_babc must be Schoof sliding law and basic power law option (9 or 11)\n" );
              $num_errors += 1;
           }
@@ -1251,7 +1251,20 @@ sub check_consistency {
 # ----------------------------------------------------------------------
 # Requirements for which_ho_bmlt_basin_inversion option
 # ----------------------------------------------------------------------
+    my $which_ho_bmlt_basin_inversion = $nl->get_value('which_ho_bmlt_basin_inversion');
+    my $bmlt_float                    = $nl->get_value('bmlt_float');
 
+    if ( defined($which_ho_bmlt_basin_inversion) ) {
+       if ( ! defined($bmlt_float) ) {
+          print( "When which_ho_bmlt_basin_inversion is set, bmlt_float must be thermal forcing (6)\n" );
+          $num_errors += 1;
+       } else {
+          if ( ($which_ho_bmlt_basin_inversion > 0) && ($bmlt_float != 6) ) {
+             print( "When which_ho_bmlt_basin_inversion is set to non-zero, bmlt_float must be thermal forcing (6)\n" );
+             $num_errors += 1;
+          }
+       }
+    }
 
     die if ($num_errors > 0);
 }
