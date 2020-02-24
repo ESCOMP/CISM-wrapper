@@ -1152,6 +1152,41 @@ sub check_consistency {
 # ----------------------------------------------------------------------
 # Requirements for adjust_input_topography option
 # ----------------------------------------------------------------------
+    my $adjust_input_topography = $nl->get_value('adjust_input_topography');
+    my @adjust_opts = ( "adjust_topg_xmin", "adjust_topg_xmax", "adjust_topg_ymin", "adjust_topg_ymax", "adjust_topg_lo",
+                        "adjust_topg_hi", "adjust_topg_delta" );
+    if ( ! defined($adjust_input_topography) ) {
+       foreach my $item ( @adjust_opts ) {
+          if ( defined($nl->get_value($item) ) ) {
+             print( "$item can NOT be set, unless adjust_input_topography is true\n" );
+	     $num_errors += 1;
+          }
+       }
+    } elsif ( $adjust_input_topography =~ $TRUE ) {
+       if ( $nl->get_value('dycore') != 2 ) {
+          print( "adjust_input_topography can only be set to true for the Glissade dycore\n" );
+	  $num_errors += 1;
+       }
+       foreach my $item ( @adjust_opts ) {
+          my $value = $nl->get_value($item);
+          if ( defined($value) ) {
+             if ( $value < 0.0 ) {
+                print( "$item must be greater than zero\n" );
+	        $num_errors += 1;
+             }
+          }
+       }
+    } elsif ( $adjust_input_topography =~ $FALSE ) {
+       foreach my $item ( @adjust_opts ) {
+          if ( defined($nl->get_value($item) )) {
+             print( "$item can NOT be set, unless adjust_input_topography is true\n" );
+	     $num_errors += 1;
+          }
+       }
+    } else {
+       print( "adjust_input_topography not set to a .true. or .false. value\n" );
+       $num_errors += 1;
+    }
 
 # ----------------------------------------------------------------------
 # Requirements for bmlt_cavity_h0 option

@@ -813,6 +813,7 @@ type="logical"
 category="cism_config_options"
 group="cism_config_options"
 If initial topography will be adjusted
+Only for glissade dycore (dycore==2)
 Default: .false.
 </entry>
 
