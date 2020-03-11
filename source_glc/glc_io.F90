@@ -72,21 +72,21 @@
     use glc_files, only : ptr_filename
 
     implicit none
-    integer    ,             intent(out) :: nhour_glad
-    integer    ,             intent(out) :: av_start_time_restart
+    integer(IN),             intent(out) :: nhour_glad
+    integer(IN),             intent(out) :: av_start_time_restart
     character(fname_length), intent(out) :: filename
 
     ! local variables
     character(fname_length) :: filename0
-    integer                 :: rst_elapsed_days  ! 
-    integer                 :: ptr_unit          ! unit for pointer file
-    integer                 :: rst_unit          ! unit for restart file
-    integer                 :: status            !
+    integer(IN)             :: rst_elapsed_days  !
+    integer(IN)             :: ptr_unit          ! unit for pointer file
+    integer(IN)             :: rst_unit          ! unit for restart file
+    integer(IN)             :: status            !
 
 !-----------------------------------------------------------------------
 
     if (my_task == master_task) then
-       
+
        ! get restart filename from rpointer file
        ptr_unit = shr_file_getUnit()
        open(ptr_unit,file=ptr_filename)
@@ -146,30 +146,29 @@
     type(glad_instance) , intent(inout) :: instance
     type(ESMF_Clock)    , intent(in)    :: EClock
     character(len=*)    , intent(in)    :: history_vars
-    logical             , intent(in)    :: initial_history       
+    logical             , intent(in)    :: initial_history
 
     ! If present, history_frequency_metadata gives the text to use for the
     ! time_period_freq global attribute. If absent, there will be no time_period_freq
     ! global attribute.
     character(len=*)    , intent(in), optional :: history_frequency_metadata
-    
+
     ! local variables
     type(glimmer_nc_output),  pointer :: oc => null()
 
     character(len=32) :: file_type
-    character(CL)     :: filename
-    type(ESMF_TIME)   :: CurrentTime
-    integer           :: cesmYMD           ! cesm model date
-    integer           :: cesmTOD           ! cesm model sec
-    integer           :: cesmYR            ! cesm model year
-    integer           :: cesmMON           ! cesm model month
-    integer           :: cesmDAY           ! cesm model day
-    integer           :: glcYMD            ! cism model date
-    integer           :: glcTOD            ! cism model sec
-    integer           :: rst_elapsed_days  ! 
-    integer           :: ptr_unit          ! unit for pointer file
-    integer           :: status            !
-    integer           :: rc
+    character(CL) :: filename
+    integer(IN)   :: cesmYMD           ! cesm model date
+    integer(IN)   :: cesmTOD           ! cesm model sec
+    integer(IN)   :: cesmYR            ! cesm model year
+    integer(IN)   :: cesmMON           ! cesm model month
+    integer(IN)   :: cesmDAY           ! cesm model day
+    integer(IN)   :: glcYMD            ! cism model date
+    integer(IN)   :: glcTOD            ! cism model sec
+    integer(IN)   :: rst_elapsed_days  ! 
+    integer(IN)   :: ptr_unit          ! unit for pointer file
+    integer(IN)   :: status            !
+    type(ESMF_TIME) :: CurrentTime
 !-----------------------------------------------------------------------
 
     ! Error checking on arguments
@@ -216,7 +215,7 @@
 !jw    oc%metadata%source =
 !jw    oc%metadata%history =
 !jw    oc%metadata%references =
-!jw    oc%metadata%comment = 
+!jw    oc%metadata%comment =
 
     ! create the output unit
     call glimmer_nc_createfile(oc, instance%model, baseline_year=baseline_year)
@@ -251,7 +250,7 @@
             model_doi_url)
        call nc_errorhandle(__FILE__,__LINE__,status)
     end if
-    
+
     call glide_nc_filldvars(oc, instance%model)
 
     call glimmer_nc_checkwrite(oc, instance%model, forcewrite=.true., &
@@ -325,7 +324,7 @@
 
        call write_log('WHL, oc_tavg_helper is already associated; reset the tavg fields')
 
-       ! If tavg fields are present, then reset them now. 
+       ! If tavg fields are present, then reset them now.
        if (oc_tavg_helper%do_averages) then
           call glide_avg_reset(oc_tavg_helper, instance%model)
           ! Note: Currently Glad has no tavg files, and subroutine glad_avg_reset is not generated.
@@ -388,19 +387,18 @@
 
     ! local variables
     type(glimmer_nc_output),  pointer :: oc => null()
+    character(CL) :: filename
+    integer(IN)   :: cesmYMD           ! cesm model date
+    integer(IN)   :: cesmTOD           ! cesm model sec
+    integer(IN)   :: cesmYR            ! cesm model year
+    integer(IN)   :: cesmMON           ! cesm model month
+    integer(IN)   :: cesmDAY           ! cesm model day
+    integer(IN)   :: glcYMD            ! cism model date
+    integer(IN)   :: glcTOD            ! cism model sec
+    integer(IN)   :: rst_elapsed_days  !
+    integer(IN)   :: ptr_unit          ! unit for pointer file
+    integer(IN)   :: status            !
     type(ESMF_TIME) :: CurrentTime
-    character(CL)   :: filename
-    integer         :: cesmYMD           ! cesm model date
-    integer         :: cesmTOD           ! cesm model sec
-    integer         :: cesmYR            ! cesm model year
-    integer         :: cesmMON           ! cesm model month
-    integer         :: cesmDAY           ! cesm model day
-    integer         :: glcYMD            ! cism model date
-    integer         :: glcTOD            ! cism model sec
-    integer         :: rst_elapsed_days  ! 
-    integer         :: ptr_unit          ! unit for pointer file
-    integer         :: status            !
-    integer           :: rc
 !-----------------------------------------------------------------------
 
     if (.not. glad_okay_to_restart(instance)) then
@@ -450,7 +448,7 @@
 !jw    oc%metadata%source =
 !jw    oc%metadata%history =
 !jw    oc%metadata%references =
-!jw    oc%metadata%comment = 
+!jw    oc%metadata%comment =
 
     ! create the output unit
     call glimmer_nc_createfile(oc, instance%model, baseline_year=baseline_year)
@@ -476,7 +474,7 @@
             get_av_start_time(instance%glad_inputs))
        call nc_errorhandle(__FILE__,__LINE__,status)
     end if
-    
+
     call glide_nc_filldvars(oc, instance%model)
     call glimmer_nc_checkwrite(oc, instance%model, forcewrite=.true., &
          time=instance%glide_time, &

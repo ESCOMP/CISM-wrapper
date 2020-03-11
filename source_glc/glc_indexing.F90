@@ -35,8 +35,8 @@ module glc_indexing
   integer, public :: ny_tot   ! total number of rows in full grid (all procs)
   integer, public :: npts_tot ! total number of points in full grid (all procs)
 
-  integer, allocatable, public :: local_indices(:,:)  ! mapping from (i,j) to 1..npts
-  integer, allocatable, public :: global_indices(:,:) ! unique indices across all procs (matches indexing on mapping files)
+  integer, allocatable, private :: local_indices(:,:)  ! mapping from (i,j) to 1..npts
+  integer, allocatable, private :: global_indices(:,:) ! unique indices across all procs (matches indexing on mapping files)
   
 contains
 

@@ -31,7 +31,7 @@ module glc_comp_nuopc
   use glc_fields          , only : ice_sheet
   use glc_shr_methods     , only : chkerr, state_setscalar, state_getscalar, state_diagnose, alarmInit
   use glc_shr_methods     , only : set_component_logging, get_component_instance, log_clock_advance
-  use glc_indexing        , only : local_indices, global_indices, nx_tot, ny_tot, local_to_global_indices
+  use glc_indexing        , only : global_indices, nx_tot, ny_tot, local_to_global_indices
   use glc_indexing        , only : npts, nx, ny, spatial_to_vector
   use glc_ensemble        , only : set_inst_vars
   use glc_files           , only : set_filenames, ionml_filename
@@ -350,7 +350,7 @@ contains
     real(r8)                :: tolerance = 1.e-5_r8
     integer                 :: elementCount
     integer                 :: i,j
-    integer, pointer        :: gindex(:)
+    integer, allocatable    :: gindex(:)
     character(*), parameter :: F00   = "('(InitializeRealize) ',8a)"
     character(*), parameter :: F01   = "('(InitializeRealize) ',a,8i8)"
     character(*), parameter :: F91   = "('(InitializeRealize) ',73('-'))"
@@ -472,17 +472,10 @@ contains
     end if
 
     ! create distGrid from global index array
-    allocate(gindex(npts))
-    do j = 1,ny
-       do i = 1,nx
-          n = local_indices(i,j)
-          gindex(n) = global_indices(i,j)
-       end do
-    end do
+    gindex = local_to_global_indices()
 
     DistGrid = ESMF_DistGridCreate(arbSeqIndexList=gindex, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    !deallocate(gindex)
 
     ! read in the mesh
     EMesh = ESMF_MeshCreate(filename=trim(cvalue), fileformat=ESMF_FILEFORMAT_ESMFMESH, &
