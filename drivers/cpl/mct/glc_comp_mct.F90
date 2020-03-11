@@ -325,9 +325,6 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
 
     call seq_infodata_GetData( infodata, glc_valid_input=valid_inputs)
 
-    !write(stdout,*)'DEBUG: glcYMD, cesmYMD= ',glcYMD,cesmYMD
-    !write(stdout,*)'DEBUG: glcTOD, cesmTOD= ',glcTOD,cesmTOD
-
     done = .false.
     if (glcYMD == cesmYMD .and. glcTOD == cesmTOD) done = .true.
     do while (.not. done) 

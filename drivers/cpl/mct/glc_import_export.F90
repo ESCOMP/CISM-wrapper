@@ -5,7 +5,6 @@ module glc_import_export
   use shr_kind_mod,        only: CS=>SHR_KIND_CS, CL=>SHR_KIND_CL
   use glc_constants,       only: verbose, stdout, stderr, tkfrz, zero_gcm_fluxes
   use glc_communicate,     only: my_task, master_task
-  use glc_time_management, only: iyear,imonth,iday,ihour,iminute,isecond,runtype
   use glc_cpl_indices
 
   implicit none
@@ -14,11 +13,6 @@ module glc_import_export
 
   ! Public interfaces
   public :: glc_import
-
-  integer :: debug_export = 1
-  integer :: debug_import = 1
-  character(*),parameter :: F01 = "('(glc_import): ',a,2(i8,2x),i8,2x,d21.6)"
-  character(*),parameter :: F02 = "('(glc_export): ',a,2(i8,2x),i8,2x,d21.6)"
 
 !=================================================================================
 contains
@@ -32,13 +26,10 @@ contains
 
     real(r8)   , intent(in) :: x2g(:,:)
 
-    integer           :: glcYMD ! glc model date
-    integer           :: glcTOD ! glc model sec 
-    integer           :: n
     character(*), parameter :: subName = "(glc_import) "
     !-------------------------------------------------------------------
 
-    call vector_to_spatial(x2g(index_x2g_Sl_tsrf,:)  , tsfc)
+    call vector_to_spatial(x2g(index_x2g_Sl_tsrf,:), tsfc)
     call vector_to_spatial(x2g(index_x2g_Flgl_qice,:), qsmb)
 
     tsfc = tsfc - tkfrz
@@ -49,21 +40,6 @@ contains
     !manually reverse this, below, to set to 0C.
     where (tsfc < -250.d0) tsfc=0.d0 
 
-    if (debug_import > 0 .and. my_task == master_task) then
-       glcYMD = iyear*10000 + imonth*100 + iday
-       glcTOD = ihour*3600 + iminute*60 + isecond
-       do n = 1,size(x2g, dim=2)
-          if (x2g(index_x2g_Sl_tsrf, n) /= 0._r8) then
-             write(stdout,F01)' glcYMD, glcTOD, n, Sl_tsrf =',glcYMD, glcTOD, n, x2g(index_x2g_Sl_tsrf, n)
-          end if
-       end do
-       do n = 1,size(x2g, dim=2)
-          if (x2g(index_x2g_Flgl_qice, n) /= 0._r8) then
-             write(stdout,F01)' glcYMD, glcTOD, n, Flgl_qice =',glcYMD, glcTOD, n, x2g(index_x2g_Flgl_qice, n)
-          end if
-       end do
-    end if
-
   end subroutine glc_import
 
 !=================================================================================
@@ -71,10 +47,11 @@ contains
   subroutine glc_export(g2x)
 
     !-------------------------------------------------------------------
-    use glc_indexing         , only : nx, ny, spatial_to_vector
-    use glc_fields           , only: ice_covered, topo, rofi, rofl, hflx, ice_sheet_grid_mask
-    use glc_route_ice_runoff , only: route_ice_runoff    
-    use glc_override_frac    , only: frac_overrides_enabled, do_frac_overrides
+    use glc_indexing, only : nx, ny, spatial_to_vector
+    use glc_fields   , only: ice_covered, topo, rofi, rofl, hflx, &
+                             ice_sheet_grid_mask
+    use glc_route_ice_runoff, only: route_ice_runoff    
+    use glc_override_frac   , only: frac_overrides_enabled, do_frac_overrides
     
     real(r8)    ,intent(inout) :: g2x(:,:)
 
@@ -100,10 +77,6 @@ contains
     real(r8), allocatable :: rofl_to_cpl(:,:)
     real(r8), allocatable :: rofi_to_ocn(:,:)
     real(r8), allocatable :: rofi_to_ice(:,:)
-
-    integer   :: glcYMD            ! glc model date
-    integer   :: glcTOD            ! glc model sec 
-    integer   :: n
 
     character(*), parameter :: subName = "(glc_export) "
     !-------------------------------------------------------------------
@@ -149,58 +122,12 @@ contains
     call spatial_to_vector(rofi_to_ice, g2x(index_g2x_Figg_rofi,:))
     call spatial_to_vector(rofl_to_cpl, g2x(index_g2x_Fogg_rofl,:))
 
-    call spatial_to_vector(ice_covered_to_cpl , g2x(index_g2x_Sg_ice_covered,:))
-    call spatial_to_vector(topo_to_cpl        , g2x(index_g2x_Sg_topo,:))
-    call spatial_to_vector(hflx_to_cpl        , g2x(index_g2x_Flgg_hflx,:))
+    call spatial_to_vector(ice_covered_to_cpl, g2x(index_g2x_Sg_ice_covered,:))
+    call spatial_to_vector(topo_to_cpl, g2x(index_g2x_Sg_topo,:))
+    call spatial_to_vector(hflx_to_cpl, g2x(index_g2x_Flgg_hflx,:))
 
-    call spatial_to_vector(ice_sheet_grid_mask    , g2x(index_g2x_Sg_icemask,:))
-    call spatial_to_vector(icemask_coupled_fluxes , g2x(index_g2x_Sg_icemask_coupled_fluxes,:))
-
-    if (debug_export > 0 .and. my_task == master_task) then
-       glcYMD = iyear*10000 + imonth*100 + iday
-       glcTOD = ihour*3600 + iminute*60 + isecond
-       do n = 1,size(g2x, dim=2)
-          if (g2x(index_g2x_Fogg_rofi, n) /= 0._r8) then
-             write(stdout,F02)' glcYMD, glcTOD, n, Fogg_rofi =',glcYMD, glcTOD, n, g2x(index_g2x_Fogg_rofi,n)
-          end if
-       end do
-       do n = 1,size(g2x, dim=2)
-          if (g2x(index_g2x_Figg_rofi, n) /= 0._r8) then
-             write(stdout,F02)' glcYMD, glcTOD, n, Figg_rofi =',glcYMD, glcTOD, n, g2x(index_g2x_Figg_rofi,n)
-          end if
-       end do
-       do n = 1,size(g2x, dim=2)
-          if (g2x(index_g2x_Fogg_rofl, n) /= 0._r8) then
-             write(stdout,F02)' glcYMD, glcTOD, n, Fogg_rofl =',glcYMD, glcTOD, n, g2x(index_g2x_Fogg_rofl,n)
-          end if
-       end do
-       do n = 1,size(g2x, dim=2)
-          if (g2x(index_g2x_Sg_ice_covered, n) /= 0._r8) then
-             write(stdout,F02)' glcYMD, glcTOD, n, Sg_ice_covered =',glcYMD, glcTOD, n, g2x(index_g2x_Sg_ice_covered, n)
-          end if
-       end do
-       do n = 1,size(g2x, dim=2)
-          if (g2x(index_g2x_Sg_topo, n) /= 0._r8) then
-             write(stdout,F02)' glcYMD, glcTOD, n, Sg_topo =',glcYMD, glcTOD, n, g2x(index_g2x_Sg_topo, n)
-          end if
-       end do
-       do n = 1,size(g2x, dim=2)
-          if (g2x(index_g2x_Flgg_hflx, n) /= 0._r8) then
-             write(stdout,F02)' glcYMD, glcTOD, n, Flgg_hflx=',glcYMD, glcTOD, n, g2x(index_g2x_Flgg_hflx,n)
-          end if
-       end do
-       do n = 1,size(g2x, dim=2)
-          if (g2x(index_g2x_Sg_icemask, n) /= 0._r8) then
-             write(stdout,F02)' glcYMD, glcTOD, n, Sg_icemask =',glcYMD, glcTOD, n, g2x(index_g2x_Sg_icemask,n)
-          end if
-       end do
-       do n = 1,size(g2x, dim=2)
-          if (g2x(index_g2x_Sg_icemask_coupled_fluxes, n) /= 0._r8) then
-             write(stdout,F02)' glcYMD, glcTOD, n, Sg_icemask_coupled_fluxes =',&
-                  glcYMD, glcTOD, n, g2x(index_g2x_Sg_icemask_coupled_fluxes,n)
-          end if
-       end do
-    end if
+    call spatial_to_vector(ice_sheet_grid_mask, g2x(index_g2x_Sg_icemask,:))
+    call spatial_to_vector(icemask_coupled_fluxes, g2x(index_g2x_Sg_icemask_coupled_fluxes,:))
 
     deallocate(icemask_coupled_fluxes)
     deallocate(hflx_to_cpl)
