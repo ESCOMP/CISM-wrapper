@@ -31,7 +31,7 @@ module glc_comp_nuopc
   use glc_fields          , only : ice_sheet
   use glc_shr_methods     , only : chkerr, state_setscalar, state_getscalar, state_diagnose, alarmInit
   use glc_shr_methods     , only : set_component_logging, get_component_instance, log_clock_advance
-  use glc_indexing        , only : global_indices, nx_tot, ny_tot, local_to_global_indices
+  use glc_indexing        , only : nx_tot, ny_tot, local_to_global_indices
   use glc_indexing        , only : npts, nx, ny, spatial_to_vector
   use glc_ensemble        , only : set_inst_vars
   use glc_files           , only : set_filenames, ionml_filename

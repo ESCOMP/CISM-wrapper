@@ -169,6 +169,7 @@
     integer(IN)   :: ptr_unit          ! unit for pointer file
     integer(IN)   :: status            !
     type(ESMF_TIME) :: CurrentTime
+    integer       :: rc
 !-----------------------------------------------------------------------
 
     ! Error checking on arguments
@@ -399,6 +400,7 @@
     integer(IN)   :: ptr_unit          ! unit for pointer file
     integer(IN)   :: status            !
     type(ESMF_TIME) :: CurrentTime
+    integer         :: rc
 !-----------------------------------------------------------------------
 
     if (.not. glad_okay_to_restart(instance)) then
