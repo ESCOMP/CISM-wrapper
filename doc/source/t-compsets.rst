@@ -72,9 +72,9 @@ To create the necessary forcing data (surface mass balance and surface temperatu
 glacier elevation class, along with surface elevation for the coupler's vertical
 downscaling), you need to perform a CESM run using a compset that includes an active land
 model (CLM). It does not matter whether the glc component is fully-active
-(``CISM2%EVOLVE``) or active but non-evolving (``CISM2%NOEVOLVE``). However, a stub model
-(``SGLC``) will not work for this purpose. CISM's domain and resolution
-also do not matter (because forcing data are saved prior to downscaling to the CISM grid).
+(``CISM2%EVOLVE``), active but non-evolving (``CISM2%NOEVOLVE``) or a stub model
+(``SGLC``). If running with CISM, CISM's domain and resolution also do not matter (because
+forcing data are saved prior to downscaling to the CISM grid).
 
 However, CLM's ``GLACIER_REGION`` field (on the surface dataset) *does* matter: Surface
 mass balance and temperature forcing fields will only be valid in regions whose glacier
@@ -106,11 +106,15 @@ averages will appear in the cpl/hist directory within your archive space, with n
 ``$CASE.cpl.hl2x1yr_glc.0001-01-01.nc``. (For a typical 1-degree land resolution, these
 files are about 7 MB per year.)
 
-A T compset run that later uses these coupler history files as forcing should
-give *nearly* identical CISM results as the original run. Small
-differences arise because these forcing files are written with single
-precision, leading to roundoff error on the order of 10\ :sup:`-7`. If you need more
-precision, you can add the following to ``user_nl_cpl``:
+A T compset run that later uses these coupler history files as forcing should give
+*nearly* identical CISM results as the original run, **as long as you ensure that SMB
+renormalization is done (or not done) in both cases, as described in**
+:numref:`clm-cism-coupling`. **(For example, if the coupler history files were generated
+from a fully-coupled case with an evolving, two-way-coupled ice sheet, then in the T case
+you should set** ``glc_renormalize_smb = 'on'`` **in** ``user_nl_cpl`` **in order to
+reproduce the results of the fully-coupled case.)** Small differences arise because these
+forcing files are written with single precision, leading to roundoff error on the order of
+10\ :sup:`-7`. If you need more precision, you can add the following to ``user_nl_cpl``:
 
 .. code-block:: console
 

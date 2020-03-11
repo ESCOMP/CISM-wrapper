@@ -319,9 +319,6 @@
 
     character(CL) :: filename
 
-    !WHL - debug
-    character(len=1024) :: message
-
 !-----------------------------------------------------------------------
 
     if (associated(oc_tavg_helper)) then
@@ -343,8 +340,6 @@
 
        ! assign a generic filename
        filename = glc_filename(0, 0, 0, 0, 'tavg_helper')
-       write(message,*) '   filename =', trim(filename)
-       call write_log(trim(message))
 
        ! set up a structure that includes all the history vars but will not be written out
        oc_tavg_helper%freq           = 9999999      ! large number such that output will not be written
