@@ -709,11 +709,6 @@ contains
 
     ! NOTE: in mct the cesmYMD is advanced at the beginning of the time loop
 
-    if (my_task == master_task) then
-       write(stdout,*)'DEBUG: glcYMD, cesmYMD= ',glcYMD,cesmYMD
-       write(stdout,*)'DEBUG: glcTOD, cesmTOD= ',glcTOD,cesmTOD
-    end if
-
     ! Determine if inputs from mediator are valid
     call ESMF_ClockGetAlarm(clock, alarmname='alarm_valid_inputs', alarm=alarm, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
