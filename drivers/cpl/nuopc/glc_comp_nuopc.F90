@@ -8,6 +8,7 @@ module glc_comp_nuopc
   use NUOPC               , only : NUOPC_CompDerive, NUOPC_CompSetEntryPoint, NUOPC_CompSpecialize
   use NUOPC               , only : NUOPC_CompFilterPhaseMap, NUOPC_CompAttributeGet, NUOPC_CompAttributeSet
   use NUOPC_Model         , only : model_routine_SS           => SetServices
+  use NUOPC_Model         , only : SetVM
   use NUOPC_Model         , only : model_routine_Run          => routine_Run
   use NUOPC_Model         , only : model_label_Advance        => label_Advance
   use NUOPC_Model         , only : model_label_DataInitialize => label_DataInitialize
@@ -43,6 +44,7 @@ module glc_comp_nuopc
 
   ! Module routines
   public  :: SetServices
+  public  :: SetVM
   private :: InitializeP0
   private :: InitializeAdvertise
   private :: InitializeRealize
