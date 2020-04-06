@@ -4,7 +4,7 @@ module history_tape_coupler
   ! frequency - this does not have any history frequency controlled by cism - it is
   ! tied to the coupler history frequency
 
-  use history_tape_base, only : history_tape_base_type
+  use history_tape_base , only : history_tape_base_type
 
   implicit none
   private
@@ -47,23 +47,40 @@ contains
   end function constructor
 
   !-----------------------------------------------------------------------
-  logical function is_time_to_write_hist(this, EClock)
+  logical function is_time_to_write_hist(this, Eclock)
     !
     ! !DESCRIPTION:
     ! Returns true if it is time to write the history tape associated with this controller.
     !
     ! !USES:
-    use esmf, only: ESMF_Clock
+    use ESMF, only : ESMF_Clock, ESMF_Alarm, ESMF_ClockGetAlarm
+    use ESMF, only : ESMF_AlarmIsRinging, ESMF_AlarmRingerOff 
+    use ESMF, only : ESMF_LOGERR_PASSTHRU, ESMF_END_ABORT, ESMF_Finalize
+    use ESMF, only : ESMF_LogFoundERror
     !
     ! !ARGUMENTS:
-    class(history_tape_coupler_type), intent(in) :: this
+    class(history_tape_coupler_type) , intent(in) :: this
     type(ESMF_Clock), intent(in) :: EClock
-
+    !
+    ! local variables
+    type(ESMF_Alarm) :: alarm
+    integer :: rc
     !-----------------------------------------------------------------------
 
-    !This is an option to have the glc history frequency tied to the coupler history frequency 
-    !TODO: how should this be handled in nuopc?
-    !is_time_to_write_hist = seq_timemgr_HistoryAlarmIsOn(EClock)
+    call ESMF_ClockGetAlarm(Eclock, alarmname='alarm_history', alarm=alarm, rc=rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__,file=__FILE__)) then
+       call ESMF_Finalize(endflag=ESMF_END_ABORT)
+    end if
+
+    if (ESMF_AlarmIsRinging(alarm)) then
+       call ESMF_AlarmRingerOff( alarm, rc=rc)
+       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__,file=__FILE__)) then
+          call ESMF_Finalize(endflag=ESMF_END_ABORT)
+       end if
+       is_time_to_write_hist = .true.
+    else
+       is_time_to_write_hist = .false.
+    end if
 
   end function is_time_to_write_hist
 

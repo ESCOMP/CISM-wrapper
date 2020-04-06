@@ -319,11 +319,9 @@ contains
     type(ESMF_Time)         :: currTime              ! Current time
     type(ESMF_Time)         :: startTime             ! Start time
     type(ESMF_Time)         :: stopTime              ! Stop time
-    type(ESMF_Time)         :: refTime               ! Ref time
     type(ESMF_TimeInterval) :: timeStep              ! Model timestep
     type(ESMF_Calendar)     :: esmf_calendar         ! esmf calendar
     type(ESMF_CalKind_Flag) :: esmf_caltype          ! esmf calendar type
-    integer                 :: ref_ymd               ! reference date (YYYYMMDD)
     integer                 :: ref_tod               ! reference time of day (sec)
     integer                 :: yy,mm,dd              ! Temporaries for time query
     integer                 :: start_ymd             ! start date (YYYYMMDD)
@@ -414,8 +412,7 @@ contains
     !----------------------
 
     call ESMF_ClockGet( clock, &
-         currTime=currTime, startTime=startTime, stopTime=stopTime, refTime=RefTime, &
-         timeStep=timeStep, rc=rc)
+         currTime=currTime, startTime=startTime, stopTime=stopTime, timeStep=timeStep, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     call ESMF_TimeGet( startTime, yy=yy, mm=mm, dd=dd, s=start_tod, rc=rc )
@@ -429,10 +426,6 @@ contains
     call ESMF_TimeGet( stopTime, yy=yy, mm=mm, dd=dd, s=stop_tod, rc=rc )
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     call shr_cal_ymd2date(yy,mm,dd,stop_ymd)
-
-    call ESMF_TimeGet( refTime, yy=yy, mm=mm, dd=dd, s=ref_tod, rc=rc )
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    call shr_cal_ymd2date(yy,mm,dd,ref_ymd)
 
     call ESMF_TimeGet( currTime, calkindflag=esmf_caltype, rc=rc )
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
@@ -790,19 +783,24 @@ contains
     type(ESMF_Clock)         :: mclock         ! model clock
     type(ESMF_Clock)         :: dclock         ! driver clock
     type(ESMF_Time)          :: mcurrtime      ! model current time
+    type(ESMF_Time)          :: mstarttime     ! model start time
     type(ESMF_Time)          :: dcurrtime      ! driver current time
     type(ESMF_TimeInterval)  :: mtimestep      ! model time step
     type(ESMF_TimeInterval)  :: dtimestep      ! driver time step
     type(ESMF_Time)          :: mstoptime      ! model stop time
-    character(len=256)       :: cvalue         ! temporary
-    character(len=256)       :: restart_option ! Restart option units
+    character(len=CS)        :: cvalue         ! temporary
+    character(len=CS)        :: restart_option ! Restart option units
     integer                  :: restart_n      ! Number until restart interval
     integer                  :: restart_ymd    ! Restart date (YYYYMMDD)
-    character(len=256)       :: stop_option    ! Stop option units
+    character(len=CS)        :: stop_option    ! Stop option units
+    character(len=CS)        :: glc_avg_period
     integer                  :: stop_n         ! Number until stop interval
     integer                  :: stop_ymd       ! Stop date (YYYYMMDD)
+    character(len=CS)        :: hist_option    ! History option units
+    integer                  :: hist_n         ! Number until restart interval
     type(ESMF_ALARM)         :: alarm          ! model alarm
     integer                  :: alarmcount
+    integer                  :: dtime
     character(len=*),parameter :: subname=trim(modName)//':(ModelSetRunClock) '
     !-------------------------------------------------------------------------------
 
@@ -818,7 +816,7 @@ contains
     call ESMF_ClockGet(dclock, currTime=dcurrtime, timeStep=dtimestep, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
-    call ESMF_ClockGet(mclock, currTime=mcurrtime, timeStep=mtimestep, rc=rc)
+    call ESMF_ClockGet(mclock, currTime=mcurrtime, timeStep=mtimestep, starttime=mstarttime, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     !--------------------------------
@@ -839,26 +837,32 @@ contains
     if (alarmCount == 0) then
 
        !----------------
-       ! glc alarm for valid input
+       ! glc valid input alarm
        !----------------
-       call NUOPC_CompAttributeGet(gcomp, name="glc_avg_period", value=cvalue, rc=rc)
+       call NUOPC_CompAttributeGet(gcomp, name="glc_avg_period", value=glc_avg_period, rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
-       if (trim(cvalue) == 'hour') then
-          cvalue = 'nhours'
-       else if (trim(cvalue) == 'day') then
-          cvalue = 'ndays'
-       else if (trim(cvalue) == 'yearly') then
-          cvalue = 'nyears'
+       if (trim(glc_avg_period) == 'hour') then
+          call alarmInit(mclock, alarm, 'nhours', opt_n=1, alarmname='alarm_valid_inputs', rc=rc)
+          if (ChkErr(rc,__LINE__,u_FILE_u)) return
+       else if (trim(glc_avg_period) == 'day') then
+          call alarmInit(mclock, alarm, 'ndays' , opt_n=1, alarmname='alarm_valid_inputs', rc=rc)
+          if (ChkErr(rc,__LINE__,u_FILE_u)) return
+       else if (trim(glc_avg_period) == 'yearly') then
+          call alarmInit(mclock, alarm, 'nyears', opt_n=1, alarmname='alarm_valid_inputs', rc=rc)
+          if (ChkErr(rc,__LINE__,u_FILE_u)) return
+       else if (trim(glc_avg_period) == 'glc_coupling_period') then
+          call ESMF_TimeIntervalGet(mtimestep, s=dtime, rc=rc)
+          if (ChkErr(rc,__LINE__,u_FILE_u)) return
+          call alarmInit(mclock, alarm, 'nseconds', opt_n=dtime, alarmname='alarm_valid_inputs', rc=rc)
+          if (ChkErr(rc,__LINE__,u_FILE_u)) return
        else
-          call ESMF_LogWrite(trim(subname)//&
-               ": ERROR glc_avg_period = "//trim(cvalue)//" not supported", ESMF_LOGMSG_INFO)
+          call ESMF_LogWrite(trim(subname)// ": ERROR glc_avg_period = "//trim(glc_avg_period)//" not supported", &
+               ESMF_LOGMSG_INFO, rc=rc)
           rc = ESMF_FAILURE
           RETURN
        end if
 
-       call alarmInit(mclock, alarm, trim(cvalue), opt_n = 1, alarmname = 'alarm_valid_inputs', rc=rc)
-       if (ChkErr(rc,__LINE__,u_FILE_u)) return
        call ESMF_AlarmSet(alarm, clock=mclock, rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
@@ -877,11 +881,8 @@ contains
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
        read(cvalue,*) restart_ymd
 
-       call alarmInit(mclock, alarm, restart_option, &
-            opt_n   = restart_n,           &
-            opt_ymd = restart_ymd,         &
-            RefTime = mcurrTime,           &
-            alarmname = 'alarm_restart', rc=rc)
+       call alarmInit(mclock, alarm, restart_option, opt_n=restart_n,  opt_ymd=restart_ymd, &
+            RefTime=mcurrTime, alarmname='alarm_restart', rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
        call ESMF_AlarmSet(alarm, clock=mclock, rc=rc)
@@ -902,14 +903,26 @@ contains
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
        read(cvalue,*) stop_ymd
 
-       call alarmInit(mclock, alarm, stop_option, &
-            opt_n   = stop_n,           &
-            opt_ymd = stop_ymd,         &
-            RefTime = mcurrTime,           &
-            alarmname = 'alarm_stop', rc=rc)
+       call alarmInit(mclock, alarm, stop_option, opt_n=stop_n, opt_ymd=stop_ymd, &
+            RefTime = mcurrTime, alarmname = 'alarm_stop', rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
        call ESMF_AlarmSet(alarm, clock=mclock, rc=rc)
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
+
+       !----------------
+       ! History alarm
+       !----------------
+       call ESMF_LogWrite(subname//'setting history alarm for cism' , ESMF_LOGMSG_INFO)
+       call NUOPC_CompAttributeGet(gcomp, name='history_option', value=hist_option, rc=rc)
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
+
+       call NUOPC_CompAttributeGet(gcomp, name='history_n', value=cvalue, rc=rc)
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
+       read(cvalue,*) hist_n
+
+       call alarmInit(mclock, alarm, hist_option, opt_n=hist_n, &
+            RefTime = mstartTime, alarmname = 'alarm_history', rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     end if
