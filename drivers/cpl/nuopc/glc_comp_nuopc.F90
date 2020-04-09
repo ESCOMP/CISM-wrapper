@@ -728,16 +728,10 @@ contains
 
        ! To be consistent with mct - advance the model clock here so
        ! that the history output is consistent
-       call ESMF_ClockGet(clock, currTime=currtime,  rc=rc)
-       if (ChkErr(rc,__LINE__,u_FILE_u)) return
        call ESMF_ClockAdvance(clock,rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
        call glc_run(clock, valid_inputs)
-
-       ! Now reset the model clock back
-       call ESMF_ClockSet(clock, currTime=currtime, rc=rc)
-       if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
        glcYMD = iyear*10000 + imonth*100 + iday
        glcTOD = ihour*3600 + iminute*60 + isecond
@@ -758,10 +752,7 @@ contains
     call State_diagnose(exportState, subname//':ES',rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
-    !--------------------------------
     ! If time to write restart, do so
-    !--------------------------------
-
     call ESMF_ClockGetAlarm(clock, alarmname='alarm_restart', alarm=alarm, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     if (ESMF_AlarmIsRinging(alarm, rc=rc)) then
