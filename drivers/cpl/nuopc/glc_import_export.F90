@@ -13,7 +13,7 @@ module glc_import_export
   use glc_communicate     , only : my_task, master_task
   use glc_time_management , only : iyear,imonth,iday,ihour,iminute,isecond,runtype
   use shr_kind_mod        , only : r8 => shr_kind_r8, cl=>shr_kind_cl, cs=>shr_kind_cs
-  use glc_shr_methods     , only : chkerr
+  use nuopc_shr_methods   , only : chkerr
 
   implicit none
   private ! except
@@ -80,14 +80,14 @@ contains
 
     call fldlist_add(fldsFrGlc_num, fldsFrglc, trim(flds_scalar_name))
 
-    call fldlist_add(fldsFrGlc_num, fldsFrglc, 'Sg_ice_covered')           
-    call fldlist_add(fldsFrGlc_num, fldsFrglc, 'Sg_topo')                  
-    call fldlist_add(fldsFrGlc_num, fldsFrglc, 'Sg_icemask')               
+    call fldlist_add(fldsFrGlc_num, fldsFrglc, 'Sg_ice_covered')
+    call fldlist_add(fldsFrGlc_num, fldsFrglc, 'Sg_topo')
+    call fldlist_add(fldsFrGlc_num, fldsFrglc, 'Sg_icemask')
     call fldlist_add(fldsFrGlc_num, fldsFrglc, 'Sg_icemask_coupled_fluxes')
-    call fldlist_add(fldsFrGlc_num, fldsFrglc, 'Flgg_hflx')                
-    call fldlist_add(fldsFrGlc_num, fldsFrglc, 'Figg_rofi')                
-    call fldlist_add(fldsFrGlc_num, fldsFrglc, 'Fogg_rofi')                
-    call fldlist_add(fldsFrGlc_num, fldsFrglc, 'Fogg_rofl')                
+    call fldlist_add(fldsFrGlc_num, fldsFrglc, 'Flgg_hflx')
+    call fldlist_add(fldsFrGlc_num, fldsFrglc, 'Figg_rofi')
+    call fldlist_add(fldsFrGlc_num, fldsFrglc, 'Fogg_rofi')
+    call fldlist_add(fldsFrGlc_num, fldsFrglc, 'Fogg_rofl')
 
     ! Now advertise above export fields
     do n = 1,fldsFrGlc_num
@@ -105,7 +105,7 @@ contains
     if (cism_evolve) then
        call fldlist_add(fldsToGlc_num, fldsToGlc, trim(flds_scalar_name))
 
-       call fldlist_add(fldsToGlc_num, fldsToGlc, 'Sl_tsrf')  
+       call fldlist_add(fldsToGlc_num, fldsToGlc, 'Sl_tsrf')
        call fldlist_add(fldsToGlc_num, fldsToGlc, 'Flgl_qice')
 
        ! Now advertise import fields
@@ -136,7 +136,7 @@ contains
     type(ESMF_State)    , intent(inout) :: exportState
     type(ESMF_Mesh)     , intent(in)    :: Emesh
     character(len=*)    , intent(in)    :: flds_scalar_name
-    integer             , intent(in)    :: flds_scalar_num 
+    integer             , intent(in)    :: flds_scalar_num
     integer             , intent(out)   :: rc
 
     ! local variables
@@ -175,10 +175,10 @@ contains
     ! Convert the input data from the mediator to cism
     !---------------------------------------------------------------------------
 
-    use glc_fields, only : tsfc, qsmb 
+    use glc_fields, only : tsfc, qsmb
 
     ! input/output variabes
-    type(ESMF_State)     :: importState 
+    type(ESMF_State)     :: importState
     integer, intent(out) :: rc
 
     ! local variables
@@ -198,12 +198,12 @@ contains
 
     tsfc = tsfc - tkfrz
 
-    !Jer hack fix: 
+    !Jer hack fix:
     !For some land points where CLM sees ocean, and all ocean points, CLM doesn't provide a temperature,
     !and so the incoming temperature is 0.d0.  This gets dropped to -273.15, in the above code.  So,
     !manually reverse this, below, to set to 0C.
 
-    where (tsfc < -250.d0) tsfc=0.d0 
+    where (tsfc < -250.d0) tsfc=0.d0
 
   end subroutine import_fields
 
@@ -216,9 +216,9 @@ contains
     !---------------------------------------------------------------------------
 
     use glc_indexing         , only : nx, ny
-    use glc_fields           , only : ice_covered, topo, rofi, rofl 
+    use glc_fields           , only : ice_covered, topo, rofi, rofl
     use glc_fields           , only : hflx, ice_sheet_grid_mask
-    use glc_route_ice_runoff , only : route_ice_runoff    
+    use glc_route_ice_runoff , only : route_ice_runoff
     use glc_override_frac    , only : frac_overrides_enabled, do_frac_overrides
 
     ! input/output variabes
@@ -244,7 +244,7 @@ contains
     ! over (e.g.)  Greenland, but 0 over Antarctica.
 
     ! mask of ice sheet grid coverage where we are potentially sending non-zero fluxes
-    real(r8), allocatable :: icemask_coupled_fluxes(:,:)  
+    real(r8), allocatable :: icemask_coupled_fluxes(:,:)
 
     real(r8), allocatable :: hflx_to_cpl(:,:)
     real(r8), allocatable :: rofl_to_cpl(:,:)
@@ -265,7 +265,7 @@ contains
                                    lbound(ice_covered,2):ubound(ice_covered,2)))
        allocate(topo_to_cpl(lbound(topo,1):ubound(topo,1), &
                             lbound(topo,2):ubound(topo,2)))
-            
+
        ice_covered_to_cpl = ice_covered
        topo_to_cpl = topo
        call do_frac_overrides(ice_covered_to_cpl, topo_to_cpl, ice_sheet_grid_mask)
@@ -295,7 +295,7 @@ contains
        call route_ice_runoff(rofi, rofi_to_ocn, rofi_to_ice)
     end if
 
-   ! Fill export state 
+   ! Fill export state
 
     call state_setexport(exportState, 'Fogg_rofi', rofi_to_ocn, rc=rc)
     if (chkErr(rc,__LINE__,u_FILE_u)) return
@@ -478,7 +478,7 @@ contains
     real(R8), pointer         :: fldptr(:)
     type(ESMF_StateItem_Flag) :: itemFlag
     integer                   :: glcYMD ! glc model date
-    integer                   :: glcTOD ! glc model sec 
+    integer                   :: glcTOD ! glc model sec
     character(len=CS)         :: string
     integer                   :: n
     integer                   :: dbrc
@@ -520,7 +520,7 @@ contains
   subroutine state_setexport(state, fldname, input, rc)
 
     ! ----------------------------------------------
-    ! Map input array to export state field 
+    ! Map input array to export state field
     ! ----------------------------------------------
 
     ! uses
@@ -536,7 +536,7 @@ contains
     real(R8), pointer         :: fldptr(:)
     type(ESMF_StateItem_Flag) :: itemFlag
     integer                   :: glcYMD ! glc model date
-    integer                   :: glcTOD ! glc model sec 
+    integer                   :: glcTOD ! glc model sec
     integer                   :: n
     character(len=CS)         :: string
     integer                   :: dbrc

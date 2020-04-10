@@ -30,8 +30,8 @@ module glc_comp_nuopc
   use glc_communicate     , only : init_communicate, my_task, master_task
   use glc_time_management , only : iyear,imonth,iday,ihour,iminute,isecond,runtype
   use glc_fields          , only : ice_sheet
-  use glc_shr_methods     , only : chkerr, state_setscalar, state_getscalar, state_diagnose, alarmInit
-  use glc_shr_methods     , only : set_component_logging, get_component_instance, log_clock_advance
+  use nuopc_shr_methods   , only : chkerr, state_setscalar, state_getscalar, state_diagnose, alarmInit
+  use nuopc_shr_methods   , only : set_component_logging, get_component_instance, log_clock_advance
   use glc_indexing        , only : nx_tot, ny_tot, local_to_global_indices
   use glc_indexing        , only : npts, nx, ny, spatial_to_vector
   use glc_ensemble        , only : set_inst_vars
