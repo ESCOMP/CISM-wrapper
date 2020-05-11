@@ -49,7 +49,8 @@ print file "$sourcemod_dir \n";
 print file "$GLCROOT/drivers/cpl/$DRIVER \n";
 print file "$GLCROOT/source_glc \n";
 print file "$GLCROOT/mpi \n";
-if ($DRIVER == 'nuopc'){
+if ($DRIVER eq 'nuopc'){
+    print "HERE driver is $DRIVER\n";
   print file "$CIMEROOT/src/drivers/nuopc/nuopc_cap_share\n";
 }
 close(file);
