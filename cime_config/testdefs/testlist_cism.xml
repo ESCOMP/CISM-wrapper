@@ -268,7 +268,7 @@
   <test name="NCK_Ly3" grid="f09_g17_gl20" compset="T1850G">
     <machines>
 
-      <machine name="hobart" compiler="pgi" category="prebeta">
+      <machine name="izumi" compiler="pgi" category="prebeta">
         <options>
           <option name="wallclock">1:59</option>
         </options>
@@ -330,7 +330,7 @@
   <test name="SMS_D_Ld5_P24x1" grid="T31_g37_gl20" compset="I1850Clm50SpG" testmods="cism/test_coupling">
     <machines>
 
-      <machine name="hobart" compiler="nag" category="aux_glc">
+      <machine name="izumi" compiler="nag" category="aux_glc">
         <options>
           <option name="wallclock">1:59</option>
           <!-- 2016-10-25: There is an increase of about 10 MB per day over the
@@ -342,7 +342,7 @@
         </options>
       </machine>
 
-      <machine name="hobart" compiler="nag" category="prealpha">
+      <machine name="izumi" compiler="nag" category="prealpha">
         <options>
           <option name="wallclock">1:59</option>
         </options>
@@ -397,14 +397,14 @@
   <test name="SMS_D_Ly1_P24x1" grid="f09_g17_gl4" compset="T1850G">
     <machines>
 
-      <machine name="hobart" compiler="nag" category="aux_glc">
+      <machine name="izumi" compiler="nag" category="aux_glc">
         <options>
           <option name="wallclock">1:59</option>
           <option name="comment">short nag debug test of CISM2 at production resolution, to test options specific to the production resolution (currently, which_ho_babc differs at the production resolution)</option>
         </options>
       </machine>
 
-      <machine name="hobart" compiler="pgi" category="aux_glc">
+      <machine name="izumi" compiler="pgi" category="aux_glc">
         <options>
           <option name="wallclock">1:59</option>
           <option name="comment">include a pgi test of CISM2</option>
@@ -417,14 +417,14 @@
   <test name="SMS_D_Ly3" grid="f09_g17_gl5" compset="T1850G1">
     <machines>
 
-      <machine name="hobart" compiler="nag" category="aux_glc">
+      <machine name="izumi" compiler="nag" category="aux_glc">
         <options>
           <option name="wallclock">1:59</option>
           <option name="comment">multi-year nag debug test of CISM1</option>
         </options>
       </machine>
 
-      <machine name="hobart" compiler="pgi" category="aux_glc">
+      <machine name="izumi" compiler="pgi" category="aux_glc">
         <options>
           <option name="wallclock">1:59</option>
           <option name="comment">include a pgi test of CISM1</option>
@@ -437,7 +437,7 @@
   <test name="SMS_D_Ly3_P24x1" grid="f09_g17_gl20" compset="T1850G">
     <machines>
 
-      <machine name="hobart" compiler="nag" category="aux_glc">
+      <machine name="izumi" compiler="nag" category="aux_glc">
         <options>
           <option name="wallclock">1:59</option>
           <option name="comment">multi-year nag debug test of CISM2 at coarse resolution</option>
