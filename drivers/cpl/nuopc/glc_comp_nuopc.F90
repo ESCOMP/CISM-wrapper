@@ -16,13 +16,10 @@ module glc_comp_nuopc
   use NUOPC_Model         , only : model_label_Finalize       => label_Finalize
   use NUOPC_Model         , only : NUOPC_ModelGet
   use shr_sys_mod         , only : shr_sys_abort
-  use shr_file_mod        , only : shr_file_getlogunit, shr_file_setlogunit, shr_file_getUnit
   use shr_cal_mod         , only : shr_cal_ymd2date
   use shr_kind_mod        , only : r8 => shr_kind_r8, cl=>shr_kind_cl, cs=>shr_kind_cs
-  use glc_import_export   , only : advertise_fields, realize_fields
-  use glc_import_export   , only : export_fields, import_fields
-  use glc_constants       , only : verbose, stdout, stderr, nml_in, radius
-  use glc_constants       , only : zero_gcm_fluxes, model_doi_url
+  use glc_import_export   , only : advertise_fields, realize_fields, export_fields, import_fields
+  use glc_constants       , only : verbose, stdout, radius, model_doi_url
   use glc_InitMod         , only : glc_initialize
   use glc_RunMod          , only : glc_run
   use glc_FinalMod        , only : glc_final
@@ -30,13 +27,13 @@ module glc_comp_nuopc
   use glc_communicate     , only : init_communicate, my_task, master_task
   use glc_time_management , only : iyear,imonth,iday,ihour,iminute,isecond,runtype
   use glc_fields          , only : ice_sheet
-  use nuopc_shr_methods   , only : chkerr, state_setscalar, state_getscalar, state_diagnose, alarmInit
-  use nuopc_shr_methods   , only : set_component_logging, get_component_instance, log_clock_advance
   use glc_indexing        , only : nx_tot, ny_tot, local_to_global_indices
   use glc_indexing        , only : npts, nx, ny, spatial_to_vector
   use glc_ensemble        , only : set_inst_vars
   use glc_files           , only : set_filenames, ionml_filename
   use glad_main           , only : glad_get_lat_lon, glad_get_areas
+  use nuopc_shr_methods   , only : chkerr, state_setscalar, state_getscalar, state_diagnose, alarmInit
+  use nuopc_shr_methods   , only : set_component_logging, get_component_instance, log_clock_advance
   use perf_mod            , only : t_startf, t_stopf, t_barrierf
 
   implicit none
@@ -158,18 +155,11 @@ contains
     ! local variables
     type(ESMF_VM)          :: vm
     character(ESMF_MAXSTR) :: cvalue
-    logical                :: exists
     logical                :: isPresent, isSet
-    character(len=512)     :: diro
-    character(len=512)     :: logfile
     integer                :: localpet
-    integer                :: compid      ! component id
-    integer                :: shrlogunit ! original log unit
-    integer                :: ierr       ! error code
+    integer                :: shrlogunit  ! original log unit
     integer                :: i,j,n
     character(len=CL)      :: logmsg
-    character(len=CL)      :: starttype
-    character(len=CS)      :: myModelName
     integer                :: inst_index    ! number of current instance (e.g., 1)
     character(len=16)      :: inst_suffix   ! character string associated with instance number
     logical                :: glc_coupled_fluxes ! are we sending fluxes to other components?
@@ -216,15 +206,6 @@ contains
     inst_name = "GLC"//trim(inst_suffix)
 
     call set_inst_vars(inst_index, inst_name, inst_suffix )
-
-    !----------------------------------------------------------------------------
-    ! reset shr logging to my log file
-    !----------------------------------------------------------------------------
-
-    call set_component_logging(gcomp, localPet==0, stdout,  shrlogunit, rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-
-    nml_in = shr_file_getUnit()
 
     !----------------------------------------------------------------------------
     ! Set filenames which depend on instance information
@@ -293,11 +274,6 @@ contains
     call advertise_fields(gcomp, flds_scalar_name, cism_evolve, rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
-    !----------------------------------------------------------------------------
-    ! reset shr logging to original values
-    !----------------------------------------------------------------------------
-
-    call shr_file_setLogUnit (shrlogunit)
     if (dbug > 5) then
        call ESMF_LogWrite(subname//' done', ESMF_LOGMSG_INFO)
     end if
@@ -338,7 +314,6 @@ contains
     character(len=CL)       :: starttype             ! start-type (startup, continue, branch, hybrid)
     character(len=CL)       :: calendar              ! calendar type name
     integer                 :: lbnum                 ! input to memory diagnostic
-    integer                 :: shrlogunit            ! original log unit
     integer                 :: spatialDim
     integer                 :: numOwnedElements
     real(r8), pointer       :: ownedElemCoords(:)
@@ -361,13 +336,6 @@ contains
     if (dbug > 5) then
        call ESMF_LogWrite(subname//' called', ESMF_LOGMSG_INFO)
     end if
-
-    !----------------------------------------------------------------------------
-    ! Reset shr logging to my log file
-    !----------------------------------------------------------------------------
-
-    call shr_file_getLogUnit (shrlogunit)
-    call shr_file_setLogUnit (stdout)
 
 #if (defined _MEMTRACE)
     if (my_task == master_task) then
@@ -444,7 +412,7 @@ contains
     ! Initialize GLC
     !----------------------
 
-    ! now initialize GLC, will use nml_in
+    ! now initialize GLC
     call glc_initialize(clock)
     if (my_task == master_task) then
        write(stdout,F01) ' GLC Initial Date ',iyear,imonth,iday,ihour,iminute,isecond
@@ -590,12 +558,6 @@ contains
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
     endif
 
-    !--------------------------------
-    ! Reset shr logging to original values
-    !--------------------------------
-
-    call shr_file_setLogUnit (shrlogunit)
-
 #if (defined _MEMTRACE)
     if(my_task == master_task) then
        write(stdout,*) TRIM(Sub) // ':end::'
@@ -641,7 +603,6 @@ contains
     logical                :: done         ! time loop logical
     logical                :: valid_inputs ! if true, inputs from mediator are valid
     character(ESMF_MAXSTR) :: cvalue
-    integer                :: shrlogunit
     character(*), parameter :: F01   = "('(glc_comp_nuopc: ModelAdvance) ',a,8i8)"
     character(*), parameter :: subName = "(glc_comp_nuopc: ModelAdvance) "
     !----------------------------------------------------------------
@@ -650,13 +611,6 @@ contains
     if (dbug > 5) then
        call ESMF_LogWrite(subname//' called', ESMF_LOGMSG_INFO)
     end if
-
-    !----------------------------------------------------------------------------
-    ! Reset shr logging to my log file
-    !----------------------------------------------------------------------------
-
-    call shr_file_getLogUnit (shrlogunit)
-    call shr_file_setLogUnit (stdout)
 
     !--------------------------------
     ! Obtain the CISM internal time

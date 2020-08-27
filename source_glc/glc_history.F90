@@ -19,7 +19,7 @@ module glc_history
   use history_tape_base , only : history_tape_base_type, len_history_vars
   use shr_kind_mod      , only : CL=>SHR_KIND_CL, CXX=>SHR_KIND_CXX
   use glc_exit_mod      , only : exit_glc, sigAbort
-  use glc_constants     , only : nml_in, stdout, blank_fmt, ndelim_fmt
+  use glc_constants     , only : stdout, blank_fmt, ndelim_fmt
   
   implicit none
   private
@@ -141,6 +141,7 @@ contains
     ! !LOCAL VARIABLES:
     
     integer :: nml_error
+    integer :: nml_in
     
     character(len=*), parameter :: subname = 'read_namelist'
     !-----------------------------------------------------------------------
@@ -153,7 +154,7 @@ contains
     history_frequency = 1
     
     if (my_task == master_task) then
-       open(nml_in, file=nml_filename, status='old', iostat=nml_error)
+       open(newunit=nml_in, file=nml_filename, status='old', iostat=nml_error)
        if (nml_error /= 0) then
           nml_error = -1
        else
@@ -162,9 +163,7 @@ contains
        do while (nml_error > 0)
           read(nml_in, nml=cism_history, iostat=nml_error)
        end do
-       if (nml_error == 0) then
-          close(nml_in)
-       end if
+       close(nml_in)
     end if
 
     call broadcast_scalar(nml_error, master_task)

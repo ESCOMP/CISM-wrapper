@@ -17,7 +17,7 @@ module glc_comp_mct
 
   use glc_import_export
   use glc_cpl_indices
-  use glc_constants,       only: verbose, stdout, stderr, nml_in, radius
+  use glc_constants,       only: verbose, stdout, stderr, radius
   use glc_constants,       only: zero_gcm_fluxes, model_doi_url
   use glc_InitMod,         only: glc_initialize
   use glc_RunMod,          only: glc_run
@@ -154,7 +154,6 @@ CONTAINS
        stdout = 6
     endif
     stderr = stdout
-    nml_in = shr_file_getUnit()
 
     call shr_file_getLogUnit (shrlogunit)
     call shr_file_getLogLevel(shrloglev)
