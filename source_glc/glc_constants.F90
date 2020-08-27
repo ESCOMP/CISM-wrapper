@@ -67,9 +67,8 @@
    !-----------------------------------------------------------------
 
    integer (i4), public :: &
-      nml_in,            &! reserved unit for namelist input
-!!      stdout,            &! reserved unit for standard output
-                            ! see note above
+!!    stdout,            &! reserved unit for standard output
+                          ! see note above
       stderr              ! reserved unit for standard error
 
    character (1), parameter, public :: &
