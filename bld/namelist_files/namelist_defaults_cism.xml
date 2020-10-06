@@ -219,7 +219,7 @@ attributes to express the dependency.
 <!-- group: cism.config: parameters                                 -->
 <!-- =============================================================  -->
 
-<log_level>6</log_level>
+<log_level>3</log_level>
 
 <ice_limit cism_phys="cism1">100.</ice_limit>
 <ice_limit cism_phys="cism2">1.</ice_limit>
