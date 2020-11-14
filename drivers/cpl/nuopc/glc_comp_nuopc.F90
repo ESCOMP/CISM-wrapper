@@ -53,11 +53,6 @@ module glc_comp_nuopc
   ! Private module data
   !--------------------------------------------------------------------------
 
-  character(len=CL)          :: flds_scalar_name = ''
-  integer                    :: flds_scalar_num = 0
-  integer                    :: flds_scalar_index_nx = 0
-  integer                    :: flds_scalar_index_ny = 0
-
   logical                    :: cism_evolve
   integer                    :: lmpicom
   character(len=16)          :: inst_name ! full name of current instance (e.g., GLC_0001)
@@ -134,7 +129,6 @@ contains
     rc = ESMF_SUCCESS
 
     ! Switch to IPDv01 by filtering all other phaseMap entries
-
     call NUOPC_CompFilterPhaseMap(gcomp, ESMF_METHOD_INITIALIZE, acceptStringList=(/"IPDv01p"/), rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
@@ -172,93 +166,28 @@ contains
        call ESMF_LogWrite(subname//' called', ESMF_LOGMSG_INFO)
     end if
 
-    !----------------------------------------------------------------------------
     ! generate local mpi comm
-    !----------------------------------------------------------------------------
-
     call ESMF_GridCompGet(gcomp, vm=vm, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
-
     call ESMF_VMGet(vm, mpiCommunicator=lmpicom, localpet=localpet, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
-    !----------------------------------------------------------------------------
     ! initialize CISM MPI stuff
-    !----------------------------------------------------------------------------
-
     call init_communicate(lmpicom)
 
-    !----------------------------------------------------------------------------
     ! reset shr logging to my log file
-    !----------------------------------------------------------------------------
-
     call set_component_logging(gcomp, localPet==0, stdout, shrlogunit, rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
-    !----------------------------------------------------------------------------
     ! determine instance information
-    !----------------------------------------------------------------------------
-
     ! the following sets the module instance variables in glc_ensemble
     call get_component_instance(gcomp, inst_suffix, inst_index, rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
-
     inst_name = "GLC"//trim(inst_suffix)
-
     call set_inst_vars(inst_index, inst_name, inst_suffix )
 
-    !----------------------------------------------------------------------------
     ! Set filenames which depend on instance information
-    !----------------------------------------------------------------------------
-
     call set_filenames()
-
-    !----------------------------------------------------------------------------
-    ! advertise fields
-    !----------------------------------------------------------------------------
-
-    call NUOPC_CompAttributeGet(gcomp, name="ScalarFieldName", value=cvalue, isPresent=isPresent, isSet=isSet, rc=rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    if (isPresent .and. isSet) then
-       flds_scalar_name = trim(cvalue)
-       call ESMF_LogWrite(trim(subname)//' flds_scalar_name = '//trim(flds_scalar_name), ESMF_LOGMSG_INFO)
-       if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    else
-       call shr_sys_abort(subname//'Need to set attribute ScalarFieldName')
-    endif
-
-    call NUOPC_CompAttributeGet(gcomp, name="ScalarFieldCount", value=cvalue, isPresent=isPresent, isSet=isSet, rc=rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    if (isPresent .and. isSet) then
-       read(cvalue, *) flds_scalar_num
-       write(logmsg,*) flds_scalar_num
-       call ESMF_LogWrite(trim(subname)//' flds_scalar_num = '//trim(logmsg), ESMF_LOGMSG_INFO)
-       if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    else
-       call shr_sys_abort(subname//'Need to set attribute ScalarFieldCount')
-    endif
-
-    call NUOPC_CompAttributeGet(gcomp, name="ScalarFieldIdxGridNX", value=cvalue, isPresent=isPresent, isSet=isSet, rc=rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    if (isPresent .and. isSet) then
-       read(cvalue,*) flds_scalar_index_nx
-       write(logmsg,*) flds_scalar_index_nx
-       call ESMF_LogWrite(trim(subname)//' : flds_scalar_index_nx = '//trim(logmsg), ESMF_LOGMSG_INFO)
-       if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    else
-       call shr_sys_abort(subname//'Need to set attribute ScalarFieldIdxGridNX')
-    endif
-
-    call NUOPC_CompAttributeGet(gcomp, name="ScalarFieldIdxGridNY", value=cvalue, isPresent=isPresent, isSet=isSet, rc=rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    if (isPresent .and. isSet) then
-       read(cvalue,*) flds_scalar_index_ny
-       write(logmsg,*) flds_scalar_index_ny
-       call ESMF_LogWrite(trim(subname)//' : flds_scalar_index_ny = '//trim(logmsg), ESMF_LOGMSG_INFO)
-       if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    else
-       call shr_sys_abort(subname//'Need to set attribute ScalarFieldIdxGridNY')
-    endif
 
     ! Determine if cism will evolve - if not will not import any fields from the mediator
     call NUOPC_CompAttributeGet(gcomp, name="cism_evolve", value=cvalue, isPresent=isPresent, isSet=isSet, rc=rc)
@@ -271,7 +200,8 @@ contains
        call shr_sys_abort(subname//'Need to set cism_evolve')
     endif
 
-    call advertise_fields(gcomp, flds_scalar_name, cism_evolve, rc)
+    ! Advertise fields
+    call advertise_fields(gcomp, cism_evolve, rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     if (dbug > 5) then
@@ -292,7 +222,7 @@ contains
     integer, intent(out) :: rc
 
     ! local variables
-    type(ESMF_Mesh)         :: Emesh                 ! esmf meshes
+    type(ESMF_Mesh)         :: mesh                  ! esmf meshes
     type(ESMF_DistGrid)     :: DistGrid              ! esmf global index space descriptor
     type(ESMF_Time)         :: currTime              ! Current time
     type(ESMF_Time)         :: startTime             ! Start time
@@ -344,18 +274,16 @@ contains
     endif
 #endif
 
-    !----------------------
-    ! Determine caseid
-    !----------------------
+    !--------------------------------
+    ! Initialize GLC
+    !--------------------------------
 
+    ! Determine caseid
     call NUOPC_CompAttributeGet(gcomp, name='case_name', value=cvalue, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     read(cvalue,*) caseid
 
-    !----------------------
     ! Determine start type
-    !----------------------
-
     call NUOPC_CompAttributeGet(gcomp, name='start_type', value=cvalue, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     read(cvalue,*) starttype
@@ -377,29 +305,21 @@ contains
        end if
     end if
 
-    !----------------------
     ! Get properties from clock
-    !----------------------
-
     call ESMF_ClockGet( clock, &
          currTime=currTime, startTime=startTime, stopTime=stopTime, timeStep=timeStep, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
-
     call ESMF_TimeGet( startTime, yy=yy, mm=mm, dd=dd, s=start_tod, rc=rc )
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     call shr_cal_ymd2date(yy,mm,dd,start_ymd)
-
     call ESMF_TimeGet( currTime, yy=yy, mm=mm, dd=dd, s=curr_tod, rc=rc )
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     call shr_cal_ymd2date(yy,mm,dd,curr_ymd)
-
     call ESMF_TimeGet( stopTime, yy=yy, mm=mm, dd=dd, s=stop_tod, rc=rc )
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     call shr_cal_ymd2date(yy,mm,dd,stop_ymd)
-
     call ESMF_TimeGet( currTime, calkindflag=esmf_caltype, rc=rc )
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
-
     if (esmf_caltype == ESMF_CALKIND_NOLEAP) then
        ! do nothing
     else if (esmf_caltype == ESMF_CALKIND_GREGORIAN) then
@@ -408,53 +328,42 @@ contains
        call shr_sys_abort( subname//'ERROR:: bad calendar for ESMF' )
     end if
 
-    !----------------------
     ! Initialize GLC
-    !----------------------
-
-    ! now initialize GLC
     call glc_initialize(clock)
     if (my_task == master_task) then
        write(stdout,F01) ' GLC Initial Date ',iyear,imonth,iday,ihour,iminute,isecond
        write(stdout,F00) ' Initialize Done'
     endif
 
-    ! TODO (mvertens, 2018-11-28): Determine if land is present as a sanity check - do we need this?
     ! TODO (mvertens, 2018-11-28): read in model_doi_url
-
-    !--------------------------------
-    ! Generate the mesh on the cism decomposition
-    !--------------------------------
-
-    ! read in the mesh
-    call NUOPC_CompAttributeGet(gcomp, name='mesh_glc', value=cvalue, rc=rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-
-    if (my_task == master_task) then
-       write(stdout,*)'mesh file for domain is ',trim(cvalue)
-    end if
-
-    ! create distGrid from global index array
-    gindex = local_to_global_indices()
-
-    DistGrid = ESMF_DistGridCreate(arbSeqIndexList=gindex, rc=rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-
-    ! read in the mesh
-    EMesh = ESMF_MeshCreate(filename=trim(cvalue), fileformat=ESMF_FILEFORMAT_ESMFMESH, &
-          elementDistgrid=Distgrid,  rc=rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-
-    ! elemAreaArray = ESMF_ArrayCreate(DistGrid, mesh_areas, rc=rc)
-    ! if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    ! call ESMF_MeshGet(Emesh, elemAreaArray=elemAreaArray, rc=rc)
-    ! if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     !--------------------------------
     ! Realize the actively coupled fields
     !--------------------------------
 
-    call realize_fields(importState, exportState, Emesh, flds_scalar_name, flds_scalar_num, rc)
+    ! create distGrid from global index array
+    gindex = local_to_global_indices()
+    DistGrid = ESMF_DistGridCreate(arbSeqIndexList=gindex, rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+
+    ! read in the mesh on the cism decomposition
+    call NUOPC_CompAttributeGet(gcomp, name='mesh_glc', value=cvalue, rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    if (my_task == master_task) then
+       write(stdout,*)'mesh file for domain is ',trim(cvalue)
+    end if
+    mesh = ESMF_MeshCreate(filename=trim(cvalue), fileformat=ESMF_FILEFORMAT_ESMFMESH, &
+          elementDistgrid=Distgrid,  rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+
+    ! TODO: reset areas to those used internally
+    ! elemAreaArray = ESMF_ArrayCreate(DistGrid, mesh_areas, rc=rc)
+    ! if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    ! call ESMF_MeshGet(mesh, elemAreaArray=elemAreaArray, rc=rc)
+    ! if (ChkErr(rc,__LINE__,u_FILE_u)) return
+
+    ! Realize the actively coupled fields
+    call realize_fields(gcomp, mesh, rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     !--------------------------------
@@ -462,7 +371,7 @@ contains
     !--------------------------------
 
     ! obtain mesh lats, lons and areas
-    call ESMF_MeshGet(Emesh, spatialDim=spatialDim, numOwnedElements=numOwnedElements, rc=rc)
+    call ESMF_MeshGet(mesh, spatialDim=spatialDim, numOwnedElements=numOwnedElements, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     if (numOwnedElements /= npts) then
@@ -470,7 +379,7 @@ contains
     end if
 
     allocate(ownedElemCoords(spatialDim*numOwnedElements))
-    call ESMF_MeshGet(Emesh, ownedElemCoords=ownedElemCoords, rc=rc)
+    call ESMF_MeshGet(mesh, ownedElemCoords=ownedElemCoords, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     allocate(mesh_lons(numOwnedElements))
@@ -506,15 +415,11 @@ contains
        if ( abs(mesh_lons(n) - lons_vec(n)) > tolerance) then
           write(6,101),n, lons_vec(n), mesh_lons(n), gindex(n)
 101       format('ERROR: CISM n, lon, mesh_lon, gindex = ',i6,2(f20.10,2x),i8)
-          !          write(6,102) abs(mesh_lons(n) - lons_vec(n))
-          !102       format('ERROR: CISM lon diff = ',f20.10,' is too large')
           !call shr_sys_abort()
        end if
        if (abs(mesh_lats(n) - lats_vec(n)) > tolerance) then
           write(6,103),n, lats_vec(n), mesh_lats(n), gindex(n)
 103       format('ERROR: CISM n, lat, mesh_lat, gindex = ',i6,2(f20.10,2x),i8)
-          !          write(6,104) abs(mesh_lats(n)-lats_vec(n))
-          !104       format('ERROR: CISM lat diff = ',f20.10,' too large')
           !call shr_sys_abort()
        end if
        if (abs(mesh_areas(n) - areas_vec(n)) > 1.e-5) then
@@ -533,26 +438,15 @@ contains
     ! TODO (mvertens, 2019-06-02): For now assume that all fields in export state are sent - but this is really
     ! not needed for TG compsets - but still need to send nx and ny on initialization - maybe should have these
     ! read in by the mediator?
-
-    call export_fields(exportState, rc)
+    call export_fields(gcomp, rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
-    ! Set scalars in export state
-    call State_SetScalar(dble(nx_tot), flds_scalar_index_nx, exportState, flds_scalar_name, flds_scalar_num, rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    call State_SetScalar(dble(ny_tot), flds_scalar_index_ny, exportState, flds_scalar_name, flds_scalar_num, rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-
-    !--------------------------------
     ! Write diagnostics if appropriate
-    !--------------------------------
-
-   if (my_task == master_task) then
-      write(stdout,F91)
-      write(stdout,F00) trim(inst_name),': start of main integration loop'
-      write(stdout,F91)
-   end if
-
+    if (my_task == master_task) then
+       write(stdout,F91)
+       write(stdout,F00) trim(inst_name),': start of main integration loop'
+       write(stdout,F91)
+    end if
     if (dbug > 1) then
        call State_diagnose(exportState,subname//':ES',rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
@@ -646,10 +540,7 @@ contains
     ! Unpack import state
     !--------------------------------
 
-    call import_fields(importState, rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-
-    call State_diagnose(importState, subname//':ES',rc=rc)
+    call import_fields(gcomp, rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     !--------------------------------
@@ -700,10 +591,7 @@ contains
     ! Pack export state if appropriate
     !--------------------------------
 
-    call export_fields(exportState, rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-
-    call State_diagnose(exportState, subname//':ES',rc=rc)
+    call export_fields(gcomp, rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     ! If time to write restart, do so
