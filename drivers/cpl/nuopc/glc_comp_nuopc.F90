@@ -670,7 +670,9 @@ contains
     endif
     write(cvalue,*) valid_inputs
     call ESMF_LogWrite(subname//' valid_input for cism is '//trim(cvalue), ESMF_LOGMSG_INFO)
-    write(stdout,*)' valid_input for cism is ',valid_inputs
+    if (my_task == master_task) then
+       write(stdout,*)' valid_input for cism is ',valid_inputs
+    end if
 
     done = .false.
     if (glcYMD == cesmYMD .and. glcTOD == cesmTOD) done = .true.
