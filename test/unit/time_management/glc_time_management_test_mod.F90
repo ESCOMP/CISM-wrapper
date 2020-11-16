@@ -43,7 +43,7 @@ contains
    subroutine read_time_management_test_namelist
       ! This subroutine reads the namelist that controls the test program
 
-      integer :: nml_in
+      integer :: test_nml_in
 
       namelist /time_management_test_nml/ &
            runtype_test, elapsed_days_test, nsteps_test, dtt_test
