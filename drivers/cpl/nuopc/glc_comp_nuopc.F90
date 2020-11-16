@@ -422,7 +422,7 @@ contains
 103       format('ERROR: CISM n, lat, mesh_lat, gindex = ',i6,2(f20.10,2x),i8)
           !call shr_sys_abort()
        end if
-       if (abs(mesh_areas(n) - areas_vec(n)) > 1.e-5) then
+       if (abs(mesh_areas(n) - areas_vec(n))/areas_vec(n) > 1.e-5) then
           write(6,*)'ERROR: CISM n, area, mesh_area = ',n, areas_vec(n), mesh_areas(n)
           write(6,*)'ERROR: CISM area diff = ',abs(mesh_areas(n)-areas_vec(n)),' too large'
           !call shr_sys_abort()
