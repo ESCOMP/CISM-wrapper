@@ -163,7 +163,9 @@ contains
        do while (nml_error > 0)
           read(nml_in, nml=cism_history, iostat=nml_error)
        end do
-       close(nml_in)
+       if (nml_error == 0) then
+          close(nml_in)
+       end if
     end if
 
     call broadcast_scalar(nml_error, master_task)
