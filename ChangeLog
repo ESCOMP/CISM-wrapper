@@ -3,6 +3,31 @@ This file describes what tags were created on master and why
 ================================================================================
 
 ================================================================================
+	Originator: @katetc (Kate Thayer-Calder)
+	Date: November 21, 2020
+	Version: cism2_1_70
+	One-line summary: Documentation updates to cover time step acceleration
+	                          and topography updating workflow.
+
+	Purpose of changes:
+	      Just documentation updates. Moved section 4.1 describing CISM
+	to introduction. Created new page for "B compsets". Moved section
+	4.2 on time step changes to B compset page. Added notes on CISM
+	time step acceleration here. Included notes on topography updating
+	workflow with CESM 2.1.1+ checkouts in the B compset page.
+
+	Standalone checkout supported in this tag (Yes/No): Yes
+
+	Changes answers relative to previous tag: No
+
+	Bugs fixed (include github issue number): Planned in issue #33
+
+	Summary of testing:
+	All tests on Cheyenne pass, baselines generated, B4B.
+	All tests on Izumi pass (no baseline compares).
+
+
+================================================================================
         Originator: @katetc (Kate Thayer-Calder)
         Date: August 11, 2020
 	Version: cism2_1_69
