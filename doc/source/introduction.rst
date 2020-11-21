@@ -33,6 +33,56 @@ to have some additional information included, please contact the authors:
 William Lipscomb (lipscomb@ucar.edu), William Sacks (sacks@ucar.edu),
 and Gunter Leguy (gunterl@ucar.edu).
 
+===============================
+ The Community Ice Sheet Model
+===============================
+
+CISM is a thermomechanical ice sheet model that solves the
+equations of ice flow, given suitable approximations and boundary
+conditions. The source code is written primarily in Fortran 90 and 95.
+The model resides on the github repository
+(https://github.com/ESCOMP/cism), where it is under active development.
+CISM2.1 is currently the default ice sheet model in CESM2.0.
+
+CISM2.1 introduces a new dynamical core, Glissade, which runs in parallel
+and solves equations for the conservation of mass, momentum, and
+internal energy. Glissade supports several approximations of the
+Stokes equations for ice flow: the shallow-ice approximation
+(SIA), the shallow-shelf approximation (SSA), a depth-integrated viscosity
+approximation (DIVA), and the Blatter-Pattyn (BP) approximation.
+DIVA is the default solver for CISM in the CESM framework.
+
+In previous versions of CESM with CISM coupling capabilities, the
+dynamical core of the model was known as Glide and only solved the
+shallow-ice approximation in serial. While this option is still available,
+it is no longer supported.
+
+The surface boundary conditions (e.g., the surface temperature and
+surface mass balance) are supplied by a climate driver. When
+CISM is run in CESM, the climate driver is Glad, which receives
+the temperature and SMB from the coupler and passes them to the
+ice-sheet grid. The lower boundary conditions are given
+by a geothermal dataset, which supplies heat fluxes at the lower boundary,
+and by a basal topography dataset.
+Optionally, the basal topography can be modified at runtime by an isostasy model;
+isostasy is turned off by default.
+
+The new version of CISM adds a set of basal sliding and calving law
+options of varying complexity. The default options and parameters 
+were chosen based on standalone Greenland simulations (with SMB forcing
+from the RACMO2 regional climate model) to support a
+stable, reasonably accurate simulation of the Greenland Ice Sheet;
+see Lipscomb et al. (2018) for details.
+The default basal sliding option is pseudo-plastic sliding,
+with parameters based on Aschwanden et al. (2016).
+The default calving law is "no-float", with all floating ice
+calving immediately.
+
+The model currently has simple treatments of basal hydrology, including
+a local till model used in conjunction with pseudo-plastic sliding.
+More complex schemes for subglacial water hydrology and
+evolution of basal till strength are being developed.
+
 =======================
  Scientific background
 =======================
