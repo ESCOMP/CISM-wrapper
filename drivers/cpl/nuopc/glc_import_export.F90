@@ -33,6 +33,18 @@ module glc_import_export
      character(len=128) :: stdname
   end type fld_list_type
 
+  ! Field names
+  character(len=*), parameter :: field_in_tsrf = 'Sl_tsrf'
+  character(len=*), parameter :: field_in_qice = 'Flgl_qice'
+  character(len=*), parameter :: field_out_ice_covered = 'Sg_ice_covered'
+  character(len=*), parameter :: field_out_topo = 'Sg_topo'
+  character(len=*), parameter :: field_out_icemask = 'Sg_icemask'
+  character(len=*), parameter :: field_out_icemask_coupled_fluxes = 'Sg_icemask_coupled_fluxes'
+  character(len=*), parameter :: field_out_hflx_to_lnd = 'Flgg_hflx'
+  character(len=*), parameter :: field_out_rofi_to_ice = 'Figg_rofi'
+  character(len=*), parameter :: field_out_rofi_to_ocn = 'Fogg_rofi'
+  character(len=*), parameter :: field_out_rofl_to_ocn = 'Fogg_rofl'
+
   integer, parameter     :: fldsMax = 100
   integer                :: fldsToGlc_num = 0
   integer                :: fldsFrGlc_num = 0
@@ -80,14 +92,14 @@ contains
 
     call fldlist_add(fldsFrGlc_num, fldsFrglc, trim(flds_scalar_name))
 
-    call fldlist_add(fldsFrGlc_num, fldsFrglc, 'Sg_ice_covered')
-    call fldlist_add(fldsFrGlc_num, fldsFrglc, 'Sg_topo')
-    call fldlist_add(fldsFrGlc_num, fldsFrglc, 'Sg_icemask')
-    call fldlist_add(fldsFrGlc_num, fldsFrglc, 'Sg_icemask_coupled_fluxes')
-    call fldlist_add(fldsFrGlc_num, fldsFrglc, 'Flgg_hflx')
-    call fldlist_add(fldsFrGlc_num, fldsFrglc, 'Figg_rofi')
-    call fldlist_add(fldsFrGlc_num, fldsFrglc, 'Fogg_rofi')
-    call fldlist_add(fldsFrGlc_num, fldsFrglc, 'Fogg_rofl')
+    call fldlist_add(fldsFrGlc_num, fldsFrglc, field_out_ice_covered)
+    call fldlist_add(fldsFrGlc_num, fldsFrglc, field_out_topo)
+    call fldlist_add(fldsFrGlc_num, fldsFrglc, field_out_icemask)
+    call fldlist_add(fldsFrGlc_num, fldsFrglc, field_out_icemask_coupled_fluxes)
+    call fldlist_add(fldsFrGlc_num, fldsFrglc, field_out_hflx_to_lnd)
+    call fldlist_add(fldsFrGlc_num, fldsFrglc, field_out_rofi_to_ice)
+    call fldlist_add(fldsFrGlc_num, fldsFrglc, field_out_rofi_to_ocn)
+    call fldlist_add(fldsFrGlc_num, fldsFrglc, field_out_rofl_to_ocn)
 
     ! Now advertise above export fields
     do n = 1,fldsFrGlc_num
@@ -105,8 +117,8 @@ contains
     if (cism_evolve) then
        call fldlist_add(fldsToGlc_num, fldsToGlc, trim(flds_scalar_name))
 
-       call fldlist_add(fldsToGlc_num, fldsToGlc, 'Sl_tsrf')
-       call fldlist_add(fldsToGlc_num, fldsToGlc, 'Flgl_qice')
+       call fldlist_add(fldsToGlc_num, fldsToGlc, field_in_tsrf)
+       call fldlist_add(fldsToGlc_num, fldsToGlc, field_in_qice)
 
        ! Now advertise import fields
        do n = 1,fldsToGlc_num
@@ -190,10 +202,10 @@ contains
     call ESMF_LogWrite(subname//' called', ESMF_LOGMSG_INFO, rc=dbrc)
 
     ! Get cism import fields
-    call state_getimport(importState, 'Sl_tsrf', tsfc, rc=rc)
+    call state_getimport(importState, field_in_tsrf, tsfc, rc=rc)
     if (chkErr(rc,__LINE__,u_FILE_u)) return
 
-    call state_getimport(importState, 'Flgl_qice', qsmb, rc=rc)
+    call state_getimport(importState, field_in_qice, qsmb, rc=rc)
     if (chkErr(rc,__LINE__,u_FILE_u)) return
 
     tsfc = tsfc - tkfrz
@@ -297,28 +309,28 @@ contains
 
    ! Fill export state
 
-    call state_setexport(exportState, 'Fogg_rofi', rofi_to_ocn, rc=rc)
+    call state_setexport(exportState, field_out_rofi_to_ocn, rofi_to_ocn, rc=rc)
     if (chkErr(rc,__LINE__,u_FILE_u)) return
 
-    call state_setexport(exportState, 'Figg_rofi', rofi_to_ice, rc=rc)
+    call state_setexport(exportState, field_out_rofi_to_ice, rofi_to_ice, rc=rc)
     if (chkErr(rc,__LINE__,u_FILE_u)) return
 
-    call state_setexport(exportState, 'Fogg_rofl', rofl_to_cpl, rc=rc)
+    call state_setexport(exportState, field_out_rofl_to_ocn, rofl_to_cpl, rc=rc)
     if (chkErr(rc,__LINE__,u_FILE_u)) return
 
-    call state_setexport(exportState, 'Sg_ice_covered', ice_covered_to_cpl, rc=rc)
+    call state_setexport(exportState, field_out_ice_covered, ice_covered_to_cpl, rc=rc)
     if (chkErr(rc,__LINE__,u_FILE_u)) return
 
-    call state_setexport(exportState, 'Sg_topo', topo_to_cpl, rc=rc)
+    call state_setexport(exportState, field_out_topo, topo_to_cpl, rc=rc)
     if (chkErr(rc,__LINE__,u_FILE_u)) return
 
-    call state_setexport(exportState, 'Flgg_hflx', hflx_to_cpl, rc=rc)
+    call state_setexport(exportState, field_out_hflx_to_lnd, hflx_to_cpl, rc=rc)
     if (chkErr(rc,__LINE__,u_FILE_u)) return
 
-    call state_setexport(exportState, 'Sg_icemask', ice_sheet_grid_mask, rc=rc)
+    call state_setexport(exportState, field_out_icemask, ice_sheet_grid_mask, rc=rc)
     if (chkErr(rc,__LINE__,u_FILE_u)) return
 
-    call state_setexport(exportState, 'Sg_icemask_coupled_fluxes', icemask_coupled_fluxes, rc=rc)
+    call state_setexport(exportState, field_out_icemask_coupled_fluxes, icemask_coupled_fluxes, rc=rc)
     if (chkErr(rc,__LINE__,u_FILE_u)) return
 
     deallocate(icemask_coupled_fluxes)
