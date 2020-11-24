@@ -503,22 +503,22 @@ contains
     areas_vec(:) = areas_vec(:)/(radius*radius) ! convert from m^2 to radians^2
     do n = 1, npts
        if ( abs(mesh_lons(n) - lons_vec(n)) > tolerance) then
-          write(6,101),n, lons_vec(n), mesh_lons(n), gindex(n)
+          write(stdout,101),n, lons_vec(n), mesh_lons(n), gindex(n)
 101       format('ERROR: CISM n, lon, mesh_lon, gindex = ',i6,2(f20.10,2x),i8)
-          !          write(6,102) abs(mesh_lons(n) - lons_vec(n))
-          !102       format('ERROR: CISM lon diff = ',f20.10,' is too large')
-          !call shr_sys_abort()
+          write(stdout,102) abs(mesh_lons(n) - lons_vec(n))
+102       format('ERROR: CISM lon diff = ',f20.10,' is too large')
+          call shr_sys_abort()
        end if
        if (abs(mesh_lats(n) - lats_vec(n)) > tolerance) then
-          write(6,103),n, lats_vec(n), mesh_lats(n), gindex(n)
+          write(stdout,103),n, lats_vec(n), mesh_lats(n), gindex(n)
 103       format('ERROR: CISM n, lat, mesh_lat, gindex = ',i6,2(f20.10,2x),i8)
-          !          write(6,104) abs(mesh_lats(n)-lats_vec(n))
-          !104       format('ERROR: CISM lat diff = ',f20.10,' too large')
-          !call shr_sys_abort()
+          write(stdout,104) abs(mesh_lats(n)-lats_vec(n))
+104       format('ERROR: CISM lat diff = ',f20.10,' too large')
+          call shr_sys_abort()
        end if
        if (abs(mesh_areas(n) - areas_vec(n)) > 1.e-5) then
-          write(6,*)'ERROR: CISM n, area, mesh_area = ',n, areas_vec(n), mesh_areas(n)
-          write(6,*)'ERROR: CISM area diff = ',abs(mesh_areas(n)-areas_vec(n)),' too large'
+          write(stdout,*)'ERROR: CISM n, area, mesh_area = ',n, areas_vec(n), mesh_areas(n)
+          write(stdout,*)'ERROR: CISM area diff = ',abs(mesh_areas(n)-areas_vec(n)),' too large'
           !call shr_sys_abort()
        end if
        !TODO (mvertens, 2018-11-20) Need to add a check for areas - but need to determine the units
