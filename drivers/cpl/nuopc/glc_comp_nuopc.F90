@@ -19,7 +19,7 @@ module glc_comp_nuopc
   use shr_cal_mod         , only : shr_cal_ymd2date
   use shr_kind_mod        , only : r8 => shr_kind_r8, cl=>shr_kind_cl, cs=>shr_kind_cs
   use glc_import_export   , only : advertise_fields, realize_fields, export_fields, import_fields
-  use glc_constants       , only : verbose, stdout, radius, model_doi_url
+  use glc_constants       , only : verbose, stdout, model_doi_url
   use glc_InitMod         , only : glc_initialize
   use glc_RunMod          , only : glc_run
   use glc_FinalMod        , only : glc_final
@@ -31,7 +31,7 @@ module glc_comp_nuopc
   use glc_indexing        , only : npts, nx, ny, spatial_to_vector
   use glc_ensemble        , only : set_inst_vars
   use glc_files           , only : set_filenames, ionml_filename
-  use glad_main           , only : glad_get_lat_lon, glad_get_areas
+  use glad_main           , only : glad_get_lat_lon
   use nuopc_shr_methods   , only : chkerr, state_setscalar, state_getscalar, state_diagnose, alarmInit
   use nuopc_shr_methods   , only : set_component_logging, get_component_instance, log_clock_advance
   use perf_mod            , only : t_startf, t_stopf, t_barrierf
@@ -319,9 +319,6 @@ contains
     real(r8), pointer       :: ownedElemCoords(:)
     real(r8), pointer       :: mesh_lons(:), lons(:,:), lons_vec(:)
     real(r8), pointer       :: mesh_lats(:), lats(:,:), lats_vec(:)
-    real(r8), pointer       :: mesh_areas(:), areas(:,:), areas_vec(:)
-    type(ESMF_Array)        :: elemAreaArray
-    type(ESMF_Array)        :: elemAreaArrayTemp
     real(r8)                :: tolerance = 1.e-5_r8
     integer                 :: elementCount
     integer                 :: i,j
@@ -445,11 +442,6 @@ contains
           elementDistgrid=Distgrid,  rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
-    ! elemAreaArray = ESMF_ArrayCreate(DistGrid, mesh_areas, rc=rc)
-    ! if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    ! call ESMF_MeshGet(Emesh, elemAreaArray=elemAreaArray, rc=rc)
-    ! if (ChkErr(rc,__LINE__,u_FILE_u)) return
-
     !--------------------------------
     ! Realize the actively coupled fields
     !--------------------------------
@@ -458,13 +450,12 @@ contains
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     !--------------------------------
-    ! Check consistency of mesh with internal CISM lats, lons, areas
+    ! Check consistency of mesh with internal CISM lats and lons
     !--------------------------------
 
-    ! obtain mesh lats, lons and areas
+    ! obtain mesh lats and lons
     call ESMF_MeshGet(Emesh, spatialDim=spatialDim, numOwnedElements=numOwnedElements, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
-
     if (numOwnedElements /= npts) then
        call shr_sys_abort('ERROR: numOwnedElements is not equal to npts')
     end if
@@ -472,58 +463,35 @@ contains
     allocate(ownedElemCoords(spatialDim*numOwnedElements))
     call ESMF_MeshGet(Emesh, ownedElemCoords=ownedElemCoords, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
-
     allocate(mesh_lons(numOwnedElements))
     allocate(mesh_lats(numOwnedElements))
-    allocate(mesh_areas(numOwnedElements))
     do n = 1,npts
        mesh_lons(n) = ownedElemCoords(2*n-1)
        mesh_lats(n) = ownedElemCoords(2*n)
-       mesh_areas(n) = 9.85405060010902e-06  ! TODO(mvertens, 2018-11-30) for now hard-wire this for testing
     end do
 
-    ! obtain CISM internal mesh lats, lons and areas
+    ! obtain CISM internal mesh lats and lons
     allocate(lats(nx,ny))
     allocate(lons(nx,ny))
-    allocate(areas(nx,ny))
-
     allocate(lats_vec(npts))
     allocate(lons_vec(npts))
-    allocate(areas_vec(npts))
-
-    ! TODO(wjs, 2015-04-02) The following may need a loop over instances
     call glad_get_lat_lon(ice_sheet, instance_index = 1, lats = lats, lons = lons)
-    call glad_get_areas(ice_sheet, instance_index = 1, areas = areas)
     call spatial_to_vector(lons, lons_vec)
     call spatial_to_vector(lats, lats_vec)
-    call spatial_to_vector(areas, areas_vec)
 
-    ! check that areas, lats and lons from the mesh are not different to a tolerance factor
-    ! from areas, lats and lons calculated internally
-
-    areas_vec(:) = areas_vec(:)/(radius*radius) ! convert from m^2 to radians^2
+    ! check lats and lons from the mesh are not different to a tolerance factor
+    ! from lats and lons calculated internally
     do n = 1, npts
        if ( abs(mesh_lons(n) - lons_vec(n)) > tolerance) then
-          write(6,101),n, lons_vec(n), mesh_lons(n), gindex(n)
-101       format('ERROR: CISM n, lon, mesh_lon, gindex = ',i6,2(f20.10,2x),i8)
-          !          write(6,102) abs(mesh_lons(n) - lons_vec(n))
-          !102       format('ERROR: CISM lon diff = ',f20.10,' is too large')
+          write(6,'(a,i8,2x,3(d13.5,2x))')'ERROR: CISM lon check: n, lon, mesh_lon, lon_diff = ',&
+               n, lons_vec(n), mesh_lons(n),abs(mesh_lons(n)-lons_vec(n))
           !call shr_sys_abort()
        end if
        if (abs(mesh_lats(n) - lats_vec(n)) > tolerance) then
-          write(6,103),n, lats_vec(n), mesh_lats(n), gindex(n)
-103       format('ERROR: CISM n, lat, mesh_lat, gindex = ',i6,2(f20.10,2x),i8)
-          !          write(6,104) abs(mesh_lats(n)-lats_vec(n))
-          !104       format('ERROR: CISM lat diff = ',f20.10,' too large')
+          write(6,'(a,i8,2x,3(d13.5,2x))')'ERROR: CISM lat check: n, lat, mesh_lat, lat_diff = ',&
+               n, lats_vec(n), mesh_lats(n),abs(mesh_lats(n)-lats_vec(n))
           !call shr_sys_abort()
        end if
-       if (abs(mesh_areas(n) - areas_vec(n)) > 1.e-5) then
-          write(6,*)'ERROR: CISM n, area, mesh_area = ',n, areas_vec(n), mesh_areas(n)
-          write(6,*)'ERROR: CISM area diff = ',abs(mesh_areas(n)-areas_vec(n)),' too large'
-          !call shr_sys_abort()
-       end if
-       !TODO (mvertens, 2018-11-20) Need to add a check for areas - but need to determine the units
-       ! of areas coming from the mesh inquire first
     end do
 
     !--------------------------------
@@ -534,7 +502,7 @@ contains
     ! not needed for TG compsets - but still need to send nx and ny on initialization - maybe should have these
     ! read in by the mediator?
 
-    call export_fields(exportState, rc)
+    call export_fields(exportState, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     ! Set scalars in export state
