@@ -419,7 +419,6 @@ contains
        write(stdout,F00) ' Initialize Done'
     endif
 
-    ! TODO (mvertens, 2018-11-28): Determine if land is present as a sanity check - do we need this?
     ! TODO (mvertens, 2018-11-28): read in model_doi_url
 
     !--------------------------------
@@ -919,7 +918,7 @@ contains
 
     if (my_task==master_task) then
        write(stdout,F91)
-       write(stdout,F00) 'MOSART: end of main integration loop'
+       write(stdout,F00) 'CISM: end of main integration loop'
        write(stdout,F91)
     end if
 
