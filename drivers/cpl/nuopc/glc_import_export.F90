@@ -39,6 +39,7 @@ module glc_import_export
   ! Field names
   character(len=*), parameter :: field_in_tsrf = 'Sl_tsrf'
   character(len=*), parameter :: field_in_qice = 'Flgl_qice'
+  character(len=*), parameter :: field_out_area = 'Sg_area'
   character(len=*), parameter :: field_out_ice_covered = 'Sg_ice_covered'
   character(len=*), parameter :: field_out_topo = 'Sg_topo'
   character(len=*), parameter :: field_out_icemask = 'Sg_icemask'
@@ -89,7 +90,11 @@ contains
 
     call fldlist_add(fldsFrGlc_num, fldsFrglc, trim(flds_scalar_name))
 
-    call fldlist_add(fldsFrGlc_num, fldsFrglc, 'Sg_area')
+    ! area is constant in time, so if it were easy to just send this during
+    ! initialization, we could do that - but currently, for ease of implementation, we
+    ! resend it every coupling interval
+    call fldlist_add(fldsFrGlc_num, fldsFrglc, field_out_area)
+
     call fldlist_add(fldsFrGlc_num, fldsFrglc, field_out_ice_covered)
     call fldlist_add(fldsFrGlc_num, fldsFrglc, field_out_topo)
     call fldlist_add(fldsFrGlc_num, fldsFrglc, field_out_icemask)
@@ -314,8 +319,12 @@ contains
 
    ! Fill export state
 
-    call state_setexport(exportState, 'Sg_area', glc_areas, rc=rc)
+    ! area is constant in time, so if it were easy to just send this during
+    ! initialization, we could do that - but currently, for ease of implementation, we
+    ! resend it every coupling interval
+    call state_setexport(exportState, field_out_area, glc_areas, rc=rc)
     if (chkErr(rc,__LINE__,u_FILE_u)) return
+
     call state_setexport(exportState, field_out_rofi_to_ocn, rofi_to_ocn, rc=rc)
     if (chkErr(rc,__LINE__,u_FILE_u)) return
     call state_setexport(exportState, field_out_rofi_to_ice, rofi_to_ice, rc=rc)
