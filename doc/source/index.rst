@@ -14,13 +14,13 @@ Table of contents
 =================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :numbered:
 
    introduction.rst
    running-and-modifying.rst
+   b-compsets.rst
    t-compsets.rst
-   dynamic-ice-sheet-model.rst
    controlling-output.rst
    clm-cism-coupling.rst
    acknowledgements.rst
