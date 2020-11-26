@@ -3,6 +3,46 @@ This file describes what tags were created on master and why
 ================================================================================
 
 ================================================================================
+Originator: sacks
+Date: November 26, 2020
+Version: cism2_1_71
+One-line summary: Update externals
+
+Purpose of changes:
+
+   Update to latest version of CTSM and MOSART, and nearly latest
+   version of CIME. These are needed for fixes to the NUOPC build, among
+   other things. There are some big changes in CTSM.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: YES
+
+   Changes answers for all I compset tests due to CTSM update
+
+Bugs fixed (include github issue number):
+Resolves ESCOMP/CISM-wrapper#34 (Need to change an aux_glc test based on
+changes in CTSM's compset definitions)
+
+Summary of testing:
+
+   Full aux_glc test suite on cheyenne and izumi.
+
+   Note: for cheyenne_gnu testing, I did NOT use '--mpilib openmpi'
+   (which I used to use, but is no longer needed).
+
+   All tests passed; I compset tests changed answers as expected, others
+   were bit-for-bit.
+
+================================================================================
 	Originator: @katetc (Kate Thayer-Calder)
 	Date: November 21, 2020
 	Version: cism2_1_70
