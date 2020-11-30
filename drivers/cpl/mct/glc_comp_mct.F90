@@ -17,7 +17,7 @@ module glc_comp_mct
 
   use glc_import_export
   use glc_cpl_indices
-  use glc_constants,       only: verbose, stdout, stderr, nml_in, radius
+  use glc_constants,       only: verbose, stdout, stderr, radius
   use glc_constants,       only: zero_gcm_fluxes, model_doi_url
   use glc_InitMod,         only: glc_initialize
   use glc_RunMod,          only: glc_run
@@ -61,10 +61,11 @@ CONTAINS
 
     ! uses:
 
+    use seq_comm_mct       , only : seq_comm_suffix, seq_comm_inst, seq_comm_name
     use glc_ensemble       , only : set_inst_vars, write_inst_vars, get_inst_name
     use glc_files          , only : set_filenames, ionml_filename
     use glc_coupling_flags , only : has_ocn_coupling, has_ice_coupling
-    use glc_indexing  , only : nx_tot, ny_tot, npts
+    use glc_indexing       , only : nx_tot, ny_tot, npts
     
     ! input/output parameters:
 
@@ -85,7 +86,10 @@ CONTAINS
     character(CS)            :: myModelName
     logical                  :: lnd_present
     logical                  :: glc_coupled_fluxes ! are we sending fluxes to other components?
-
+    integer                  :: inst_index    ! number of current instance (e.g., 1)
+    character(len=16)        :: inst_name     ! full name of current instance (e.g., GLC_0001)
+    character(len=16)        :: inst_suffix   ! character string associated with instance number
+                                              ! (e.g., "_0001", or "" for the single-instance case)
     !--- formats ---
     character(*), parameter :: F00   = "('(glc_init_mct) ',8a)"
     character(*), parameter :: F01   = "('(glc_init_mct) ',a,8i8)"
@@ -113,7 +117,11 @@ CONTAINS
     ! set variables that depend on ensemble index
     !---------------------------------------------------------------------------
 
-    call set_inst_vars(COMPID)
+    inst_name   = seq_comm_name(COMPID)
+    inst_index  = seq_comm_inst(COMPID)
+    inst_suffix = seq_comm_suffix(COMPID)
+
+    call set_inst_vars(inst_index, inst_name, inst_suffix)
     call get_inst_name(myModelName)
     call set_filenames()
 
@@ -146,7 +154,6 @@ CONTAINS
        stdout = 6
     endif
     stderr = stdout
-    nml_in = shr_file_getUnit()
 
     call shr_file_getLogUnit (shrlogunit)
     call shr_file_getLogLevel(shrloglev)
@@ -304,8 +311,6 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
 
     glcYMD = iyear*10000 + imonth*100 + iday
     glcTOD = ihour*3600 + iminute*60 + isecond
-    done = .false.
-    if (glcYMD == cesmYMD .and. glcTOD == cesmTOD) done = .true.
     if (verbose .and. my_task == master_task) then
        write(stdout,F01) ' Run Starting ',glcYMD,glcTOD
        call shr_sys_flush(stdout)
@@ -319,6 +324,8 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
 
     call seq_infodata_GetData( infodata, glc_valid_input=valid_inputs)
 
+    done = .false.
+    if (glcYMD == cesmYMD .and. glcTOD == cesmTOD) done = .true.
     do while (.not. done) 
        if (glcYMD > cesmYMD .or. (glcYMD == cesmYMD .and. glcTOD > cesmTOD)) then
           write(stdout,*) subname,' ERROR overshot coupling time ',glcYMD,glcTOD,cesmYMD,cesmTOD

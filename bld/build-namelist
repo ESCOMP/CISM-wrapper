@@ -350,6 +350,7 @@ my $GLC_TWO_WAY_COUPLING   = $xmlvars{'GLC_TWO_WAY_COUPLING'};
 my $CISM_EVOLVE            = $xmlvars{'CISM_EVOLVE'};
 my $CISM_USE_TRILINOS      = $xmlvars{'CISM_USE_TRILINOS'};
 my $CISM_OBSERVED_IC       = $xmlvars{'CISM_OBSERVED_IC'};
+my $COMP_INTERFACE         = $xmlvars{'COMP_INTERFACE'};
 
 if ($print>=2) { print "Inputdata root directory: $DIN_LOC_ROOT$eol"; }
 
@@ -372,6 +373,15 @@ if ($CALENDAR ne "NO_LEAP") {
 ####################################
 # namelist group: time_manager_nml #
 ####################################
+
+# NOTE: with the nuopc interface, the CISM run phase is never called when running
+# in noevolve mode, so a restart file will never be written for cism - only initial
+# information will be sent back to CTSM.
+if ($COMP_INTERFACE eq 'nuopc' && $CISM_EVOLVE eq 'FALSE') {
+    print "Interface is nuopc, cism is not evolving, CISM run_type is always startup $eol";
+    $RUN_TYPE = 'startup';
+    $CONTINUE_RUN = 'FALSE';
+}
 
 my $startdate = $RUN_STARTDATE;
 if ($RUN_TYPE eq 'branch') { $startdate = $RUN_REFDATE; }

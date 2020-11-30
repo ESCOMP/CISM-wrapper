@@ -9,6 +9,7 @@ if ($#ARGV == -1) {
 my ($CASEROOT) = @ARGV;
 chdir "${CASEROOT}";
 
+my $DRIVER    = `./xmlquery COMP_INTERFACE    --value`;
 my $GLCROOT   = `./xmlquery COMP_ROOT_DIR_GLC --value`;
 my $CASEBUILD = `./xmlquery CASEBUILD --value`;
 my $CASETOOLS = `./xmlquery CASETOOLS --value`;
@@ -44,7 +45,7 @@ chdir "$glc_obj_dir";
 # the source_cism stuff is picked up by the cmake-based build
 open(file,">Filepath.new") or die "Could not open file Filepath.new to write";
 print file "$sourcemod_dir \n";
-print file "$GLCROOT/drivers/cpl \n";
+print file "$GLCROOT/drivers/cpl/$DRIVER \n";
 print file "$GLCROOT/source_glc \n";
 print file "$GLCROOT/mpi \n";
 close(file);

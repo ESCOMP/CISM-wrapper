@@ -26,7 +26,7 @@
                                   iyear,  imonth,  iday,  elapsed_days,   &
                                   ihour,  iminute, isecond, nsteps_total, &
                                   ymd2eday, eday2ymd, runtype
-   use glc_constants, only: nml_in, stdout, zero_gcm_fluxes, test_coupling
+   use glc_constants, only: stdout, zero_gcm_fluxes, test_coupling
    use glc_io,        only: glc_io_read_restart_time
    use glc_files,     only: nml_filename
    use glc_exit_mod
@@ -141,6 +141,7 @@
                              ! debug diagnostics
 
   integer :: unit      ! fileunit passed to CISM
+  integer :: nml_in    ! namelist file unit number
 
   integer :: climate_tstep  ! climate time step (hours)
   
@@ -189,7 +190,7 @@
    paramfile  = 'unknown_paramfile'
 
    if (my_task == master_task) then
-      open (nml_in, file=nml_filename, status='old',iostat=nml_error)
+      open (newunit=nml_in, file=nml_filename, status='old',iostat=nml_error)
       if (nml_error /= 0) then
          nml_error = -1
       else

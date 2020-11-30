@@ -387,6 +387,7 @@
 !-----------------------------------------------------------------------
 
    integer (int_kind) :: &
+      nml_in,  &          ! namelist file unit number
       nml_error           ! namelist i/o error flag
 
    character (char_len) :: &
@@ -442,7 +443,7 @@
 !-----------------------------------------------------------------------
 
    if (my_task == master_task) then
-      open (nml_in, file=nml_filename, status='old',iostat=nml_error)
+      open (newunit=nml_in, file=nml_filename, status='old',iostat=nml_error)
       if (nml_error /= 0) then
          nml_error = -1
       else

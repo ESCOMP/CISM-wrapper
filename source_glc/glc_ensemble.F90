@@ -21,7 +21,6 @@
 
    implicit none
    private
-   save
 
 ! !PUBLIC MEMBER FUNCTIONS:
 
@@ -50,17 +49,18 @@
 !BOP
 ! !IROUTINE: set_inst_vars
 ! !INTERFACE:
-   subroutine set_inst_vars(COMPID)
+   subroutine set_inst_vars(inst_index_in, inst_name_in, inst_suffix_in )
 !
 ! !DESCRIPTION:
 ! Set instance variables; this should be done in model initialization
 !
 ! !USES:
-     use seq_comm_mct, only : seq_comm_suffix, seq_comm_inst, seq_comm_name
      use shr_sys_mod , only : shr_sys_abort
 !
 ! !ARGUMENTS:
-     integer(IN), intent(in) :: COMPID  ! component ID for this instance
+     integer(IN)      , intent(in) :: inst_index_in
+     character(len=*) , intent(in) :: inst_name_in
+     character(len=*) , intent(in) :: inst_suffix_in
 !
 ! !LOCAL VARIABLES:
      character(len=*), parameter :: subname = 'set_inst_vars'
@@ -73,9 +73,9 @@
         call shr_sys_abort()
      end if
      
-     inst_name   = seq_comm_name(COMPID)
-     inst_index  = seq_comm_inst(COMPID)
-     inst_suffix = seq_comm_suffix(COMPID)
+     inst_name   = inst_name_in
+     inst_index  = inst_index_in
+     inst_suffix = inst_suffix_in
 
      initialized = .true.
 

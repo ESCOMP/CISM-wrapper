@@ -22,8 +22,9 @@
    use glimmer_global,      only: fname_length
    use glc_constants
    use glc_kinds_mod
-   use esmf,            only: ESMF_Clock
-   use seq_timemgr_mod,     only: seq_timemgr_EClockGetData
+   use esmf,                only: ESMF_Clock, ESMF_Time, ESMF_ClockGet, ESMF_TimeGet, &
+                                  ESMF_SUCCESS
+   use shr_cal_mod,         only: shr_cal_ymd2date
    use shr_sys_mod
    use shr_kind_mod,        only: CL=>SHR_KIND_CL, CX=>SHR_KIND_CX, &
                                   IN=>SHR_KIND_IN
@@ -77,7 +78,7 @@
 
     ! local variables
     character(fname_length) :: filename0
-    integer(IN)             :: rst_elapsed_days  ! 
+    integer(IN)             :: rst_elapsed_days  !
     integer(IN)             :: ptr_unit          ! unit for pointer file
     integer(IN)             :: rst_unit          ! unit for restart file
     integer(IN)             :: status            !
@@ -85,7 +86,7 @@
 !-----------------------------------------------------------------------
 
     if (my_task == master_task) then
-       
+
        ! get restart filename from rpointer file
        ptr_unit = shr_file_getUnit()
        open(ptr_unit,file=ptr_filename)
@@ -145,13 +146,13 @@
     type(glad_instance) , intent(inout) :: instance
     type(ESMF_Clock)    , intent(in)    :: EClock
     character(len=*)    , intent(in)    :: history_vars
-    logical             , intent(in)    :: initial_history       
+    logical             , intent(in)    :: initial_history
 
     ! If present, history_frequency_metadata gives the text to use for the
     ! time_period_freq global attribute. If absent, there will be no time_period_freq
     ! global attribute.
     character(len=*)    , intent(in), optional :: history_frequency_metadata
-    
+
     ! local variables
     type(glimmer_nc_output),  pointer :: oc => null()
 
@@ -167,7 +168,8 @@
     integer(IN)   :: rst_elapsed_days  ! 
     integer(IN)   :: ptr_unit          ! unit for pointer file
     integer(IN)   :: status            !
-
+    type(ESMF_TIME) :: CurrentTime
+    integer       :: rc
 !-----------------------------------------------------------------------
 
     ! Error checking on arguments
@@ -178,8 +180,14 @@
     end if
 
     ! figure out history filename
-    call seq_timemgr_EClockGetData(EClock, curr_ymd=cesmYMD, curr_tod=cesmTOD, &
-                                   curr_yr=cesmYR, curr_mon=cesmMON, curr_day=cesmDAY)
+    call ESMF_ClockGet(EClock, currTime=CurrentTime, rc=rc)
+    if ( rc /= ESMF_SUCCESS ) call shr_sys_abort("ERROR: glc_io_write_history")
+
+    call ESMF_TimeGet( CurrentTime, yy=cesmYR, mm=cesmMON, dd=cesmDAY, s=cesmTOD, rc=rc )
+    if ( rc /= ESMF_SUCCESS ) call shr_sys_abort("ERROR: glc_io_write_history")
+
+    call shr_cal_ymd2date(cesmYR, cesmMON, cesmDAY, cesmYMD)
+
     if (initial_history) then
        file_type = 'initial_history'
     else
@@ -208,7 +216,7 @@
 !jw    oc%metadata%source =
 !jw    oc%metadata%history =
 !jw    oc%metadata%references =
-!jw    oc%metadata%comment = 
+!jw    oc%metadata%comment =
 
     ! create the output unit
     call glimmer_nc_createfile(oc, instance%model, baseline_year=baseline_year)
@@ -243,7 +251,7 @@
             model_doi_url)
        call nc_errorhandle(__FILE__,__LINE__,status)
     end if
-    
+
     call glide_nc_filldvars(oc, instance%model)
 
     call glimmer_nc_checkwrite(oc, instance%model, forcewrite=.true., &
@@ -317,7 +325,7 @@
 
        call write_log('WHL, oc_tavg_helper is already associated; reset the tavg fields')
 
-       ! If tavg fields are present, then reset them now. 
+       ! If tavg fields are present, then reset them now.
        if (oc_tavg_helper%do_averages) then
           call glide_avg_reset(oc_tavg_helper, instance%model)
           ! Note: Currently Glad has no tavg files, and subroutine glad_avg_reset is not generated.
@@ -366,13 +374,14 @@
 
    subroutine glc_io_write_restart(instance, EClock)
 
-    use glc_files, only : ptr_filename
+    use glc_files           , only : ptr_filename
     use glad_type
-    use glide_io, only : glide_io_create, glide_io_write
-    use glad_io, only : glad_io_create, glad_io_write
-    use glide_nc_custom, only: glide_nc_filldvars
-    use glad_main, only : glad_okay_to_restart
-    use glad_input_averages, only : get_av_start_time
+    use glide_io            , only : glide_io_create, glide_io_write
+    use glad_io             , only : glad_io_create, glad_io_write
+    use glide_nc_custom     , only : glide_nc_filldvars
+    use glad_main           , only : glad_okay_to_restart
+    use glad_input_averages , only : get_av_start_time
+
     implicit none
     type(glad_instance), intent(inout) :: instance
     type(ESMF_Clock),     intent(in)    :: EClock
@@ -387,10 +396,11 @@
     integer(IN)   :: cesmDAY           ! cesm model day
     integer(IN)   :: glcYMD            ! cism model date
     integer(IN)   :: glcTOD            ! cism model sec
-    integer(IN)   :: rst_elapsed_days  ! 
+    integer(IN)   :: rst_elapsed_days  !
     integer(IN)   :: ptr_unit          ! unit for pointer file
     integer(IN)   :: status            !
-
+    type(ESMF_TIME) :: CurrentTime
+    integer         :: rc
 !-----------------------------------------------------------------------
 
     if (.not. glad_okay_to_restart(instance)) then
@@ -410,8 +420,14 @@
     end if
 
     ! figure out restart filename
-    call seq_timemgr_EClockGetData(EClock, curr_ymd=cesmYMD, curr_tod=cesmTOD, &
-                                   curr_yr=cesmYR, curr_mon=cesmMON, curr_day=cesmDAY)
+    call ESMF_ClockGet(EClock, currTime=CurrentTime, rc=rc)
+    if ( rc /= ESMF_SUCCESS ) call shr_sys_abort("ERROR: glc_io_write_restart")
+
+    call ESMF_TimeGet( CurrentTime, yy=cesmYR, mm=cesmMON, dd=cesmDAY, s=cesmTOD, rc=rc )
+    if ( rc /= ESMF_SUCCESS ) call shr_sys_abort("ERROR: glc_io_write_restart")
+
+    call shr_cal_ymd2date(cesmYR, cesmMON, cesmDAY, cesmYMD)
+
     filename = glc_filename(cesmYR, cesmMON, cesmDAY, cesmTOD, 'restart')
 
     if (my_task == master_task) then
@@ -434,7 +450,7 @@
 !jw    oc%metadata%source =
 !jw    oc%metadata%history =
 !jw    oc%metadata%references =
-!jw    oc%metadata%comment = 
+!jw    oc%metadata%comment =
 
     ! create the output unit
     call glimmer_nc_createfile(oc, instance%model, baseline_year=baseline_year)
@@ -460,7 +476,7 @@
             get_av_start_time(instance%glad_inputs))
        call nc_errorhandle(__FILE__,__LINE__,status)
     end if
-    
+
     call glide_nc_filldvars(oc, instance%model)
     call glimmer_nc_checkwrite(oc, instance%model, forcewrite=.true., &
          time=instance%glide_time, &

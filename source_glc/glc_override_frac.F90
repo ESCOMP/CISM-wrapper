@@ -72,7 +72,7 @@ contains
     !
     ! !USES:
     use glc_files      , only : nml_filename
-    use glc_constants  , only : stdout, nml_in, blank_fmt, ndelim_fmt
+    use glc_constants  , only : stdout, blank_fmt, ndelim_fmt
     use glc_communicate, only : my_task, master_task
     use glc_broadcast  , only : broadcast_scalar
     use glc_exit_mod   , only : exit_glc, sigAbort
@@ -81,6 +81,7 @@ contains
     !
     ! !LOCAL VARIABLES:
     integer(int_kind) :: nml_error   ! namelist i/o error flag
+    integer(int_kind) :: nml_in      ! namelist file unit number
 
     namelist /glc_override_nml/ enable_frac_overrides, &
          decrease_override_delay, increase_override_delay, rearrange_override_delay, &
@@ -100,7 +101,7 @@ contains
 
     ! Read namelist
     if (my_task == master_task) then
-       open(nml_in, file=nml_filename, status='old', iostat=nml_error)
+       open(newunit=nml_in, file=nml_filename, status='old', iostat=nml_error)
        if (nml_error /= 0) then
           nml_error = -1
        else

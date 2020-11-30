@@ -1,7 +1,6 @@
 ! This module contains data and subroutines used by the glc_time_management_test program
 
 module glc_time_management_test_mod
-   use glc_constants, only : nml_in
    use glc_kinds_mod
    use glc_communicate, only : my_task, master_task
    use glc_time_management
@@ -15,7 +14,6 @@ module glc_time_management_test_mod
 
    ! --- parameters ---
    character(len=*), parameter :: test_nml_filename='time_management_test_in'
-   integer, parameter :: test_nml_in = 10  ! unit for namelist reads
 
    ! prefix to write on any line written by the test program
    character(len=*), parameter :: write_prefix = '(time_management_test) '
@@ -30,7 +28,6 @@ module glc_time_management_test_mod
 
    ! --- other module variables ---
    integer :: climate_tstep     ! in the actual code, this is a member of a derived type
-
    ! --- public variables ---
    public :: write_prefix, nsteps_test
 
@@ -46,10 +43,12 @@ contains
    subroutine read_time_management_test_namelist
       ! This subroutine reads the namelist that controls the test program
 
+      integer :: test_nml_in
+
       namelist /time_management_test_nml/ &
            runtype_test, elapsed_days_test, nsteps_test, dtt_test
 
-      open(test_nml_in, file=test_nml_filename, status='old')
+      open(newunit=test_nml_in, file=test_nml_filename, status='old')
       read(test_nml_in, nml=time_management_test_nml)
       close(test_nml_in)
 
@@ -62,7 +61,6 @@ contains
       ! Do initialization needed for the time manager.
       ! This includes the relevant code from glc_initMod: glc_initialize
 
-      nml_in = test_nml_in
       runtype = runtype_test
 
       call init_time1
