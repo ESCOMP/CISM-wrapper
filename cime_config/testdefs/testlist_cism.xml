@@ -386,46 +386,8 @@
 
     </machines>
   </test>
-  <test name="ERS_Vnuopc_Lm24" grid="f10_f10_musgs" compset="I1850Clm50SpG">
-    <machines>
-
-      <machine name="cheyenne" compiler="intel" category="aux_glc">
-        <options>
-          <option name="wallclock">1:59</option>
-          <!-- 2016-10-25: At least in the ERS_Ly5 test: There is a big jump in
-               memory at the start of year 2. In the 5-year run, things then
-               stay roughly constant after that. Note that the start of year 2
-               is when CISM does its first prognostic solve, so I think this is
-               expected behavior. Thus, I believe this is not actually a
-               problem. -->
-          <option name="memleak_tolerance">0.34</option>
-          <option name="comment">Mid-year exact restart test</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
 
   <test name="ERI_Lm24" grid="f10_f10_musgs" compset="I1850Clm50SpG" testmods="cism/isostasy_period4">
-    <machines>
-
-      <machine name="cheyenne" compiler="intel" category="aux_glc">
-        <options>
-          <option name="wallclock">1:59</option>
-          <!-- 2016-10-25: At least in the ERS_Ly5 test: There is a big jump in
-               memory at the start of year 2. In the 5-year run, things then
-               stay roughly constant after that. Note that the start of year 2
-               is when CISM does its first prognostic solve, so I think this is
-               expected behavior. Thus, I believe this is not actually a
-               problem. -->
-          <option name="memleak_tolerance">0.34</option>
-          <option name="comment">Test branching mid-year; include isostasy because there are extra subtleties with getting isostasy to restart exactly</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
-  <test name="ERI_Vnuopc_Lm24" grid="f10_f10_musgs" compset="I1850Clm50SpG" testmods="cism/isostasy_period4">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="aux_glc">
