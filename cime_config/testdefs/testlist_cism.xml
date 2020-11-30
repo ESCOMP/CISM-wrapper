@@ -499,7 +499,7 @@
 
     </machines>
   </test>
-  <test name="NCK_Vnuopc_Ly3" grid="f09_g17_gl20" compset="T1850G">
+  <test name="MCC_Vnuopc_Ly3" grid="f09_g17_gl20" compset="T1850G">
     <machines>
 
       <!-- (2020-11-26) Changing the izumi version to cheyenne for now,
@@ -513,7 +513,7 @@
       -->
       <machine name="cheyenne" compiler="gnu" category="prebeta">
         <options>
-          <option name="wallclock">1:59</option>
+          <option name="wallclock">0:20</option>
         </options>
       </machine>
 
