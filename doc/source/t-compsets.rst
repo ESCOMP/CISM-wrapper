@@ -39,14 +39,13 @@ state, with nominally year-1850 forcings and satellite phenology). The resolutio
 ``f09_g17``. The code base was close to the final CESM2.0 release. For more details, see
 `<https://svn-ccsm-inputdata.cgd.ucar.edu/trunk/inputdata/lnd/dlnd7/CPLHIST_SNO/i.e20.I1850Clm50Sp.f09_g17.001_c180502/README>`__.
 
-There are two out-of-the-box T compsets that use these forcing data: T1850G, which uses
-CISM2, and T1850G1, which uses CISM1. **You should run these compsets at f09_g17
-resolution --- i.e., with the same land resolution and ocean mask used to create the
-forcing data.** You can use any CISM resolution, although the current forcing data only
-have complete forcings for Greenland, not Antarctica.
+There is one out-of-the-box T compset that uses these forcing data: T1850G. **You should
+run this compset at f09_g17 resolution --- i.e., with the same land resolution and ocean
+mask used to create the forcing data.** You can use any CISM resolution, although the
+current forcing data only have complete forcings for Greenland, not Antarctica.
 
-So a typical ``create_newcase`` command when running with CISM2, with the standard 4-km
-Greenland grid, would look like:
+So a typical ``create_newcase`` command when running with the standard 4-km Greenland
+grid, would look like:
 
 .. code-block:: console
 

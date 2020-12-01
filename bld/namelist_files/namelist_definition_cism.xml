@@ -357,7 +357,7 @@ Global boundary conditions
 0: Doubly periodic
 1: Free outflow; scalars in global halo set to zero
 2: No penetration; outflow set to zero at global boundaries (only supported for Glissade dycore)
-Default: 0 for cism1, 1 for cism2
+Default: 1
 </entry>
 
 <!-- =============================================================  -->
@@ -410,13 +410,14 @@ id="dycore"
 type="integer"
 category="cism_config_options"
 group="cism_config_options"
-valid_values="0,2" >
+valid_values="2" >
 Which dycore to use
-0: Glide dycore (SIA, serial only)
+0: NOT SUPPORTED: Glide dycore (SIA, serial only)
+   Note that this option is no longer supported in CESM
 1: NOT SUPPORTED: glam dycore (HO, FDM, serial or parallel)
    Note that this option is not allowed within CESM, because it is buggy
 2: Glissade dycore (HO, FEM, serial or parallel)
-Default: 0 for cism1, 2 for cism2
+Default: 2
 </entry>
 
 <entry 
@@ -445,7 +446,7 @@ Temperature initialization method
 2: Initialize temperature with a linear profile in each column
 3: Initialize temperature with an advective-diffusive balance in each column
 4: Initialize temperature from external file
-Default: 3 for cism2; 2 for cism1
+Default: 3
 </entry>
 
 <entry 
@@ -459,21 +460,6 @@ valid_values="0,1,2,3" >
 2: Paterson-Budd temperature-dependent relationship
 3: Read flwa/flwastag from file
 Default: 2
-</entry>
-
-<entry 
-id="basal_water"
-type="integer" 
-category="cism_config_options"
-group="cism_config_options"
-valid_values="0,1,2,3" >
-Determines the treatment of basal water
-Only valid for Glide dycore (cism1)
-0: Set to zero everywhere
-1: Calculated from local water balance
-2: Compute the basal water flux, then find depth via calculation
-3: Set to constant everywhere (10m), to force T = Tpmp
-Default: (use hard-coded default - currently 0)
 </entry>
 
 <entry 
@@ -589,16 +575,12 @@ id="evolution"
 type="integer" 
 category="cism_config_options"
 group="cism_config_options"
-valid_values="0,2,3,4,5" >
-0: pseudo-diffusion
-1: ADI scheme [CANNOT BE USED: RESTARTS ARE NOT EXACT]
-2: diffusion
+valid_values="3,4,5" >
 3: remap thickness
 4: 1st order upwind
 5: no thickness evolution
-Options 0, 1 and 2 are for Glide dycore only
-Options 3, 4 and 5 are for Glissade dycore only
-Default: 0 for cism1, 3 for cism2
+(Options 0, 1 and 2 are for Glide dycore only)
+Default: 3
 </entry>
 
 <entry 
@@ -634,7 +616,7 @@ valid_values="0,1,2" >
 1: read 2D geothermal flux field from input file, if present
    (if absent, fall back to prescribed uniform geothermal heat flux)
 2: calculate geothermal flux using 3d diffusion
-Default: 0 for cism1, 1 for cism2
+Default: 1
 </entry>
 
 <entry 
@@ -760,16 +742,6 @@ time step short enough to avoid subcycling.
 Default: 0.5 for cism2
 </entry>
 
-<entry
-id="profile"
-type="integer"
-category="cism_config_time"
-group="cism_config_time" >
-Profile period (number of time steps between profiles)
-Option for Glide dycore only
-Default: 100
-</entry>
-
 <entry 
 id="dt_diag"
 type="real" 
@@ -819,7 +791,7 @@ category="cism_config_parameters"
 group="cism_config_parameters" >
 Thickness below which ice dynamics is ignored (m)
 Below this limit, ice is only accumulated
-Default: 100 for cism1, 1 for cism2
+Default: 1
 </entry>
 
 <entry
@@ -828,7 +800,6 @@ type="real"
 category="cism_config_parameters"
 group="cism_config_parameters" >
 Thickness scale (in meters) over which gradients increase from zero to full value (HO only)
-This parameter does not exist in CISM1 thus CISM2 only.
 Default: 50.
 </entry>
 
@@ -968,7 +939,7 @@ category="cism_config_parameters"
 group="cism_config_parameters" >
 Flow enhancement parameter for the Arrhenius relationship;
 typically used in SIA model to speed up the ice.
-Default: 3.0 for cism1, 1.0 for cism2
+Default: 1.0
 </entry>
 
 <entry 
@@ -989,17 +960,6 @@ category="cism_config_parameters"
 group="cism_config_parameters" >
 Glen's A to use in isothermal case, i.e, when temperature = 0
 Default: (use hard-coded default - currently 1.e-16)
-</entry>
-
-<entry 
-id="hydro_time"
-type="real" 
-category="cism_config_parameters"
-group="cism_config_parameters" >
-Time scale for basal water to drain (yr-1)
-Only relevant for cism1 (Glide dycore)
-(Not relevant for basal_water=2)
-Default: (use hard-coded default - currently 1000.)
 </entry>
 
 <entry 
@@ -1424,7 +1384,7 @@ Method for solving the sparse linear system that arises from the higher-order so
 3: Native PCG, parallel-enabled, Chronopoulos-Gear solver
 4: standalone interface to Trilinos
 The use of trilinos is NOT SUPPORTED in CESM runs.
-Default: 3 if dycore = 2, 1 if dycore = 1 and cism_use_trilinos = FALSE
+Default: 3
 </entry>
 
 <entry
@@ -1436,7 +1396,7 @@ valid_values="0,1" >
 Method for solving the nonlinear iteration when solving the first-order momentum balance
 0: use the standard Picard iteration
 1: use Jacobian Free Newton Krylov (JFNK) method [GLAM only]
-Default: 1 for dycore = 1, 0 for dycore = 2
+Default: 0
 </entry>
 
 <entry
