@@ -18,7 +18,6 @@ my $EXEROOT   = `./xmlquery EXEROOT   --value`;
 my $LIBROOT   = `./xmlquery LIBROOT   --value`;
 my $GMAKE_J   = `./xmlquery GMAKE_J   --value`;
 my $GMAKE     = `./xmlquery GMAKE     --value`;
-my $CIMEROOT  = `./xmlquery CIMEROOT  --value`;
 my $CISM_USE_TRILINOS = `./xmlquery  CISM_USE_TRILINOS --value`;
 my $GMAKE_OPTS = `./Tools/get_standard_makefile_args`;
 

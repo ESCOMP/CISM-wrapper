@@ -199,7 +199,7 @@
       do while (nml_error > 0)
          read(nml_in, nml=cism_params,iostat=nml_error)
       end do
-      close(nml_in)
+      if (nml_error == 0) close(nml_in)
    endif
    call broadcast_scalar(nml_error, master_task)
    if (nml_error /= 0) then

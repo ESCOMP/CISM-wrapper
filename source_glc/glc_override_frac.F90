@@ -110,7 +110,7 @@ contains
        do while (nml_error > 0)
           read(nml_in, nml=glc_override_nml,iostat=nml_error)
        end do
-       close(nml_in)
+       if (nml_error == 0) close(nml_in)
     end if
 
     call broadcast_scalar(nml_error, master_task)

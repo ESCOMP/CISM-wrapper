@@ -3,6 +3,173 @@ This file describes what tags were created on master and why
 ================================================================================
 
 ================================================================================
+Originator: mvertens, jedwards, sacks
+Date: November 30, 2020
+Version: cism2_1_72
+One-line summary: Add NUOPC cap
+
+Purpose of changes:
+
+   Add NUOPC cap and externals needed to run cases with the NUOPC
+   (CMEPS) driver/mediator.
+
+   Add NUOPC versions of most CISM2 tests on cheyenne. For now at least,
+   I have NOT added NUOPC versions of tests on izumi or CISM1 tests. I
+   also have NOT added NUOPC versions of tests with mid-year restarts,
+   since these currently fail: see
+   https://github.com/ESCOMP/CMEPS/issues/143.
+
+   Also, update manage_externals.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: NO
+
+Bugs fixed (include github issue number): none
+
+Summary of testing:
+
+   Full aux_glc test suite on cheyenne and izumi.
+
+   Tests were run on 86eadd2. Commits after that on this branch removed
+   or replaced the handful of failing nuopc tests, which due to known
+   limitations with nuopc. I then ran the new MCC test.
+
+   Note: for cheyenne_gnu testing, I did NOT use '--mpilib openmpi'
+   (which I used to use, but is no longer needed).
+
+   All tests passed except those removed in the final commits; mct tests
+   were bit-for-bit, nuopc tests did not have baselines.
+
+================================================================================
+Originator: sacks
+Date: November 26, 2020
+Version: cism2_1_71
+One-line summary: Update externals
+
+Purpose of changes:
+
+   Update to latest version of CTSM and MOSART, and nearly latest
+   version of CIME. These are needed for fixes to the NUOPC build, among
+   other things. There are some big changes in CTSM.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: YES
+
+   Changes answers for all I compset tests due to CTSM update
+
+Bugs fixed (include github issue number):
+Resolves ESCOMP/CISM-wrapper#34 (Need to change an aux_glc test based on
+changes in CTSM's compset definitions)
+
+Summary of testing:
+
+   Full aux_glc test suite on cheyenne and izumi.
+
+   Note: for cheyenne_gnu testing, I did NOT use '--mpilib openmpi'
+   (which I used to use, but is no longer needed).
+
+   All tests passed; I compset tests changed answers as expected, others
+   were bit-for-bit.
+
+================================================================================
+	Originator: @katetc (Kate Thayer-Calder)
+	Date: November 21, 2020
+	Version: cism2_1_70
+	One-line summary: Documentation updates to cover time step acceleration
+	                          and topography updating workflow.
+
+	Purpose of changes:
+	      Just documentation updates. Moved section 4.1 describing CISM
+	to introduction. Created new page for "B compsets". Moved section
+	4.2 on time step changes to B compset page. Added notes on CISM
+	time step acceleration here. Included notes on topography updating
+	workflow with CESM 2.1.1+ checkouts in the B compset page.
+
+	Standalone checkout supported in this tag (Yes/No): Yes
+
+	Changes answers relative to previous tag: No
+
+	Bugs fixed (include github issue number): Planned in issue #33
+
+	Summary of testing:
+	All tests on Cheyenne pass, baselines generated, B4B.
+	All tests on Izumi pass (no baseline compares).
+
+
+================================================================================
+        Originator: @katetc (Kate Thayer-Calder)
+        Date: August 11, 2020
+	Version: cism2_1_69
+	One-line summary: Update externals for machine changes
+
+	Purpose of changes:
+		Updated cime external to the regular cime development branch
+	(cime5.8.28) and updated to a more recent version of ctsm (ctsm1.0.dev105)
+	and mosart (mosart1_0_36). This is the cime tag in cesm2_2_alpha06b. These
+	add needed support for Cheyenne adn Izumi after the recent updates. Also
+	updated the test list to test on Izumi rather than Hobart. Updated the
+	CISM hash to include Grizzly and some older cheyenne support updates.
+
+        Standalone checkout supported in this tag (Yes/No): Yes
+
+        Changes answers relative to previous tag:
+		CTSM and data land stream changes result in baseline compare fails
+	for I cases and namelist compare failes for T cases.
+
+	Bugs fixed (include github issue number):
+		None in this tag.
+
+	Summary of testing:
+		Tests that differ from baselines (expected due to CTSM and CIME update)
+	  ERI.f10_f10_musgs.I1850Clm50SpG.cheyenne_gnu.cism-test_coupling (Overall: DIFF)
+	  ERI_N2_Ly9.f09_g17_gl20.T1850G.cheyenne_gnu (Overall: NLFAIL)
+	  ERS_D_Ld9.f10_f10_musgs.I1850Clm50SpG.cheyenne_gnu.cism-override_glc_frac (Overall: DIFF)
+	  ERS_D_Ly3.f09_g17_gl5.T1850G1.cheyenne_gnu.cism-noevolve (Overall: NLFAIL)
+	  ERS_Ly11.f09_g17_gl20.T1850G.cheyenne_gnu.cism-oneway (Overall: NLFAIL)
+	  ERS_Ly11.f09_g17_gl20.T1850G.cheyenne_gnu (Overall: NLFAIL)
+	  ERS_Ly20_N2_P2.f09_g17_gl20.T1850G1.cheyenne_gnu (Overall: NLFAIL)
+	  ERS_Ly3.f09_g17_gl4.T1850G.cheyenne_gnu.cism-isostasy_period1 (Overall: NLFAIL)
+	  ERS_Ly5.f09_g17_gl4.T1850G.cheyenne_gnu.cism-isostasy_period4 (Overall: NLFAIL)
+	  NCK_Ly3.f09_g17_gl20.T1850G.cheyenne_gnu (Overall: NLFAIL)
+	  SMS_D.f09_g17_gl20.T1850G1.cheyenne_gnu (Overall: NLFAIL)
+	  SMS_D_Ly1.f09_g17_gl4.T1850G.cheyenne_gnu (Overall: NLFAIL)
+	  SMS_D.T31_g37_gl20.I1850Clm50SpG.cheyenne_gnu.cism-test_coupling (Overall: DIFF)
+	  ERI_Lm24.f10_f10_musgs.I1850Clm50SpG.cheyenne_intel.cism-isostasy_period4 (Overall: DIFF)
+	  ERI_Ly15.f09_g17_gl4.T1850G.cheyenne_intel.cism-isostasy_period4 (Overall: NLFAIL)
+	  ERI_Ly44.f09_g17_gl20.T1850G.cheyenne_intel.cism-isostasy_period4 (Overall: NLFAIL)
+	  ERS_D_Ly3.f09_g17_gl4.T1850G.cheyenne_intel.cism-cmip6_evolving_icesheet (Overall: NLFAIL)
+	  ERS_D_Ly3.f09_g17_gl4.T1850G.cheyenne_intel.cism-noevolve (Overall: NLFAIL)
+	  ERS_Lm24.f10_f10_musgs.I1850Clm50SpG.cheyenne_intel (Overall: DIFF)
+	  ERS_Ly3.f10_f10_musgs.I1850Clm50SpG.cheyenne_intel (Overall: DIFF)
+	  ERS_Ly3_N2_D.f09_g17_gl20.T1850G.cheyenne_intel (Overall: NLFAIL)
+	  ERS_Ly7.f09_g17_gl4.T1850G.cheyenne_intel (Overall: NLFAIL)
+	  SMS_D.f09_g17_gl5.T1850G1.cheyenne_intel (Overall: NLFAIL)
+	  SMS_D_Ly1.f09_g17_gl4.T1850G.cheyenne_intel.cism-isostasy_period1 (Overall: NLFAIL)
+	  SMS_D_Ly1.f09_g17_gl4.T1850G.cheyenne_intel (Overall: NLFAIL)
+	  SMS_Lm13.f10_f10_musgs.I2000Clm50Sp.cheyenne_intel (Overall: DIFF)
+
+	  All tests on Hobart pass (no baseline compares).
+
+
+================================================================================
 	Originator: @katetc (Kate Thayer-Calder)
 	Date: June 21, 2019
 	Version: cism2_1_68

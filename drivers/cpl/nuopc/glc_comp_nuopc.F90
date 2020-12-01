@@ -391,14 +391,14 @@ contains
     ! from lats and lons calculated internally
     do n = 1, npts
        if ( abs(mesh_lons(n) - lons_vec(n)) > tolerance) then
-          write(6,'(a,i8,2x,3(d13.5,2x))')'ERROR: CISM lon check: n, lon, mesh_lon, lon_diff = ',&
+          write(stdout,'(a,i8,2x,3(d13.5,2x))')'ERROR: CISM lon check: n, lon, mesh_lon, lon_diff = ',&
                n, lons_vec(n), mesh_lons(n),abs(mesh_lons(n)-lons_vec(n))
-          !call shr_sys_abort()
+          call shr_sys_abort()
        end if
        if (abs(mesh_lats(n) - lats_vec(n)) > tolerance) then
-          write(6,'(a,i8,2x,3(d13.5,2x))')'ERROR: CISM lat check: n, lat, mesh_lat, lat_diff = ',&
+          write(stdout,'(a,i8,2x,3(d13.5,2x))')'ERROR: CISM lat check: n, lat, mesh_lat, lat_diff = ',&
                n, lats_vec(n), mesh_lats(n),abs(mesh_lats(n)-lats_vec(n))
-          !call shr_sys_abort()
+          call shr_sys_abort()
        end if
     end do
 
@@ -532,7 +532,9 @@ contains
     endif
     write(cvalue,*) valid_inputs
     call ESMF_LogWrite(subname//' valid_input for cism is '//trim(cvalue), ESMF_LOGMSG_INFO)
-    write(stdout,*)' valid_input for cism is ',valid_inputs
+    if (my_task == master_task) then
+       write(stdout,*)' valid_input for cism is ',valid_inputs
+    end if
 
     done = .false.
     if (glcYMD == cesmYMD .and. glcTOD == cesmTOD) done = .true.
@@ -776,7 +778,7 @@ contains
 
     if (my_task==master_task) then
        write(stdout,F91)
-       write(stdout,F00) 'MOSART: end of main integration loop'
+       write(stdout,F00) 'CISM: end of main integration loop'
        write(stdout,F91)
     end if
 
