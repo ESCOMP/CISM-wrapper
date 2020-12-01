@@ -3,6 +3,44 @@ This file describes what tags were created on master and why
 ================================================================================
 
 ================================================================================
+Originator: mvertens, sacks
+Date: December 1, 2020
+Version: cism2_1_73
+One-line summary: Begin support for multiple ice sheets in NUOPC cap
+
+Purpose of changes:
+
+   As a first step towards supporting multiple ice sheets, this tag
+   makes some changes to the NUOPC cap that will be needed to support
+   multiple ice sheets with the CMEPS driver / mediator. It also updates
+   the CMEPS external to bring in corresponding changes.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: No
+
+Bugs fixed (include github issue number):
+- Resolves ESCOMP/CISM-wrapper#35 (Enhance nuopc cap to allow multiple
+  ice sheets) (at least partially: this may not be fully resolved yet)
+
+Summary of testing:
+
+   Full aux_glc test suite on cheyenne and izumi.
+
+   Note: for cheyenne_gnu testing, I did NOT use '--mpilib openmpi'
+   (which I used to use, but is no longer needed).
+
+   All tests passed and were bit-for-bit.
+
+================================================================================
 Originator: mvertens, jedwards, sacks
 Date: November 30, 2020
 Version: cism2_1_72
