@@ -124,6 +124,8 @@ contains
        call shr_sys_abort(subname//'Need to set attribute ScalarFieldCount')
     endif
 
+    ! TODO(wjs, 2020-11-30) Mariana points out that we'll need per-instance NX and NY
+    ! (these are used for coupler history files)
     call NUOPC_CompAttributeGet(gcomp, name="ScalarFieldIdxGridNX", value=cvalue, isPresent=isPresent, isSet=isSet, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     if (isPresent .and. isSet) then
