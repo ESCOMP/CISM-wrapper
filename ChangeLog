@@ -3,6 +3,44 @@ This file describes what tags were created on master and why
 ================================================================================
 
 ================================================================================
+Originator: sacks
+Date: December 2, 2020
+Version: cism2_1_74
+One-line summary: Remove support for CISM1 and for Trilinos
+
+Purpose of changes:
+
+   Remove support for CISM1 and for Trilinos, since these aren't used
+   within CESM.
+
+   Also remove scripts for regenerating i/o files that haven't been
+   needed since cism2_1_65.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: No
+
+Bugs fixed (include github issue number):
+- Resolves ESCOMP/CISM-wrapper#47
+
+Summary of testing:
+
+   Full aux_glc test suite on cheyenne and izumi.
+
+   Note: for cheyenne_gnu testing, I did NOT use '--mpilib openmpi'
+   (which I used to use, but is no longer needed).
+
+   All tests passed and were bit-for-bit.
+
+================================================================================
 Originator: mvertens, sacks
 Date: December 1, 2020
 Version: cism2_1_73
