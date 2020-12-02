@@ -20,6 +20,5 @@ Sample env_run.xml file that allows build-namelist to be run for testing in this
 <entry id="GLC_NCPL"             value="1"    /> 
 <entry id="GLC_TWO_WAY_COUPLING" value="TRUE"  /> 
 <entry id="CISM_EVOLVE"          value="TRUE"  /> 
-<entry id="CISM_USE_TRILINOS"    value="FALSE"  /> 
 <entry id="CISM_OBSERVED_IC"     value="FALSE"  /> 
 </config_definition>

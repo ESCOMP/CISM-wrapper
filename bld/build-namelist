@@ -348,7 +348,6 @@ my $NCPL_BASE_PERIOD       = $xmlvars{'NCPL_BASE_PERIOD'};
 my $GLC_NCPL               = $xmlvars{'GLC_NCPL'};
 my $GLC_TWO_WAY_COUPLING   = $xmlvars{'GLC_TWO_WAY_COUPLING'};
 my $CISM_EVOLVE            = $xmlvars{'CISM_EVOLVE'};
-my $CISM_USE_TRILINOS      = $xmlvars{'CISM_USE_TRILINOS'};
 my $CISM_OBSERVED_IC       = $xmlvars{'CISM_OBSERVED_IC'};
 my $COMP_INTERFACE         = $xmlvars{'COMP_INTERFACE'};
 
@@ -358,9 +357,9 @@ if ($print>=2) { print "Inputdata root directory: $DIN_LOC_ROOT$eol"; }
 # Preliminary consistency checks
 ####################################
 
-check_grid($GLC_GRID, $CISM_PHYS);
+check_grid($GLC_GRID);
 if ($CALENDAR ne "NO_LEAP") {
-   # See bug http://bugs.cgd.ucar.edu/show_bug.cgi?id=2507
+   # See https://github.com/ESCOMP/CISM-wrapper/issues/1
    print "CISM currently only supports a NO_LEAP calendar\n";
    print "Either change the calendar to NO_LEAP\n";
    print "or create a case without CISM.\n";
@@ -613,35 +612,29 @@ add_default($nl, 'bmlt_float_depth_meltmin');
 add_default($nl, 'bmlt_float_depth_zmeltmin');
 $nl->write_cism_config($fh, "cism_config_parameters");
 
-# The ho_options section only applies if dycore is not 0
-if ($nl->get_value('dycore') != 0) {
-    print $fh "\n[ho_options]\n";
-    add_default($nl, 'which_ho_babc');
-    add_default($nl, 'which_ho_bwat');
-    add_default($nl, 'which_ho_effecpress');
-    add_default($nl, 'which_ho_efvs');
-    add_default($nl, 'which_ho_thermal_timestep');
-    add_default($nl, 'which_ho_resid');
-    add_default($nl, 'which_ho_disp');
-    add_default($nl, 'which_ho_sparse', 'dycore'=>$nl->get_value('dycore'), 'cism_use_trilinos'=>"$CISM_USE_TRILINOS");
-    add_default($nl, 'which_ho_nonlinear', 'dycore'=>$nl->get_value('dycore'));
-    add_default($nl, 'which_ho_gradient');
-    add_default($nl, 'which_ho_gradient_margin');
-    add_default($nl, 'which_ho_approx');
-    add_default($nl, 'which_ho_precond');
-    add_default($nl, 'which_ho_assemble_beta');
-    add_default($nl, 'which_ho_assemble_taud');
-    add_default($nl, 'which_ho_assemble_bfric');
-    add_default($nl, 'which_ho_calving_front');
-    add_default($nl, 'which_ho_ground');
-    add_default($nl, 'which_ho_ground_bmlt');
-    add_default($nl, 'which_ho_flotation_function');
-    add_default($nl, 'glissade_maxiter');
-    $nl->write_cism_config($fh, "cism_config_ho_options");
-}
-else {
-    confirm_empty("cism_config_ho_options", "items in ho_options_section can only be set if dycore is not 0");
-}
+print $fh "\n[ho_options]\n";
+add_default($nl, 'which_ho_babc');
+add_default($nl, 'which_ho_bwat');
+add_default($nl, 'which_ho_effecpress');
+add_default($nl, 'which_ho_efvs');
+add_default($nl, 'which_ho_thermal_timestep');
+add_default($nl, 'which_ho_resid');
+add_default($nl, 'which_ho_disp');
+add_default($nl, 'which_ho_sparse');
+add_default($nl, 'which_ho_nonlinear');
+add_default($nl, 'which_ho_gradient');
+add_default($nl, 'which_ho_gradient_margin');
+add_default($nl, 'which_ho_approx');
+add_default($nl, 'which_ho_precond');
+add_default($nl, 'which_ho_assemble_beta');
+add_default($nl, 'which_ho_assemble_taud');
+add_default($nl, 'which_ho_assemble_bfric');
+add_default($nl, 'which_ho_calving_front');
+add_default($nl, 'which_ho_ground');
+add_default($nl, 'which_ho_ground_bmlt');
+add_default($nl, 'which_ho_flotation_function');
+add_default($nl, 'glissade_maxiter');
+$nl->write_cism_config($fh, "cism_config_ho_options");
 
 # The [GTHF] section only applies if the 'gthf' option is set to
 # GTHF_CALCULATE -- if not, we leave it out to avoid confusion
@@ -993,29 +986,22 @@ sub get_glc_dt {
 
 sub check_grid {
 
-# Usage: check_grid($glc_grid, $cism_phys)
+# Usage: check_grid($glc_grid)
 #
-# Checks that the glc_grid is valid given the cism_phys setting
+# Checks that the glc_grid is valid
 
-   my ($glc_grid, $cism_phys) = @_;
+   my ($glc_grid) = @_;
 
    # we only care about the keys in allowed_grids, not the values; but we use a
    # hash for easy lookup later
    my %allowed_grids;
 
-   if ($cism_phys eq "cism1") {
-      %allowed_grids = (gland20  => 1, 
-                        gland5UM => 1,
-                       );
-   }
-   elsif ($cism_phys eq "cism2") {
-      %allowed_grids = (gland20 => 1,
-                        gland4  => 1,
-                       );
-   }
+   %allowed_grids = (gland20 => 1,
+                     gland4  => 1,
+                    );
 
    if (!exists($allowed_grids{$glc_grid})) {
-      print "ERROR: For cism_phys = $cism_phys, allowable grids are:\n";
+      print "ERROR: allowable grids are:\n";
       print join(", ", sort keys %allowed_grids);
       print "\n";
       print "Current value of GLC_GRID is: $glc_grid\n";
@@ -1052,43 +1038,6 @@ sub check_consistency {
           $num_errors += 1;
        }
     }
-
-# ----------------------------------------------------------------------
-# Requirements for use of trilinos solver
-# ----------------------------------------------------------------------
-
-    if ($nl->get_value('which_ho_sparse') == 4) {
-	if ($xmlvars->{'CISM_USE_TRILINOS'} eq 'FALSE') {
-	    print "$ProgName: ERROR: Use of the trilinos solver (which_ho_sparse=4) requires building with trilinos (CISM_USE_TRILINOS=TRUE)\n";
-	    $num_errors += 1;
-	}
-
-	if ($nl->get_value('dycore') == 0) {
-	    print "$ProgName: ERROR: Can't use trilinos solver (which_ho_sparse=4) with glide dycore (dycore=0)\n";
-	    $num_errors += 1;
-	}
-    }
-
-# ----------------------------------------------------------------------
-# Requirements for running with more than one MPI task per ensemble member
-# ----------------------------------------------------------------------
-    my $NTASKS_PER_INST_GLC = `$CASEROOT/xmlquery NTASKS_PER_INST --subgroup GLC --value --caseroot $CASEROOT`;
-
-    if ($NTASKS_PER_INST_GLC > 1) {
-	if ($nl->get_value('dycore') == 0) {
-	    print "$ProgName: ERROR: With dycore=0 (glide dycore), can only have 1 GLC task per instance\n";
-	    print "NTASKS_PER_INST_GLC = " . $NTASKS_PER_INST_GLC . "\n";
-	    $num_errors += 1;
-	}
-
-	if ($nl->get_value('dycore') == 1 && $nl->get_value('which_ho_sparse') != 4) {
-	    print "$ProgName: ERROR: To run with more than 1 GLC task per instance, with dycore=1, must use trilinos solver (which_ho_sparse=4)\n";
-	    print "NTASKS_PER_INST_GLC = " . $NTASKS_PER_INST_GLC . "\n";
-	    print "which_ho_sparse = " . $nl->get_value('which_ho_sparse') . "\n";
-	    $num_errors += 1;
-	}
-    }
-
 
     die if ($num_errors > 0);
 }

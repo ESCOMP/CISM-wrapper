@@ -96,12 +96,6 @@ the compset level, there are three main modes for configuring CESM's ice sheet c
 After creating a case, you can switch between (1) and (2) by setting the xml variable,
 ``CISM_EVOLVE``.
 
-It is also possible to run with the older CISM1 physics, using the serial, shallow-ice-
-approximation dynamical core (Glide), rather than the parallel, higher-order
-dynamical core (Glissade). This can be selected at ``create_newcase`` time by changing CISM2 to CISM1
-in the compset long name (aliases using CISM1 have ``G1`` in place of ``G``), or after
-case creation by setting the xml variable, ``CISM_PHYS``.
-
 Choosing a CISM grid
 --------------------
 
@@ -113,21 +107,18 @@ grid for each active ice sheet.  Unlike the other component grids, which are glo
 ice-sheet grids have limited domains. The current grids are polar stereographic
 projections with rectangular grid cells.
 
-Currently, CESM only supports running CISM over Greenland. When running with CISM2
-(Glissade), the standard grid has a resolution of 4 km; when running with CISM1 (Glide),
-the standard grid has a resolution of 5 km. Both CISM1 and CISM2 also support a 20 km grid
-for software testing purposes. There is out-of-the-box support for running either the 4 km
-(CISM2) or 5 km (CISM1) grids with most or all of the commonly-used atmosphere/land and
-ocean grids.
+Currently, CESM only supports running CISM over Greenland. The standard grid has a
+resolution of 4 km; a 20 km grid is also supported for software testing purposes. There is
+out-of-the-box support for running the 4 km grid with most or all of the commonly-used
+atmosphere/land and ocean grids.
 
 The alias for a typical CESM grid lists the atmosphere/land grid followed by the ocean
 grid. For example, ``f09_g17`` runs the atmosphere and land on a 0.9\ |deg|\ x1.25\ |deg|
 finite-volume grid and the ocean and sea ice on a displaced Greenland pole 1\ |deg|
 grid. If you don't specify the CISM grid explicitly in the grid alias, it will use the
-default grid (4 km for a compset with CISM2, 5 km for a compset with CISM1). For some
-common grids, you can also specify the grid explicitly in the alias, using a ``_gl``
-element following the ocean grid. For example, for a compset with CISM2, ``f09_g17_gl4``
-is equivalent to ``f09_g17``.
+default grid (4 km). For some common grids, you can also specify the grid explicitly in
+the alias, using a ``_gl`` element following the ocean grid. For example, for a compset
+with CISM2, ``f09_g17_gl4`` is equivalent to ``f09_g17``.
 
 For the T1850G compset (described in :numref:`t-compsets`), you should use grid
 ``f09_g17_gl4``. For information on introducing new ice sheet grids, see :ref:`new-grids`.

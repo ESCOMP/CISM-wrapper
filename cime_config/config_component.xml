@@ -3,7 +3,6 @@
 <entry_id version="3.0">
 
   <description modifier_mode="1">
-    <desc glc="CISM1[%EVOLVE][%NOEVOLVE]">cism1 (shallow ice approximation, serial only):</desc>
     <desc glc="CISM2[%EVOLVE][%NOEVOLVE]">cism2 (default, higher-order, can run in parallel):</desc>
     <desc option="EVOLVE">cism ice evolution turned on:</desc>
     <desc option="NOEVOLVE">cism ice evolution turned off (this is the standard configuration unless you're explicitly interested in ice evolution):</desc>
@@ -18,31 +17,11 @@
     <desc>Name of land ice-sheet component</desc>
   </entry>
 
-  <entry id="CISM_USE_TRILINOS">
-    <type>logical</type>
-    <valid_values>TRUE,FALSE</valid_values>
-    <default_value>FALSE</default_value>
-    <group>build_component_cism</group>
-    <file>env_build.xml</file>
-    <desc>TRUE implies CISM is built with support for the trilinos library
-      When using the higher-order dynamical cores in CISM, one option is to
-      use the trilinos solver library for sparse matrix solves. In order to
-      exercise that option, you need to build CISM with trilinos support, and
-      link to the trilinos libraries when building the CESM executable. Setting
-      this variable to TRUE accomplishes these things. Note that you can set
-      this to TRUE and still choose not to use the trilinos solvers for the
-      sparse matrix solves. Also, note that trilinos is only available on a
-      limited set of machines; this must remain FALSE to run CISM on a
-      machine that does not have trilinos, or for which the CESM scripts are
-      not aware of the existence of trilinos.</desc>
-  </entry>
-
   <entry id="CISM_PHYS">
     <type>char</type>
-    <valid_values>cism1,cism2</valid_values>
-    <default_value>cism1</default_value>
+    <valid_values>cism2</valid_values>
+    <default_value>cism2</default_value>
     <values>
-      <value compset="CISM1">cism1</value>
       <value compset="CISM2">cism2</value>
     </values>
     <group>run_component_cism</group>

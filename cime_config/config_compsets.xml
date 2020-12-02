@@ -18,7 +18,7 @@
     ICE  = [CICE, DICE, SICE]
     OCN  = [DOCN, ,AQUAP, SOCN]
     ROF  = [RTM, SROF]
-    GLC  = [CISM1, CISM2, SGLC]
+    GLC  = [CISM2, SGLC]
     WAV  = [SWAV]
     BGC  = optional BGC scenario 
 
@@ -37,13 +37,8 @@
   </help>
 
   <!--- TG compsets
-      The final G (or G1) denotes that ice evolution is turned on
+      The final G denotes that ice evolution is turned on
   -->
-
-  <compset>
-    <alias>T1850G1</alias>
-    <lname>1850_SATM_DLND%SCPL_SICE_SOCN_SROF_CISM1%EVOLVE_SWAV</lname>
-  </compset>
 
   <compset>
     <alias>T1850G</alias>  

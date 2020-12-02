@@ -12,7 +12,6 @@ my $CIMEROOT            = `./xmlquery CIMEROOT          --value`;
 my $GLCROOT             = `./xmlquery COMP_ROOT_DIR_GLC --value`;
 my $GLC_GRID            = `./xmlquery GLC_GRID          --value`;
 my $CISM_PHYS           = `./xmlquery CISM_PHYS         --value`;
-my $CISM_USE_TRILINOS   = `./xmlquery CISM_USE_TRILINOS --value`;
 my $LND_GRID            = `./xmlquery LND_GRID          --value`;
 my $NINST_GLC           = `./xmlquery NINST_GLC         --value`;
 my $RUNDIR              = `./xmlquery RUNDIR            --value`;
@@ -88,23 +87,6 @@ while ($inst_counter <= $NINST_GLC) {
     # -----------------------------------------------------
 
     $inst_counter = $inst_counter + 1;
-}
-
-if ($CISM_USE_TRILINOS eq "TRUE") {
-    my $sourcemod_dir = "$CASEROOT/SourceMods/src.cism";
-    if (-e "${sourcemod_dir}/trilinosOptions.xml") {
-        $sysmod = "cp ${sourcemod_dir}/trilinosOptions.xml ${RUNDIR}";
-        system($sysmod) == 0 or die "ERROR cism buildnml: $sysmod failed: $?\n";
-    } else {
-        my $trilinos_options_dir = "$GLCROOT/bld/trilinosOptions";
-        my $trilinos_file = "trilinosOptions_${GLC_GRID}.xml";
-        if (-e "${trilinos_options_dir}/${trilinos_file}") {
-            $sysmod = "cp ${trilinos_options_dir}/${trilinos_file} ${RUNDIR}/trilinosOptions.xml";
-            system($sysmod) == 0 or die "ERROR cism buildnml: $sysmod failed: $?\n";
-        } else {
-            die "ERROR: no trilinosOptions file found in $trilinos_options_dir for GLC_GRID=$GLC_GRID \n";
-        }
-    }
 }
 
 exit (0);

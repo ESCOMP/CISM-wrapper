@@ -63,7 +63,7 @@ There are a few different kinds of timesteps in CISM:
    integer multiple of the forcing timestep.
 
 3. The *ice sheet timestep* is the interval in years between calls to
-   the dynamic ice sheet model, Glissade (or Glide). The ice sheet timestep should
+   the dynamic ice sheet model, Glissade. The ice sheet timestep should
    divide evenly into the mass balance timestep. The current default is
    0.1 year for 4-km, and 0.5 year for 20-km.
 
