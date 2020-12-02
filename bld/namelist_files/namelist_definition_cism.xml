@@ -1375,15 +1375,14 @@ id="which_ho_sparse"
 type="integer"
 category="cism_config_ho_options"
 group="cism_config_ho_options"
-valid_values="-1,0,1,2,3,4" >
+valid_values="-1,0,1,2,3" >
 Method for solving the sparse linear system that arises from the higher-order solver
 -1: SLAP (serial) Preconditioned conjugate gradient, incomplete Cholesky preconditioner
 0: SLAP (serial) Biconjugate gradient, incomplete LU preconditioner
 1: SLAP (serial) GMRES, incomplete LU preconditioner
 2: Native PCG, parallel-enabled, standard solver
 3: Native PCG, parallel-enabled, Chronopoulos-Gear solver
-4: standalone interface to Trilinos
-The use of trilinos is NOT SUPPORTED in CESM runs.
+(4: UNSUPPORTED: standalone interface to Trilinos)
 Default: 3
 </entry>
 

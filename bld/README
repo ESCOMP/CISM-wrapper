@@ -4,9 +4,6 @@ Scripts and datasets to create input text files to run the model with CESM
                                     (called from the cism buildnml in ../cime_config)
    cismIO ------------------------- Directory of how to modify history output for CISM
    README.build-namelist ---------- User and developer notes on using and changing the CISM build-namelist
-   trilinosOptions ---------------- Directory containing resolution-dependent trilinosOptions.xml files
-                                    (used when running with trilinos solver)
-
 
 XML namelist description files, in namelist_files:
 

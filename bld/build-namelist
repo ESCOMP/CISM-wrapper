@@ -348,7 +348,6 @@ my $NCPL_BASE_PERIOD       = $xmlvars{'NCPL_BASE_PERIOD'};
 my $GLC_NCPL               = $xmlvars{'GLC_NCPL'};
 my $GLC_TWO_WAY_COUPLING   = $xmlvars{'GLC_TWO_WAY_COUPLING'};
 my $CISM_EVOLVE            = $xmlvars{'CISM_EVOLVE'};
-my $CISM_USE_TRILINOS      = $xmlvars{'CISM_USE_TRILINOS'};
 my $CISM_OBSERVED_IC       = $xmlvars{'CISM_OBSERVED_IC'};
 my $COMP_INTERFACE         = $xmlvars{'COMP_INTERFACE'};
 
@@ -1039,18 +1038,6 @@ sub check_consistency {
           $num_errors += 1;
        }
     }
-
-# ----------------------------------------------------------------------
-# Requirements for use of trilinos solver
-# ----------------------------------------------------------------------
-
-    if ($nl->get_value('which_ho_sparse') == 4) {
-	if ($xmlvars->{'CISM_USE_TRILINOS'} eq 'FALSE') {
-	    print "$ProgName: ERROR: Use of the trilinos solver (which_ho_sparse=4) requires building with trilinos (CISM_USE_TRILINOS=TRUE)\n";
-	    $num_errors += 1;
-	}
-    }
-
 
     die if ($num_errors > 0);
 }
