@@ -1,93 +1,309 @@
-#! /usr/bin/env perl
-use strict;
-use Cwd;
+#!/usr/bin/env python
 
-if ($#ARGV == -1) {
-    die " ERROR cism buildnml: must specify a caseroot input argument";
-}
-my ($CASEROOT) = @ARGV;
-chdir "${CASEROOT}";
+"""
+CISM namelist creator
+"""
+import sys, os, time, shutil, re
 
-my $CIMEROOT            = `./xmlquery CIMEROOT          --value`;
-my $GLCROOT             = `./xmlquery COMP_ROOT_DIR_GLC --value`;
-my $GLC_GRID            = `./xmlquery GLC_GRID          --value`;
-my $CISM_PHYS           = `./xmlquery CISM_PHYS         --value`;
-my $LND_GRID            = `./xmlquery LND_GRID          --value`;
-my $NINST_GLC           = `./xmlquery NINST_GLC         --value`;
-my $RUNDIR              = `./xmlquery RUNDIR            --value`;
+_CIMEROOT = os.environ.get("CIMEROOT")
+if _CIMEROOT is None:
+    raise SystemExit("ERROR: must set CIMEROOT environment variable")
 
-my @dirs = ("${CIMEROOT}/utils/perl5lib");
-unshift @INC, @dirs;
-require Config::SetupTools;
-my $sysmod; 
+_LIBDIR = os.path.join(_CIMEROOT, "scripts", "Tools")
+sys.path.append(_LIBDIR)
 
-if (! -d "$CASEROOT/Buildconf/cismconf" ) {
-    $sysmod = "mkdir $CASEROOT/Buildconf/cismconf";
-    system($sysmod) == 0 or die "ERROR cism buildnml: $sysmod failed: $?\n";
-}
-chdir "$CASEROOT/Buildconf/cismconf";
+from standard_script_setup import *
+from CIME.buildnml import create_namelist_infile, parse_input
+from CIME.case import Case
+from CIME.utils import expect
+from CIME.nmlgen import NamelistGenerator
 
-my $inst_string;
-my $inst_counter = 1;
-while ($inst_counter <= $NINST_GLC) {
+_final_template = """########################################
+# I/O configuration follows
+########################################
 
-    # -----------------------------------------------------
-    # determine instance string 
-    # -----------------------------------------------------
+[CF default]
+title: Glimmer-CISM simulation
+institution: Community Earth System Model
 
-    $inst_string = "";       
-    if ($NINST_GLC > 1) {
-        $inst_string = `printf _%04d $inst_counter`;
+[CF input]
+name: {filename}"""
 
-        # If multi-instance case does not have restart file, use single-case restart
-        # for each instance
-        if ( (! -e "$RUNDIR/rpointer.glc${inst_string}") && (-e "$RUNDIR/rpointer.glc") ) {
-            $sysmod = "cp -v $RUNDIR/rpointer.glc $RUNDIR/rpointer.glc${inst_string}";
-            system($sysmod) == 0 or die "ERROR cism buildnml: $sysmod failed: $?\n";
-         }
-    }
+logger = logging.getLogger(__name__)
 
-    # -----------------------------------------------------
-    # create cismconf/namelist
-    # -----------------------------------------------------
+# pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
+####################################################################################
+def _create_namelist(case, confdir, inst_string, infile, nmlgen):
+####################################################################################
+    """Write out the namelist for this component.
 
-    SetupTools::create_namelist_infile("$CASEROOT", 
-                                       "$CASEROOT/user_nl_cism${inst_string}", 
-                                       "$CASEROOT/Buildconf/cismconf/namelist");
+    Most arguments are the same as those for `NamelistGenerator`. The
+    `inst_string` argument is used as a suffix to distinguish files for
+    different instances. The `confdir` argument is used to specify the directory
+    in which output files will be placed.
+    """
+    #----------------------------------------------------
+    # Clear out old data.
+    #----------------------------------------------------
+    data_list_path = os.path.join(case.get_case_root(), "Buildconf", "cism.input_data_list")
+    if os.path.exists(data_list_path):
+        os.remove(data_list_path)
 
-    # -----------------------------------------------------
-    # call build-namelist
-    # -----------------------------------------------------
+    #----------------------------------------------------
+    # Set some important constants, such as important
+    # values of certain config file parameters
+    #----------------------------------------------------
+    # value of 'sigma' that signifies that values are read from a sigma section
+    SIGMA_IN_CONFIG_FILE = 2
 
-    if (-e "$CASEROOT/Buildconf/cism.input_data_list") {
-        $sysmod = "rm $CASEROOT/Buildconf/cism.input_data_list";
-        system($sysmod) == 0 or die "ERROR cism buildnml: $sysmod failed: $?\n";
-    }
+    # value of 'gthf' signifying that we should calculate gthf, and thus
+    # we should have a 'gthf' section
+    GTHF_CALCULATE = 2
 
-    $sysmod = "$GLCROOT/bld/build-namelist";
-    $sysmod = "$sysmod -infile $CASEROOT/Buildconf/cismconf/namelist";
-    $sysmod = "$sysmod -caseroot $CASEROOT";
-    $sysmod = "$sysmod -cimeroot $CIMEROOT";
-    $sysmod = "$sysmod -inst_string \"$inst_string\" ";
-    $sysmod = "$sysmod -paramfile cism.config${inst_string}";
-    $sysmod = "$sysmod -lnd_grid $LND_GRID -glc_grid $GLC_GRID";
-    $sysmod = "$sysmod -cism_phys $CISM_PHYS";
-    system($sysmod) == 0 or die "ERROR cism buildnml: $sysmod failed: $?\n";
+    # value of 'isostasy' signifying that isostasy is enabled, and thus we
+    # should have an 'isostasy' section
+    ISOSTASY_ON = 1
 
-    if (-d ${RUNDIR}) {
-        $sysmod = "cp $CASEROOT/Buildconf/cismconf/cism_in  ${RUNDIR}/cism_in${inst_string}";
-        system($sysmod) == 0 or die "ERROR cism buildnml: $sysmod failed: $?\n";
+    #----------------------------------------------------
+    # Create config dictionary
+    #----------------------------------------------------
+    config = {}
+    config['lnd_grid']  = case.get_value("LND_GRID")
+    config['glc_grid']  = case.get_value("GLC_GRID")
+    config['cism_phys'] = case.get_value("CISM_PHYS")
+    config['cism_evolve'] = '.true.' if case.get_value('CISM_EVOLVE') else '.false.'
+    config['glc_two_way_coupling'] = '.true.' if case.get_value('GLC_TWO_WAY_COUPLING') else '.false.'
+    config['cism_use_trillinos'] = '.true.' if case.get_value('CISM_USE_TRILLINOS') else '.false.'
+    config['ncpl_base_period'] = case.get_value("NCPL_BASE_PERIOD")
+    config['calendar'] = case.get_value("CALENDAR")
 
-        $sysmod = "cp $CASEROOT/Buildconf/cismconf/cism.config ${RUNDIR}/cism.config${inst_string}";
-        system($sysmod) == 0 or die "ERROR cism buildnml: $sysmod failed: $?\n";
-    }
+    run_type = case.get_value("RUN_TYPE")
+    cism_observed_ic = case.get_value("CISM_OBSERVED_IC")
 
-    # -----------------------------------------------------
-    # increment instance counter
-    # -----------------------------------------------------
+    if config['cism_phys'] == "cism1":
+        config['dycore'] = "0"
+    elif config['cism_phys'] == "cism2":
+        config['dycore'] = "2"
+    else:
+        expect(False, "cism_phys only can have values of 0 or 2")
 
-    $inst_counter = $inst_counter + 1;
-}
+    #----------------------------------------------------
+    # Initialize namelist defaults
+    #----------------------------------------------------
+    nmlgen.init_defaults(infile, config)
 
-exit (0);
+    #----------------------------------------------------
+    # Set values not obtained in the default settings
+    #----------------------------------------------------
+    nmlgen.add_default("dycore", value=config['dycore'])
 
+    nmlgen.add_default("paramfile", value="cism.config"+inst_string, ignore_abs_path=True)
+
+    if run_type == 'startup':
+        nmlgen.add_default('hotstart',value=0)
+    elif cism_observed_ic == 'TRUE':
+        if run_type == 'branch':
+            expect(False,"CISM_OBSERVED_IC=TRUE not allowed for branch runs - only for hybrid runs")
+        else:
+            nmlgen.add_default('hotstart', value=0)
+    elif run_type == 'branch' or run_type == 'hybrid':
+        filename = run_refcase + '.cism.r.' + run_refdate + '00000.nc'
+        nmlgen.add_default('cisminputfile',filename, ignore_abs_path=True)
+        nmlgen.add_default('hotstart', value=1)
+    else:
+        expect(False, "Unknown RUN_TYPE: %s " %run_type)
+
+    startdate = case.get_value("RUN_STARTDATE")
+    run_type = case.get_value("RUN_TYPE")
+    if run_type == 'branch':
+        startdate = case.get_value("RUN_REFDATE")
+    date_array = startdate.split('-')
+    nmlgen.add_default("iyear0"  , value=int(re.sub("0+","",date_array[0])))
+    nmlgen.add_default("imonth0" , value=int(re.sub("0+","",date_array[1])))
+    nmlgen.add_default("iday0"   , value=int(re.sub("0+","",date_array[2])))
+    nmlgen.add_default("ihour0"  , value=0)
+    nmlgen.add_default("iminute0", value=0)
+    nmlgen.add_default("isecond0", value=0)
+
+    # Note that this gives the dt values in cism_in - NOT the values in cism.config.
+    # This assumes that we want one timestep per coupling interval.
+    ncpl_base_period = config['ncpl_base_period']
+    glc_ncpl = case.get_value("GLC_NCPL")
+    if ncpl_base_period == 'hour':
+        if 3600 % glc_ncpl != 0:
+            expect(False, "glc_ncpl %s doesn't divide an hour evenly\n" %s)
+        else:
+            dt_count = 3600 / glc_ncpl
+    elif ncpl_base_period == 'day' or ncpl_base_period == 'year':
+        dt_count = glc_ncpl
+    elif ncpl_base_period == 'decade':
+        dt_count = glc_ncpl / 10
+    else:
+        expect(False, "invalid NCPL_BASE_PERIOD %s]b " %ncpl_base_period)
+    nmlgen.add_default("dt_count", value=dt_count)
+
+    if nmlgen.get_value("enable_frac_overrides") == '.true.':
+        nmlgen.add_default("decrease_override_delay")
+        nmlgen.add_default("increase_override_delay")
+        nmlgen.add_default("rearrange_override_delay")
+        nmlgen.add_default("decrease_frac")
+        nmlgen.add_default("increase_frac")
+        nmlgen.add_default("rearrange_freq")
+
+    #----------------------------------------------------
+    # Write cism_in
+    #----------------------------------------------------
+    groups = ["cism_params","cism_history","time_manager_nml", "glc_override_nml"]
+    output_file = os.path.join(confdir, "cism_in")
+    nmlgen.write_output_file(output_file, data_list_path, groups=groups, sorted_groups=False)
+
+    #----------------------------------------------------
+    # write cism.config
+    #----------------------------------------------------
+    output_file = os.path.join(confdir, "cism.config")
+    _update_cism_config(nmlgen, output_file, mode="w", header="grid", group="grid")
+    _update_cism_config(nmlgen, output_file, mode="a", header="GLAD climate", group="glad_climate")
+    _update_cism_config(nmlgen, output_file, mode="a", header="projection", group="projection")
+    _update_cism_config(nmlgen, output_file, mode="a", header="options", group="options")
+    _update_cism_config(nmlgen, output_file, mode="a", header="time", group="time")
+    _update_cism_config(nmlgen, output_file, mode="a", header="parameters", group="parameters")
+    if int(nmlgen.get_value("gthf")) > GTHF_CALCULATE:
+        _update_cism_config(nmlgen, output_file, mode="a", header="gthf", group="gthf")
+    if int(nmlgen.get_value("isostasy")) == ISOSTASY_ON:
+        _update_cism_config(nmlgen, output_file, mode="a", header="isostasy", group="isostasy")
+    if int(nmlgen.get_value("sigma")) == SIGMA_IN_CONFIG_FILE:
+        _update_cism_config(nmlgen, output_file, mode="a", header="sigma", group="sigma")
+    if int(config['dycore']) != 0:
+        _update_cism_config(nmlgen, output_file, mode="a", header="ho_options", group="ho_options")
+
+    final_text = _final_template.format(filename=nmlgen.get_value('cisminputfile'))
+    file_obj = open(output_file, "a")
+    file_obj.write("%s\n" %final_text)
+    file_obj.close()
+
+###############################################################################
+def _update_cism_config(nmlgen, output_file, mode, header, group):
+###############################################################################
+    """Append an entry to the cism.config file"""
+    file_obj = open(output_file, "%s" %mode)
+    file_obj.write("[%s]\n" %header)
+    file_obj.close()
+    nmlgen.add_nmlcontents(output_file, group=group, sorted_groups=False)
+
+###############################################################################
+def buildnml(case, caseroot, compname):
+###############################################################################
+    """Build the cism namelist """
+
+    # Build the component namelist
+    if compname != "cism":
+        raise AttributeError
+
+    lnd_grid = case.get_value("LND_GRID")
+    glc_grid = case.get_value("GLC_GRID")
+    cism_phys = case.get_value("CISM_PHYS")
+    cimeroot = case.get_value("CIMEROOT")
+    srcroot = case.get_value("SRCROOT")
+    ninst = case.get_value("NINST_GLC")
+    rundir = case.get_value("RUNDIR")
+
+    # Determine configuration directory
+    confdir = os.path.join(caseroot, "Buildconf", "cismconf")
+    if not os.path.isdir(confdir):
+        os.makedirs(confdir)
+
+    # Clear out old data
+    input_data_list = os.path.join(caseroot,"Buildconf","cism.input_data_list")
+    if os.path.exists(input_data_list):
+        os.remove(input_data_list)
+
+    #----------------------------------------------------
+    # Construct the namelist generator
+    #----------------------------------------------------
+    # determine directory for user modified namelist_definitions.xml and namelist_defaults.xml
+    user_xml_dir = os.path.join(caseroot, "SourceMods", "src.cism")
+    expect (os.path.isdir(user_xml_dir),
+            "user_xml_dir %s does not exist " %user_xml_dir)
+
+    # NOTE: User definition *replaces* existing definition.
+    namelist_xml_dir = os.path.join(srcroot, "components", "cism", "cime_config")
+    definition_file = [os.path.join(namelist_xml_dir, "namelist_definition_cism.xml")]
+    user_definition = os.path.join(user_xml_dir, "namelist_definition_cism.xml")
+    if os.path.isfile(user_definition):
+        definition_file = [user_definition]
+    for file_ in definition_file:
+        expect(os.path.isfile(file_), "Namelist XML file %s not found!" % file_)
+
+    # Create the namelist generator object - independent of instance
+    nmlgen = NamelistGenerator(case, definition_file)
+
+    #----------------------------------------------------
+    # Loop over instances
+    #----------------------------------------------------
+    for inst_counter in range(1, ninst+1):
+
+        # determine instance string
+        inst_string = ""
+        if ninst > 1:
+            inst_string = '_' + '%04d' % inst_counter
+
+        # If multi-instance case does not have restart file, use
+        # single-case restart for each instance
+        rpointer = "rpointer.glc"
+        if (os.path.isfile(os.path.join(rundir,rpointer)) and
+            (not os.path.isfile(os.path.join(rundir,rpointer + inst_string)))):
+            shutil.copy(os.path.join(rundir, rpointer),
+                        os.path.join(rundir, rpointer + inst_string))
+
+        user_nl_file = os.path.join(caseroot, "user_nl_cism" + inst_string)
+        infile = os.path.join(caseroot, "Buildconf", "cismconf", "namelist")
+        create_namelist_infile(case, user_nl_file, infile)
+        namelist_infile = [infile]
+
+        # create namelist
+        _create_namelist(case, confdir, inst_string, namelist_infile, nmlgen)
+
+        # -----------------------------------------------------
+        # copy resolved namelist to rundir
+        # -----------------------------------------------------
+
+        if os.path.isdir(rundir):
+            file1 = os.path.join(confdir, "cism_in")
+            file2 = os.path.join(rundir, "cism_in")
+            if ninst > 1:
+                file2 += inst_string
+            logger.debug("CISM namelist copy: file1 %s file2 %s " %(file1, file2))
+            shutil.copy(file1,file2)
+
+            file1 = os.path.join(confdir, "cism.config")
+            file2 = os.path.join(rundir, "cism.config")
+            if ninst > 1:
+                file2 += inst_string
+            logger.debug("CISM namelist copy: file1 %s file2 %s " %(file1, file2))
+            shutil.copy(file1,file2)
+
+        if case.get_value("CISM_USE_TRILINOS") == "TRUE":
+            sourcemod_dir = os.path.join(caseroot,"SourceMods","src.cism")
+            filename = "trilinosOptions.xml"
+            if os.path.isfile(os.path.join(sourcemod_dir, filename)):
+                file1 = os.path.join(sourcemod_dir, filename)
+                file2 = os.path.join(rundir, filename)
+                shutil.copy(file1,file2)
+            else:
+                trilinos_options_dir = os.path.join(srcroot,"components","cism","bld","trilinosOptions")
+                trilinos_file = "trilinosOptions_%s.xml" %glc_grid
+                filepath = os.path.join(trinilinos_options_dir, trilinos_file)
+                if os.path.isfile(filepath):
+                    file1 = filepath
+                    file2 = os.path.join(rundir, "trilinosOptions.xml")
+                    shutil.copy(file1,file2)
+
+###############################################################################
+def _main_func():
+
+    caseroot = parse_input(sys.argv)
+    with Case(caseroot) as case:
+        buildnml(case, caseroot, "cism")
+
+if __name__ == "__main__":
+    _main_func()

@@ -1,0 +1,1734 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet type="text/xsl" href="namelist_definition.xsl"?>
+
+<entry_id version="2.0">
+
+  <!-- =============================================================  -->
+  <!-- group: derived                                                 -->
+  <!-- (does not appear in namelist file cism_in; handled uniquely)   -->
+  <!-- =============================================================  -->
+
+  <entry id="cisminputfile" >
+    <type>char</type>
+    <category>cism</category>
+    <input_pathname>abs</input_pathname>
+    <group>derived</group>
+    <values>
+      <value glc_grid="gland20" cism_phys="cism1">glc/cism/gland20.input_c150415.nc</value>
+      <value glc_grid="gland10" cism_phys="cism1">glc/cism/gland10.input_c150415.nc</value>
+      <value glc_grid="gland5" cism_phys="cism1">glc/cism/gland5.input_c150415.nc</value>
+      <value glc_grid="gland5UM" cism_phys="cism1">glc/cism/IceSheetData_UMontana/PresentDayGreenland/Greenland_5km_v1.1_SacksRev_c150415.nc</value>
+      <!-- the following is just for the sake of software testing, and should not be used for science -->
+      <value glc_grid="gland20" cism_phys="cism2">glc/cism/gland20.input_c150415.nc</value>
+      <!-- this is the resolution that should be used for science applications with cism2 -->
+      <value glc_grid="gland4" cism_phys="cism2">glc/cism/Greenland/glissade/init/greenland_4km_2015_06_03.mcb_trunk_c161025.nc</value>
+    </values>
+    <desc>
+    Input file
+    Default: For startup runs or hybrid runs with CISM_OBSERVED_IC=TRUE, a resolution-dependent
+    initial conditions file (e.g., gland10.input.nc).
+    For branch/hybrid runs with CISM_OBSERVED_IC=FALSE, a restart file name
+    built based on RUN_REFCASE and RUN_REFDATE.
+    </desc>
+  </entry>
+
+  <!-- =============================================================  -->
+  <!-- group: cism_params                                             -->
+  <!-- =============================================================  -->
+
+  <entry id="paramfile" skip_default_entry="true">
+    <type>char</type>
+    <category>cism</category>
+    <group>cism_params</group>
+    <desc>
+    Name of top-level configuration file for Glimmer Glacier model
+    (Determined by scripts -- cannot be set by user)
+    </desc>
+  </entry>
+
+  <entry id="cism_debug" >
+    <type>logical</type>
+    <category>cism</category>
+    <group>cism_params</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>
+    Determines whether extra diagnostics are printed in the cism log file
+    Default: false
+    </desc>
+  </entry>
+
+  <entry id="ice_flux_routing">
+    <type>char</type>
+    <category>cism</category>
+    <group>cism_params</group>
+    <valid_values>ocn,ice</valid_values>
+    <values>
+      <value>ocn</value>
+    </values>
+    <desc>
+    Code describing how the solid ice runoff flux (i.e., calving) should
+    be routed.
+    ocn: all solid ice goes to the ocean component
+    ice: all solid ice goes to the sea ice component
+    Default: ocn
+    </desc>
+  </entry>
+
+  <entry id="zero_gcm_fluxes">
+    <type>logical</type>
+    <category>cism</category>
+    <group>cism_params</group>
+    <values>
+      <value glc_two_way_coupling=".true." cism_evolve=".true.">.false.</value>
+      <value glc_two_way_coupling=".false." cism_evolve=".true.">.true.</value>
+      <value glc_two_way_coupling=".true." cism_evolve=".false.">.true.</value>
+      <value glc_two_way_coupling=".false." cism_evolve=".false.">.true.</value>
+    </values>
+    <desc>
+    If true, zero out all fluxes sent to the GCM
+    Default: Depends on GLC_TWO_WAY_COUPLING xml variable
+    </desc>
+  </entry>
+
+  <!-- =============================================================  -->
+  <!-- group: cism_history                                            -->
+  <!-- =============================================================  -->
+
+  <entry id="cesm_history_vars" >
+    <type>char</type>
+    <category>history</category>
+    <group>cism_history</group>
+    <values>
+      <!-- When ice evolution is turned off, uflx and vflx don't restart properly, so remove those from the list -->
+      <!-- When ice evolution is turned off, beta_internal doesn't restart properly, so remove it from the list -->
+      <value cism_phys="cism1" cism_evolve=".true." >acab artm thk usurf topg uvel vvel uflx vflx temp bmlt bwat</value>
+      <value cism_phys="cism1" cism_evolve=".false.">acab artm thk usurf topg uvel vvel temp bmlt bwat</value>
+      <value cism_phys="cism2" cism_evolve=".true." >'acab artm thk usurf topg uvel vvel temp bmlt bwat beta_internal'</value>
+      <value cism_phys="cism2" cism_evolve=".false.">acab artm thk usurf topg uvel vvel temp bmlt bwat</value>
+    </values>
+    <desc>
+    Space-delimited list of variables output to history file
+    Default: 'acab artm thk usurf topg uvel vvel uflx vflx temp bmlt bwat'
+    </desc>
+  </entry>
+
+  <entry id="history_option">
+    <type>char</type>
+    <category>history</category>
+    <group>cism_history</group>
+    <valid_values>nyears,coupler</valid_values>
+    <values>
+      <value>nyears</value>
+    </values>
+    <desc>
+    How history frequency is specified
+    nyears: Write history every N years
+    coupler: Get history frequency from coupler (HIST_OPTION/HIST_N xml variables)
+    WARNING: SHOULD NOT BE USED IN PRODUCTION RUNS - frequency metadata not set properly
+    Default: nyears
+    </desc>
+  </entry>
+
+  <entry id="history_frequency">
+    <type>integer</type>
+    <category>history</category>
+    <group>cism_history</group>
+    <values>
+      <value>1</value>
+    </values>
+    <desc>
+    History frequency
+    e.g., if history_option=nyears, then 1 = annual, 2 = every two years, etc.
+    Ignored for history_option = 'coupler'
+    Default: 1
+    </desc>
+  </entry>
+
+  <!-- =============================================================  -->
+  <!-- group: time_manager_nml                                        -->
+  <!-- =============================================================  -->
+
+  <entry id="runid" modify_via_xml="CASE">
+    <type>char</type>
+    <category>time</category>
+    <group>time_manager_nml</group>
+    <values>
+      <value>$CASE</value>
+    </values>
+    <desc>
+    Simulation identifier (ie case name)
+    Default: case name set by create_newcase
+    </desc>
+  </entry>
+
+  <entry id="dt_option">
+    <type>char</type>
+    <category>time</category>
+    <group>time_manager_nml</group>
+    <valid_values>steps_per_year,steps_per_day,seconds,hours</valid_values>
+    <values>
+      <value ncpl_base_period="hour">seconds</value>
+      <value ncpl_base_period="day">steps_per_day</value>
+      <value ncpl_base_period="year">steps_per_year</value>
+      <value ncpl_base_period="decade">stpes_per_decade</value>
+    </values>
+    <desc>
+    GLC time-step units
+    This generally should not be changed
+    Valid values: steps_per_year, steps_per_day, seconds, hours
+    Default: set based on NCPL_BASE_PERIOD and GLC_NCPL in env_run.xml,
+    so that there is one GLC time step per coupling period
+    </desc>
+  </entry>
+
+  <entry id="dt_count" skip_default_entry="true">
+    <type>real</type>
+    <category>time</category>
+    <group>time_manager_nml</group>
+    <values>
+      <value>-999.</value>
+    </values>
+    <desc>
+    Time step, in units given by dt_option
+    This generally should not be changed
+    Default: set based on NCPL_BASE_PERIOD and GLC_NCPL in env_run.xml,
+    so that there is one GLC time step per coupling period
+    </desc>
+  </entry>
+
+  <entry id="allow_leapyear">
+    <type>logical</type>
+    <category>time</category>
+    <group>time_manager_nml</group>
+    <values>
+      <value>.true.</value>
+      <value calendar="NO_LEAP">.false.</value>
+    </values>
+    <desc>
+    Whether leap years are enabled in the GLC time manager.
+    CAUTION: Leap years don't work correctly with GLC time steps longer than a few months.
+    Default: .false. for NO_LEAP calendar, .true. otherwise
+    </desc>
+  </entry>
+
+  <entry id="iyear0" skip_default_entry="true">
+    <type>integer</type>
+    <category>time</category>
+    <group>time_manager_nml</group>
+    <desc>
+    Starting year number
+    Default: comes from RUN_STARTDATE or RUN_REFDATE
+    </desc>
+  </entry>
+
+  <entry id="imonth0" skip_default_entry="true">
+    <type>integer</type>
+    <category>time</category>
+    <group>time_manager_nml</group>
+    <valid_values>1,2,3,4,5,6,7,8,9,10,11,12</valid_values>
+    <desc>
+    Starting month number
+    Default: comes from RUN_STARTDATE or RUN_REFDATE
+    </desc>
+  </entry>
+
+  <entry id="iday0" skip_default_entry="true">
+    <type>integer</type>
+    <category>time</category>
+    <group>time_manager_nml</group>
+    <valid_values>1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31</valid_values>
+    <desc>
+    Starting day number in month
+    Default: comes from RUN_STARTDATE or RUN_REFDATE
+    </desc>
+  </entry>
+
+  <entry id="ihour0" skip_default_entry="true">
+    <type>integer</type>
+    <category>time</category>
+    <group>time_manager_nml</group>
+    <valid_values>0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23</valid_values>
+    <desc>
+    Starting hour of the day
+    Default: 0
+    </desc>
+  </entry>
+
+  <entry id="iminute0" skip_default_entry="true">
+    <type>integer</type>
+    <category>time</category>
+    <group>time_manager_nml</group>
+    <valid_values>0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59</valid_values>
+    <desc>
+    Starting minute of the day
+    Default: 0
+    </desc>
+  </entry>
+
+  <entry id="isecond0" skip_default_entry="true">
+    <type>integer</type>
+    <category>time</category>
+    <group>time_manager_nml</group>
+    <valid_values>0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59</valid_values>
+    <desc>
+    Starting second of the minute
+    Default: 0
+    </desc>
+  </entry>
+
+  <entry id="date_separator">
+    <type>char</type>
+    <category>time</category>
+    <group>time_manager_nml</group>
+    <values>
+      <value>-</value>
+    </values>
+    <desc>
+    Character to separate date values
+    Default: '-'
+    </desc>
+  </entry>
+
+  <entry id="stop_option">
+    <type>char</type>
+    <category>time</category>
+    <group>time_manager_nml</group>
+    <valid_values>never</valid_values>
+    <values>
+      <value>never</value>
+    </values>
+    <desc>
+    Stop option:  always let the coupler stop the model so use `never`.
+    Default: 'never'
+    </desc>
+  </entry>
+
+  <!-- =============================================================  -->
+  <!-- group: glc_override_nml                                        -->
+  <!-- =============================================================  -->
+
+  <entry id="enable_frac_overrides">
+    <type>logical</type>
+    <category>overrides</category>
+    <group>glc_override_nml</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>
+    Whether to enable overrides of the glc fraction sent to the coupler.
+    If this is false, the other settings in this namelist group are ignored.
+    ONLY MEANT FOR TESTING - SHOULD NOT BE USED FOR SCIENCE RUNS.
+    Default: .false.
+    </desc>
+  </entry>
+
+  <entry id="decrease_override_delay" skip_default_entry="true">
+    <type>integer</type>
+    <category>overrides</category>
+    <group>glc_override_nml</group>
+    <values>
+      <value>0</value>
+    </values>
+    <desc>
+    Time delay before beginning decrease_frac overrides (days).
+    Default: 0 (start overrides at beginning of run)
+    </desc>
+  </entry>
+
+  <entry id="increase_override_delay" skip_default_entry="true">
+    <type>integer</type>
+    <category>overrides</category>
+    <group>glc_override_nml</group>
+    <values>
+      <value>0</value>
+    </values>
+    <desc>
+    Time delay before beginning increase_frac overrides (days).
+    Default: 0 (start overrides at beginning of run)
+    </desc>
+  </entry>
+
+  <entry id="rearrange_override_delay" skip_default_entry="true">
+    <type>integer</type>
+    <category>overrides</category>
+    <group>glc_override_nml</group>
+    <values>
+      <value>0</value>
+    </values>
+    <desc>
+    Time delay before beginning rearrange_freq overrides (days).
+    Default: 0 (start overrides at beginning of run)
+    </desc>
+  </entry>
+
+  <entry id="decrease_frac" skip_default_entry="true">
+    <type>real</type>
+    <category>overrides</category>
+    <group>glc_override_nml</group>
+    <values>
+      <value>0</value>
+    </values>
+    <desc>
+    Fractional decrease in glacier area, per day (should be positive).
+    (days_elapsed * decrease_frac) determines the elevation threshold below which ice_covered is set to 0.
+    When this factor reaches 1, all elevations below 3500 m are set to non-ice-covered.
+    Default: 0 (no decrease)
+    </desc>
+  </entry>
+
+  <entry id="increase_frac" skip_default_entry="true">
+    <type>real</type>
+    <category>overrides</category>
+    <group>glc_override_nml</group>
+    <values>
+      <value>0</value>
+    </values>
+    <desc>
+    Fractional increase in glacier area, per day.
+    (days_elapsed * increase_frac) determines the elevation threshold above which ice_covered is set to 1.
+    When this factor reaches 1, all elevations >= 0 m are set to ice-covered.
+    Default: 0 (no increase)
+    </desc>
+  </entry>
+
+  <entry id="rearrange_freq" skip_default_entry="true">
+    <type>integer</type>
+    <category>overrides</category>
+    <group>glc_override_nml</group>
+    <desc>
+    Frequency (days) at which we rearrange elevation classes.
+    Default: 0 (no flips ever)
+    </desc>
+  </entry>
+
+
+  <!-- =============================================================  -->
+  <!-- group: cism.config: grid                                       -->
+  <!-- =============================================================  -->
+
+  <entry id="ewn" >
+    <type>integer</type>
+    <category>cism_config_grid</category>
+    <group>grid</group>
+    <values>
+      <value glc_grid="gland10" >151</value>
+      <value glc_grid="gland20" >76</value>
+      <value glc_grid="gland5"  >301</value>
+      <value glc_grid="gland5UM">301</value>
+      <value glc_grid="gland4"  >376</value>
+    </values>
+    <desc>
+    Number of nodes in x-direction
+    Default: resolution-dependent
+    </desc>
+  </entry>
+
+  <entry id="nsn" >
+    <type>integer</type>
+    <category>cism_config_grid</category>
+    <group>grid</group>
+    <values>
+      <value glc_grid="gland10" >281</value>
+      <value glc_grid="gland20" >141</value>
+      <value glc_grid="gland5"  >561</value>
+      <value glc_grid="gland5UM">561</value>
+      <value glc_grid="gland4"  >701</value>
+    </values>
+    <desc>
+    Number of nodes in y-direction
+    Default: resolution-dependent
+    </desc>
+  </entry>
+
+  <entry id="upn" >
+    <type>integer</type>
+    <category>cism_config_grid</category>
+    <group>grid</group>
+    <values>
+      <value>11</value>
+    </values>
+    <desc>
+    Number of nodes in z-direction
+    Default: 11
+    </desc>
+  </entry>
+
+  <entry id="dew" >
+    <type>real</type>
+    <category>cism_config_grid</category>
+    <group>grid</group>
+    <values>
+      <value glc_grid="gland10" >10000.</value>
+      <value glc_grid="gland20" >20000.</value>
+      <value glc_grid="gland5"  >5000.</value>
+      <value glc_grid="gland5UM">5000.</value>
+      <value glc_grid="gland4"  >4000.</value>
+    </values>
+    <desc>
+    Node spacing in x-direction (m)
+    Default: resolution-dependent
+    </desc>
+  </entry>
+
+  <entry id="dns" >
+    <type>real</type>
+    <category>cism_config_grid</category>
+    <group>grid</group>
+    <values>
+      <value glc_grid="gland10" >10000.</value>
+      <value glc_grid="gland20" >20000.</value>
+      <value glc_grid="gland5"  >5000.</value>
+      <value glc_grid="gland5UM">5000.</value>
+      <value glc_grid="gland4"  >4000.</value>
+    </values>
+    <desc>
+    Node spacing in y-direction (m)
+    Default: resolution-dependent
+    </desc>
+  </entry>
+
+  <!-- =============================================================  -->
+  <!-- group: cism.config: sigma                                      -->
+  <!-- =============================================================  -->
+
+  <!-- This group is only relevant if sigma = 2 -->
+
+  <entry id="sigma_levels" >
+    <type>char</type>
+    <category>cism_config_sigma</category>
+    <group>sigma</group>
+    <values>
+      <!-- These levels focus resolution at the bottom -->
+      <value>0.00 0.15 0.30 0.45 0.60 0.75 0.83 0.90 0.95 0.98 1.00</value>
+    </values>
+    <desc>
+    List of sigma levels, in ascending order, separated by spaces
+    These run between 0.0 (at top surface) and 1.0 (at lower surface)
+    Only relevant if sigma = 2
+    Default: 0.00 0.15 0.30 0.45 0.60 0.75 0.83 0.90 0.95 0.98 1.00
+    </desc>
+  </entry>
+
+  <!-- =============================================================  -->
+  <!-- group: cism.config: climate                                    -->
+  <!-- =============================================================  -->
+
+  <entry id="evolve_ice">
+    <type>integer</type>
+    <category>cism_config_climate</category>
+    <group>glad_climate</group>
+    <valid_values>0,1</valid_values>
+    <values>
+      <value cism_evolve=".true.">1</value>
+      <value cism_evolve=".false.">0</value>
+    </values>
+    <desc>
+    0: Do not let the ice sheet evolve (hold ice state fixed at initial condition)
+    1: Let the ice sheet evolve
+    Default: 1
+    </desc>
+  </entry>
+
+  <entry id="ice_tstep_multiply" skip_default_entry="true">
+    <type>integer</type>
+    <category>cism_config_climate</category>
+     <group>glad_climate</group>
+    <values>
+      <value>1</value>
+    </values>
+    <desc>
+    Ice time-step multiplier: allows asynchronous climate-ice coupling
+    Default: 1
+    </desc>
+  </entry>
+
+  <entry id="test_coupling">
+    <type>logical</type>
+    <category>cism_config_climate</category>
+    <group>glad_climate</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>
+    If this is set to true, it sets the mass balance timestep to 1 day.
+    This means the ice dynamics is called after one day of climate simulation.
+    THIS IS ONLY FOR TESTING OF COUPLING PROCEDURES, NOT TO BE USED FOR SCIENCE.
+    </desc>
+  </entry>
+
+  <!-- =============================================================  -->
+  <!-- group: cism.config: projection                                 -->
+  <!--                                                                -->
+  <!-- NOTE(wjs, 2015-04-03) With the replacement of glint by glad,   -->
+  <!-- it's likely that we no longer need this section                -->
+  <!-- =============================================================  -->
+
+  <entry id="type" >
+    <type>char</type>
+    <category>cism_config_projection</category>
+    <group>projection</group>
+    <valid_values>LAEA,AEA,LCC,STERE</valid_values>
+    <values>
+      <value>STERE</value>
+    </values>
+    <desc>
+    String specifying the map projection type
+    Valid values: LAEA, AEA, LCC, STERE
+    Default: STERE
+    </desc>
+  </entry>
+
+  <entry id="centre_latitude" >
+    <type>real</type>
+    <category>cism_config_projection</category>
+    <group>projection</group>
+    <values>
+      <value>90.0</value>
+    </values>
+    <desc>
+    Central latitude (degrees north)
+    Default: 90.0
+    </desc>
+  </entry>
+
+  <entry id="centre_longitude" >
+    <type>real</type>
+    <category>cism_config_projection</category>
+    <group>projection</group>
+    <values>
+      <value>321.0</value>
+    </values>
+    <desc>
+    Central longitude (degrees east)
+    Default: 321.0
+    </desc>
+  </entry>
+
+  <entry id="false_easting" >
+    <type>real</type>
+    <category>cism_config_projection</category>
+    <group>projection</group>
+    <values>
+      <value>800000.0</value>
+    </values>
+    <desc>
+    False easting (m)
+    Default: 800000.0
+    </desc>
+  </entry>
+
+  <entry id="false_northing" >
+    <type>real</type>
+    <category>cism_config_projection</category>
+    <group>projection</group>
+    <values>
+      <value>3400000.0</value>
+    </values>
+    <desc>
+    False northing (m)
+    Default: 3400000.0
+    </desc>
+  </entry>
+
+  <entry id="standard_parallel" >
+    <type>real(2)</type>
+    <category>cism_config_projection</category>
+    <group>projection</group>
+    <values>
+      <value>71.0</value>
+    </values>
+    <desc>
+    Location of standard parallel(s) (degrees north)
+    Up to two standard parallels may be specified (depending on the projection)
+    Default: 71.0
+    </desc>
+  </entry>
+
+  <entry id="scale_factor" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_projection</category>
+    <group>projection</group>
+    <desc>
+    Scale factor; only relevant for the Stereographic projection
+    Default: 0.0
+    </desc>
+  </entry>
+
+
+  <!-- =============================================================  -->
+  <!-- group: cism.config: options                                    -->
+  <!-- =============================================================  -->
+
+  <entry id="dycore" skip_default_entry="true">
+    <type>integer</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <valid_values>0,2</valid_values>
+    <desc>
+    Which dycore to use
+    0: glide dycore (SIA, serial only)
+    1: NOT SUPPORTED: glam dycore (HO, FDM, serial or parallel)
+    Note that this option is not allowed within CESM, because it is buggy
+    2: glissade dycore (HO, FEM, serial or parallel)
+    Default: 0 for cism1, 2 for cism2
+    </desc>
+  </entry>
+
+  <entry id="temperature">
+    <type>integer</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <valid_values>0,1,2,3</valid_values>
+    <values>
+      <value>1</value>
+    </values>
+    <desc>
+    Determines the temperature solution method
+    0: isothermal: set column to surface air temperature
+    1: prognostic temperature solution
+    2: do NOTHING: hold temperatures steady at initial value
+    3: prognostic enthalpy solution
+    Default: 1
+    </desc>
+  </entry>
+
+  <entry id="temp_init">
+    <type>integer</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <valid_values>0,1,2</valid_values>
+    <values>
+      <value>2</value>
+    </values>
+    <desc>
+    Temperature initialization method
+    0: Initialize temperature to 0 C
+    1: Initialize temperature to surface air temperature
+    2: Initialize temperature with a linear profile in each column
+    Default: 2
+    </desc>
+  </entry>
+
+  <entry id="flow_law">
+    <type>integer</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <valid_values>0,1,2</valid_values>
+    <values>
+      <value>2</value>
+    </values>
+    <desc>
+    0: constant value, taken from default_flwa
+    1: uniform value equal to the Paterson-Budd value at -10 deg C
+    2: Paterson-Budd temperature-dependent relationship
+    Default: 2
+    </desc>
+  </entry>
+
+  <entry id="basal_water">
+    <type>integer</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <valid_values>0,1,2,3,4</valid_values>
+    <values>
+      <value>0</value>
+    </values>
+    <desc>
+    Determines the treatment of basal water
+    0: Set to zero everywhere
+    1: Calculated from local water balance
+    2: Compute the basal water flux, then find depth via calculation
+    3: Set to constant everywhere (10m)
+    4: Calculated from till water content, in the basal processes module
+    Default: 0
+    </desc>
+  </entry>
+
+  <entry id="marine_margin">
+    <type>integer</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <valid_values>0,1,2,3,4,5</valid_values>
+    <values>
+      <value>1</value>
+    </values>
+    <desc>
+    0: ignore marine margin
+    1: set thickness to zero if floating
+    2: lose a specified fraction of floating ice
+    3: set thickness to zero if relaxed bedrock is below a given depth (marine_limit)
+    4: set thickness to zero if current bedrock is below a given depth (marine_limit)
+    5: Huybrechts grounding line scheme for Greenland initialization
+    Default: 1
+    </desc>
+  </entry>
+
+  <entry id="calving_domain">
+    <type>integer</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <valid_values>0,1,2</valid_values>
+    <values>
+      <value>1</value>
+    </values>
+    <desc>
+    0: Calve only at ocean edge
+    1: Calve wherever the calving criterion is met
+    2: Calve where the calving criterion is met, and there is a connected path
+    to the ocean through other cells where the criterion is met
+    Default: 1
+    </desc>
+  </entry>
+
+  <entry id="calving_init" skip_default_entry="true">
+    <type>integer</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <valid_values>0,1</valid_values>
+    <desc>
+    0: Do not calve at initialization
+    1: Calve at initialization
+    Default: (use hard-coded default)
+    </desc>
+  </entry>
+
+  <entry id="slip_coeff">
+    <type>integer</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <valid_values>0,1,2,3,4,5</valid_values>
+    <values>
+      <value>0</value>
+    </values>
+    <desc>
+    Basal traction parameter
+    0: no basal sliding
+    1: constant basal traction coefficient
+    2: constant coefficient where basal water is present, else no sliding
+    3: constant coefficient where the basal temperature is at the pressure melting point, else no sliding
+    4: coefficient is proportional to basal melt rate
+    5: coefficient is a linear function of basal water depth
+    Default: 0
+    </desc>
+  </entry>
+
+  <entry id="evolution">
+    <type>integer</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <valid_values>0,2,3,4,5</valid_values>
+    <values>
+      <value cism_phys="cism1">0</value>
+      <value cism_phys="cism2">3</value>
+    </values>
+    <desc>
+    0: pseudo-diffusion
+    1: ADI scheme [CANNOT BE USED: RESTARTS ARE NOT EXACT]
+    2: diffusion
+    3: remap thickness
+    4: 1st order upwind
+    5: no thickness evolution
+    Default: 0 for cism1, 3 for cism2
+    </desc>
+  </entry>
+
+  <entry id="vertical_integration">
+    <type>integer</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <valid_values>0,1</valid_values>
+    <values>
+      <value>0</value>
+    </values>
+    <desc>
+    Method of integration used to obtain vertical velocity
+    0: standard vertical integration
+    1: vertical integration constrained to obey an upper kinematic boundary condition
+    Default: 0
+    </desc>
+  </entry>
+
+  <entry id="topo_is_relaxed" skip_default_entry="true">
+    <type>integer</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <valid_values>0,1,2</valid_values>
+    <desc>
+    0: relaxed topography is read from a separate variable
+    1: first time slice of input topography is assumed to be relaxed
+    2: first time slice of input topography is assumed to be in isostatic equilibrium with ice thickness
+    Default: 0
+    </desc>
+  </entry>
+
+  <entry id="basal_mass_balance">
+    <type>integer</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <valid_values>0,1</valid_values>
+    <values>
+      <value>1</value>
+    </values>
+    <desc>
+    0: not in continuity equation
+    1: in continuity equation
+    Default: 1
+    </desc>
+  </entry>
+
+  <entry id="gthf">
+    <type>integer</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <valid_values>0,1,2</valid_values>
+    <values>
+      <value>0</value>
+    </values>
+    <desc>
+    0: prescribed uniform geothermal heat flux
+    1: read 2D geothermal flux field from input file (if present)
+    2: calculate geothermal flux using 3d diffusion
+    Default: 0
+    </desc>
+  </entry>
+
+  <entry id="isostasy">
+    <type>integer</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <valid_values>0,1</valid_values>
+    <values>
+      <value>0</value>
+    </values>
+    <desc>
+    0: no isostasy
+    1: compute isostasy
+    Default: 0
+    </desc>
+  </entry>
+
+  <entry id="sigma">
+    <type>integer</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <valid_values>0,2,3,4</valid_values>
+    <values>
+      <value>0</value>
+    </values>
+    <desc>
+    How to determine sigma values
+    0: compute standard Glimmer sigma coordinates
+    1: sigma coordinates are given in external file [NOT ALLOWED WHEN RUNNING CISM IN CESM]
+    2: read sigma coordinates from config file (from sigma_levels)
+    3: evenly spaced levels, as required for glam dycore
+    4: compute Pattyn sigma coordinates
+    Default: 0
+    </desc>
+  </entry>
+
+  <entry id="periodic_ew" skip_default_entry="true">
+    <type>integer</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <valid_values>0,1</valid_values>
+    <desc>
+    0: no periodic EW boundary conditions
+    1: periodic EW boundary conditions
+    (This is a Glimmer serial option. The parallel code enforces periodic
+    EW and NS boundary conditions by default.)
+    Default: 0
+    </desc>
+  </entry>
+
+  <entry id="hotstart" skip_default_entry="true">
+    <type>integer</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <valid_values>0,1</valid_values>
+    <desc>
+    Hotstart (restart) the model if set to 1.
+    This allows for exact restarts from previous initial conditions
+    Default: 0 for startup or hybrid with CISM_OBSERVED_IC=TRUE, 1 for hybrid/branch with CISM_OBSERVED_IC=FALSE
+    </desc>
+  </entry>
+
+  <!-- =============================================================  -->
+  <!-- group: cism.config: time                                       -->
+  <!-- =============================================================  -->
+
+  <entry id="dt">
+    <type>real</type>
+    <category>cism_config_time</category>
+    <group>time</group>
+    <values>
+      <value glc_grid="gland10"  cism_phys="cism1">0.1</value>
+      <value glc_grid="gland20"  cism_phys="cism1">0.1</value>
+      <value glc_grid="gland5"   cism_phys="cism1">0.05</value>
+      <value glc_grid="gland5UM" cism_phys="cism1">0.05</value>
+      <!-- A dt of 1 seems sufficient for cism2 gland20. However, use 0.5 because (a)
+           this is less likely to break due to instabilities, and (b) it exercises the
+           code in a more typical configuration (i.e., with a sub-annual time step) -->
+      <value glc_grid="gland20"  cism_phys="cism2">0.5</value>
+      <value glc_grid="gland4"   cism_phys="cism2">0.05</value>
+    </values>
+    <desc>
+    Ice sheet timestep (years)
+    Must translate into an integer number of hours
+    Default: Depends on resolution and physics option
+    </desc>
+  </entry>
+
+  <entry id="ntem">
+    <type>integer</type>
+    <category>cism_config_time</category>
+    <group>time</group>
+    <values>
+      <value>1</value>
+    </values>
+    <desc>
+    Multiplier of ice sheet timestep, dt
+    (in theory, can be real-valued, but values less than 1 are not handled properly, so restricted to being an integer)
+    Default: 1
+    </desc>
+  </entry>
+
+  <entry id="subcyc" skip_default_entry="true">
+    <type>integer</type>
+    <category>cism_config_time</category>
+    <group>time</group>
+    <desc>
+    Subcycling for glissade
+    Default: 1
+    </desc>
+  </entry>
+
+  <entry id="profile" skip_default_entry="true">
+    <type>integer</type>
+    <category>cism_config_time</category>
+    <group>time</group>
+    <desc>
+    Profile period (number of time steps between profiles)
+    Default: 100
+    </desc>
+  </entry>
+
+  <entry id="dt_diag">
+    <type>real</type>
+    <category>cism_config_time</category>
+    <group>time</group>
+    <values>
+      <!-- To get diagnostic once per year, set this to 1/dt -->
+      <value>1.</value>
+    </values>
+    <desc>
+    Diagnostic frequency (years)
+    Set to 0 for no diagnostic output; set to dt for diagnostic output every time step
+    Default: 1
+    </desc>
+  </entry>
+
+  <entry id="idiag">
+    <type>integer</type>
+    <category>cism_config_time</category>
+    <group>time</group>
+    <values>
+      <!-- 5-km idiag & jdiag chosen by Jeremy Fyke, as a point prone to CFL
+           instability (in trunk of Jakobshavn); 10-km, 20-km and 4-km points
+           chosen to be roughly the same point in space -->
+      <value glc_grid="gland10" >38</value>
+      <value glc_grid="gland20" >19</value>
+      <value glc_grid="gland5"  >76</value>
+      <value glc_grid="gland5UM">76</value>
+      <value glc_grid="gland4"  >95</value>
+    </values>
+    <desc>
+    x coordinate of point for diagnostic output
+    Default: resolution-dependent
+    </desc>
+  </entry>
+
+  <entry id="jdiag">
+    <type>integer</type>
+    <category>cism_config_time</category>
+    <group>time</group>
+    <values>
+      <value glc_grid="gland10" >114</value>
+      <value glc_grid="gland20" >57</value>
+      <value glc_grid="gland5"  >228</value>
+      <value glc_grid="gland5UM">228</value>
+      <value glc_grid="gland4"  >285</value>
+    </values>
+    <desc>
+    y coordinate of point for diagnostic output
+    Default: resolution-dependent
+    </desc>
+  </entry>
+
+  <!-- =============================================================  -->
+  <!-- group: cism.config: parameters                                 -->
+  <!-- =============================================================  -->
+
+  <entry id="log_level">
+    <type>integer</type>
+    <category>cism_config_parameters</category>
+    <group>parameters</group>
+    <valid_values>0,1,2,3,4,5,6</valid_values>
+    <values>
+      <value>6</value>
+    </values>
+    <desc>
+    Set to a value between 0 (no messages) and 6 (all messages)
+    Default: 6
+    </desc>
+  </entry>
+
+  <entry id="ice_limit">
+    <type>real</type>
+    <category>cism_config_parameters</category>
+    <group>parameters</group>
+    <values>
+      <value cism_phys="cism1">100.</value>
+      <value cism_phys="cism2">1.</value>
+    </values>
+    <desc>
+    Thickness below which ice dynamics is ignored (m)
+    Below this limit, ice is only accumulated
+    Default: 100 for cism1, 1 for cism2
+    </desc>
+  </entry>
+
+  <entry id="max_slope">
+    <type>real</type>
+    <category>cism_config_parameters</category>
+    <group>parameters</group>
+    <values>
+      <value>0.1</value>
+    </values>
+    <desc>
+      Maximum surface slope used in the glissade driving-stress calculation (unitless)
+      Not valid for other dycores
+      Default: 0.1
+    </desc>
+  </entry>
+
+  <entry id="marine_limit">
+    <type>real</type>
+    <category>cism_config_parameters</category>
+    <group>parameters</group>
+    <values>
+      <value>-200.</value>
+    </values>
+    <desc>
+    All ice is assumed lost once water depths reach this value (for marine_margin=2 or 4) (m)
+    Note that water depth is negative
+    Default: -200.
+    </desc>
+  </entry>
+
+  <entry id="calving_fraction" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_parameters</category>
+    <group>parameters</group>
+    <desc>
+    Fraction of ice lost to calving
+    Default: (use hard-coded default)
+    </desc>
+  </entry>
+
+  <entry id="geothermal">
+    <type>real</type>
+    <category>cism_config_parameters</category>
+    <group>parameters</group>
+    <values>
+      <value>-5.e-2</value>
+    </values>
+    <desc>
+    Constant geothermal heat flux (W m-2; sign convention is positive down)
+    (May be overwritten by a spatially-varying field in input file [bheatflx])
+    Default: -0.05
+    </desc>
+  </entry>
+
+  <entry id="flow_factor">
+    <type>real</type>
+    <category>cism_config_parameters</category>
+    <group>parameters</group>
+    <values>
+      <value cism_phys="cism1">3.</value>
+      <value cism_phys="cism2">1.</value>
+    </values>
+    <desc>
+      The flow law is enhanced with this factor.
+      The greater the value, the lower the viscosity and the faster the ice will flow.
+      Default: 3.0 for cism1, 1.0 for cism2
+    </desc>
+  </entry>
+
+  <entry id="default_flwa" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_parameters</category>
+    <group>parameters</group>
+    <desc>
+    Glen's A to use in isothermal case
+    Default: (use hard-coded default)
+    </desc>
+  </entry>
+
+  <entry id="hydro_time">
+    <type>real</type>
+    <category>cism_config_parameters</category>
+    <group>parameters</group>
+    <values>
+      <value>1000.</value>
+    </values>
+    <desc>
+    Time scale for basal water to drain (yr-1)
+    (Not relevant for basal_water=2)
+    Default: 1000.
+    </desc>
+  </entry>
+
+  <entry id="basal_tract_const">
+    <type>real</type>
+    <category>cism_config_parameters</category>
+    <group>parameters</group>
+    <values>
+      <value>1.e-4</value>
+    </values>
+    <desc>
+    (m yr-1 Pa-1)
+    Default: 1.e-4
+    </desc>
+  </entry>
+
+  <entry id="basal_tract_max" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_parameters</category>
+    <group>parameters</group>
+    <desc>
+    (m yr-1 Pa-1)
+    (Only used for slip_coeff = BTRC_LINEAR_BMLT)
+    Default: (use hard-coded default)
+    </desc>
+  </entry>
+
+  <entry id="basal_tract_slope" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_parameters</category>
+    <group>parameters</group>
+    <desc>
+    (Pa-1)
+    (Only used for slip_coeff = BTRC_LINEAR_BMLT)
+    Default: (use hard-coded default)
+    </desc>
+  </entry>
+
+  <entry id="basal_tract_tanh" skip_default_entry="true">
+    <type>real(5)</type>
+    <category>cism_config_parameters</category>
+    <group>parameters</group>
+    <desc>
+    5-element list of values
+    (Only used for slip_coeff = BTRC_TANH_BWAT)
+    Default: (use hard-coded default)
+    </desc>
+  </entry>
+
+  <entry id="periodic_offset_ew" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_parameters</category>
+    <group>parameters</group>
+    <desc>
+    Optional periodic offset for ismip-hom and similar tests
+    May be needed to ensure continuous ice geometry at the edges of the
+    global domain
+    Default: 0.
+    </desc>
+  </entry>
+
+  <entry id="periodic_offset_ns" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_parameters</category>
+    <group>parameters</group>
+    <desc>
+    Optional periodic offset for ismip-hom and similar tests
+    May be needed to ensure continuous ice geometry at the edges of the
+    global domain
+    Default: 0.
+    </desc>
+  </entry>
+
+  <entry id="ho_beta_const" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_parameters</category>
+    <group>parameters</group>
+    <desc>
+    Spatially uniform beta for higher-order dycores (Pa yr m-1)
+    Default: (use hard-coded default)
+    </desc>
+  </entry>
+
+  <!-- =============================================================  -->
+  <!-- group: cism.config: ho_options (higher-order options)          -->
+  <!-- =============================================================  -->
+
+  <!-- This group is only relevant if dycore is not 0 -->
+
+  <entry id="which_ho_babc">
+    <type>integer</type>
+    <category>cism_config_ho_options</category>
+    <group>ho_options</group>
+    <valid_values>0,1,2,3,4,5,6,7</valid_values>
+    <values>
+      <!-- which_ho_babc should be 5 when beta is provided in the cism input file, but
+           in general we'll want the default to be 4, according to Steve Price. In
+           order to ensure that we pick up a beta value if one is available (e.g., if
+           someone adds a new resolution and forgets to modify things in this
+           section), we're setting the overall default to 5, and then overriding that
+           explicitly for input files that do not have a beta value. -->
+      <value>5</value>
+      <value glc_grid="gland20">4</value>
+      <value glc_grid="gland10">4</value>
+      <value glc_grid="gland5">4</value>
+      <value glc_grid="gland5UM">4</value>
+    </values>
+    <desc>
+    Basal boundary condition for Payne/Price dynamical core
+    0: constant value of 10 Pa/yr (useful for debugging)
+    1: simple hard-coded pattern (useful for debugging)
+    2: treat betasquared value as a till yield stress (in Pa) using Picard iteration
+    3: linear (inverse) function of bwat
+    4: very large value for betasquared to enforce no slip everywhere
+    5: betasquared field passed in from .nc input file as part of standard i/o
+    6: no slip everywhere (using Dirichlet BC rather than large betasquared)
+    7: treat betasquared value as till yield stress (in Pa) using Newton-type iteration (in devel.)
+    Default: 5
+    </desc>
+  </entry>
+
+  <entry id="which_ho_efvs">
+    <type>integer</type>
+    <category>cism_config_ho_options</category>
+    <group>ho_options</group>
+    <valid_values>0,1,2</valid_values>
+    <values>
+      <value>2</value>
+    </values>
+    <desc>
+    How effective viscosity is computed for higher-order dynamical core
+    0: constant value
+    1: multiple of flow factor
+    2: compute from effective strain rate
+    Default: 2
+    </desc>
+  </entry>
+
+  <entry id="which_ho_resid">
+    <type>integer</type>
+    <category>cism_config_ho_options</category>
+    <group>ho_options</group>
+    <valid_values>0,1,2,3</valid_values>
+    <values>
+      <value>3</value>
+    </values>
+    <desc>
+    Method for computing residual in Payne/Price dynamical core
+    0: maxval
+    1: maxval ignoring basal velocity
+    2: mean value
+    3: L2 norm of system residual, Ax-b=resid
+    Default: 3
+    </desc>
+  </entry>
+
+  <entry  id="which_ho_disp">
+    <type>integer</type>
+    <category>cism_config_ho_options</category>
+    <group>ho_options</group>
+    <valid_values>-1,0,1</valid_values>
+    <values>
+      <value>1</value>
+    </values>
+    <desc>
+    Method for computing the dissipation during the temperature calculation
+    -1: no dissipation
+    0: 0-order SIA approx.
+    1: 1st order solution (e.g., Blatter-Pattyn)
+    Default: 1
+    </desc>
+  </entry>
+
+  <entry id="which_ho_sparse" >
+    <type>integer</type>
+    <category>cism_config_ho_options</category>
+    <group>ho_options</group>
+    <valid_values>0,1,2,3,4</valid_values>
+    <values>
+      <value dycore="2">3</value>
+      <value dycore="1" cism_use_trilinos=".false.">1</value>
+      <value dycore="1" cism_use_trilinos=".true." >4</value>
+    </values>
+    <desc>
+    Method for solving the sparse linear system that arises from the higher-order solver
+    0: Biconjugate gradient, incomplete LU preconditioner
+    1: GMRES, incomplete LU preconditioner
+    2: Conjugate gradient, incomplete LU preconditioner
+    3: Conjugate gradient, structured grid, parallel-enabled
+    4: standalone interface to Trilinos
+    Default: 3
+    </desc>
+  </entry>
+
+  <entry id="which_ho_nonlinear">
+    <type>integer</type>
+    <category>cism_config_ho_options</category>
+    <group>ho_options</group>
+    <valid_values>0,1</valid_values>
+    <values>
+      <value dycore="1">1</value>
+      <value dycore="2">0</value>
+    </values>
+    <desc>
+    Method for solving the nonlinear iteration when solving the first-order momentum balance
+    0: use the standard Picard iteration
+    1: use Jacobian Free Newton Krylov (JFNK) method
+    Default: 0
+    </desc>
+  </entry>
+
+  <entry id="which_ho_gradient">
+    <type>integer</type>
+    <category>cism_config_ho_options</category>
+    <group>ho_options</group>
+    <valid_values>0,1,2</valid_values>
+    <values>
+      <value>0</value>
+    </values>
+    <desc>
+    Which gradient operator to use in the glissade dycore.
+    Not valid in other dycores.
+    0: Centered gradient.
+    1: Upstream gradient (may be better for ice evolution because it damps checkerboard noise).
+    Default: 0
+    </desc>
+  </entry>
+
+  <entry id="which_ho_gradient_margin">
+    <type>integer</type>
+    <category>cism_config_ho_options</category>
+    <group>ho_options</group>
+    <valid_values>0,1,2</valid_values>
+    <values>
+      <value>1</value>
+    </values>
+    <desc>
+    How to compute the gradient at the ice margin in the glissade dycore.
+    Not valid for other dycores.
+    0: Use info from all neighbor cells, ice-covered or ice-free
+    1: Use info from ice-covered and/or land cells, not ice-free ocean
+    2: Use info from ice-covered cells only
+    Default: 1
+    </desc>
+  </entry>
+
+  <entry id="which_ho_approx">
+    <type>integer</type>
+    <category>cism_config_ho_options</category>
+    <group>ho_options</group>
+    <valid_values>-1,0,1,2,3,4</valid_values>
+    <values>
+      <value>4</value>
+    </values>
+    <desc>
+    Flag that indicates which Stokes approximation to use with the glissade dycore.
+    Not valid for other dycores.
+    -1: Shallow-ice approximation, Glide-type calculation (uses glissade_velo_sia)
+    0: Shallow-ice approximation, vertical-shear stresses only (uses glissade_velo_higher)
+    1: Shallow-shelf approximation, horizontal-plane stresses only (uses glissade_velo_higher)
+    2: Blatter-Pattyn approximation with both vertical-shear and horizontal-plane stresses (uses glissade_velo_higher)
+    3: Vertically integrated 'L1L2' approximation with vertical-shear and horizontal-plane stresses (uses glissade_velo_higher)
+    4: Depth-integrated viscosity approximation based on Goldberg (2011) (uses glissade_velo_higher)
+    Default: 4
+    </desc>
+  </entry>
+
+  <entry id="which_ho_precond">
+    <type>integer</type>
+    <category>cism_config_ho_options</category>
+    <group>ho_options</group>
+    <valid_values>0,1,2</valid_values>
+    <values>
+      <value>1</value>
+    </values>
+    <desc>
+    Flag that indicates which Stokes preconditioner to use in the glissade dycore.
+    Not valid for other dycores.
+    0: No preconditioner
+    1: Diagonal preconditioner
+    2: Physics-based shallow-ice preconditioner
+    Default: 1
+    </desc>
+  </entry>
+
+  <entry id="which_ho_assemble_beta">
+    <type>integer</type>
+    <category>cism_config_ho_options</category>
+    <group>ho_options</group>
+    <valid_values>0,1</valid_values>
+    <values>
+      <value>0</value>
+    </values>
+    <desc>
+    Flag that describes how beta terms are assembled in the glissade finite-element calculation
+    0: Standard finite-element calculation (which effectively smooths beta)
+    1: Apply local value of beta at each vertex
+    Default: 0
+    </desc>
+  </entry>
+
+  <entry id="which_ho_assemble_taud" skip_default_entry="true">
+    <type>integer</type>
+    <category>cism_config_ho_options</category>
+    <group>ho_options</group>
+    <valid_values>0,1</valid_values>
+    <desc>
+    Flag that describes how driving-stress terms are assembled in the glissade finite-element calculation
+    Not valid for other dycores
+    0: Standard finite-element calculation (which effectively smooths the driving stress)
+    1: Apply local value of driving stress at each vertex
+    Default: (use hard-coded default)
+    </desc>
+  </entry>
+
+  <entry id="which_ho_assemble_bfric">
+    <type>integer</type>
+    <category>cism_config_ho_options</category>
+    <group>ho_options</group>
+    <valid_values>0,1</valid_values>
+    <values>
+      <value>1</value>
+    </values>
+    <desc>
+    Flag that describes how the basal friction heat flux is computed in the glissade finite-element calculation
+    Not valid for other dycores
+    0: Standard finite-element calculation summing over quadrature points
+    1: Apply local value of beta*(u^2 + v^2) at each vertex
+    Default: 1
+    </desc>
+  </entry>
+
+  <entry id="which_ho_ground">
+    <type>integer</type>
+    <category>cism_config_ho_options</category>
+    <group>ho_options</group>
+    <valid_values>0,1,2</valid_values>
+    <values>
+      <value>0</value>
+    </values>
+    <desc>
+    Flag that indicates how the grounded ice fraction is computed in the glissade dycore
+    Not valid for other dycores
+    0: fground = 0 in floating cells (based on flotation condition), else fground = 1
+    1: fground between 0 and 1 (inclusive), based on a grounding line parameterization
+    2: fground = 1 in all cells
+    Default: 0
+    </desc>
+  </entry>
+
+  <entry id="which_ho_flotation_function">
+    <type>integer</type>
+    <category>cism_config_ho_options</category>
+    <group>ho_options</group>
+    <valid_values>0,1,2</valid_values>
+    <values>
+      <value>1</value>
+    </values>
+    <desc>
+    Flag that indicates how to compute the flotation function at and near vertices in the glissade dycore
+    Not valid for other dycores
+    0: f_flotation = (-rhow*b/rhoi*H) = f_pattyn; less than or equal to 1 for grounded, greater than 1 for floating
+    1: f_flotation = (rhoi*H)/(-rhow*b) = 1/f_pattyn; greater than or equal to 1 for grounded, less than 1 for floating
+    2: f_flotation = -rhow*b - rhoi*H = ocean cavity thickness; less than or equal to 0 for grounded, greater than 0 for floating
+    Default: 1
+    </desc>
+  </entry>
+
+  <entry id="glissade_maxiter">
+    <type>integer</type>
+    <category>cism_config_ho_options</category>
+    <group>ho_options</group>
+    <values>
+      <value>50</value>
+    </values>
+    <desc>
+    Maximum number of nonlinear iterations to be used by the Glissade velocity solver
+    Default: 50
+    </desc>
+  </entry>
+
+  <!-- =============================================================  -->
+  <!-- group: cism.config: GTHF (geothermal heat flux)                -->
+  <!-- =============================================================  -->
+
+  <!-- This group is only relevant if gthf = 2 (calculate using 3d diffusion) -->
+
+  <entry id="num_dim" skip_default_entry="true">
+    <type>integer</type>
+    <category>cism_config_gthf</category>
+    <group>gthf</group>
+    <valid_values>1,3</valid_values>
+    <desc>
+    1: 1D calculations
+    3: 3D calculations
+    Only relevant if gthf = 2
+    Default: 1 (set in hard-coded default)
+    </desc>
+  </entry>
+
+  <entry id="nlayer" skip_default_entry="true">
+    <type>integer</type>
+    <category>cism_config_gthf</category>
+    <group>gthf</group>
+    <desc>
+    Number of vertical layers
+    Only relevant if gthf = 2
+    Default: 20 (set in hard-coded default)
+    </desc>
+  </entry>
+
+  <entry id="surft" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_gthf</category>
+    <group>gthf</group>
+    <desc>
+    Initial surface temperature (degrees C)
+    Only relevant if gthf = 2
+    Default: (use hard-coded default)
+    </desc>
+  </entry>
+
+  <entry id="rock_base" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_gthf</category>
+    <group>gthf</group>
+    <desc>
+    Depth below sea-level at which geothermal heat gradient is applied (m)
+    Only relevant if gthf = 2
+    Default: (use hard-coded default)
+    </desc>
+  </entry>
+
+  <entry id="numt" skip_default_entry="true">
+    <type>integer</type>
+    <category>cism_config_gthf</category>
+    <group>gthf</group>
+    <desc>
+    Number of time steps for spinning up GTHF calculations
+    Only relevant if gthf = 2
+    Default: 0
+    </desc>
+  </entry>
+
+  <entry id="rho" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_gthf</category>
+    <group>gthf</group>
+    <desc>
+    Density of lithosphere (kg m-3)
+    Only relevant if gthf = 2
+    Default: (use hard-coded default)
+    </desc>
+  </entry>
+
+  <entry id="shc" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_gthf</category>
+    <group>gthf</group>
+    <desc>
+    Specific heat capacity of lithosphere (J kg-1 K-1)
+    Only relevant if gthf = 2
+    Default: (use hard-coded default)
+    </desc>
+  </entry>
+
+  <entry id="con" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_gthf</category>
+    <group>gthf</group>
+    <desc>
+    thermal conductivity of lithosphere (W m-1 K-1)
+    Only relevant if gthf = 2
+    Default: (use hard-coded default)
+    </desc>
+  </entry>
+
+
+  <!-- =============================================================  -->
+  <!-- group: cism.config: isostasy                                   -->
+  <!-- =============================================================  -->
+
+  <!-- This group is only relevant if isostasy = 1 -->
+
+  <entry id="lithosphere" skip_default_entry="true">
+    <type>integer</type>
+    <category>cism_config_isostasy</category>
+    <group>isostasy</group>
+    <valid_values>0,1</valid_values>
+    <desc>
+      0: local lithosphere, equilibrium bedrock depression is found using Archimedes' principle
+      1: elastic lithosphere, flexural rigidity is taken into account
+      Only relevant if isostasy = 1
+      Default: 0
+    </desc>
+  </entry>
+
+  <entry id="asthenosphere" skip_default_entry="true">
+    <type>integer</type>
+    <category>cism_config_isostasy</category>
+    <group>isostasy</group>
+    <valid_values>0,1</valid_values>
+    <desc>
+      0: fluid mantle, isostatic adjustment happens instantaneously
+      1: relaxing mantle, mantle is approximated by a half-space
+      Only relyvant if isostasy = 1
+      Default: 0
+    </desc>
+  </entry>
+
+  <entry id="relaxed_tau" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_isostasy</category>
+    <group>isostasy</group>
+    <desc>
+    Characteristic time constant of relaxing mantle (years)
+    Only relevant if isostasy = 1
+    Default: (use hard-coded default)
+    </desc>
+  </entry>
+
+  <entry id="update" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_isostasy</category>
+    <group>isostasy</group>
+    <desc>
+    Lithosphere update period (years)
+    Only relevant if isostasy = 1
+    Default: (use hard-coded default)
+    </desc>
+  </entry>
+
+  <entry id="flexural_rigidity" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_isostasy</category>
+    <group>isostasy</group>
+    <desc>
+    Flexural rigidity of the lithosphere
+    Only relevant if 'lithosphere' is set to 1
+    Default: (use hard-coded default)
+    </desc>
+  </entry>
+
+</entry_id>
