@@ -3,7 +3,7 @@
 """
 CISM namelist creator
 """
-import sys, os, shutil, re
+import sys, os, re
 
 _CIMEROOT = os.environ.get("CIMEROOT")
 if _CIMEROOT is None:
@@ -15,7 +15,7 @@ sys.path.append(_LIBDIR)
 from standard_script_setup import *
 from CIME.buildnml import create_namelist_infile, parse_input
 from CIME.case import Case
-from CIME.utils import expect
+from CIME.utils import expect, safe_copy
 from CIME.nmlgen import NamelistGenerator
 
 _final_template = """########################################
@@ -215,7 +215,7 @@ def buildnml(case, caseroot, compname):
     # determine directory for user modified namelist_definitions.xml and namelist_defaults.xml
     user_xml_dir = os.path.join(caseroot, "SourceMods", "src.cism")
     expect (os.path.isdir(user_xml_dir),
-            "user_xml_dir %s does not exist " %user_xml_dir)
+            "user_xml_dir {} does not exist ".format(user_xml_dir))
 
     # NOTE: User definition *replaces* existing definition.
     namelist_xml_dir = os.path.join(glcroot, "cime_config")
@@ -224,7 +224,7 @@ def buildnml(case, caseroot, compname):
     if os.path.isfile(user_definition):
         definition_file = [user_definition]
     for file_ in definition_file:
-        expect(os.path.isfile(file_), "Namelist XML file %s not found!" % file_)
+        expect(os.path.isfile(file_), "Namelist XML file {} not found!".format(file_))
 
     # Create the namelist generator object - independent of instance
     nmlgen = NamelistGenerator(case, definition_file)
@@ -233,22 +233,23 @@ def buildnml(case, caseroot, compname):
     # Loop over instances
     #----------------------------------------------------
     for inst_counter in range(1, ninst+1):
-
         # determine instance string
         inst_string = ""
         if ninst > 1:
-            inst_string = '_' + '%04d' % inst_counter
+            inst_string = '_' + '{:04d}'.format(inst_counter)
 
         # If multi-instance case does not have restart file, use
         # single-case restart for each instance
         rpointer = "rpointer.glc"
         if (os.path.isfile(os.path.join(rundir,rpointer)) and
             (not os.path.isfile(os.path.join(rundir,rpointer + inst_string)))):
-            shutil.copy(os.path.join(rundir, rpointer),
-                        os.path.join(rundir, rpointer + inst_string))
+            safe_copy(os.path.join(rundir, rpointer),
+                      os.path.join(rundir, rpointer + inst_string))
 
         user_nl_file = os.path.join(caseroot, "user_nl_cism" + inst_string)
-        infile = os.path.join(caseroot, "Buildconf", "cismconf", "namelist")
+        expect(os.path.isfile(user_nl_file),
+               "Missing required user_nl_file {}".format(user_nl_file))
+        infile = os.path.join(confdir, "namelist")
         create_namelist_infile(case, user_nl_file, infile)
         namelist_infile = [infile]
 
@@ -260,19 +261,19 @@ def buildnml(case, caseroot, compname):
         # -----------------------------------------------------
 
         if os.path.isdir(rundir):
-            file1 = os.path.join(confdir, "cism_in")
-            file2 = os.path.join(rundir, "cism_in")
+            file_src = os.path.join(confdir, "cism_in")
+            file_dest = os.path.join(rundir, "cism_in")
             if ninst > 1:
-                file2 += inst_string
-            logger.debug("CISM namelist copy: file1 %s file2 %s " %(file1, file2))
-            shutil.copy(file1,file2)
+                file_dest += inst_string
+            logger.debug("CISM namelist copy: file_src {} file_dest {} ".format((file_src, file_dest)))
+            safe_copy(file_src,file_dest)
 
-            file1 = os.path.join(confdir, "cism.config")
-            file2 = os.path.join(rundir, "cism.config")
+            file_src = os.path.join(confdir, "cism.config")
+            file_dest = os.path.join(rundir, "cism.config")
             if ninst > 1:
-                file2 += inst_string
-            logger.debug("CISM namelist copy: file1 %s file2 %s " %(file1, file2))
-            shutil.copy(file1,file2)
+                file_dest += inst_string
+            logger.debug("CISM namelist copy: file_src {} file_dest {} ".format((file_src, file_dest)))
+            safe_copy(file_src,file_dest)
 
 ###############################################################################
 def _main_func():
