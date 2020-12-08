@@ -3,7 +3,7 @@
 """
 CISM namelist creator
 """
-import sys, os, time, shutil, re
+import sys, os, shutil, re
 
 _CIMEROOT = os.environ.get("CIMEROOT")
 if _CIMEROOT is None:
@@ -73,7 +73,6 @@ def _create_namelist(case, confdir, inst_string, infile, nmlgen):
     config['cism_phys'] = case.get_value("CISM_PHYS")
     config['cism_evolve'] = '.true.' if case.get_value('CISM_EVOLVE') else '.false.'
     config['glc_two_way_coupling'] = '.true.' if case.get_value('GLC_TWO_WAY_COUPLING') else '.false.'
-    config['cism_use_trillinos'] = '.true.' if case.get_value('CISM_USE_TRILLINOS') else '.false.'
     config['ncpl_base_period'] = case.get_value("NCPL_BASE_PERIOD")
     config['calendar'] = case.get_value("CALENDAR")
 
@@ -203,7 +202,7 @@ def buildnml(case, caseroot, compname):
     glc_grid = case.get_value("GLC_GRID")
     cism_phys = case.get_value("CISM_PHYS")
     cimeroot = case.get_value("CIMEROOT")
-    srcroot = case.get_value("SRCROOT")
+    glcroot = case.get_value("COMP_ROOT_DIR_GLC")
     ninst = case.get_value("NINST_GLC")
     rundir = case.get_value("RUNDIR")
 
@@ -226,7 +225,7 @@ def buildnml(case, caseroot, compname):
             "user_xml_dir %s does not exist " %user_xml_dir)
 
     # NOTE: User definition *replaces* existing definition.
-    namelist_xml_dir = os.path.join(srcroot, "components", "cism", "cime_config")
+    namelist_xml_dir = os.path.join(glcroot, "cime_config")
     definition_file = [os.path.join(namelist_xml_dir, "namelist_definition_cism.xml")]
     user_definition = os.path.join(user_xml_dir, "namelist_definition_cism.xml")
     if os.path.isfile(user_definition):
@@ -281,22 +280,6 @@ def buildnml(case, caseroot, compname):
                 file2 += inst_string
             logger.debug("CISM namelist copy: file1 %s file2 %s " %(file1, file2))
             shutil.copy(file1,file2)
-
-        if case.get_value("CISM_USE_TRILINOS") == "TRUE":
-            sourcemod_dir = os.path.join(caseroot,"SourceMods","src.cism")
-            filename = "trilinosOptions.xml"
-            if os.path.isfile(os.path.join(sourcemod_dir, filename)):
-                file1 = os.path.join(sourcemod_dir, filename)
-                file2 = os.path.join(rundir, filename)
-                shutil.copy(file1,file2)
-            else:
-                trilinos_options_dir = os.path.join(srcroot,"components","cism","bld","trilinosOptions")
-                trilinos_file = "trilinosOptions_%s.xml" %glc_grid
-                filepath = os.path.join(trinilinos_options_dir, trilinos_file)
-                if os.path.isfile(filepath):
-                    file1 = filepath
-                    file2 = os.path.join(rundir, "trilinosOptions.xml")
-                    shutil.copy(file1,file2)
 
 ###############################################################################
 def _main_func():
