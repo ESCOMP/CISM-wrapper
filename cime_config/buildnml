@@ -23,7 +23,7 @@ _final_template = """########################################
 ########################################
 
 [CF default]
-title: Glimmer-CISM simulation
+title: CISM simulation
 institution: Community Earth System Model
 
 [CF input]
@@ -71,6 +71,7 @@ def _create_namelist(case, confdir, inst_string, infile, nmlgen):
 
     run_type = case.get_value("RUN_TYPE")
     cism_observed_ic = case.get_value("CISM_OBSERVED_IC")
+    comp_interface = case.get_value("COMP_INTERFACE")
 
     if config['cism_phys'] == "cism1":
         config['dycore'] = "0"
@@ -87,6 +88,14 @@ def _create_namelist(case, confdir, inst_string, infile, nmlgen):
     #----------------------------------------------------
     # Set values not obtained in the default settings
     #----------------------------------------------------
+
+    # NOTE: with the nuopc interface, the CISM run phase is never called when running
+    # in noevolve mode, so a restart file will never be written for cism - only initial
+    # information will be sent back to CTSM.
+    if (comp_interface == 'nuopc' and config['cism_evolve'] == 'FALSE'):
+        logger.info("Interface is nuopc, cism is not evolving: CISM run_type is always startup")
+        run_type = "startup"
+
     nmlgen.add_default("dycore", value=config['dycore'])
 
     nmlgen.add_default("paramfile", value="cism.config"+inst_string, ignore_abs_path=True)
@@ -172,6 +181,20 @@ def _create_namelist(case, confdir, inst_string, infile, nmlgen):
     file_obj = open(output_file, "a")
     file_obj.write("%s\n" %final_text)
     file_obj.close()
+
+###############################################################################
+def _initial_consistency_checks(config):
+###############################################################################
+    if config["calendar"] != "NO_LEAP":
+        # See https://github.com/ESCOMP/CISM-wrapper/issues/1
+        errmsg = """\
+CISM currently only supports a NO_LEAP calendar.
+Either change the calendar to NO_LEAP or create a case without CISM.
+(For the latter, you can use SGLC in place of CISM if you don't care about ice evolution.
+Besides not getting CISM diagnostics, this will just result in slightly different glacier
+cover in CLM.)"""
+        print(errmsg)
+        expect(False, "CISM currently only supports a NO_LEAP calendar")
 
 ###############################################################################
 def _update_cism_config(nmlgen, output_file, mode, header, group):
