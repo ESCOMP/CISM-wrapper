@@ -3,7 +3,7 @@
 """
 CISM namelist creator
 """
-import sys, os, re
+import sys, os
 
 _CIMEROOT = os.environ.get("CIMEROOT")
 if _CIMEROOT is None:
@@ -119,9 +119,9 @@ def _create_namelist(case, confdir, inst_string, infile, nmlgen):
     if run_type == 'branch':
         startdate = case.get_value("RUN_REFDATE")
     date_array = startdate.split('-')
-    nmlgen.add_default("iyear0"  , value=int(re.sub("0+","",date_array[0])))
-    nmlgen.add_default("imonth0" , value=int(re.sub("0+","",date_array[1])))
-    nmlgen.add_default("iday0"   , value=int(re.sub("0+","",date_array[2])))
+    nmlgen.add_default("iyear0"  , value=int(date_array[0]))
+    nmlgen.add_default("imonth0" , value=int(date_array[1]))
+    nmlgen.add_default("iday0"   , value=int(date_array[2]))
     nmlgen.add_default("ihour0"  , value=0)
     nmlgen.add_default("iminute0", value=0)
     nmlgen.add_default("isecond0", value=0)
