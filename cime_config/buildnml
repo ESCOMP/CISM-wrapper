@@ -73,13 +73,6 @@ def _create_namelist(case, confdir, inst_string, infile, nmlgen):
     cism_observed_ic = case.get_value("CISM_OBSERVED_IC")
     comp_interface = case.get_value("COMP_INTERFACE")
 
-    if config['cism_phys'] == "cism1":
-        config['dycore'] = "0"
-    elif config['cism_phys'] == "cism2":
-        config['dycore'] = "2"
-    else:
-        expect(False, "cism_phys only can have values of 0 or 2")
-
     #----------------------------------------------------
     # Initialize namelist defaults
     #----------------------------------------------------
@@ -96,21 +89,48 @@ def _create_namelist(case, confdir, inst_string, infile, nmlgen):
         logger.info("Interface is nuopc, cism is not evolving: CISM run_type is always startup")
         run_type = "startup"
 
-    nmlgen.add_default("dycore", value=config['dycore'])
-
     nmlgen.add_default("paramfile", value="cism.config"+inst_string, ignore_abs_path=True)
 
     if run_type == 'startup':
-        nmlgen.add_default('hotstart',value=0)
+        nmlgen.add_default('restart',value=0)
     elif cism_observed_ic == 'TRUE':
         if run_type == 'branch':
             expect(False,"CISM_OBSERVED_IC=TRUE not allowed for branch runs - only for hybrid runs")
         else:
-            nmlgen.add_default('hotstart', value=0)
+            nmlgen.add_default('restart', value=0)
+    elif run_type == 'hybrid' and config['cism_evolve'] == 'FALSE':
+        # We could use the hybrid refcase's CISM restart file in this case. However, we
+        # often run into problems where a change in CISM makes it incompatible with old
+        # restart files, and this breaks configurations that are set up as hybrid runs
+        # (typically B and F compsets). Those hybrid cases typically use NOEVOLVE (i.e.,
+        # CISM_EVOLVE=FALSE), where the restart file really doesn't matter. So, rather
+        # than requiring ourselves to recreate all of those refcases whenever we break
+        # compatibility with old restart files, an easier-to-maintain solution is to just
+        # use observed initial conditions rather than the restart file whenever we're
+        # running a hybrid case with CISM_EVOLVE=FALSE.
+        #
+        # One theoretical problem with this is: If someone did a run with
+        # CISM_EVOLVE=TRUE, then did a hybrid case off of that with CISM_EVOLVE=FALSE,
+        # hoping that this would keep the ice sheet fixed at the previously-spun-up state,
+        # they wouldn't get what they want: instead the ice sheet would be reset to
+        # observed initial conditions. Thus, the user would need to explicitly set
+        # 'cisminputfile' and 'restart' in this case.
+        nmlgen.add_default('restart', value=0)
     elif run_type == 'branch' or run_type == 'hybrid':
-        filename = run_refcase + '.cism.r.' + run_refdate + '00000.nc'
-        nmlgen.add_default('cisminputfile',filename, ignore_abs_path=True)
-        nmlgen.add_default('hotstart', value=1)
+        run_refcase = case.get_value('RUN_REFCASE')
+        run_refdate = case.get_value('RUN_REFDATE')
+        rundir = case.get_value('RUNDIR')
+        filename = "{refcase}.cism{inst_string}.r.{refdate}-00000.nc".format(
+            refcase=run_refcase, inst_string=inst_string, refdate=run_refdate)
+        if not os.path.exists(os.path.join(rundir, filename)):
+            # If the version with INST_STRING doesn't exist, try without INST_STRING. This
+            # is needed when starting a multi-instance case from a single-instance
+            # refcase.
+            filename = "{refcase}.cism.r.{refdate}-00000.nc".format(
+                refcase=run_refcase, refdate=run_refdate)
+
+        nmlgen.add_default('cisminputfile', filename, ignore_abs_path=True)
+        nmlgen.add_default('restart', value=1)
     else:
         expect(False, "Unknown RUN_TYPE: %s " %run_type)
 
@@ -164,18 +184,16 @@ def _create_namelist(case, confdir, inst_string, infile, nmlgen):
     output_file = os.path.join(confdir, "cism.config")
     _update_cism_config(nmlgen, output_file, mode="w", header="grid", group="grid")
     _update_cism_config(nmlgen, output_file, mode="a", header="GLAD climate", group="glad_climate")
-    _update_cism_config(nmlgen, output_file, mode="a", header="projection", group="projection")
     _update_cism_config(nmlgen, output_file, mode="a", header="options", group="options")
     _update_cism_config(nmlgen, output_file, mode="a", header="time", group="time")
     _update_cism_config(nmlgen, output_file, mode="a", header="parameters", group="parameters")
+    _update_cism_config(nmlgen, output_file, mode="a", header="ho_options", group="ho_options")
     if int(nmlgen.get_value("gthf")) > _GTHF_CALCULATE:
         _update_cism_config(nmlgen, output_file, mode="a", header="gthf", group="gthf")
     if int(nmlgen.get_value("isostasy")) == _ISOSTASY_ON:
         _update_cism_config(nmlgen, output_file, mode="a", header="isostasy", group="isostasy")
     if int(nmlgen.get_value("sigma")) == _SIGMA_IN_CONFIG_FILE:
         _update_cism_config(nmlgen, output_file, mode="a", header="sigma", group="sigma")
-    if int(config['dycore']) != 0:
-        _update_cism_config(nmlgen, output_file, mode="a", header="ho_options", group="ho_options")
 
     final_text = _final_template.format(filename=nmlgen.get_value('cisminputfile'))
     file_obj = open(output_file, "a")

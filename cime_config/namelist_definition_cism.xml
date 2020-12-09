@@ -662,7 +662,7 @@
   <!-- group: cism.config: options                                    -->
   <!-- =============================================================  -->
 
-  <entry id="dycore" skip_default_entry="true">
+  <entry id="dycore">
     <type>integer</type>
     <category>cism_config_options</category>
     <group>options</group>
