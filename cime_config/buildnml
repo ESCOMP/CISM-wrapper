@@ -132,7 +132,7 @@ def _create_namelist(case, confdir, inst_string, infile, nmlgen, data_list_path)
         nmlgen.add_default('cisminputfile', filename, ignore_abs_path=True)
         nmlgen.add_default('restart', value=1)
     else:
-        expect(False, "Unknown RUN_TYPE: %s " %run_type)
+        expect(False, "Unknown RUN_TYPE: {} ".format(run_type))
 
     startdate = case.get_value("RUN_STARTDATE")
     run_type = case.get_value("RUN_TYPE")
@@ -152,7 +152,7 @@ def _create_namelist(case, confdir, inst_string, infile, nmlgen, data_list_path)
     glc_ncpl = case.get_value("GLC_NCPL")
     if ncpl_base_period == 'hour':
         if 3600 % glc_ncpl != 0:
-            expect(False, "glc_ncpl %s doesn't divide an hour evenly\n" %s)
+            expect(False, "glc_ncpl {} doesn't divide an hour evenly".format(glc_ncpl))
         else:
             dt_count = 3600 / glc_ncpl
     elif ncpl_base_period == 'day' or ncpl_base_period == 'year':
@@ -160,7 +160,7 @@ def _create_namelist(case, confdir, inst_string, infile, nmlgen, data_list_path)
     elif ncpl_base_period == 'decade':
         dt_count = glc_ncpl / 10
     else:
-        expect(False, "invalid NCPL_BASE_PERIOD %s]b " %ncpl_base_period)
+        expect(False, "invalid NCPL_BASE_PERIOD {}".format(ncpl_base_period))
     nmlgen.add_default("dt_count", value=dt_count)
 
     if nmlgen.get_value("enable_frac_overrides") == '.true.':
@@ -196,9 +196,8 @@ def _create_namelist(case, confdir, inst_string, infile, nmlgen, data_list_path)
         _update_cism_config(nmlgen, output_file, mode="a", header="sigma", group="sigma")
 
     final_text = _final_template.format(filename=nmlgen.get_value('cisminputfile'))
-    file_obj = open(output_file, "a")
-    file_obj.write("%s\n" %final_text)
-    file_obj.close()
+    with open(output_file, "a") as file_obj:
+        file_obj.write("{}\n".format(final_text))
 
 ###############################################################################
 def _initial_consistency_checks(config):
@@ -218,9 +217,8 @@ cover in CLM.)"""
 def _update_cism_config(nmlgen, output_file, mode, header, group):
 ###############################################################################
     """Append an entry to the cism.config file"""
-    file_obj = open(output_file, "%s" %mode)
-    file_obj.write("[%s]\n" %header)
-    file_obj.close()
+    with open(output_file, mode) as file_obj:
+        file_obj.write("[{}]\n".format(header))
     nmlgen.add_nmlcontents(output_file, group=group, sorted_groups=False)
 
 ###############################################################################
