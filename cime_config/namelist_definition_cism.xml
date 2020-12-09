@@ -194,9 +194,6 @@
     <type>real</type>
     <category>time</category>
     <group>time_manager_nml</group>
-    <values>
-      <value>-999.</value>
-    </values>
     <desc>
       Time step, in units given by dt_option
       This generally should not be changed
@@ -547,9 +544,6 @@
     <type>integer</type>
     <category>cism_config_climate</category>
     <group>glad_climate</group>
-    <values>
-      <value>1</value>
-    </values>
     <desc>
       Ice time-step multiplier: allows asynchronous climate-ice coupling
       Default: (use hard-coded default- currently 1)
