@@ -3,7 +3,7 @@ module glc_import_export
   use shr_sys_mod
   use shr_kind_mod,        only: IN=>SHR_KIND_IN, R8=>SHR_KIND_R8
   use shr_kind_mod,        only: CS=>SHR_KIND_CS, CL=>SHR_KIND_CL
-  use glc_constants,       only: verbose, stdout, stderr, tkfrz, zero_gcm_fluxes
+  use glc_constants,       only: verbose, stdout, stderr, tkfrz, zero_gcm_fluxes, enable_frac_overrides
   use glc_communicate,     only: my_task, master_task
   use glc_cpl_indices
 
@@ -51,7 +51,7 @@ contains
     use glc_fields   , only: ice_covered, topo, rofi, rofl, hflx, &
                              ice_sheet_grid_mask
     use glc_route_ice_runoff, only: route_ice_runoff    
-    use glc_override_frac   , only: frac_overrides_enabled, do_frac_overrides
+    use glc_override_frac   , only: do_frac_overrides
     
     real(r8)    ,intent(inout) :: g2x(:,:)
 
@@ -83,7 +83,7 @@ contains
 
     ! If overrides of glc fraction are enabled (for testing purposes), then apply
     ! these overrides, otherwise use the real version of ice_covered and topo
-    if (frac_overrides_enabled()) then
+    if (enable_frac_overrides) then
        allocate(ice_covered_to_cpl(lbound(ice_covered,1):ubound(ice_covered,1), &
                                    lbound(ice_covered,2):ubound(ice_covered,2)))
        allocate(topo_to_cpl(lbound(topo,1):ubound(topo,1), &

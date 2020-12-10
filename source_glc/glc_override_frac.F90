@@ -10,6 +10,7 @@ module glc_override_frac
   ! !USES:
 
   use glc_kinds_mod
+  use glc_exit_mod
   
   implicit none
   private
@@ -17,7 +18,6 @@ module glc_override_frac
 
   ! !PUBLIC MEMBER FUNCTIONS:
   public :: init_glc_frac_overrides ! initialize stuff in this module, including reading the namelist
-  public :: frac_overrides_enabled  ! return true if overrides are enabled, false otherwise
   public :: do_frac_overrides       ! do all overrides
 
   ! !PRIVATE MEMBER FUNCTIONS:
@@ -29,7 +29,8 @@ module glc_override_frac
   
   
   ! !PRIVATE DATA MEMBERS:
-  logical(log_kind) :: enable_frac_overrides     ! whether the overrides in this module are enabled for this run
+  logical :: initialized = .false. ! whether this module has been initialized
+
   integer(int_kind) :: decrease_override_delay   ! time delay before beginning decrease_frac overrides (days)
   integer(int_kind) :: increase_override_delay   ! time delay before beginning increase_frac overrides (days)
   integer(int_kind) :: rearrange_override_delay  ! time delay before beginning rearrange_freq overrides (days)
@@ -60,6 +61,7 @@ contains
     !-----------------------------------------------------------------------
     
     call read_namelist
+    initialized = .true.
 
   end subroutine init_glc_frac_overrides
   
@@ -83,7 +85,7 @@ contains
     integer(int_kind) :: nml_error   ! namelist i/o error flag
     integer(int_kind) :: nml_in      ! namelist file unit number
 
-    namelist /glc_override_nml/ enable_frac_overrides, &
+    namelist /glc_override_nml/ &
          decrease_override_delay, increase_override_delay, rearrange_override_delay, &
          decrease_frac, increase_frac, rearrange_freq
     
@@ -91,7 +93,6 @@ contains
     !-----------------------------------------------------------------------
     
     ! Initialize namelist inputs
-    enable_frac_overrides = .false.
     decrease_override_delay = 0
     increase_override_delay = 0
     rearrange_override_delay = 0
@@ -131,7 +132,6 @@ contains
     end if
 
     ! Send namelist settings to all procs
-    call broadcast_scalar(enable_frac_overrides, master_task)
     call broadcast_scalar(decrease_override_delay, master_task)
     call broadcast_scalar(increase_override_delay, master_task)
     call broadcast_scalar(rearrange_override_delay, master_task)
@@ -140,26 +140,6 @@ contains
     call broadcast_scalar(rearrange_freq, master_task)
 
   end subroutine read_namelist
-
-  !-----------------------------------------------------------------------
-  function frac_overrides_enabled() result(enabled)
-    !
-    ! !DESCRIPTION:
-    ! Return true if glc fraction overrides are enabled in this run
-    !
-    ! !USES:
-    !
-    ! !ARGUMENTS:
-    logical :: enabled  ! function result
-    !
-    ! !LOCAL VARIABLES:
-    
-    character(len=*), parameter :: subname = 'frac_overrides_enabled'
-    !-----------------------------------------------------------------------
-    
-    enabled = enable_frac_overrides
-
-  end function frac_overrides_enabled
 
   !-----------------------------------------------------------------------
   subroutine do_frac_overrides(ice_covered, topo, ice_sheet_grid_mask)
@@ -179,6 +159,10 @@ contains
     
     character(len=*), parameter :: subname = 'do_frac_overrides'
     !-----------------------------------------------------------------------
+
+    if (.not. initialized) then
+       call exit_glc(sigAbort, 'Attempt to call do_frac_overrides without calling init_glc_frac_overrides')
+    end if
 
     call apply_increase_frac(ice_covered, topo, ice_sheet_grid_mask)
     call apply_decrease_frac(ice_covered, topo, ice_sheet_grid_mask)

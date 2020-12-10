@@ -13,7 +13,7 @@ module glc_import_export
   use NUOPC_Model         , only : NUOPC_ModelGet
   use shr_kind_mod        , only : r8 => shr_kind_r8, cl=>shr_kind_cl, cs=>shr_kind_cs
   use shr_sys_mod         , only : shr_sys_abort
-  use glc_constants       , only : verbose, stdout, stderr, tkfrz, zero_gcm_fluxes, radius
+  use glc_constants       , only : verbose, stdout, stderr, tkfrz, zero_gcm_fluxes, radius, enable_frac_overrides
   use glc_communicate     , only : my_task, master_task
   use glc_time_management , only : iyear,imonth,iday,ihour,iminute,isecond,runtype
   use glc_indexing        , only : nx_tot, ny_tot, nx, ny, spatial_to_vector
@@ -331,7 +331,7 @@ contains
     use glc_fields           , only : ice_covered, topo, rofi, rofl
     use glc_fields           , only : hflx, ice_sheet_grid_mask
     use glc_route_ice_runoff , only : route_ice_runoff
-    use glc_override_frac    , only : frac_overrides_enabled, do_frac_overrides
+    use glc_override_frac    , only : do_frac_overrides
 
     ! input/output variabes
     type(ESMF_State)     :: exportState
@@ -380,7 +380,7 @@ contains
 
     ! If overrides of glc fraction are enabled (for testing purposes), then apply
     ! these overrides, otherwise use the real version of ice_covered and topo
-    if (frac_overrides_enabled()) then
+    if (enable_frac_overrides) then
        allocate(ice_covered_to_cpl(lbound(ice_covered,1):ubound(ice_covered,1), &
                                    lbound(ice_covered,2):ubound(ice_covered,2)))
        allocate(topo_to_cpl(lbound(topo,1):ubound(topo,1), &

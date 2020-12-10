@@ -26,7 +26,7 @@
                                   iyear,  imonth,  iday,  elapsed_days,   &
                                   ihour,  iminute, isecond, nsteps_total, &
                                   ymd2eday, eday2ymd, runtype
-   use glc_constants, only: stdout, zero_gcm_fluxes, test_coupling
+   use glc_constants, only: stdout, zero_gcm_fluxes, test_coupling, enable_frac_overrides
    use glc_io,        only: glc_io_read_restart_time
    use glc_files,     only: nml_filename
    use glc_exit_mod
@@ -147,7 +147,8 @@
   
   integer, parameter :: days_in_year = 365
   
-  namelist /cism_params/  paramfile, cism_debug, ice_flux_routing, zero_gcm_fluxes, test_coupling
+  namelist /cism_params/  paramfile, cism_debug, ice_flux_routing, zero_gcm_fluxes, &
+       test_coupling, enable_frac_overrides
  
 ! TODO - Write version info?
 !-----------------------------------------------------------------------
@@ -211,11 +212,13 @@
    call broadcast_scalar(ice_flux_routing,  master_task)
    call broadcast_scalar(zero_gcm_fluxes,   master_task)
    call broadcast_scalar(test_coupling,     master_task)
+   call broadcast_scalar(enable_frac_overrides, master_task)
    call set_routing(ice_flux_routing)
 
    if (my_task == master_task) then
       write(stdout,*) 'zero_gcm_fluxes: ', zero_gcm_fluxes
       write(stdout,*) 'test_coupling:   ', test_coupling
+      write(stdout,*) 'enable_frac_overrides: ', enable_frac_overrides
    end if
 
    if (verbose .and. my_task==master_task) then
@@ -243,8 +246,10 @@
 
   nhour_glad = 0     ! number of hours glad has run since start of complete simulation
                      ! must be set to correct value if reading from a restart file
- 
-  call init_glc_frac_overrides()
+
+  if (enable_frac_overrides) then
+     call init_glc_frac_overrides()
+  end if
 
   ! if this is a continuation run, then set up to read restart file and get the restart time
   if (runtype == 'continue') then
