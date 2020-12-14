@@ -1,0 +1,15 @@
+./xmlchange --force DOCN_MODE=cplhist
+./xmlchange --force DATM_CPLHIST_CASE=SMS_Ly1.f09_g16.B1850GRnoanthro.cheyenne_intel.cism-pop2cism_cpl_f09_cheyenne.20191118_134714_15wdzi
+./xmlchange --force DATM_CPLHIST_DIR='/glade/scratch/erik/$DOCN_CPLHIST_CASE/run'
+./xmlchange --force DATM_CPLHIST_DOMAIN_FILE=null
+./xmlchange --force DATM_CPLHIST_YR_START=1
+./xmlchange --force DATM_CPLHIST_YR_END=1
+./xmlchange --force DATM_CPLHIST_YR_ALIGN=1
+
+./xmlchange LND2ROF_FMAPNAME=idmap
+./xmlchange OCN2ATM_FMAPNAME=idmap
+./xmlchange OCN2ATM_SMAPNAME=idmap
+./xmlchange ROF2LND_FMAPNAME=idmap
+./xmlchange ROF2OCN_FMAPNAME=idmap
+./xmlchange ROF2OCN_ICE_RMAPNAME=idmap
+./xmlchange ROF2OCN_LIQ_RMAPNAME=idmap

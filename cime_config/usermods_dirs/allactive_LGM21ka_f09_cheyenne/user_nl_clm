@@ -1,0 +1,13 @@
+ fsurdat = '/gpfs/fs1/work/sbradley/CESM2.0_SETUP/CLM/surfdata_0.9x1.25_hist_16pfts_nourb_CMIP6_simyr21ka_c190827_newGLACIER_REGION.nc'
+ check_dynpft_consistency = .false.
+glcmec_downscale_longwave = .false.				
+glacier_region_rain_to_snow_behavior = 'converted_to_snow','runs_off'
+glacier_region_behavior = 'single_at_atm_topo','virtual'
+glacier_region_melt_behavior= 'remains_in_place','replaced_by_ice'
+glacier_region_ice_runoff_behavior = 'melted','remains_ice'
+reset_dynbal_baselines = .true.
+use_init_interp = .true.
+reset_snow = .true.
+reset_snow_glc = .true.
+
+

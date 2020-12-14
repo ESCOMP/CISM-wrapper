@@ -1,0 +1,12 @@
+cisminputfile = '/gpfs/fs1/work/sbradley/CESM2.0_SETUP/CISM/cism_USGS-huy3-S1D_4km.nc'
+ewn =2592 
+nsn = 2592
+nzocn=7
+zocn = -5., -105., -198., -305., -408., -527., -638.
+bmlt_float = 6
+marine_margin = 7
+calving_timescale = 1.
+calving_minthck = 75.
+which_ho_ground= 1
+which_ho_calving_front = 1
+pmp_offset = 20

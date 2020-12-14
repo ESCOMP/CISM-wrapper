@@ -1,0 +1,4 @@
+orb_eccen= 0.018994
+orb_obliq = 22.949
+orb_mvelp = 114.42
+orb_mode = "fixed_parameters" 

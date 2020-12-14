@@ -1,0 +1,4 @@
+ kmt_file =  '/gpfs/fs1/work/sbradley/CESM2.0_SETUP/POP/kmt_gx1v7_lgm21ka_huy3s1D.190426.ieeei4'
+ grid_file = '/glade/p/cesmdata/cseg/inputdata/ocn/pop/gx1v7/grid/horiz_grid_20010402.ieeer8'
+ ice_ic='default'
+ ndtd=4

@@ -96,6 +96,18 @@ attributes to express the dependency.
 <global_bc>1</global_bc>
 
 <!-- =============================================================  -->
+<!-- group: cism.config: grid_ocn                                   -->
+<!-- =============================================================  -->
+
+<!-- This group is only relevant if receiving data from an ocean model. -->
+<nzocn>1</nzocn>
+
+<zocn           >0.0</zocn>
+<zocn  nzocn="7">-5., -105., -198., -305., -408., -527., -638.</zocn>
+
+<dzocn          >0.0</dzocn>
+
+<!-- =============================================================  -->
 <!-- group: cism.config: sigma                                      -->
 <!-- =============================================================  -->
 
@@ -130,6 +142,10 @@ attributes to express the dependency.
 <flow_law>2</flow_law>
 
 <bmlt_float>0</bmlt_float>
+
+<bmlt_float_thermal_forcing_param>0</bmlt_float_thermal_forcing_param>
+
+<ocean_data_domain>0</ocean_data_domain>
 
 <!-- basal_mass_balance CISM default -->
 <basal_mass_balance>1</basal_mass_balance>

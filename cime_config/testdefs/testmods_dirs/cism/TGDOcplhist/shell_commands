@@ -1,0 +1,24 @@
+./xmlchange --force DOCN_MODE=cplhist
+./xmlchange --force DOCN_CPLHIST_CASE=SMS_Ly1.f09_g16.B1850GRnoanthro.cheyenne_intel.cism-pop2cism_cpl_f09_cheyenne.20191118_134714_15wdzi
+./xmlchange --force DLND_CPLHIST_CASE='$DOCN_CPLHIST_CASE'
+./xmlchange --force DOCN_CPLHIST_DIR='/glade/scratch/erik/$DOCN_CPLHIST_CASE/run'
+./xmlchange --force DLND_CPLHIST_DIR='$DOCN_CPLHIST_DIR'
+./xmlchange --force DOCN_CPLHIST_DOMAIN_FILE='$OCN_DOMAIN_PATH/$OCN_DOMAIN_FILE'
+./xmlchange --force DLND_CPLHIST_DOMAIN_FILE=null
+./xmlchange --force DOCN_CPLHIST_YR_START=1
+./xmlchange --force DOCN_CPLHIST_YR_END=1
+./xmlchange --force DOCN_CPLHIST_YR_ALIGN=1
+./xmlchange --force DLND_CPLHIST_YR_START=1
+./xmlchange --force DLND_CPLHIST_YR_END=1
+./xmlchange --force DLND_CPLHIST_YR_ALIGN=1
+
+./xmlchange ATM2OCN_FMAPNAME=idmap
+./xmlchange ATM2OCN_SMAPNAME=idmap
+./xmlchange ATM2OCN_VMAPNAME=idmap
+./xmlchange LND2ROF_FMAPNAME=idmap
+./xmlchange OCN2ATM_FMAPNAME=idmap
+./xmlchange OCN2ATM_SMAPNAME=idmap
+./xmlchange ROF2LND_FMAPNAME=idmap
+./xmlchange ROF2OCN_FMAPNAME=idmap
+./xmlchange ROF2OCN_ICE_RMAPNAME=idmap
+./xmlchange ROF2OCN_LIQ_RMAPNAME=idmap

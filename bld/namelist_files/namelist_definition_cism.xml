@@ -360,6 +360,53 @@ Global boundary conditions
 Default: 1
 </entry>
 
+<entry
+id="nx_block"
+type="integer"
+category="cism_config_options"
+group="cism_config_options"
+Blocks to compute over the in "x" direction (if compute_blocks is non zero)
+</entry>
+
+<entry
+id="ny_block"
+type="integer"
+category="cism_config_options"
+group="cism_config_options"
+Blocks to compute over the in "y" direction (if compute_blocks is non zero)
+</entry>
+
+<!-- =============================================================  -->
+<!-- group: cism.config: grid_ocn                                   -->
+<!-- =============================================================  -->
+
+<entry 
+id="nzocn"
+type="integer"
+category="cism_config_grid_ocn"
+group="cism_config_grid_ocn" >
+Number of levels for ocean data
+Default: 1
+</entry>
+
+<entry 
+id="zocn" 
+type="real(100)"
+category="cism_config_grid_ocn"
+group="cism_config_grid_ocn" >
+Levels for ocean forcing (m), negative below sea level
+Default: 0.0
+</entry>
+
+<entry 
+id="dzocn" 
+type="real"
+category="cism_config_grid_ocn"
+group="cism_config_grid_ocn" >
+Uniform thickness of ocean levels (m)
+Default: 0.0
+</entry>
+
 <!-- =============================================================  -->
 <!-- group: cism.config: sigma                                      -->
 <!-- =============================================================  -->
@@ -420,6 +467,18 @@ Which dycore to use
 Default: 2
 </entry>
 
+<entry
+id="compute_blocks"
+type="integer"
+category="cism_config_options"
+group="cism_config_options"
+valid_values="0,1,2" >
+0: compute on all blocks
+1: compute on active blocks only
+2: inquire the number of active blocks in preparation to resubmitting with option 1
+Default: 0
+</entry>
+
 <entry 
 id="temperature"
 type="integer" 
@@ -467,7 +526,7 @@ id="bmlt_float"
 type="integer" 
 category="cism_config_options"
 group="cism_config_options"
-valid_values="0,1,2,3,4" >
+valid_values="0,1,2,3,4,5,6" >
 Basal melt rate for floating ice
 0: Basal melt rate = 0 for floating ice
 1: Depth-dependent basal melt rate for floating ice as prescribed for MISMIP+
@@ -475,6 +534,32 @@ Basal melt rate for floating ice
 3: Depth-dependent basal melt rate for floating ice
 4: External basal melt rate field (from input file or coupler)
 5: [NOT SUPPORTED] Basal melt rate for floating ice from MISOMIP ocean forcing with plume model
+6: [NOT SUPPORTED] Basal melt rate for floating ice derived from ocean thermal forcing
+Default: 0
+</entry>
+
+<entry
+id="bmlt_float_thermal_forcing_param"
+type="integer"
+category="cism_config_options"
+group="cism_config_options"
+valid_values="0,1,2" >
+Parameterization on how to compute thermal forcing (TF)
+0: bmlt_float is a quadratic function of TF
+1: ISMIP6 local quadratic function with deltaT_basin correction
+2: ISMIP6 nonlocal quadratic function with deltaT_basin correction
+Default: 0
+</entry>
+
+<entry
+id="ocean_data_domain:"
+type="integer"
+category="cism_config_options"
+group="cism_config_options"
+valid_values="0,1,2" >
+Option to supply ocean data to CISM
+0: ocean data supplied for ocean domain only; extrapolation needed to sub-shelf cavities
+1: ocean data already extrapolated to potential shelf cavities
 Default: 0
 </entry>
 
@@ -693,6 +778,25 @@ valid_values="0,1" >
 Restart the model if set to 1. 
 This allows for exact restarts from previous initial conditions
 Default: 0 for startup or hybrid with CISM_OBSERVED_IC=TRUE, 1 for hybrid/branch with CISM_OBSERVED_IC=FALSE
+</entry>
+
+<entry
+id="adjust_input_thickness"
+type="logical"
+category="cism_config_options"
+group="cism_config_options"
+If initial thickness will be adjusted
+Default: .false.
+</entry>
+
+<entry
+id="adjust_input_topography"
+type="logical"
+category="cism_config_options"
+group="cism_config_options"
+If initial topography will be adjusted
+Only for glissade dycore (dycore==2)
+Default: .false.
 </entry>
 
 <!-- =============================================================  -->
@@ -1258,6 +1362,97 @@ Relies on having a warm_ocean_mask field on the input file.
 Default: 0.
 </entry>
 
+<entry
+id="bmlt_cavity_h0"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Amount to reduce bmlt_float in shallow cavities
+(If > 0 and bmlt_float != MISMIP option (1))
+Default: 0.
+</entry>
+
+<entry
+id="gamma0"
+type="real"
+category="cism_config_parameters"
+group="cism_config_parameters" >
+Coefficient for sub-shelf melt rates (m/yr)
+Only used for bmlt_float options local, nonlocal and slope (1,2,3)
+If not set, will use set parameter values set in CISM
+Default: 0.
+</entry>
+
+<entry
+id="adjust_topg_xmin"
+type="real"
+category="cism_config_options"
+group="cism_config_options"
+min x value (m) of the region with adjusted topography
+(only used if adjust_input_topography=T)
+Default: 0.0
+</entry>
+
+<entry
+id="adjust_topg_xmax"
+type="real"
+category="cism_config_options"
+group="cism_config_options"
+max x value (m) of the region with adjusted topography
+(only used if adjust_input_topography=T)
+Default: 0.0
+</entry>
+
+<entry
+id="adjust_topg_ymin"
+type="real"
+category="cism_config_options"
+group="cism_config_options"
+min y value (m) of the region with adjusted topography
+(only used if adjust_input_topography=T)
+Default: 0.0
+</entry>
+
+<entry
+id="adjust_topg_ymax"
+type="real"
+category="cism_config_options"
+group="cism_config_options"
+max y value (m) of the region with adjusted topography
+(only used if adjust_input_topography=T)
+Default: 0.0
+</entry>
+
+<entry
+id="adjust_topg_lo"
+type="real"
+category="cism_config_options"
+group="cism_config_options"
+lower threshold (m); adjust where topg > topg_lo
+(only used if adjust_input_topography=T)
+Default: 0.0
+</entry>
+
+<entry
+id="adjust_topg_hi"
+type="real"
+category="cism_config_options"
+group="cism_config_options"
+upper threshold (m); apply max adjustment topg_delta where topg > topg_hi
+(only used if adjust_input_topography=T)
+Default: 0.0
+</entry>
+
+<entry
+id="adjust_topg_delta"
+type="real"
+category="cism_config_options"
+group="cism_config_options"
+max adjustment, applied where topg > topg_hi
+(only used if adjust_input_topography=T)
+Default: 0.0
+</entry>
+
 <!-- =============================================================  -->
 <!-- group: cism.config: ho_options (higher-order options)          -->
 <!-- =============================================================  -->
@@ -1394,8 +1589,8 @@ group="cism_config_ho_options"
 valid_values="0,1" >
 Method for solving the nonlinear iteration when solving the first-order momentum balance
 0: use the standard Picard iteration
-1: use Jacobian Free Newton Krylov (JFNK) method [GLAM only]
-Default: 0
+1: use Picard iteration with acceleration 
+Default: 1 for dycore = 1, 0 for dycore = 2
 </entry>
 
 <entry
@@ -1530,11 +1725,62 @@ id="which_ho_ground_bmlt"
 type="integer"
 category="cism_config_ho_options"
 group="cism_config_ho_options"
-valid_values="0,1" >
+valid_values="0,1,2" >
 Flag that indicates how to compute bmlt_float in partly grounded cells
 0: Apply bmlt_float in all floating cells, including partly grounded cells
-1: Do not apply bmlt_float in partly grounded cells
+1: Weigh bmlt by floating fraction of cell if 0 < f_ground < 1
+2: Set bmlt_float = 0 in partly grounded cells (f_ground > 0)
 Default: 0
+</entry>
+
+<entry
+id="which_ho_cp_inversion"
+type="integer"
+category="cism_config_ho_options"
+group="cism_config_ho_options"
+valid_values="0,1,2" >
+basal inversion option
+Can only be non-zero for Schoof sliding law and basic power law (which_ho_babc 9 and 11)
+0: no inversion
+1: compute inversion for basal friction parameter Cp
+2: apply Cp from a previous inversion
+Default: 0
+</entry>
+
+<entry
+id="which_ho_bmlt_inversion"
+type="integer"
+category="cism_config_ho_options"
+group="cism_config_ho_options"
+valid_values="0,1,2" >
+basal melt float inversion option
+0: no inversion
+1: compute inversion for basin-based melting parameters
+2: apply basin-based melting parameters from a previous inversion
+Default: 0
+</entry>
+
+<entry
+id="which_ho_bmlt_basin_inversion"
+type="integer"
+category="cism_config_ho_options"
+group="cism_config_ho_options"
+valid_values="0,1,2" >
+basal melt float inversion basin option
+Only supported for thermal forcing option of Basal melt rate for floating ice (bmlt_float == 6)
+0: no inversion
+1: compute inversion for for basin-based melting parameters
+2: apply basin-based melting parameters from a previous inversion
+Default: 0
+</entry>
+
+<entry
+id="linear_solve_ncheck"
+type="integer"
+category="cism_config_ho_options"
+group="cism_config_ho_options"
+number of iterations between convergence checks in the linear solver
+Default: 5
 </entry>
 
 <entry
@@ -1542,7 +1788,7 @@ id="which_ho_flotation_function"
 type="integer"
 category="cism_config_ho_options"
 group="cism_config_ho_options"
-valid_values="0,1,2" >
+valid_values="0,1,2,3" >
 Flag that indicates how to compute the flotation function at and near vertices in the Glissade dycore
 Not valid for other dycores
 Only applicable for which_ho_ground=1

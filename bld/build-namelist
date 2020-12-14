@@ -172,8 +172,8 @@ print $fh  <<"EOF";
 EOF
 $fh->close;
 if ($print>=2) { print "Wrote file $config_cache $eol"; }
-(-f "config_cache.xml")  or  die <<"EOF";
-** $ProgName - Cannot find configuration cache file: config_cache.xml\" **
+(-f "$config_cache")  or  die <<"EOF";
+** $ProgName - Cannot find configuration cache file:  $config_cache\" **
 EOF
 
 #-----------------------------------------------------------------------------------------------
@@ -244,7 +244,7 @@ require Config::SetupTools;
 #-----------------------------------------------------------------------------------------------
 # Create a configuration object from the CISM config_cache.xml file-  created by 
 # cism.cpl7.template in $CASEROOT/Buildconf/cismconf
-my $cfg = Build::Config->new('config_cache.xml');
+my $cfg = Build::Config->new($config_cache);
 
 # Create a namelist definition object.  This object provides a method for verifying that the
 # output namelist variables are in the definition file, and are output in the correct
@@ -530,6 +530,12 @@ add_default($nl, 'dew');
 add_default($nl, 'dns');
 add_default($nl, 'global_bc');
 $nl->write_cism_config($fh, "cism_config_grid");
+
+print $fh "\n[grid_ocn]\n";
+add_default($nl, 'nzocn');
+add_default($nl, 'zocn',  'nzocn'=>$nl->get_value('nzocn'));
+add_default($nl, 'dzocn', 'nzocn'=>$nl->get_value('nzocn'));
+$nl->write_cism_config($fh, "cism_config_grid_ocn");
 
 print $fh "\n[GLAD climate]\n";
 add_default($nl, 'evolve_ice',
@@ -1036,6 +1042,222 @@ sub check_consistency {
           print "that depends on whether these fluxes will be zero - particularly, the creation\n";
           print "of icemask_coupled_fluxes used by CLM).\n";
           $num_errors += 1;
+       }
+    }
+
+# ----------------------------------------------------------------------
+# Requirements for ocean levels
+# ----------------------------------------------------------------------
+
+    my $nzocn = $nl->get_value('nzocn');
+    if ($nzocn > 1) {
+      my $var;
+      my $dzocn = $nl->get_value('dzocn');
+      if ( $dzocn eq "0.0" ) {
+         $var = "zocn";
+      } else {
+         $var = "dzocn";
+      }
+      my @values = split( /,/, $nl->get_value($var) );
+      if ( $#values+1 != $nzocn ) {
+	 print "$ProgName: ERROR: If nzocn is set to more than 1 either zocn or nzocn MUST be set to an array of that size";
+	 $num_errors += 1;
+      }
+      if ( $var eq "dzocn" ) {
+         my @values = split( /,/, $nl->get_value("zocn") );
+         if ( $#values+1 == $nzocn ) {
+	    print "$ProgName: ERROR: If nzocn is set, and dzocn is also set, then zocn should NOT be set";
+	    $num_errors += 1;
+         }
+      }
+      if ( $var eq "zocn" ) {
+         my @values = split( /,/, $nl->get_value("zocn") );
+         my $prev = 0.0;
+         foreach my $val ( @values ) {
+            if ( $val >= $prev ) {
+	       print "$ProgName: ERROR: If zocn is set it must be monotone decreasing";
+	       $num_errors += 1;
+            }
+            $prev = $val;
+         }
+      }
+    }
+# ----------------------------------------------------------------------
+# Requirements for use of trilinos solver
+# ----------------------------------------------------------------------
+
+    if ($nl->get_value('which_ho_sparse') == 4) {
+	if ($xmlvars->{'CISM_USE_TRILINOS'} eq 'FALSE') {
+	    print "$ProgName: ERROR: Use of the trilinos solver (which_ho_sparse=4) requires building with trilinos (CISM_USE_TRILINOS=TRUE)\n";
+	    $num_errors += 1;
+	}
+
+	if ($nl->get_value('dycore') == 0) {
+	    print "$ProgName: ERROR: Can't use trilinos solver (which_ho_sparse=4) with glide dycore (dycore=0)\n";
+	    $num_errors += 1;
+	}
+    }
+
+# ----------------------------------------------------------------------
+# Requirements for running with more than one MPI task per ensemble member
+# ----------------------------------------------------------------------
+    my $NTASKS_PER_INST_GLC = `$CASEROOT/xmlquery NTASKS_PER_INST --subgroup GLC --value --caseroot $CASEROOT`;
+
+    if ($NTASKS_PER_INST_GLC > 1) {
+	if ($nl->get_value('dycore') == 0) {
+	    print "$ProgName: ERROR: With dycore=0 (glide dycore), can only have 1 GLC task per instance\n";
+	    print "NTASKS_PER_INST_GLC = " . $NTASKS_PER_INST_GLC . "\n";
+	    $num_errors += 1;
+	}
+
+	if ($nl->get_value('dycore') == 1 && $nl->get_value('which_ho_sparse') != 4) {
+	    print "$ProgName: ERROR: To run with more than 1 GLC task per instance, with dycore=1, must use trilinos solver (which_ho_sparse=4)\n";
+	    print "NTASKS_PER_INST_GLC = " . $NTASKS_PER_INST_GLC . "\n";
+	    print "which_ho_sparse = " . $nl->get_value('which_ho_sparse') . "\n";
+	    $num_errors += 1;
+	}
+    }
+
+# ----------------------------------------------------------------------
+# Requirements for compute_blocks option
+# ----------------------------------------------------------------------
+    my $compute_blocks = $nl->get_value('compute_blocks');
+    my $nx_block = $nl->get_value('nx_block');
+    my $ny_block = $nl->get_value('ny_block');
+    if ( ! defined($compute_blocks) ) {
+       if ( defined($nx_block) || defined($ny_block) ) {
+          print( "nx_block or ny_block should NOT be set if compute_blocks is non-zero\n" );
+	  $num_errors += 1;
+       }
+    } elsif ( $compute_blocks == 0 ) {
+       if ( defined($nx_block) || defined($ny_block) ) {
+          print( "nx_block or ny_block should NOT be set if compute_blocks is non-zero\n" );
+	  $num_errors += 1;
+       }
+    } else {
+       if ( ! defined($nx_block) || ! defined($ny_block) ) {
+          print( "nx_block or ny_block is required if compute_blocks is non-zero\n" );
+	  $num_errors += 1;
+       }
+       if ( ($nx_block < 1) && ($ny_block < 1) ) {
+          print( "nx_block and ny_block must be greater than zero\n" );
+	  $num_errors += 1;
+       }
+    }
+# ----------------------------------------------------------------------
+# Requirements for adjust_input_topography option
+# ----------------------------------------------------------------------
+    my $adjust_input_topography = $nl->get_value('adjust_input_topography');
+    my @adjust_opts = ( "adjust_topg_xmin", "adjust_topg_xmax", "adjust_topg_ymin", "adjust_topg_ymax", "adjust_topg_lo",
+                        "adjust_topg_hi", "adjust_topg_delta" );
+    if ( ! defined($adjust_input_topography) ) {
+       foreach my $item ( @adjust_opts ) {
+          if ( defined($nl->get_value($item) ) ) {
+             print( "$item can NOT be set, unless adjust_input_topography is true\n" );
+	     $num_errors += 1;
+          }
+       }
+    } elsif ( $adjust_input_topography =~ $TRUE ) {
+       if ( $nl->get_value('dycore') != 2 ) {
+          print( "adjust_input_topography can only be set to true for the Glissade dycore\n" );
+	  $num_errors += 1;
+       }
+       foreach my $item ( @adjust_opts ) {
+          my $value = $nl->get_value($item);
+          if ( defined($value) ) {
+             if ( $value < 0.0 ) {
+                print( "$item must be greater than zero\n" );
+	        $num_errors += 1;
+             }
+          }
+       }
+    } elsif ( $adjust_input_topography =~ $FALSE ) {
+       foreach my $item ( @adjust_opts ) {
+          if ( defined($nl->get_value($item) )) {
+             print( "$item can NOT be set, unless adjust_input_topography is true\n" );
+	     $num_errors += 1;
+          }
+       }
+    } else {
+       print( "adjust_input_topography not set to a .true. or .false. value\n" );
+       $num_errors += 1;
+    }
+
+# ----------------------------------------------------------------------
+# Requirements for bmlt_cavity_h0 option
+# ----------------------------------------------------------------------
+    my $bmlt_cavity_h0 = $nl->get_value('bmlt_cavity_h0');
+    my $bmlt_float     = $nl->get_value('bmlt_float');
+
+    if ( defined($bmlt_cavity_h0) ) {
+       if ( ! defined($bmlt_float) ) {
+          print( "When bmlt_cavity_h0 is set, bmlt_float must be MISMIP option (1)\n" );
+          $num_errors += 1;
+       } elsif ( $bmlt_float != 1 ) {
+          print( "When bmlt_cavity_h0 is set, bmlt_float must be MISMIP option (1)\n" );
+          $num_errors += 1;
+       } else {
+          if ( $bmlt_cavity_h0 < 0.0 ) {
+             print( "bmlt_cavity_h0 must be positive\n" );
+             $num_errors += 1;
+          }
+       }
+    }
+
+# ----------------------------------------------------------------------
+# Requirements for gamma0 parameter
+# ----------------------------------------------------------------------
+    my $gamma0     = $nl->get_value('gamma0');
+    my $bmlt_float = $nl->get_value('bmlt_float');
+
+    if ( defined($gamma0) ) {
+       if ( ! defined($bmlt_float) ) {
+          print( "When gamma0 is set, bmlt_float must be local, nonlocal or slope option (1,2,3)\n" );
+          $num_errors += 1;
+       } elsif ( ($bmlt_float < 1) || ($bmlt_float > 3) ) {
+          print( "When gamma0 is set, bmlt_float must be local, nonlocal or slope option (1,2,3)\n" );
+          $num_errors += 1;
+       } else {
+          if ( $gamma0 < 0.0 ) {
+             print( "gamma0 must be positive\n" );
+             $num_errors += 1;
+          }
+       }
+    }
+
+# ----------------------------------------------------------------------
+# Requirements for which_ho_cp_inversion option
+# ----------------------------------------------------------------------
+    my $which_ho_cp_inversion = $nl->get_value('which_ho_cp_inversion');
+    my $which_ho_babc         = $nl->get_value('which_ho_babc');
+
+    if ( defined($which_ho_cp_inversion) ) {
+       if ( ! defined($which_ho_babc) ) {
+          print( "When which_ho_cp_inversion is set, which_ho_babc must be Schoof sliding law and basic power law option (9 or 11)\n" );
+          $num_errors += 1;
+       } else {
+          if ( ($which_ho_cp_inversion > 0) && ($which_ho_babc != 9) && ($which_ho_babc != 11) ) {
+             print( "When which_ho_cp_inversion is set to non-zero, which_ho_babc must be Schoof sliding law and basic power law option (9 or 11)\n" );
+             $num_errors += 1;
+          }
+       }
+    }
+
+# ----------------------------------------------------------------------
+# Requirements for which_ho_bmlt_basin_inversion option
+# ----------------------------------------------------------------------
+    my $which_ho_bmlt_basin_inversion = $nl->get_value('which_ho_bmlt_basin_inversion');
+    my $bmlt_float                    = $nl->get_value('bmlt_float');
+
+    if ( defined($which_ho_bmlt_basin_inversion) ) {
+       if ( ! defined($bmlt_float) ) {
+          print( "When which_ho_bmlt_basin_inversion is set, bmlt_float must be thermal forcing (6)\n" );
+          $num_errors += 1;
+       } else {
+          if ( ($which_ho_bmlt_basin_inversion > 0) && ($bmlt_float != 6) ) {
+             print( "When which_ho_bmlt_basin_inversion is set to non-zero, bmlt_float must be thermal forcing (6)\n" );
+             $num_errors += 1;
+          }
        }
     }
 
