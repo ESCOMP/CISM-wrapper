@@ -29,7 +29,11 @@ module glc_fields
 !----------------------------------------------------------------------
 
   ! Fields received from CESM coupler
-  
+
+  real(r8),dimension(:,:,:), allocatable ::  & 
+     salinity    ,&! ocean salinity at multiple levels 
+     tocn          ! ocean temperature at multiple levels
+
   real(r8),dimension(:,:), allocatable ::  & 
      tsfc        ,&! surface temperature (Celsius)
                    ! received from coupler in Kelvin, must be converted
@@ -62,7 +66,7 @@ module glc_fields
 ! !IROUTINE: glc_allocate_fields
 ! !INTERFACE:
 
- subroutine glc_allocate_fields (nx, ny)
+ subroutine glc_allocate_fields (nx, ny, num_ocnlevs)
 
 ! !DESCRIPTION:
 !  Allocate fields declared here
@@ -80,12 +84,20 @@ module glc_fields
 ! !INPUT/OUTPUT PARAMETERS:
 
    integer (i4), intent(in) :: &
-        nx, ny           ! grid dimensions
+        nx, ny     ! grid dimensions
+   integer (i4), optional, intent(in) :: num_ocnlevs
 
 !EOP
 !BOC
 
    ! from coupler
+   if (present(num_ocnlevs)) then
+      allocate(tocn(num_ocnlevs,nx,ny))     ; tocn(:,:,:) = 0._r8 
+      allocate(salinity(num_ocnlevs,nx,ny)) ; salinity(:,:,:) = 0._r8 
+   else
+      allocate(tocn(1,nx,ny))     ; tocn(:,:,:) = 0._r8 
+      allocate(salinity(1,nx,ny)) ; salinity(:,:,:) = 0._r8 
+   end if
    allocate(tsfc(nx,ny))
    allocate(qsmb(nx,ny))
 
@@ -126,6 +138,8 @@ module glc_fields
 !BOC
 
    ! from coupler
+   deallocate(tocn)
+   deallocate(salinity)
    deallocate(tsfc)
    deallocate(qsmb)
 

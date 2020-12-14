@@ -18,6 +18,7 @@ module glc_comp_nuopc
   use shr_sys_mod         , only : shr_sys_abort
   use shr_cal_mod         , only : shr_cal_ymd2date
   use shr_kind_mod        , only : r8 => shr_kind_r8, cl=>shr_kind_cl, cs=>shr_kind_cs
+  use shr_string_mod      , only : shr_string_listGetNum, shr_string_listGetName
   use glc_import_export   , only : advertise_fields, realize_fields, export_fields, import_fields
   use glc_constants       , only : verbose, stdout, model_doi_url
   use glc_InitMod         , only : glc_initialize
@@ -55,6 +56,9 @@ module glc_comp_nuopc
 
   logical                    :: cism_evolve
   integer                    :: lmpicom
+  logical                    :: ocn2glc_coupling
+  integer                    :: num_ocnlevs
+  integer, allocatable       :: ocn2glc_levels(:) ! currently (/1, 10, 19, 26, 30, 33, 35/)
   character(len=16)          :: inst_name ! full name of current instance (e.g., GLC_0001)
   integer, parameter         :: dbug = 1
   character(len=*),parameter :: modName =  "(glc_comp_nuopc)"
@@ -147,16 +151,17 @@ contains
     integer, intent(out) :: rc
 
     ! local variables
-    type(ESMF_VM)          :: vm
-    character(ESMF_MAXSTR) :: cvalue
-    logical                :: isPresent, isSet
-    integer                :: localpet
-    integer                :: shrlogunit  ! original log unit
-    integer                :: i,j,n
-    character(len=CL)      :: logmsg
-    integer                :: inst_index    ! number of current instance (e.g., 1)
-    character(len=16)      :: inst_suffix   ! character string associated with instance number
-    logical                :: glc_coupled_fluxes ! are we sending fluxes to other components?
+    type(ESMF_VM)               :: vm
+    character(len=CL)           :: cvalue
+    character(len=CS)           :: cname
+    logical                     :: isPresent, isSet
+    integer                     :: localpet
+    integer                     :: shrlogunit  ! original log unit
+    integer                     :: i,j,n
+    character(len=CL)           :: logmsg
+    integer                     :: inst_index    ! number of current instance (e.g., 1)
+    character(len=16)           :: inst_suffix   ! character string associated with instance number
+    logical                     :: glc_coupled_fluxes ! are we sending fluxes to other components?
     character(len=*), parameter :: subname=trim(modName)//':(InitializeAdvertise) '
     character(len=*), parameter :: format = "('("//trim(subname)//") :',A)"
     !-------------------------------------------------------------------------------
@@ -190,18 +195,41 @@ contains
     call set_filenames()
 
     ! Determine if cism will evolve - if not will not import any fields from the mediator
-    call NUOPC_CompAttributeGet(gcomp, name="cism_evolve", value=cvalue, isPresent=isPresent, isSet=isSet, rc=rc)
+    call NUOPC_CompAttributeGet(gcomp, name="cism_evolve", value=cvalue, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    if (isPresent .and. isSet) then
-       read(cvalue,*) cism_evolve
-       call ESMF_LogWrite(trim(subname)//' cism_evolve = '//trim(cvalue), ESMF_LOGMSG_INFO)
-       if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    else
-       call shr_sys_abort(subname//'Need to set cism_evolve')
+    read(cvalue,*) cism_evolve
+    if (my_task == master_task) then
+       write(stdout,'(a)')  trim(subname)//' cism_evolve = '//trim(cvalue)
     endif
 
+    ! Determine if ocn is sending temperature and salinity data to glc
+    call NUOPC_CompAttributeGet(gcomp, name="ocn2glc_coupling", value=cvalue, rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    read(cvalue,*) ocn2glc_coupling
+    if (my_task == master_task) then
+       write(stdout,'(a,l)') trim(subname) // 'ocn2glc coupling is ',ocn2glc_coupling
+    end if
+
+    ! Determine number of ocnea levels and ocean level indices
+    ! TODO: currently ocnlevs(:) is not used - but should used instead of hard-coding the
+    ! levels inside cism
+    if (ocn2glc_coupling) then
+       call NUOPC_CompAttributeGet(gcomp, name="ocn2glc_levels", value=cvalue, rc=rc)
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
+       num_ocnlevs = shr_string_listGetNum(cvalue)
+       allocate(ocn2glc_levels(num_ocnlevs))
+       do n = 1,num_ocnlevs
+          call shr_string_listGetName(cvalue, n, cname, rc)
+          read(cname,*) ocn2glc_levels(n)
+       end do
+       if (my_task == master_task) then
+          write(stdout,'(a,i0)') trim(subname)//' number of ocean levels sent to glc = ',num_ocnlevs
+          write(stdout,*)' ',trim(subname)//' ocean level indices are ',ocn2glc_levels
+       end if
+    end if
+
     ! Advertise fields
-    call advertise_fields(gcomp, cism_evolve, rc)
+    call advertise_fields(gcomp, cism_evolve, ocn2glc_coupling, num_ocnlevs, rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     if (dbug > 5) then
@@ -326,7 +354,7 @@ contains
     end if
 
     ! Initialize GLC
-    call glc_initialize(clock)
+    call glc_initialize(clock, num_ocnlevs=num_ocnlevs)
     if (my_task == master_task) then
        write(stdout,F01) ' GLC Initial Date ',iyear,imonth,iday,ihour,iminute,isecond
        write(stdout,F00) ' Initialize Done'
@@ -511,7 +539,7 @@ contains
     ! Unpack import state
     !--------------------------------
 
-    call import_fields(rc)
+    call import_fields(ocn2glc_coupling, rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     !--------------------------------

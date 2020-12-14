@@ -141,10 +141,11 @@
          ! around the call to glc_run
          instance_index = 1
          
-         call glad_gcm (params = ice_sheet, &
+         call glad_gcm( params = ice_sheet,                            &
                         instance_index = instance_index,               &
                         time = nint(thour),                            &
                         qsmb = qsmb, tsfc = tsfc,                      &
+                        salinity = salinity, tocn = tocn,              &        
                         ice_covered = ice_covered, topo = topo,        &
                         rofi = rofi, rofl = rofl, hflx = hflx,         &
                         ice_sheet_grid_mask=ice_sheet_grid_mask,       &

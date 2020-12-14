@@ -59,7 +59,7 @@
 ! !IROUTINE: glc_initialize
 ! !INTERFACE:
 
- subroutine glc_initialize(EClock)
+ subroutine glc_initialize(EClock, num_ocnlevs)
 
 ! !DESCRIPTION:
 !  This routine is the initialization driver that initializes a glc run 
@@ -93,7 +93,8 @@
 
 ! !INPUT/OUTPUT PARAMETERS:
 
-   type(ESMF_Clock),     intent(in)    :: EClock
+   type(ESMF_Clock) , intent(in) :: EClock
+   integer, optional, intent(in) :: num_ocnlevs
 
 !EOP
 !BOC
@@ -309,7 +310,7 @@
 
   call glc_indexing_init(ice_sheet, instance_index = 1)
   
-  call glc_allocate_fields(nx, ny)
+  call glc_allocate_fields(nx, ny, num_ocnlevs=num_ocnlevs)
 
   tsfc(:,:) = 0._r8
   qsmb(:,:) = 0._r8
