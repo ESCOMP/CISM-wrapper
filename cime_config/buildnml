@@ -193,33 +193,18 @@ def _create_namelist(case, confdir, inst_string, infile, nmlgen, data_list_path)
     _update_cism_config(nmlgen, output_file, mode="w", header="grid", group="grid")
     _update_cism_config(nmlgen, output_file, mode="a", header="GLAD climate", group="glad_climate")
     _update_cism_config(nmlgen, output_file, mode="a", header="options", group="options")
-    if int(nmlgen.get_value("sigma")) == _SIGMA_IN_CONFIG_FILE:
-        _update_cism_config(nmlgen, output_file, mode="a", header="sigma", group="sigma",
-                            add_defaults_for_group=True)
-    else:
-        nmlgen.confirm_group_is_empty(
-            "sigma",
-            "items in sigma section can only be set if sigma is set to {}".format(
-                _SIGMA_IN_CONFIG_FILE))
+    _add_conditional_section_to_cism_config(nmlgen, output_file, group="sigma",
+                                            control_var="sigma",
+                                            value_for_addition=_SIGMA_IN_CONFIG_FILE)
     _update_cism_config(nmlgen, output_file, mode="a", header="time", group="time")
     _update_cism_config(nmlgen, output_file, mode="a", header="parameters", group="parameters")
     _update_cism_config(nmlgen, output_file, mode="a", header="ho_options", group="ho_options")
-    if int(nmlgen.get_value("gthf")) == _GTHF_CALCULATE:
-        _update_cism_config(nmlgen, output_file, mode="a", header="gthf", group="gthf",
-                            add_defaults_for_group=True)
-    else:
-        nmlgen.confirm_group_is_empty(
-            "gthf",
-            "items in gthf section can only be set if gthf is set to {}".format(
-                _GTHF_CALCULATE))
-    if int(nmlgen.get_value("isostasy")) == _ISOSTASY_ON:
-        _update_cism_config(nmlgen, output_file, mode="a", header="isostasy", group="isostasy",
-                            add_defaults_for_group=True)
-    else:
-        nmlgen.confirm_group_is_empty(
-            "isostasy",
-            "items in isostasy section can only be set if isostasy is set to {}".format(
-                _ISOSTASY_ON))
+    _add_conditional_section_to_cism_config(nmlgen, output_file, group="gthf",
+                                            control_var="gthf",
+                                            value_for_addition=_GTHF_CALCULATE)
+    _add_conditional_section_to_cism_config(nmlgen, output_file, group="isostasy",
+                                            control_var="isostasy",
+                                            value_for_addition=_ISOSTASY_ON)
 
     final_text = _final_template.format(filename=nmlgen.get_value('cisminputfile'))
     with open(output_file, "a") as file_obj:
@@ -240,14 +225,33 @@ cover in CLM.)"""
         expect(False, "CISM currently only supports a NO_LEAP calendar")
 
 ###############################################################################
-def _update_cism_config(nmlgen, output_file, mode, header, group, add_defaults_for_group=False):
+def _update_cism_config(nmlgen, output_file, mode, header, group):
 ###############################################################################
     """Append an entry to the cism.config file"""
-    if add_defaults_for_group:
-        nmlgen.add_defaults_for_group(group)
     with open(output_file, mode) as file_obj:
         file_obj.write("[{}]\n".format(header))
     nmlgen.add_nmlcontents(output_file, group=group, sorted_groups=False)
+
+###############################################################################
+def _add_conditional_section_to_cism_config(nmlgen, output_file, group,
+                                            control_var, value_for_addition):
+    """Add a section to the cism.config file conditionally
+
+    Args:
+    nmlgen: the nmlgen object
+    output_file: path to output file
+    group: name of group to add conditionally; assumed to be the same as the header for
+           the section
+    control_var: name of variable in nmlgen that controls whether to add this section
+    value_for_addition: int - add the section if control_var is equal to this value
+    """
+    if int(nmlgen.get_value(control_var)) == value_for_addition:
+        nmlgen.add_defaults_for_group(group)
+        _update_cism_config(nmlgen, output_file, mode="a", header=group, group=group)
+    else:
+        errmsg = "items in {} section can only be set if {} is set to {}".format(
+            group, control_var, value_for_addition)
+        nmlgen.confirm_group_is_empty(group, errmsg)
 
 ###############################################################################
 def buildnml(case, caseroot, compname):
