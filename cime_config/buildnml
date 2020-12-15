@@ -149,22 +149,9 @@ def _create_namelist(case, confdir, inst_string, infile, nmlgen, data_list_path)
     nmlgen.add_default("iminute0", value=0)
     nmlgen.add_default("isecond0", value=0)
 
-    # Note that this gives the dt values in cism_in - NOT the values in cism.config.
-    # This assumes that we want one timestep per coupling interval.
-    ncpl_base_period = config['ncpl_base_period']
-    glc_ncpl = case.get_value("GLC_NCPL")
-    if ncpl_base_period == 'hour':
-        if 3600 % glc_ncpl != 0:
-            expect(False, "glc_ncpl {} doesn't divide an hour evenly".format(glc_ncpl))
-        else:
-            dt_count = 3600 / glc_ncpl
-    elif ncpl_base_period == 'day' or ncpl_base_period == 'year':
-        dt_count = glc_ncpl
-    elif ncpl_base_period == 'decade':
-        dt_count = glc_ncpl / 10
-    else:
-        expect(False, "invalid NCPL_BASE_PERIOD {}".format(ncpl_base_period))
-    nmlgen.add_default("dt_count", value=dt_count)
+    _set_glc_dt(nmlgen,
+                ncpl_base_period=config["ncpl_base_period"],
+                glc_ncpl=case.get_value("GLC_NCPL"))
 
     #----------------------------------------------------
     # cism_in: Set values for sections that are added conditionally and write file
@@ -218,6 +205,32 @@ Besides not getting CISM diagnostics, this will just result in slightly differen
 cover in CLM.)"""
         print(errmsg)
         expect(False, "CISM currently only supports a NO_LEAP calendar")
+
+###############################################################################
+def _set_glc_dt(nmlgen, ncpl_base_period, glc_ncpl):
+    """
+    Sets dt-related values in cism_in (NOT the values in cism.config)
+    """
+    # The logic here assumes that we want one timestep per coupling interval
+    if ncpl_base_period == 'hour':
+        if 3600 % glc_ncpl != 0:
+            expect(False, "glc_ncpl {} doesn't divide an hour evenly".format(glc_ncpl))
+        dt_option = "seconds"
+        dt_count = 3600 / glc_ncpl
+    elif ncpl_base_period == 'day':
+        dt_option = "steps_per_day"
+        dt_count = glc_ncpl
+    elif ncpl_base_period == 'year':
+        dt_option = "steps_per_year"
+        dt_count = glc_ncpl
+    elif ncpl_base_period == 'decade':
+        dt_option = "steps_per_year"
+        dt_count = glc_ncpl / 10
+    else:
+        expect(False, "invalid NCPL_BASE_PERIOD {}".format(ncpl_base_period))
+
+    nmlgen.add_default("dt_option", value=dt_option)
+    nmlgen.add_default("dt_count", value=dt_count)
 
 ###############################################################################
 def _update_cism_config(nmlgen, output_file, mode, header, group):

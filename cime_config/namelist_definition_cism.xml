@@ -185,17 +185,11 @@
     </desc>
   </entry>
 
-  <entry id="dt_option">
+  <entry id="dt_option" skip_default_entry="true">
     <type>char</type>
     <category>time</category>
     <group>time_manager_nml</group>
     <valid_values>steps_per_year,steps_per_day,seconds,hours</valid_values>
-    <values>
-      <value ncpl_base_period="hour">seconds</value>
-      <value ncpl_base_period="day">steps_per_day</value>
-      <value ncpl_base_period="year">steps_per_year</value>
-      <value ncpl_base_period="decade">steps_per_year</value>
-    </values>
     <desc>
       GLC time-step units
       This generally should not be changed
