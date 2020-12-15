@@ -69,9 +69,16 @@ def _create_namelist(case, confdir, inst_string, infile, nmlgen, data_list_path)
     config['ncpl_base_period'] = case.get_value("NCPL_BASE_PERIOD")
     config['calendar'] = case.get_value("CALENDAR")
 
-    run_type = case.get_value("RUN_TYPE")
     cism_observed_ic = case.get_value("CISM_OBSERVED_IC")
     comp_interface = case.get_value("COMP_INTERFACE")
+
+    run_type = case.get_value("RUN_TYPE")
+    # NOTE: with the nuopc interface, the CISM run phase is never called when running
+    # in noevolve mode, so a restart file will never be written for cism - only initial
+    # information will be sent back to CTSM.
+    if (comp_interface == 'nuopc' and config['cism_evolve'] == 'FALSE'):
+        logger.info("Interface is nuopc, cism is not evolving: CISM run_type is always startup")
+        run_type = "startup"
 
     #----------------------------------------------------
     # Initialize namelist defaults
@@ -86,68 +93,16 @@ def _create_namelist(case, confdir, inst_string, infile, nmlgen, data_list_path)
     # Set values not obtained in the default settings
     #----------------------------------------------------
 
-    # NOTE: with the nuopc interface, the CISM run phase is never called when running
-    # in noevolve mode, so a restart file will never be written for cism - only initial
-    # information will be sent back to CTSM.
-    if (comp_interface == 'nuopc' and config['cism_evolve'] == 'FALSE'):
-        logger.info("Interface is nuopc, cism is not evolving: CISM run_type is always startup")
-        run_type = "startup"
-
     nmlgen.add_default("paramfile", value="cism.config"+inst_string, ignore_abs_path=True)
 
-    if run_type == 'startup':
-        nmlgen.add_default('restart',value=0)
-    elif cism_observed_ic == 'TRUE':
-        if run_type == 'branch':
-            expect(False,"CISM_OBSERVED_IC=TRUE not allowed for branch runs - only for hybrid runs")
-        else:
-            nmlgen.add_default('restart', value=0)
-    elif run_type == 'hybrid' and config['cism_evolve'] == 'FALSE':
-        # We could use the hybrid refcase's CISM restart file in this case. However, we
-        # often run into problems where a change in CISM makes it incompatible with old
-        # restart files, and this breaks configurations that are set up as hybrid runs
-        # (typically B and F compsets). Those hybrid cases typically use NOEVOLVE (i.e.,
-        # CISM_EVOLVE=FALSE), where the restart file really doesn't matter. So, rather
-        # than requiring ourselves to recreate all of those refcases whenever we break
-        # compatibility with old restart files, an easier-to-maintain solution is to just
-        # use observed initial conditions rather than the restart file whenever we're
-        # running a hybrid case with CISM_EVOLVE=FALSE.
-        #
-        # One theoretical problem with this is: If someone did a run with
-        # CISM_EVOLVE=TRUE, then did a hybrid case off of that with CISM_EVOLVE=FALSE,
-        # hoping that this would keep the ice sheet fixed at the previously-spun-up state,
-        # they wouldn't get what they want: instead the ice sheet would be reset to
-        # observed initial conditions. Thus, the user would need to explicitly set
-        # 'cisminputfile' and 'restart' in this case.
-        nmlgen.add_default('restart', value=0)
-    elif run_type == 'branch' or run_type == 'hybrid':
-        run_refcase = case.get_value('RUN_REFCASE')
-        run_refdate = case.get_value('RUN_REFDATE')
-        rundir = case.get_value('RUNDIR')
-        filename = "{refcase}.cism{inst_string}.r.{refdate}-00000.nc".format(
-            refcase=run_refcase, inst_string=inst_string, refdate=run_refdate)
-        if not os.path.exists(os.path.join(rundir, filename)):
-            # If the version with INST_STRING doesn't exist, try without INST_STRING. This
-            # is needed when starting a multi-instance case from a single-instance
-            # refcase.
-            filename = "{refcase}.cism.r.{refdate}-00000.nc".format(
-                refcase=run_refcase, refdate=run_refdate)
+    _set_restart_options(nmlgen, case,
+                         run_type=run_type,
+                         cism_observed_ic=cism_observed_ic,
+                         cism_evolve=config['cism_evolve'],
+                         inst_string=inst_string)
 
-        nmlgen.add_default('cisminputfile', filename, ignore_abs_path=True)
-        nmlgen.add_default('restart', value=1)
-    else:
-        expect(False, "Unknown RUN_TYPE: {} ".format(run_type))
-
-    startdate = case.get_value("RUN_STARTDATE")
-    if run_type == 'branch':
-        startdate = case.get_value("RUN_REFDATE")
-    date_array = startdate.split('-')
-    nmlgen.add_default("iyear0"  , value=int(date_array[0]))
-    nmlgen.add_default("imonth0" , value=int(date_array[1]))
-    nmlgen.add_default("iday0"   , value=int(date_array[2]))
-    nmlgen.add_default("ihour0"  , value=0)
-    nmlgen.add_default("iminute0", value=0)
-    nmlgen.add_default("isecond0", value=0)
+    _set_startdate(nmlgen, case,
+                   run_type=run_type)
 
     _set_glc_dt(nmlgen,
                 ncpl_base_period=config["ncpl_base_period"],
@@ -207,9 +162,77 @@ cover in CLM.)"""
         expect(False, "CISM currently only supports a NO_LEAP calendar")
 
 ###############################################################################
-def _set_glc_dt(nmlgen, ncpl_base_period, glc_ncpl):
+def _set_restart_options(nmlgen, case, run_type, cism_observed_ic, cism_evolve, inst_string):
+###############################################################################
     """
-    Sets dt-related values in cism_in (NOT the values in cism.config)
+    Sets defaults for variables related to restart in cism_in
+    """
+    if run_type == 'startup':
+        nmlgen.add_default('restart',value=0)
+    elif cism_observed_ic == 'TRUE':
+        if run_type == 'branch':
+            expect(False,"CISM_OBSERVED_IC=TRUE not allowed for branch runs - only for hybrid runs")
+        else:
+            nmlgen.add_default('restart', value=0)
+    elif run_type == 'hybrid' and cism_evolve == 'FALSE':
+        # We could use the hybrid refcase's CISM restart file in this case. However, we
+        # often run into problems where a change in CISM makes it incompatible with old
+        # restart files, and this breaks configurations that are set up as hybrid runs
+        # (typically B and F compsets). Those hybrid cases typically use NOEVOLVE (i.e.,
+        # CISM_EVOLVE=FALSE), where the restart file really doesn't matter. So, rather
+        # than requiring ourselves to recreate all of those refcases whenever we break
+        # compatibility with old restart files, an easier-to-maintain solution is to just
+        # use observed initial conditions rather than the restart file whenever we're
+        # running a hybrid case with CISM_EVOLVE=FALSE.
+        #
+        # One theoretical problem with this is: If someone did a run with
+        # CISM_EVOLVE=TRUE, then did a hybrid case off of that with CISM_EVOLVE=FALSE,
+        # hoping that this would keep the ice sheet fixed at the previously-spun-up state,
+        # they wouldn't get what they want: instead the ice sheet would be reset to
+        # observed initial conditions. Thus, the user would need to explicitly set
+        # 'cisminputfile' and 'restart' in this case.
+        nmlgen.add_default('restart', value=0)
+    elif run_type == 'branch' or run_type == 'hybrid':
+        run_refcase = case.get_value('RUN_REFCASE')
+        run_refdate = case.get_value('RUN_REFDATE')
+        rundir = case.get_value('RUNDIR')
+        filename = "{refcase}.cism{inst_string}.r.{refdate}-00000.nc".format(
+            refcase=run_refcase, inst_string=inst_string, refdate=run_refdate)
+        if not os.path.exists(os.path.join(rundir, filename)):
+            # If the version with INST_STRING doesn't exist, try without INST_STRING. This
+            # is needed when starting a multi-instance case from a single-instance
+            # refcase.
+            filename = "{refcase}.cism.r.{refdate}-00000.nc".format(
+                refcase=run_refcase, refdate=run_refdate)
+
+        nmlgen.add_default('cisminputfile', filename, ignore_abs_path=True)
+        nmlgen.add_default('restart', value=1)
+    else:
+        expect(False, "Unknown RUN_TYPE: {} ".format(run_type))
+
+###############################################################################
+def _set_startdate(nmlgen, case, run_type):
+###############################################################################
+    """
+    Sets defaults for variables related to start date & time in cism_in
+    """
+    if run_type == 'branch':
+        startdate = case.get_value("RUN_REFDATE")
+    else:
+        startdate = case.get_value("RUN_STARTDATE")
+    date_array = startdate.split('-')
+    nmlgen.add_default("iyear0"  , value=int(date_array[0]))
+    nmlgen.add_default("imonth0" , value=int(date_array[1]))
+    nmlgen.add_default("iday0"   , value=int(date_array[2]))
+    nmlgen.add_default("ihour0"  , value=0)
+    nmlgen.add_default("iminute0", value=0)
+    nmlgen.add_default("isecond0", value=0)
+
+###############################################################################
+def _set_glc_dt(nmlgen, ncpl_base_period, glc_ncpl):
+###############################################################################
+    """
+    Sets defaults for dt-related values in cism_in (NOT the values in cism.config)
     """
     # The logic here assumes that we want one timestep per coupling interval
     if ncpl_base_period == 'hour':
@@ -243,6 +266,7 @@ def _update_cism_config(nmlgen, output_file, mode, header, group):
 ###############################################################################
 def _add_conditional_section_to_cism_config(nmlgen, output_file, group,
                                             control_var, value_for_addition):
+###############################################################################
     """Add a section to the cism.config file conditionally
 
     Args:
