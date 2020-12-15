@@ -139,7 +139,6 @@ def _create_namelist(case, confdir, inst_string, infile, nmlgen, data_list_path)
         expect(False, "Unknown RUN_TYPE: {} ".format(run_type))
 
     startdate = case.get_value("RUN_STARTDATE")
-    run_type = case.get_value("RUN_TYPE")
     if run_type == 'branch':
         startdate = case.get_value("RUN_REFDATE")
     date_array = startdate.split('-')
@@ -184,10 +183,6 @@ def _create_namelist(case, confdir, inst_string, infile, nmlgen, data_list_path)
 
     #----------------------------------------------------
     # cism.config: Set values for sections that are added conditionally and write file
-    #
-    # Note that some sections are only added if some other config value has a certain
-    # value; for these sections, we have not yet done the add_defaults call, so we do that
-    # within _update_cism_config if we're adding the given section.
     #----------------------------------------------------
     output_file = os.path.join(confdir, "cism.config")
     _update_cism_config(nmlgen, output_file, mode="w", header="grid", group="grid")
