@@ -328,7 +328,7 @@
   <!-- group: glc_override_nml                                        -->
   <!-- =============================================================  -->
 
-  <entry id="decrease_override_delay" skip_default_entry="true">
+  <entry id="decrease_override_delay">
     <type>integer</type>
     <category>overrides</category>
     <group>glc_override_nml</group>
@@ -341,7 +341,7 @@
     </desc>
   </entry>
 
-  <entry id="increase_override_delay" skip_default_entry="true">
+  <entry id="increase_override_delay">
     <type>integer</type>
     <category>overrides</category>
     <group>glc_override_nml</group>
@@ -354,7 +354,7 @@
     </desc>
   </entry>
 
-  <entry id="rearrange_override_delay" skip_default_entry="true">
+  <entry id="rearrange_override_delay">
     <type>integer</type>
     <category>overrides</category>
     <group>glc_override_nml</group>
@@ -367,12 +367,12 @@
     </desc>
   </entry>
 
-  <entry id="decrease_frac" skip_default_entry="true">
+  <entry id="decrease_frac">
     <type>real</type>
     <category>overrides</category>
     <group>glc_override_nml</group>
     <values>
-      <value>0</value>
+      <value>0.0</value>
     </values>
     <desc>
       Fractional decrease in glacier area, per day (should be positive).
@@ -382,12 +382,12 @@
     </desc>
   </entry>
 
-  <entry id="increase_frac" skip_default_entry="true">
+  <entry id="increase_frac">
     <type>real</type>
     <category>overrides</category>
     <group>glc_override_nml</group>
     <values>
-      <value>0</value>
+      <value>0.0</value>
     </values>
     <desc>
       Fractional increase in glacier area, per day.
@@ -397,10 +397,13 @@
     </desc>
   </entry>
 
-  <entry id="rearrange_freq" skip_default_entry="true">
+  <entry id="rearrange_freq">
     <type>integer</type>
     <category>overrides</category>
     <group>glc_override_nml</group>
+    <values>
+      <value>0</value>
+    </values>
     <desc>
       Frequency (days) at which we rearrange elevation classes.
       Default: 0 (no flips ever)
@@ -505,7 +508,7 @@
   <!-- This group is only relevant if sigma = 2 -->
 
   <entry id="sigma_levels" >
-    <type>char</type>
+    <type>real(20)</type>
     <category>cism_config_sigma</category>
     <group>sigma</group>
     <values>

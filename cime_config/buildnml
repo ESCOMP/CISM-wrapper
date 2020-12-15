@@ -76,7 +76,11 @@ def _create_namelist(case, confdir, inst_string, infile, nmlgen, data_list_path)
     #----------------------------------------------------
     # Initialize namelist defaults
     #----------------------------------------------------
-    nmlgen.init_defaults(infile, config)
+    nmlgen.init_defaults(infile, config,
+                         skip_default_for_groups=["glc_override_nml",
+                                                  "gthf",
+                                                  "isostasy",
+                                                  "sigma"])
 
     #----------------------------------------------------
     # Set values not obtained in the default settings
@@ -163,37 +167,40 @@ def _create_namelist(case, confdir, inst_string, infile, nmlgen, data_list_path)
         expect(False, "invalid NCPL_BASE_PERIOD {}".format(ncpl_base_period))
     nmlgen.add_default("dt_count", value=dt_count)
 
-    if nmlgen.get_value("enable_frac_overrides") == '.true.':
-        nmlgen.add_default("decrease_override_delay")
-        nmlgen.add_default("increase_override_delay")
-        nmlgen.add_default("rearrange_override_delay")
-        nmlgen.add_default("decrease_frac")
-        nmlgen.add_default("increase_frac")
-        nmlgen.add_default("rearrange_freq")
+    #----------------------------------------------------
+    # cism_in: Set values for sections that are added conditionally and write file
+    #----------------------------------------------------
 
-    #----------------------------------------------------
-    # Write cism_in
-    #----------------------------------------------------
+    if nmlgen.get_value("enable_frac_overrides") == ".true.":
+        nmlgen.add_defaults_for_group("glc_override_nml")
+
     groups = ["cism_params","cism_history","time_manager_nml", "glc_override_nml"]
     output_file = os.path.join(confdir, "cism_in")
     nmlgen.write_output_file(output_file, data_list_path, groups=groups, sorted_groups=False)
 
     #----------------------------------------------------
-    # write cism.config
+    # cism.config: Set values for sections that are added conditionally and write file
+    #
+    # Note that some sections are only added if some other config value has a certain
+    # value; for these sections, we have not yet done the add_defaults call, so we do that
+    # within _update_cism_config if we're adding the given section.
     #----------------------------------------------------
     output_file = os.path.join(confdir, "cism.config")
     _update_cism_config(nmlgen, output_file, mode="w", header="grid", group="grid")
     _update_cism_config(nmlgen, output_file, mode="a", header="GLAD climate", group="glad_climate")
     _update_cism_config(nmlgen, output_file, mode="a", header="options", group="options")
+    if int(nmlgen.get_value("sigma")) == _SIGMA_IN_CONFIG_FILE:
+        _update_cism_config(nmlgen, output_file, mode="a", header="sigma", group="sigma",
+                            add_defaults_for_group=True)
     _update_cism_config(nmlgen, output_file, mode="a", header="time", group="time")
     _update_cism_config(nmlgen, output_file, mode="a", header="parameters", group="parameters")
     _update_cism_config(nmlgen, output_file, mode="a", header="ho_options", group="ho_options")
-    if int(nmlgen.get_value("gthf")) > _GTHF_CALCULATE:
-        _update_cism_config(nmlgen, output_file, mode="a", header="gthf", group="gthf")
+    if int(nmlgen.get_value("gthf")) == _GTHF_CALCULATE:
+        _update_cism_config(nmlgen, output_file, mode="a", header="gthf", group="gthf",
+                            add_defaults_for_group=True)
     if int(nmlgen.get_value("isostasy")) == _ISOSTASY_ON:
-        _update_cism_config(nmlgen, output_file, mode="a", header="isostasy", group="isostasy")
-    if int(nmlgen.get_value("sigma")) == _SIGMA_IN_CONFIG_FILE:
-        _update_cism_config(nmlgen, output_file, mode="a", header="sigma", group="sigma")
+        _update_cism_config(nmlgen, output_file, mode="a", header="isostasy", group="isostasy",
+                            add_defaults_for_group=True)
 
     final_text = _final_template.format(filename=nmlgen.get_value('cisminputfile'))
     with open(output_file, "a") as file_obj:
@@ -214,9 +221,11 @@ cover in CLM.)"""
         expect(False, "CISM currently only supports a NO_LEAP calendar")
 
 ###############################################################################
-def _update_cism_config(nmlgen, output_file, mode, header, group):
+def _update_cism_config(nmlgen, output_file, mode, header, group, add_defaults_for_group=False):
 ###############################################################################
     """Append an entry to the cism.config file"""
+    if add_defaults_for_group:
+        nmlgen.add_defaults_for_group(group)
     with open(output_file, mode) as file_obj:
         file_obj.write("[{}]\n".format(header))
     nmlgen.add_nmlcontents(output_file, group=group, sorted_groups=False)
