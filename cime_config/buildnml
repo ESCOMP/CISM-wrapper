@@ -112,7 +112,7 @@ def _create_namelist(case, confdir, inst_string, infile, nmlgen, data_list_path)
     # cism_in: Set values for sections that are added conditionally and write file
     #----------------------------------------------------
 
-    if nmlgen.get_value("enable_frac_overrides") == ".true.":
+    if nmlgen.get_value("enable_frac_overrides").lower() == ".true.":
         nmlgen.add_defaults_for_group("glc_override_nml")
     else:
         nmlgen.confirm_group_is_empty(
@@ -146,6 +146,11 @@ def _create_namelist(case, confdir, inst_string, infile, nmlgen, data_list_path)
     final_text = _final_template.format(filename=nmlgen.get_value('cisminputfile'))
     with open(output_file, "a") as file_obj:
         file_obj.write("{}\n".format(final_text))
+
+    # ------------------------------------------------------------------------
+    # Final consistency checks
+    # ------------------------------------------------------------------------
+    _final_consistency_checks(nmlgen)
 
 ###############################################################################
 def _initial_consistency_checks(config):
@@ -284,6 +289,50 @@ def _add_conditional_section_to_cism_config(nmlgen, output_file, group,
         errmsg = "items in {} section can only be set if {} is set to {}".format(
             group, control_var, value_for_addition)
         nmlgen.confirm_group_is_empty(group, errmsg)
+
+###############################################################################
+def _final_consistency_checks(nmlgen):
+###############################################################################
+    num_errors = 0
+    num_errors += _check_cism_dt(float(nmlgen.get_value("dt")))
+
+    if int(nmlgen.get_value("evolve_ice")) == 0:
+        if nmlgen.get_value("zero_gcm_fluxes").lower() == ".false.":
+            errmsg = """\
+ERROR: For evolve_ice = 0, you must also set zero_gcm_fluxes = .true.
+(This is because evolve_ice = 0 implies that there will be no fluxes,
+and you must explicitly set zero_gcm_fluxes = .true. for the sake of logic
+that depends on whether these fluxes will be zero - particularly, the creation
+of icemask_coupled_fluxes used by CTSM)."""
+            print(errmsg)
+            num_errors += 1
+
+    expect(num_errors == 0, "Errors in CISM final consistency checks (see above)")
+
+###############################################################################
+def _check_cism_dt(dt):
+###############################################################################
+    """Checks CISM's dt value: i.e., the dt variable in the time section of cism.config
+
+    Returns 0 if okay, > 0 if errors found (i.e., if dt is an inappropriate value). Also,
+    if any errors are found, an error message is printed.
+    """
+    num_errors = 0
+
+    # Ensure that dt translates into an integer number of hours
+    dt_hours = dt * 365 * 24
+    dt_hours_int = round(dt_hours)
+    # make sure the difference is basically 0, by comparing relative difference with a
+    # value near machine epsilon
+    if (abs(dt_hours - dt_hours_int)/dt_hours > 1e-15):
+        errmsg = """\
+ERROR: dt (in years) must translate into an integer number of hours
+dt = {}
+dt (hours) = {}""".format(dt, dt_hours)
+        print(errmsg)
+        num_errors += 1
+
+    return num_errors
 
 ###############################################################################
 def buildnml(case, caseroot, compname):
