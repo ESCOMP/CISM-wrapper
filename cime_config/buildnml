@@ -76,7 +76,7 @@ def _create_namelist(case, confdir, inst_string, infile, nmlgen, data_list_path)
     # NOTE: with the nuopc interface, the CISM run phase is never called when running
     # in noevolve mode, so a restart file will never be written for cism - only initial
     # information will be sent back to CTSM.
-    if (comp_interface == 'nuopc' and config['cism_evolve'] == 'FALSE'):
+    if (comp_interface == 'nuopc' and _value_is_false(config['cism_evolve'])):
         logger.info("Interface is nuopc, cism is not evolving: CISM run_type is always startup")
         run_type = "startup"
 
@@ -117,7 +117,7 @@ def _create_namelist(case, confdir, inst_string, infile, nmlgen, data_list_path)
     # cism_in: Set values for sections that are added conditionally and write file
     #----------------------------------------------------
 
-    if nmlgen.get_value("enable_frac_overrides").lower() == ".true.":
+    if _value_is_true(nmlgen.get_value("enable_frac_overrides")):
         nmlgen.add_defaults_for_group("glc_override_nml")
     else:
         nmlgen.confirm_group_is_empty(
@@ -176,15 +176,23 @@ def _set_restart_options(nmlgen, case, run_type, cism_observed_ic, cism_evolve, 
 ###############################################################################
     """
     Sets defaults for variables related to restart in cism_in
+
+    Args:
+    - nmlgen: nmlgen instance
+    - case: case instance
+    - run_type: string - 'startup', 'hybrid' or 'branch'
+    - cism_observed_ic: logical
+    - cism_evolve: string - '.true.' or '.false.'
+    - inst_string: string
     """
     if run_type == 'startup':
         nmlgen.add_default('restart',value=0)
-    elif cism_observed_ic == 'TRUE':
+    elif _value_is_true(cism_observed_ic):
         if run_type == 'branch':
             expect(False,"CISM_OBSERVED_IC=TRUE not allowed for branch runs - only for hybrid runs")
         else:
             nmlgen.add_default('restart', value=0)
-    elif run_type == 'hybrid' and cism_evolve == 'FALSE':
+    elif run_type == 'hybrid' and _value_is_false(cism_evolve):
         # We could use the hybrid refcase's CISM restart file in this case. However, we
         # often run into problems where a change in CISM makes it incompatible with old
         # restart files, and this breaks configurations that are set up as hybrid runs
@@ -302,7 +310,7 @@ def _final_consistency_checks(nmlgen):
     num_errors += _check_cism_dt(float(nmlgen.get_value("dt")))
 
     if int(nmlgen.get_value("evolve_ice")) == 0:
-        if nmlgen.get_value("zero_gcm_fluxes").lower() == ".false.":
+        if _value_is_false(nmlgen.get_value("zero_gcm_fluxes")):
             errmsg = """\
 ERROR: For evolve_ice = 0, you must also set zero_gcm_fluxes = .true.
 (This is because evolve_ice = 0 implies that there will be no fluxes,
@@ -338,6 +346,31 @@ dt (hours) = {}""".format(dt, dt_hours)
         num_errors += 1
 
     return num_errors
+
+###############################################################################
+def _value_is_true(value):
+###############################################################################
+    """Returns True if the given value is some form of true; otherwise returns False
+    
+    value can be a logical (True/False) or a Fortran variable ('.true.' or '.false.',
+    case-insensitive)
+    """
+    if isinstance(value, bool):
+        return value
+    elif isinstance(value, str):
+        if value.lower() == ".true.":
+            return True
+        elif value.lower() == ".false.":
+            return False
+        else:
+            raise ValueError("Expected Fortran logical, got: {}".format(value))
+    else:
+        raise ValueError("Cannot interpret value as logical: {}".format(value))
+
+###############################################################################
+def _value_is_false(value):
+###############################################################################
+    return not _value_is_true(value)
 
 ###############################################################################
 def buildnml(case, caseroot, compname):
