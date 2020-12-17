@@ -80,6 +80,11 @@ def _create_namelist(case, confdir, inst_string, infile, nmlgen, data_list_path)
         logger.info("Interface is nuopc, cism is not evolving: CISM run_type is always startup")
         run_type = "startup"
 
+    # ------------------------------------------------------------------------
+    # Initial consistency checks
+    # ------------------------------------------------------------------------
+    _initial_consistency_checks(config)
+
     #----------------------------------------------------
     # Initialize namelist defaults
     #----------------------------------------------------
