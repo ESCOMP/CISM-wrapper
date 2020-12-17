@@ -343,10 +343,6 @@ def buildnml(case, caseroot, compname):
     if compname != "cism":
         raise AttributeError
 
-    lnd_grid = case.get_value("LND_GRID")
-    glc_grid = case.get_value("GLC_GRID")
-    cism_phys = case.get_value("CISM_PHYS")
-    cimeroot = case.get_value("CIMEROOT")
     glcroot = case.get_value("COMP_ROOT_DIR_GLC")
     ninst = case.get_value("NINST_GLC")
     rundir = case.get_value("RUNDIR")
