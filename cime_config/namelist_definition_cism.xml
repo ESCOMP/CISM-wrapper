@@ -551,7 +551,7 @@ optional attributes can also be given; two helpful ones are:
   <!-- group: cism.config: climate                                    -->
   <!-- =============================================================  -->
 
-  <entry id="evolve_ice">
+  <entry id="evolve_ice" modify_via_xml="CISM_EVOLVE">
     <type>integer</type>
     <category>cism_config_climate</category>
     <group>glad_climate</group>
