@@ -155,7 +155,7 @@ def _create_namelist(case, confdir, inst_string, infile, nmlgen, data_list_path)
     # ------------------------------------------------------------------------
     # Final consistency checks
     # ------------------------------------------------------------------------
-    _final_consistency_checks(config, nmlgen)
+    _final_consistency_checks(nmlgen)
 
 ###############################################################################
 def _initial_consistency_checks(config):
@@ -308,21 +308,10 @@ def _add_conditional_section_to_cism_config(nmlgen, output_file, group,
         nmlgen.confirm_group_is_empty(group, errmsg)
 
 ###############################################################################
-def _final_consistency_checks(config, nmlgen):
+def _final_consistency_checks(nmlgen):
 ###############################################################################
     num_errors = 0
     num_errors += _check_cism_dt(float(nmlgen.get_value("dt")))
-
-    if ((_value_is_true(config["cism_evolve"]) and int(nmlgen.get_value("evolve_ice")) == 0) or
-        (_value_is_false(config["cism_evolve"]) and int(nmlgen.get_value("evolve_ice")) > 0)):
-        # This check is important for the sake of other logic that depends on cism_evolve
-        # and so assumes that evolve_ice will agree with cism_evolve (e.g., setting
-        # run_type to startup if cism_evolve is false).
-        errmsg = """\
-ERROR: evolve_ice should not be set via user_nl_cism; instead, it should only be set
-via the xml variable, CISM_EVOLVE."""
-        print(errmsg)
-        num_errors += 1
 
     if int(nmlgen.get_value("evolve_ice")) == 0:
         if _value_is_false(nmlgen.get_value("zero_gcm_fluxes")):
