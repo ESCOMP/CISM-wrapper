@@ -3,6 +3,7 @@
 <?xml-stylesheet type="text/xsl" href="namelist_definition.xsl"?>
 
 <!-- ===================================================================
+
 This file contains entries for all namelist variables that can be output
 by buildnml. These variables can appear either in cism_in or cism.config
 (controlled by the "group" of each variable). A modified version of this
@@ -23,12 +24,47 @@ optional attributes can also be given; two helpful ones are:
     explicitly set in user_nl_cism. In this case, you should NOT define
     a <values> section for this variable.
   - If there is some logic around the default value that should be set
-    for this variable, with an explicit add_default call in buildnml.
+    for this variable, with an explicit add_default call in
+    buildnml. This can either invoke the defaults set in this xml file
+    (in which case there should still be a <values> section) or can set
+    the default explicitly in the python code (in which case the
+    <values> section isn't needed).
 
 - modify_via_xml="XML_VARIABLE": If specified, it is an error for the
   user to try to set this variable via user_nl_cism; an error message
   will be generated in this case, telling them to set it via the given
   XML_VARIABLE.
+
+Sub-elements of each entry include:
+
+- type: The type of this variable (char, integer, logical, real)
+
+- category: Used for organizing auto-generated documentation
+
+- group: The name of the namelist group or section of cism.config in
+  which this variable will appear
+
+- valid_values (optional): If given, this is a list of allowed values;
+  if not given, there are no restrictions on allowed values.
+
+- input_pathname (optional): Include this attribute to indicate that the
+  variable contains the pathname of an input dataset that resides in the
+  CESM inputdata directory tree. The recognized values are "abs" to
+  indicate that an absolute pathname is required or "rel:var_name" to
+  indicate that the pathname is relative and that the namelist variable
+  "var_name" contains the absolute root directory.
+
+- values (optional, but should be given unless
+  skip_default_entry="true"): list of default values:
+  - <value>XXX</value> indicates that this should be the default for
+    this variable, unless some later match overrides it
+  - <value variable="value"> indicates that this should be the default
+    for this variable if the given variable has the given value. The
+    given variable must appear in the config dictionary set in
+    buildnml. The default namelist value for a given variable is the one
+    that matches the most attributes.
+
+- desc: Description, for documentation
 
 ==================================================================== -->
 
