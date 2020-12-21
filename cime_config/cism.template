@@ -1,7 +1,6 @@
-#! /usr/bin/env perl
+#! /usr/bin/env bash
 
 # Do nothing - this is just an empty script that is needed because cime
 # expects it; it has not been needed ever since cism2_1_65. If we get
 # rid of the call to cism.template in cime, then we can remove this
 # empty script.
-exit(0);

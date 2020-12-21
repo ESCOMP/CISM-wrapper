@@ -35,7 +35,7 @@ CMakeFiles/
 core.*
 *.gz
 *.log !run.log
-
+*.pyc
 
 # unit test:
 test/unit/time_management/Depends

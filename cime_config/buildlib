@@ -1,135 +1,161 @@
-#! /usr/bin/env perl
-use strict;
-use File::Spec;
-use File::Compare;
+#!/usr/bin/env python
 
-if ($#ARGV == -1) {
-    die " ERROR cism.buildexe: must specify a caseroot input argument";
-}
-my ($CASEROOT) = @ARGV;
-chdir "${CASEROOT}";
+"""
+build cism library
+"""
+import sys, os
 
-my $DRIVER    = `./xmlquery COMP_INTERFACE    --value`;
-my $GLCROOT   = `./xmlquery COMP_ROOT_DIR_GLC --value`;
-my $CASEBUILD = `./xmlquery CASEBUILD --value`;
-my $CASETOOLS = `./xmlquery CASETOOLS --value`;
-my $OBJROOT   = `./xmlquery OBJROOT   --value`;
-my $EXEROOT   = `./xmlquery EXEROOT   --value`;
-my $LIBROOT   = `./xmlquery LIBROOT   --value`;
-my $GMAKE_J   = `./xmlquery GMAKE_J   --value`;
-my $GMAKE     = `./xmlquery GMAKE     --value`;
-my $GMAKE_OPTS = `./Tools/get_standard_makefile_args`;
+_CIMEROOT = os.environ.get("CIMEROOT")
+if _CIMEROOT is None:
+    raise SystemExit("ERROR: must set CIMEROOT environment variable")
 
-# directory in which glc is built
-my $glc_dir = "$OBJROOT/glc";
-# get the relative path to EXEROOT - some compilers have
-# issues with long include paths, this helps reduce those problems
-$EXEROOT = File::Spec->abs2rel( $EXEROOT , $glc_dir);
+_LIBDIR = os.path.join(_CIMEROOT, "scripts", "Tools")
+sys.path.append(_LIBDIR)
 
-# directory in which glc obj files are built
-my $glc_obj_dir = "$OBJROOT/glc/obj";
+from standard_script_setup import *
+from CIME.buildlib import parse_input
+from CIME.build import get_standard_makefile_args
+from CIME.case import Case
+from CIME.utils import run_bld_cmd_ensure_logging
 
-# directory in which source_cism library is created
-my $cism_libdir = "$glc_dir/lib";
+logger = logging.getLogger(__name__)
 
-# directory in which we can find source mods
-my $sourcemod_dir = "$CASEROOT/SourceMods/src.cism";
+###############################################################################
+def buildlib(bldroot, libroot, case):
+###############################################################################
 
-chdir "$glc_obj_dir";
+    gmake_j   = case.get_value("GMAKE_J")
+    gmake     = case.get_value("GMAKE")
 
-# ----------------------------------------------------------------------
-# Create Filepath
-# ----------------------------------------------------------------------
-# The following just gives the filepath for the cesm-specific code:
-# the source_cism stuff is picked up by the cmake-based build
-open(file,">Filepath.new") or die "Could not open file Filepath.new to write";
-print file "$sourcemod_dir \n";
-print file "$GLCROOT/drivers/cpl/$DRIVER \n";
-print file "$GLCROOT/source_glc \n";
-print file "$GLCROOT/mpi \n";
-close(file);
+    # directory in which glc is built
+    objroot   = case.get_value("OBJROOT")
+    glc_dir = os.path.join(objroot,"glc")
 
-if (compare("Filepath","Filepath.new") != 0){
-    rename("Filepath.new", "Filepath");
-}
-# ----------------------------------------------------------------------
-# Set options to cmake
-#
-# Note: Makefile variables should be given as: \\\$(VAR)
-# Perl will expand this to \$(VAR)
-# The extra preceding backslash is needed so that when cmake_opts is put on the command line,
-# the shell doesn't try to interpret the '$'.
-# ----------------------------------------------------------------------
-# Note that some other generic CMAKE options are set in the Makefile
-my $cmake_opts;
-$cmake_opts = "";
-$cmake_opts = "$cmake_opts -D CISM_COUPLED=ON";
-$cmake_opts = "$cmake_opts -D CISM_USE_MPI_WITH_SLAP=ON";
+    # get the relative path to EXEROOT - some compilers have issues with long include
+    # paths, this helps reduce those problems
+    exeroot = case.get_value("EXEROOT")
+    exeroot_relpath = os.path.relpath(exeroot, glc_dir)
 
-# CISM_USE_GPTL_INSTRUMENTATION is unnecessary (and possibly harmful)
-# when built inside CESM; for CESM we instead use -DCCSMCOUPLED, which
-# also gives us timing instrumentation
-$cmake_opts = "$cmake_opts -D CISM_USE_GPTL_INSTRUMENTATION=OFF";
-$cmake_opts = "$cmake_opts -D CISM_BINARY_DIR=$glc_dir";
-$cmake_opts = "$cmake_opts -D CMAKE_Fortran_MODULE_DIRECTORY=$glc_obj_dir";
-$cmake_opts = "$cmake_opts -D CISM_NETCDF_DIR=\\\$(NETCDF_PATH)";
-$cmake_opts = "$cmake_opts -D CISM_MPI_INC_DIR=\\\$(INC_MPI)";
-$cmake_opts = "$cmake_opts -D CISM_SOURCEMOD_DIR=$sourcemod_dir/source_cism";
+    # directory in which glc obj files are built
+    objroot   = case.get_value("OBJROOT")
+    glc_obj_dir = os.path.join(objroot,"glc","obj")
 
-# Turn on MPI_MODE always. This works within CESM because we always
-# have an mpi library (possibly mpi-serial). And always turning on
-# MPI_MODE means that we can defer more decisions to
-# runtime. (Although this comes with a small performance cost when we
-# don't actually need mpi.)
-$cmake_opts = "$cmake_opts -D CISM_MPI_MODE=ON";
-$cmake_opts = "$cmake_opts -D CISM_SERIAL_MODE=OFF";
-$cmake_opts = "$cmake_opts -D CISM_USE_TRILINOS=OFF";
+    # directory in which source_cism library is created
+    cism_libdir = os.path.join(glc_dir,"lib") 
 
-# ----------------------------------------------------------------------
-# Set mkDepends to append libglimmercismfortran.a to the end of each
-# .o dependency line.
-#
-# Rationale: Some of the source files in the cesm-specific code depend
-# on files included in this library. Ideally, we would be able to
-# determine the actual dependencies, but that's not easy with the
-# current tools and the fact that we build the source_cism code using
-# a different build system than the cesm-specific code. So for now, we
-# just rebuild all the cesm-specific code whenever anything in the
-# libglimmercismfortran.a library changes.
-#
-# WJS (3-6-13): I thought we would just need to include these options
-# in the call to make the complib target. But for some reason that I
-# can't determine, mkDepends is called when we make $glc_dir/Makefile,
-# so we also need to include these options there.
-# ----------------------------------------------------------------------
-my $mkdepends_opts = "-d $cism_libdir/libglimmercismfortran.a";
+    # directory in which we can find source mods
+    caseroot = case.get_value("CASEROOT")
+    sourcemod_dir = os.path.join(caseroot,"SourceMods","src.cism")
 
-# ----------------------------------------------------------------------
-# create the source_cism makefile by running cmake (done via a rule
-# in the system-level makefile)
-# ----------------------------------------------------------------------
-my $sysmod = "$GMAKE $glc_dir/Makefile MODEL=cism USER_CMAKE_OPTS=\"$cmake_opts\" USER_MKDEPENDS_OPTS=\"$mkdepends_opts\" GLCROOT=$GLCROOT GLC_DIR=$glc_dir -f $CASETOOLS/Makefile EXEROOT=$EXEROOT $GMAKE_OPTS";
+    glcroot = case.get_value("COMP_ROOT_DIR_GLC")
 
-print "GMAKE_OPTS=$GMAKE_OPTS\n";
-print "cmd = $sysmod\n";
+    # ----------------------------------------------------------------------
+    # Create Filepath
+    # ----------------------------------------------------------------------
+    # The following just gives the filepath for the cesm-specific code:
+    # the source_cism stuff is picked up by the cmake-based build
 
-system($sysmod) == 0 or die "ERROR cism.buildexe: $sysmod failed: $?\n";
+    filepath_file = os.path.join(objroot,"glc","obj","Filepath")
+    if not os.path.isfile(filepath_file):
+        driver = case.get_value("COMP_INTERFACE").lower()
+        paths = [ sourcemod_dir,
+                  os.path.join(glcroot,"drivers","cpl",driver),
+                  os.path.join(glcroot,"source_glc"),
+                  os.path.join(glcroot,"mpi")]
+        with open(filepath_file, "w") as filepath:
+            filepath.write("\n".join(paths))
+            filepath.write("\n")
 
-# ----------------------------------------------------------------------
-# create the source_cism library (or libraries), using the makefile
-# created by cmake
-# ----------------------------------------------------------------------
-chdir "$glc_dir";
+    # ----------------------------------------------------------------------
+    # Set options to cmake
+    #
+    # Note: Makefile variables should be given as: \\$(VAR)
+    # Python will expand this to \$(VAR)
+    # The extra preceding backslash is needed so that when cmake_opts is put on the command line,
+    # the shell doesn't try to interpret the '$'.
+    # ----------------------------------------------------------------------
+    # Note that some other generic CMAKE options are set in the Makefile
+    cmake_opts = ""
+    cmake_opts = cmake_opts + " -D CISM_COUPLED=ON"
+    cmake_opts = cmake_opts + " -D CISM_USE_MPI_WITH_SLAP=ON"
 
-my $sysmod = "$GMAKE -j $GMAKE_J";
-system($sysmod) == 0 or die "ERROR cism.buildexe: $sysmod failed: $?\n";
+    # CISM_USE_GPTL_INSTRUMENTATION is unnecessary (and possibly harmful)
+    # when built inside CESM;  for CESM we instead use -DCCSMCOUPLED, which
+    # also gives us timing instrumentation
+    cmake_opts = cmake_opts + " -D CISM_USE_GPTL_INSTRUMENTATION=OFF"
+    cmake_opts = cmake_opts + " -D CISM_BINARY_DIR={}".format(glc_dir)
+    cmake_opts = cmake_opts + " -D CMAKE_Fortran_MODULE_DIRECTORY={}".format(glc_obj_dir)
+    cmake_opts = cmake_opts + " -D CISM_NETCDF_DIR=\\$(NETCDF_PATH)" 
+    cmake_opts = cmake_opts + " -D CISM_MPI_INC_DIR=\\$(INC_MPI)"
+    cmake_opts = cmake_opts + " -D CISM_SOURCEMOD_DIR={}/source_cism".format(sourcemod_dir)
 
-chdir "$glc_obj_dir";
+    # Turn on MPI_MODE always. This works within CESM because we always
+    # have an mpi library (possibly mpi-serial). And always turning on
+    # MPI_MODE means that we can defer more decisions to
+    # runtime. (Although this comes with a small performance cost when we
+    # don't actually need mpi.)
+    cmake_opts = cmake_opts + " -D CISM_MPI_MODE=ON"
+    cmake_opts = cmake_opts + " -D CISM_SERIAL_MODE=OFF"
+    cmake_opts = cmake_opts + " -D CISM_USE_TRILINOS=OFF"
 
-# ----------------------------------------------------------------------
-# create the cesm-specific portion of the glc library using cesm's makefile
-# ----------------------------------------------------------------------
-my $sysmod = "$GMAKE complib -j $GMAKE_J MODEL=cism COMPLIB=$LIBROOT/libglc.a USER_MKDEPENDS_OPTS=\"$mkdepends_opts\" GLC_DIR=$glc_dir -f $CASETOOLS/Makefile $GMAKE_OPTS";
-system($sysmod) == 0 or die "ERROR cism.buildexe: $sysmod failed: $?\n";
+    # ----------------------------------------------------------------------
+    # Set mkDepends to append libglimmercismfortran.a to the end of each
+    # .o dependency line.
+    #
+    # Rationale: Some of the source files in the cesm-specific code depend
+    # on files included in this library. Ideally, we would be able to
+    # determine the actual dependencies, but that's not easy with the
+    # current tools and the fact that we build the source_cism code using
+    # a different build system than the cesm-specific code. So for now, we
+    # just rebuild all the cesm-specific code whenever anything in the
+    # libglimmercismfortran.a library changes.
+    #
+    # WJS (3-6-13): I thought we would just need to include these options
+    # in the call to make the complib target. But for some reason that I
+    # can't determine, mkDepends is called when we make $glc_dir/Makefile,
+    # so we also need to include these options there.
+    # ----------------------------------------------------------------------
+    mkdepends_opts = "-d {}/libglimmercismfortran.a".format(cism_libdir)
 
-exit 0
+    # ----------------------------------------------------------------------
+    # create the source_cism makefile by running cmake (done via a rule
+    # in the system-level makefile)
+    # ----------------------------------------------------------------------
+
+    casetools = case.get_value("CASETOOLS")
+    cmd = ("{} {}/Makefile MODEL=cism USER_CMAKE_OPTS=\"{}\" USER_MKDEPENDS_OPTS=\"{}\" "
+           "GLCROOT={} GLC_DIR={} -f {}/Makefile EXEROOT={} "
+           "{}".format(
+               gmake, glc_dir, cmake_opts, mkdepends_opts,
+               glcroot, glc_dir, casetools, exeroot_relpath,
+               get_standard_makefile_args(case)))
+
+    run_bld_cmd_ensure_logging(cmd, logger, from_dir=glc_obj_dir)
+
+    # ----------------------------------------------------------------------
+    # create the source_cism library, using the makefile created by cmake
+    # ----------------------------------------------------------------------
+
+    cmd = "{} -j {}".format(gmake, gmake_j)
+
+    run_bld_cmd_ensure_logging(cmd, logger, from_dir=glc_dir)
+
+    # ----------------------------------------------------------------------
+    # create the cesm-specific portion of the glc library using cesm's makefile
+    # ----------------------------------------------------------------------
+
+    libroot  = case.get_value("LIBROOT")
+    cmd = "{} complib -j {} MODEL=cism COMPLIB={}/libglc.a USER_MKDEPENDS_OPTS=\"{}\" GLC_DIR={} -f {}/Makefile {}".format(
+        gmake, gmake_j, libroot, mkdepends_opts, glc_dir, casetools, get_standard_makefile_args(case))
+
+    run_bld_cmd_ensure_logging(cmd, logger, from_dir=glc_obj_dir)
+
+###############################################################################
+
+def _main_func(args):
+    caseroot, libroot, bldroot = parse_input(args)
+    with Case(caseroot) as case:
+        buildlib(bldroot, libroot, case)
+
+if __name__ == "__main__":
+    _main_func(sys.argv)

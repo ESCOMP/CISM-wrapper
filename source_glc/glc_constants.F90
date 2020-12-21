@@ -62,6 +62,9 @@
   logical :: &
        test_coupling   = .false.  ! If true, force frequent coupling for testing purposes
 
+  logical :: &
+       enable_frac_overrides = .false. ! If true, enable overrides in glc_override_frac
+
    !-----------------------------------------------------------------
    !  common formats for formatted output
    !-----------------------------------------------------------------
