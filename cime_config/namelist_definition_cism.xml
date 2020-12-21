@@ -9,7 +9,7 @@
   <!-- (does not appear in namelist file cism_in; handled uniquely)   -->
   <!-- =============================================================  -->
 
-  <entry id="cisminputfile" >
+  <entry id="cisminputfile" skip_default_entry="true">
     <type>char</type>
     <category>cism</category>
     <input_pathname>abs</input_pathname>

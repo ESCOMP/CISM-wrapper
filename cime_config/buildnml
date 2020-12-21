@@ -186,12 +186,12 @@ def _set_restart_options(nmlgen, case, run_type, cism_observed_ic, cism_evolve, 
     - inst_string: string
     """
     if run_type == 'startup':
-        nmlgen.add_default('restart',value=0)
+        restart = 0
     elif _value_is_true(cism_observed_ic):
         if run_type == 'branch':
             expect(False,"CISM_OBSERVED_IC=TRUE not allowed for branch runs - only for hybrid runs")
         else:
-            nmlgen.add_default('restart', value=0)
+            restart = 0
     elif run_type == 'hybrid' and _value_is_false(cism_evolve):
         # We could use the hybrid refcase's CISM restart file in this case. However, we
         # often run into problems where a change in CISM makes it incompatible with old
@@ -209,7 +209,7 @@ def _set_restart_options(nmlgen, case, run_type, cism_observed_ic, cism_evolve, 
         # they wouldn't get what they want: instead the ice sheet would be reset to
         # observed initial conditions. Thus, the user would need to explicitly set
         # 'cisminputfile' and 'restart' in this case.
-        nmlgen.add_default('restart', value=0)
+        restart = 0
     elif run_type == 'branch' or run_type == 'hybrid':
         run_refcase = case.get_value('RUN_REFCASE')
         run_refdate = case.get_value('RUN_REFDATE')
@@ -224,9 +224,13 @@ def _set_restart_options(nmlgen, case, run_type, cism_observed_ic, cism_evolve, 
                 refcase=run_refcase, refdate=run_refdate)
 
         nmlgen.add_default('cisminputfile', filename, ignore_abs_path=True)
-        nmlgen.add_default('restart', value=1)
+        restart = 1
     else:
         expect(False, "Unknown RUN_TYPE: {} ".format(run_type))
+
+    nmlgen.add_default('restart', value=restart)
+    if restart == 0:
+        nmlgen.add_default('cisminputfile')
 
 ###############################################################################
 def _set_startdate(nmlgen, case, run_type):
