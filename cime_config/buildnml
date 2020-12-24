@@ -4,6 +4,7 @@
 CISM namelist creator
 """
 import sys, os
+from collections import OrderedDict
 
 _CIMEROOT = os.environ.get("CIMEROOT")
 if _CIMEROOT is None:
@@ -36,8 +37,10 @@ logger = logging.getLogger(__name__)
 # values of certain config file parameters
 #----------------------------------------------------
 # dictionary mapping all possible ice sheet names to xml variables
-_ICESHEET_OPTIONS = {'gris': 'CISM_USE_GREENLAND',
-                     'ais': 'CISM_USE_ANTARCTICA'}
+# we use an OrderedDict to get reliable ordering (this is unnecessary in python3.6 and
+# later because standard dicts maintain order, but necessary for 3.5 and earlier)
+_ICESHEET_OPTIONS = OrderedDict([('ais', 'CISM_USE_ANTARCTICA'),
+                                 ('gris', 'CISM_USE_GREENLAND')])
 
 # dictionary mapping ice sheet names to grid specifications
 # if an ice sheet isn't given here, we assume its grid specification is the same as the
