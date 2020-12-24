@@ -46,6 +46,30 @@ _GTHF_CALCULATE = 2
 # should have an 'isostasy' section
 _ISOSTASY_ON = 1
 
+####################################################################################
+def _create_namelists_for_all_ice_sheets(case, confdir, rundir, inst_string, user_nl_file,
+                                         nmlgen, data_list_path):
+####################################################################################
+    infile = os.path.join(confdir, "namelist")
+    create_namelist_infile(case, user_nl_file, infile)
+    namelist_infile = [infile]
+
+    _create_namelist(case, confdir, inst_string, namelist_infile, nmlgen, data_list_path)
+
+    # Copy resolved namelist to rundir
+    if os.path.isdir(rundir):
+        file_src = os.path.join(confdir, "cism_in")
+        file_dest = os.path.join(rundir, "cism_in")
+        file_dest += inst_string
+        logger.debug("CISM namelist copy: file_src {} file_dest {} ".format(file_src, file_dest))
+        safe_copy(file_src,file_dest)
+
+        file_src = os.path.join(confdir, "cism.config")
+        file_dest = os.path.join(rundir, "cism.config")
+        file_dest += inst_string
+        logger.debug("CISM namelist copy: file_src {} file_dest {} ".format(file_src, file_dest))
+        safe_copy(file_src,file_dest)
+
 # pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
 ####################################################################################
 def _create_namelist(case, confdir, inst_string, infile, nmlgen, data_list_path):
@@ -439,31 +463,14 @@ def buildnml(case, caseroot, compname):
         user_nl_file = os.path.join(caseroot, "user_nl_cism" + inst_string)
         expect(os.path.isfile(user_nl_file),
                "Missing required user_nl_file {}".format(user_nl_file))
-        infile = os.path.join(confdir, "namelist")
-        create_namelist_infile(case, user_nl_file, infile)
-        namelist_infile = [infile]
 
-        # create namelist
-        _create_namelist(case, confdir, inst_string, namelist_infile, nmlgen, data_list_path)
-
-        # -----------------------------------------------------
-        # copy resolved namelist to rundir
-        # -----------------------------------------------------
-
-        if os.path.isdir(rundir):
-            file_src = os.path.join(confdir, "cism_in")
-            file_dest = os.path.join(rundir, "cism_in")
-            if ninst > 1:
-                file_dest += inst_string
-            logger.debug("CISM namelist copy: file_src {} file_dest {} ".format(file_src, file_dest))
-            safe_copy(file_src,file_dest)
-
-            file_src = os.path.join(confdir, "cism.config")
-            file_dest = os.path.join(rundir, "cism.config")
-            if ninst > 1:
-                file_dest += inst_string
-            logger.debug("CISM namelist copy: file_src {} file_dest {} ".format(file_src, file_dest))
-            safe_copy(file_src,file_dest)
+        _create_namelists_for_all_ice_sheets(case=case,
+                                             confdir=confdir,
+                                             rundir=rundir,
+                                             inst_string=inst_string,
+                                             user_nl_file=user_nl_file,
+                                             nmlgen=nmlgen,
+                                             data_list_path=data_list_path)
 
 ###############################################################################
 def _main_func():
