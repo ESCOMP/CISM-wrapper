@@ -2,10 +2,12 @@
 
 <entry_id version="3.0">
 
-  <description modifier_mode="1">
-    <desc glc="CISM2[%EVOLVE][%NOEVOLVE]">cism2 (default, higher-order, can run in parallel):</desc>
+  <description modifier_mode="+">
+    <desc glc="CISM2[%EVOLVE][%NOEVOLVE][%GRIS][%AIS]">cism2:</desc>
     <desc option="EVOLVE">cism ice evolution turned on:</desc>
     <desc option="NOEVOLVE">cism ice evolution turned off (this is the standard configuration unless you're explicitly interested in ice evolution):</desc>
+    <desc option="GRIS">include Greenland Ice Sheet:</desc>
+    <desc option="AIS">include Antarctica Ice Sheet:</desc>
   </description>
 
   <entry id="COMP_GLC"> 
@@ -15,6 +17,37 @@
     <group>case_comp</group>
     <file>env_case.xml</file>
     <desc>Name of land ice-sheet component</desc>
+  </entry>
+
+  <entry id="CISM_USE_GREENLAND">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <group>case_comp</group>
+    <file>env_case.xml</file>
+    <values>
+      <value compset="_CISM[^_]*%GRIS">TRUE</value>
+
+      <!-- BACKWARDS_COMPATIBILITY(wjs, 2020-12-23) Backwards
+           compatibility with old compsets that don't explicitly set
+           Greenland or Antarctica: we assume these just use Greenland
+      -->
+      <value compset="_CISM2%EVOLVE_">TRUE</value>
+      <value compset="_CISM2%NOEVOLVE_">TRUE</value>
+    </values>
+    <desc>Whether to include the Greenland Ice Sheet in this CISM simulation</desc>
+  </entry>
+
+  <entry id="CISM_USE_ANTARCTICA">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <group>case_comp</group>
+    <file>env_case.xml</file>
+    <values>
+      <value compset="_CISM[^_]*%AIS">TRUE</value>
+    </values>
+    <desc>Whether to include the Antarctica Ice Sheet in this CISM simulation</desc>
   </entry>
 
   <entry id="CISM_PHYS">
@@ -32,7 +65,10 @@
   <entry id="CISM_EVOLVE">
      <type>logical</type>
      <valid_values>TRUE,FALSE</valid_values>
-     <default_value>FALSE</default_value>
+     <!-- By setting the default value to something that isn't allowed
+          ("UNSET"), we ensure that either %EVOLVE or %NOEVOLVE is
+          explicitly specified in the compset -->
+     <default_value>UNSET</default_value>
      <values>
         <value compset="_CISM[^_]*%EVOLVE">TRUE</value>
         <value compset="_CISM[^_]*%NOEVOLVE">FALSE</value>
@@ -71,6 +107,10 @@
   <help>
     =========================================
     CISM naming conventions in compset name
+
+    Must specify:
+    (1) either %EVOLVE or %NOEVOLVE
+    (2) at least one ice sheet (%GRIS, %AIS, etc.)
     =========================================
   </help>
 
