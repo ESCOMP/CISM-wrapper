@@ -67,6 +67,11 @@ def buildnml(case, caseroot, compname):
     if compname != "cism":
         raise AttributeError
 
+    icesheet_names = _get_icesheet_names(case)
+    _icesheet_consistency_checks(case, icesheet_names)
+
+    _initial_consistency_checks(case)
+
     ninst = case.get_value("NINST_GLC")
     rundir = case.get_value("RUNDIR")
 
@@ -80,8 +85,9 @@ def buildnml(case, caseroot, compname):
     if os.path.exists(data_list_path):
         os.remove(data_list_path)
 
-    # Construct the namelist generator
-    nmlgen = _create_namelist_generator(case, caseroot, "namelist_definition_cism.xml")
+    # Construct the namelist generators
+    nmlgen_cism_in = _create_namelist_generator(case, caseroot, "namelist_definition_cism_in.xml")
+    nmlgen_cism_config = _create_namelist_generator(case, caseroot, "namelist_definition_cism_config.xml")
 
     #----------------------------------------------------
     # Loop over instances
@@ -104,13 +110,39 @@ def buildnml(case, caseroot, compname):
         expect(os.path.isfile(user_nl_file),
                "Missing required user_nl_file {}".format(user_nl_file))
 
-        _create_namelists_for_all_ice_sheets(case=case,
-                                             confdir=confdir,
-                                             rundir=rundir,
-                                             inst_string=inst_string,
-                                             user_nl_file=user_nl_file,
-                                             nmlgen=nmlgen,
-                                             data_list_path=data_list_path)
+        infile = os.path.join(confdir, "namelist")
+        create_namelist_infile(case, user_nl_file, infile)
+        _create_cism_in(case=case,
+                        confdir=confdir,
+                        inst_string=inst_string,
+                        infile=infile,
+                        nmlgen=nmlgen_cism_in,
+                        data_list_path=data_list_path)
+        # Copy resolved namelist to rundir
+        if os.path.isdir(rundir):
+            file_src = os.path.join(confdir, "cism_in")
+            file_dest = os.path.join(rundir, "cism_in")
+            file_dest += inst_string
+            logger.debug("CISM namelist copy: file_src {} file_dest {} ".format(file_src, file_dest))
+            safe_copy(file_src,file_dest)
+
+        for icesheet in icesheet_names:
+            infile = os.path.join(confdir, "namelist")
+            create_namelist_infile(case, user_nl_file, infile)
+            _create_cism_config(case=case,
+                                confdir=confdir,
+                                inst_string=inst_string,
+                                icesheet=icesheet,
+                                infile=infile,
+                                nmlgen=nmlgen_cism_config,
+                                data_list_path=data_list_path)
+            # Copy resolved namelist to rundir
+            if os.path.isdir(rundir):
+                file_src = os.path.join(confdir, "cism.config")
+                file_dest = os.path.join(rundir, "cism.config")
+                file_dest += inst_string
+                logger.debug("CISM namelist copy: file_src {} file_dest {} ".format(file_src, file_dest))
+                safe_copy(file_src,file_dest)
 
 ####################################################################################
 def _create_namelist_generator(case, caseroot, filename):
@@ -133,40 +165,6 @@ def _create_namelist_generator(case, caseroot, filename):
     # Create the namelist generator object - independent of instance
     nmlgen = NamelistGenerator(case, definition_file)
     return nmlgen
-
-####################################################################################
-def _create_namelists_for_all_ice_sheets(case, confdir, rundir, inst_string, user_nl_file,
-                                         nmlgen, data_list_path):
-####################################################################################
-    icesheet_names = _get_icesheet_names(case)
-    _icesheet_consistency_checks(case, icesheet_names)
-
-    for icesheet in icesheet_names:
-        infile = os.path.join(confdir, "namelist")
-        create_namelist_infile(case, user_nl_file, infile)
-        namelist_infile = [infile]
-
-        _create_namelist(case=case,
-                         confdir=confdir,
-                         inst_string=inst_string,
-                         icesheet=icesheet,
-                         infile=namelist_infile,
-                         nmlgen=nmlgen,
-                         data_list_path=data_list_path)
-
-        # Copy resolved namelist to rundir
-        if os.path.isdir(rundir):
-            file_src = os.path.join(confdir, "cism_in")
-            file_dest = os.path.join(rundir, "cism_in")
-            file_dest += inst_string
-            logger.debug("CISM namelist copy: file_src {} file_dest {} ".format(file_src, file_dest))
-            safe_copy(file_src,file_dest)
-
-            file_src = os.path.join(confdir, "cism.config")
-            file_dest = os.path.join(rundir, "cism.config")
-            file_dest += inst_string
-            logger.debug("CISM namelist copy: file_src {} file_dest {} ".format(file_src, file_dest))
-            safe_copy(file_src,file_dest)
 
 ####################################################################################
 def _get_icesheet_names(case):
@@ -197,11 +195,10 @@ def _icesheet_consistency_checks(case, icesheet_names):
             expect(False, "{} included in grid {} but {} not in compset".format(
                 gridname, glc_grid, icesheet))
 
-# pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
 ####################################################################################
-def _create_namelist(case, confdir, inst_string, icesheet, infile, nmlgen, data_list_path):
+def _create_cism_in(case, confdir, inst_string, infile, nmlgen, data_list_path):
 ####################################################################################
-    """Write out the namelist for this component.
+    """Write the cism_in file
 
     Most arguments are the same as those for `NamelistGenerator`. The `inst_string`
     argument is used as a suffix to distinguish files for different instances. The
@@ -209,64 +206,30 @@ def _create_namelist(case, confdir, inst_string, icesheet, infile, nmlgen, data_
     namelist.  The `confdir` argument is used to specify the directory in which output
     files will be placed.
     """
-    #----------------------------------------------------
+    # ------------------------------------------------------------------------
     # Create config dictionary
-    #----------------------------------------------------
+    # ------------------------------------------------------------------------
     config = {}
-    config['lnd_grid']  = case.get_value("LND_GRID")
-    config['glc_grid']  = case.get_value("GLC_GRID")
-    config['cism_phys'] = case.get_value("CISM_PHYS")
     config['cism_evolve'] = '.true.' if case.get_value('CISM_EVOLVE') else '.false.'
     config['glc_two_way_coupling'] = '.true.' if case.get_value('GLC_TWO_WAY_COUPLING') else '.false.'
-    config['ncpl_base_period'] = case.get_value("NCPL_BASE_PERIOD")
     config['calendar'] = case.get_value("CALENDAR")
 
-    cism_observed_ic = case.get_value("CISM_OBSERVED_IC")
-    comp_interface = case.get_value("COMP_INTERFACE")
+    run_type = _get_effective_run_type(case)
 
-    run_type = case.get_value("RUN_TYPE")
-    # NOTE: with the nuopc interface, the CISM run phase is never called when running
-    # in noevolve mode, so a restart file will never be written for cism - only initial
-    # information will be sent back to CTSM.
-    if (comp_interface == 'nuopc' and _value_is_false(config['cism_evolve'])):
-        logger.info("Interface is nuopc, cism is not evolving: CISM run_type is always startup")
-        run_type = "startup"
-
-    # ------------------------------------------------------------------------
-    # Initial consistency checks
-    # ------------------------------------------------------------------------
-    _initial_consistency_checks(config)
-
-    #----------------------------------------------------
-    # Initialize namelist defaults
-    #----------------------------------------------------
-    nmlgen.init_defaults(infile, config,
-                         skip_default_for_groups=["glc_override_nml",
-                                                  "gthf",
-                                                  "isostasy",
-                                                  "sigma"])
-
-    #----------------------------------------------------
-    # Set values not obtained in the default settings
-    #----------------------------------------------------
+    nmlgen.init_defaults([infile], config,
+                         skip_default_for_groups=["glc_override_nml"])
 
     nmlgen.add_default("paramfile", value="cism.config"+inst_string, ignore_abs_path=True)
-
-    _set_restart_options(nmlgen, case,
-                         run_type=run_type,
-                         cism_observed_ic=cism_observed_ic,
-                         cism_evolve=config['cism_evolve'],
-                         inst_string=inst_string)
 
     _set_startdate(nmlgen, case,
                    run_type=run_type)
 
     _set_glc_dt(nmlgen,
-                ncpl_base_period=config["ncpl_base_period"],
+                ncpl_base_period=case.get_value("NCPL_BASE_PERIOD"),
                 glc_ncpl=case.get_value("GLC_NCPL"))
 
     #----------------------------------------------------
-    # cism_in: Set values for sections that are added conditionally and write file
+    # Set values for sections that are added conditionally and write file
     #----------------------------------------------------
 
     if _value_is_true(nmlgen.get_value("enable_frac_overrides")):
@@ -280,8 +243,47 @@ def _create_namelist(case, confdir, inst_string, icesheet, infile, nmlgen, data_
     output_file = os.path.join(confdir, "cism_in")
     nmlgen.write_output_file(output_file, data_list_path, groups=groups, sorted_groups=False)
 
+    _cism_in_final_consistency_checks(nmlgen, config)
+
+####################################################################################
+def _create_cism_config(case, confdir, inst_string, icesheet, infile, nmlgen, data_list_path):
+####################################################################################
+    """Write the cism.config file
+
+    Most arguments are the same as those for `NamelistGenerator`. The `inst_string`
+    argument is used as a suffix to distinguish files for different instances. The
+    `icesheet` argument gives the name of the ice sheet for which we're creating a
+    namelist.  The `confdir` argument is used to specify the directory in which output
+    files will be placed.
+    """
     #----------------------------------------------------
-    # cism.config: Set values for sections that are added conditionally and write file
+    # Create config dictionary
+    #----------------------------------------------------
+    config = {}
+    config['glc_grid']  = case.get_value("GLC_GRID")
+    config['cism_phys'] = case.get_value("CISM_PHYS")
+    config['cism_evolve'] = '.true.' if case.get_value('CISM_EVOLVE') else '.false.'
+
+    cism_observed_ic = case.get_value("CISM_OBSERVED_IC")
+
+    run_type = _get_effective_run_type(case)
+
+    #----------------------------------------------------
+    # Initialize namelist defaults
+    #----------------------------------------------------
+    nmlgen.init_defaults([infile], config,
+                         skip_default_for_groups=["gthf",
+                                                  "isostasy",
+                                                  "sigma"])
+
+    _set_restart_options(nmlgen, case,
+                         run_type=run_type,
+                         cism_observed_ic=cism_observed_ic,
+                         cism_evolve=config['cism_evolve'],
+                         inst_string=inst_string)
+
+    #----------------------------------------------------
+    # Set values for sections that are added conditionally and write file
     #----------------------------------------------------
     output_file = os.path.join(confdir, "cism.config")
     _update_cism_config(nmlgen, output_file, mode="w", header="grid", group="grid")
@@ -307,12 +309,13 @@ def _create_namelist(case, confdir, inst_string, icesheet, infile, nmlgen, data_
     # ------------------------------------------------------------------------
     # Final consistency checks
     # ------------------------------------------------------------------------
-    _final_consistency_checks(nmlgen)
+    _cism_config_final_consistency_checks(nmlgen)
 
 ###############################################################################
-def _initial_consistency_checks(config):
+def _initial_consistency_checks(case):
 ###############################################################################
-    if config["calendar"] != "NO_LEAP":
+    calendar = case.get_value("CALENDAR")
+    if calendar != "NO_LEAP":
         # See https://github.com/ESCOMP/CISM-wrapper/issues/1
         errmsg = """\
 CISM currently only supports a NO_LEAP calendar.
@@ -322,6 +325,22 @@ Besides not getting CISM diagnostics, this will just result in slightly differen
 cover in CLM.)"""
         print(errmsg)
         expect(False, "CISM currently only supports a NO_LEAP calendar")
+
+###############################################################################
+def _get_effective_run_type(case):
+###############################################################################
+    run_type = case.get_value("RUN_TYPE")
+
+    comp_interface = case.get_value("COMP_INTERFACE")
+    cism_evolve = case.get_value("CISM_EVOLVE")
+    # NOTE: with the nuopc interface, the CISM run phase is never called when running
+    # in noevolve mode, so a restart file will never be written for cism - only initial
+    # information will be sent back to CTSM.
+    if (comp_interface == 'nuopc' and not cism_evolve):
+        logger.debug("Interface is nuopc, cism is not evolving: CISM run_type is always startup")
+        run_type = "startup"
+
+    return run_type
 
 ###############################################################################
 def _set_restart_options(nmlgen, case, run_type, cism_observed_ic, cism_evolve, inst_string):
@@ -460,15 +479,18 @@ def _add_conditional_section_to_cism_config(nmlgen, output_file, group,
         nmlgen.confirm_group_is_empty(group, errmsg)
 
 ###############################################################################
-def _final_consistency_checks(nmlgen):
+def _cism_in_final_consistency_checks(nmlgen, config):
 ###############################################################################
     num_errors = 0
-    num_errors += _check_cism_dt(float(nmlgen.get_value("dt")))
 
-    if int(nmlgen.get_value("evolve_ice")) == 0:
+    if _value_is_false(config["cism_evolve"]):
+        # The important condition is if evolve_ice = 0. But since evolve_ice is in
+        # cism.config, we don't have access to that value when doing consistency checks on
+        # cism_in. We force evolve_ice to match CISM_EVOLVE, so we can check this by
+        # checking CISM_EVOLVE.
         if _value_is_false(nmlgen.get_value("zero_gcm_fluxes")):
             errmsg = """\
-ERROR: For evolve_ice = 0, you must also set zero_gcm_fluxes = .true.
+ERROR: For CISM_EVOLVE FALSE, you must also set zero_gcm_fluxes = .true.
 (This is because evolve_ice = 0 implies that there will be no fluxes,
 and you must explicitly set zero_gcm_fluxes = .true. for the sake of logic
 that depends on whether these fluxes will be zero - particularly, the creation
@@ -476,7 +498,15 @@ of icemask_coupled_fluxes used by CTSM)."""
             print(errmsg)
             num_errors += 1
 
-    expect(num_errors == 0, "Errors in CISM final consistency checks (see above)")
+    expect(num_errors == 0, "Errors in cism_in final consistency checks (see above)")
+
+###############################################################################
+def _cism_config_final_consistency_checks(nmlgen):
+###############################################################################
+    num_errors = 0
+    num_errors += _check_cism_dt(float(nmlgen.get_value("dt")))
+
+    expect(num_errors == 0, "Errors in cism.config final consistency checks (see above)")
 
 ###############################################################################
 def _check_cism_dt(dt):
