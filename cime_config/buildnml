@@ -47,6 +47,9 @@ _ICESHEET_OPTIONS = OrderedDict([('ais', 'CISM_USE_ANTARCTICA'),
 # ice sheet name
 _ICESHEET_GRIDNAMES = {'gris': 'gland'}
 
+# base name of cism.config file
+_CONFIG_FNAME = "cism.config"
+
 # value of 'sigma' that signifies that values are read from a sigma section
 _SIGMA_IN_CONFIG_FILE = 2
 
@@ -138,8 +141,8 @@ def buildnml(case, caseroot, compname):
                                 data_list_path=data_list_path)
             # Copy resolved namelist to rundir
             if os.path.isdir(rundir):
-                file_src = os.path.join(confdir, "cism.config")
-                file_dest = os.path.join(rundir, "cism.config")
+                file_src = os.path.join(confdir, _CONFIG_FNAME)
+                file_dest = os.path.join(rundir, _CONFIG_FNAME)
                 file_dest += inst_string
                 logger.debug("CISM namelist copy: file_src {} file_dest {} ".format(file_src, file_dest))
                 safe_copy(file_src,file_dest)
@@ -219,7 +222,7 @@ def _create_cism_in(case, confdir, inst_string, infile, nmlgen, data_list_path):
     nmlgen.init_defaults([infile], config,
                          skip_default_for_groups=["glc_override_nml"])
 
-    nmlgen.add_default("paramfile", value="cism.config"+inst_string, ignore_abs_path=True)
+    nmlgen.add_default("paramfile", value=_CONFIG_FNAME+inst_string, ignore_abs_path=True)
 
     _set_startdate(nmlgen, case,
                    run_type=run_type)
@@ -286,7 +289,7 @@ def _create_cism_config(case, confdir, inst_string, icesheet, infile, nmlgen, da
     #----------------------------------------------------
     # Set values for sections that are added conditionally and write file
     #----------------------------------------------------
-    output_file = os.path.join(confdir, "cism.config")
+    output_file = os.path.join(confdir, _CONFIG_FNAME)
     _update_cism_config(nmlgen, output_file, mode="w", header="grid", group="grid")
     _update_cism_config(nmlgen, output_file, mode="a", header="GLAD climate", group="glad_climate")
     _update_cism_config(nmlgen, output_file, mode="a", header="options", group="options")
