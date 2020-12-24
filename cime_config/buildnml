@@ -67,7 +67,6 @@ def buildnml(case, caseroot, compname):
     if compname != "cism":
         raise AttributeError
 
-    glcroot = case.get_value("COMP_ROOT_DIR_GLC")
     ninst = case.get_value("NINST_GLC")
     rundir = case.get_value("RUNDIR")
 
@@ -81,25 +80,8 @@ def buildnml(case, caseroot, compname):
     if os.path.exists(data_list_path):
         os.remove(data_list_path)
 
-    #----------------------------------------------------
     # Construct the namelist generator
-    #----------------------------------------------------
-    # determine directory for user modified namelist_definitions.xml and namelist_defaults.xml
-    user_xml_dir = os.path.join(caseroot, "SourceMods", "src.cism")
-    expect (os.path.isdir(user_xml_dir),
-            "user_xml_dir {} does not exist ".format(user_xml_dir))
-
-    # NOTE: User definition *replaces* existing definition.
-    namelist_xml_dir = os.path.join(glcroot, "cime_config")
-    definition_file = [os.path.join(namelist_xml_dir, "namelist_definition_cism.xml")]
-    user_definition = os.path.join(user_xml_dir, "namelist_definition_cism.xml")
-    if os.path.isfile(user_definition):
-        definition_file = [user_definition]
-    for file_ in definition_file:
-        expect(os.path.isfile(file_), "Namelist XML file {} not found!".format(file_))
-
-    # Create the namelist generator object - independent of instance
-    nmlgen = NamelistGenerator(case, definition_file)
+    nmlgen = _create_namelist_generator(case, caseroot, "namelist_definition_cism.xml")
 
     #----------------------------------------------------
     # Loop over instances
@@ -129,6 +111,28 @@ def buildnml(case, caseroot, compname):
                                              user_nl_file=user_nl_file,
                                              nmlgen=nmlgen,
                                              data_list_path=data_list_path)
+
+####################################################################################
+def _create_namelist_generator(case, caseroot, filename):
+####################################################################################
+    # determine directory for user modified namelist_definitions.xml and namelist_defaults.xml
+    user_xml_dir = os.path.join(caseroot, "SourceMods", "src.cism")
+    expect (os.path.isdir(user_xml_dir),
+            "user_xml_dir {} does not exist ".format(user_xml_dir))
+
+    # NOTE: User definition *replaces* existing definition.
+    glcroot = case.get_value("COMP_ROOT_DIR_GLC")
+    namelist_xml_dir = os.path.join(glcroot, "cime_config")
+    definition_file = [os.path.join(namelist_xml_dir, filename)]
+    user_definition = os.path.join(user_xml_dir, filename)
+    if os.path.isfile(user_definition):
+        definition_file = [user_definition]
+    for file_ in definition_file:
+        expect(os.path.isfile(file_), "Namelist XML file {} not found!".format(file_))
+
+    # Create the namelist generator object - independent of instance
+    nmlgen = NamelistGenerator(case, definition_file)
+    return nmlgen
 
 ####################################################################################
 def _create_namelists_for_all_ice_sheets(case, confdir, rundir, inst_string, user_nl_file,
