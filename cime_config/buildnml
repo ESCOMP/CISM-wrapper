@@ -266,10 +266,10 @@ def _create_cism_config(case, confdir, inst_string, icesheet, infile, nmlgen, da
     # Create config dictionary
     #----------------------------------------------------
     config = {}
+    config['icesheet'] = icesheet
     config['glc_grid']  = case.get_value("GLC_GRID")
     config['cism_phys'] = case.get_value("CISM_PHYS")
     config['cism_evolve'] = '.true.' if case.get_value('CISM_EVOLVE') else '.false.'
-    config['icesheet'] = icesheet
 
     cism_observed_ic = case.get_value("CISM_OBSERVED_IC")
 
