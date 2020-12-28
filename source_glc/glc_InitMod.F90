@@ -233,6 +233,7 @@
       write(stdout,*) 'zero_gcm_fluxes: ', zero_gcm_fluxes
       write(stdout,*) 'test_coupling:   ', test_coupling
       write(stdout,*) 'enable_frac_overrides: ', enable_frac_overrides
+      write(stdout,*) 'icesheet_names: ', icesheet_names(1:num_icesheets)
    end if
 
    if (verbose .and. my_task==master_task) then
