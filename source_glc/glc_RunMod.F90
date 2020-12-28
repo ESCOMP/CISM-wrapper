@@ -86,9 +86,6 @@
 
    logical, save :: first_call = .true.        ! flag for initializing timers
 
-  character(fname_length) ::  & 
-     paramfile     ! Name of the top-level configuration file
- 
   ! Scalars which hold information about the global grid
  
   integer (i4) ::  &

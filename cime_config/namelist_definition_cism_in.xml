@@ -8,12 +8,33 @@
   <!-- group: cism_params                                             -->
   <!-- =============================================================  -->
 
-  <entry id="paramfile" skip_default_entry="true">
+  <entry id="paramfile_base" skip_default_entry="true">
     <type>char</type>
     <category>cism</category>
     <group>cism_params</group>
     <desc>
-      Name of top-level configuration file for CISM
+      Base name of top-level configuration file for CISM
+      Actual param files will have the ice sheet name on the end
+      (Determined by scripts -- should not be set by user)
+    </desc>
+  </entry>
+
+  <entry id="num_icesheets" skip_default_entry="true" modify_via_xml="CISM_USE_ANTARCTICA, CISM_USE_GREENLAND, etc.">
+    <type>integer</type>
+    <category>cism</category>
+    <group>cism_params</group>
+    <desc>
+      Number of ice sheets in this simulation
+      (Determined by scripts -- cannot be set by user)
+    </desc>
+  </entry>
+
+  <entry id="icesheet_names" skip_default_entry="true" modify_via_xml="CISM_USE_ANTARCTICA, CISM_USE_GREENLAND, etc.">
+    <type>char(10)</type>
+    <category>cism</category>
+    <group>cism_params</group>
+    <desc>
+      List of names of ice sheets in this simulation
       (Determined by scripts -- cannot be set by user)
     </desc>
   </entry>

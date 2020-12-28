@@ -118,14 +118,16 @@ def buildnml(case, caseroot, compname):
         _create_cism_in(case=case,
                         confdir=confdir,
                         inst_string=inst_string,
+                        # need to make a copy of icesheet_names because add_default
+                        # modifies the values for some reason
+                        icesheet_names=icesheet_names[:],
                         infile=infile,
                         nmlgen=nmlgen_cism_in,
                         data_list_path=data_list_path)
         # Copy resolved namelist to rundir
         if os.path.isdir(rundir):
             file_src = os.path.join(confdir, "cism_in")
-            file_dest = os.path.join(rundir, "cism_in")
-            file_dest += inst_string
+            file_dest = os.path.join(rundir, "cism_in"+inst_string)
             logger.debug("CISM namelist copy: file_src {} file_dest {} ".format(file_src, file_dest))
             safe_copy(file_src,file_dest)
 
@@ -142,8 +144,7 @@ def buildnml(case, caseroot, compname):
             # Copy resolved namelist to rundir
             if os.path.isdir(rundir):
                 file_src = os.path.join(confdir, _CONFIG_FNAME)
-                file_dest = os.path.join(rundir, _CONFIG_FNAME)
-                file_dest += inst_string
+                file_dest = os.path.join(rundir, _CONFIG_FNAME+inst_string+"."+icesheet)
                 logger.debug("CISM namelist copy: file_src {} file_dest {} ".format(file_src, file_dest))
                 safe_copy(file_src,file_dest)
 
@@ -199,15 +200,15 @@ def _icesheet_consistency_checks(case, icesheet_names):
                 gridname, glc_grid, icesheet))
 
 ####################################################################################
-def _create_cism_in(case, confdir, inst_string, infile, nmlgen, data_list_path):
+def _create_cism_in(case, confdir, inst_string, icesheet_names, infile, nmlgen, data_list_path):
 ####################################################################################
     """Write the cism_in file
 
     Most arguments are the same as those for `NamelistGenerator`. The `inst_string`
     argument is used as a suffix to distinguish files for different instances. The
-    `icesheet` argument gives the name of the ice sheet for which we're creating a
-    namelist.  The `confdir` argument is used to specify the directory in which output
-    files will be placed.
+    `icesheet_names` argument gives the list of names of the ice sheets for which we're
+    creating a namelist.  The `confdir` argument is used to specify the directory in which
+    output files will be placed.
     """
     # ------------------------------------------------------------------------
     # Create config dictionary
@@ -222,7 +223,9 @@ def _create_cism_in(case, confdir, inst_string, infile, nmlgen, data_list_path):
     nmlgen.init_defaults([infile], config,
                          skip_default_for_groups=["glc_override_nml"])
 
-    nmlgen.add_default("paramfile", value=_CONFIG_FNAME+inst_string, ignore_abs_path=True)
+    nmlgen.add_default("paramfile_base", value=_CONFIG_FNAME+inst_string, ignore_abs_path=True)
+    nmlgen.add_default("num_icesheets", value=len(icesheet_names))
+    nmlgen.add_default("icesheet_names", value=icesheet_names)
 
     _set_startdate(nmlgen, case,
                    run_type=run_type)
