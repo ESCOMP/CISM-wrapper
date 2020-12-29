@@ -36,6 +36,13 @@ logger = logging.getLogger(__name__)
 # Set some important constants, such as important
 # values of certain config file parameters
 #----------------------------------------------------
+# namelist groups in the cism_in file
+_CISM_IN_GROUPS = ["cism_params","cism_history","time_manager_nml", "glc_override_nml"]
+
+# namelist groups in the cism.config file
+_CISM_CONFIG_GROUPS = ["grid", "glad_climate", "options", "sigma", "time", "parameters",
+                       "ho_options", "gthf", "isostasy", "derived"]
+
 # dictionary mapping all possible ice sheet names to xml variables
 # we use an OrderedDict to get reliable ordering (this is unnecessary in python3.6 and
 # later because standard dicts maintain order, but necessary for 3.5 and earlier)
@@ -88,9 +95,8 @@ def buildnml(case, caseroot, compname):
     if os.path.exists(data_list_path):
         os.remove(data_list_path)
 
-    # Construct the namelist generators
-    nmlgen_cism_in = _create_namelist_generator(case, caseroot, "namelist_definition_cism_in.xml")
-    nmlgen_cism_config = _create_namelist_generator(case, caseroot, "namelist_definition_cism_config.xml")
+    # Construct the namelist generator
+    nmlgen = _create_namelist_generator(case, caseroot, "namelist_definition_cism.xml")
 
     #----------------------------------------------------
     # Loop over instances
@@ -122,7 +128,7 @@ def buildnml(case, caseroot, compname):
                         # modifies the values for some reason
                         icesheet_names=icesheet_names[:],
                         infile=infile,
-                        nmlgen=nmlgen_cism_in,
+                        nmlgen=nmlgen,
                         data_list_path=data_list_path)
         # Copy resolved namelist to rundir
         if os.path.isdir(rundir):
@@ -139,7 +145,7 @@ def buildnml(case, caseroot, compname):
                                 inst_string=inst_string,
                                 icesheet=icesheet,
                                 infile=infile,
-                                nmlgen=nmlgen_cism_config,
+                                nmlgen=nmlgen,
                                 data_list_path=data_list_path)
             # Copy resolved namelist to rundir
             if os.path.isdir(rundir):
@@ -220,8 +226,11 @@ def _create_cism_in(case, confdir, inst_string, icesheet_names, infile, nmlgen, 
 
     run_type = _get_effective_run_type(case)
 
+    # To avoid errors with the user_nl_cism file, nmlgen needs to contain all of the
+    # groups from both cism_in and cism.config. However, for the sake of the cism_in file,
+    # we can avoid doing the work of adding the defaults for the cism.config groups.
     nmlgen.init_defaults([infile], config,
-                         skip_default_for_groups=["glc_override_nml"])
+                         skip_default_for_groups=_CISM_CONFIG_GROUPS+["glc_override_nml"])
 
     nmlgen.add_default("paramfile_base", value=_CONFIG_FNAME+inst_string, ignore_abs_path=True)
     nmlgen.add_default("num_icesheets", value=len(icesheet_names))
@@ -245,7 +254,7 @@ def _create_cism_in(case, confdir, inst_string, icesheet_names, infile, nmlgen, 
             "glc_override_nml",
             "items in glc_override_nml can only be set if enable_frac_overrides is set to .true.")
 
-    groups = ["cism_params","cism_history","time_manager_nml", "glc_override_nml"]
+    groups = _CISM_IN_GROUPS
     output_file = os.path.join(confdir, "cism_in")
     nmlgen.write_output_file(output_file, data_list_path, groups=groups, sorted_groups=False)
 
@@ -278,10 +287,13 @@ def _create_cism_config(case, confdir, inst_string, icesheet, infile, nmlgen, da
     #----------------------------------------------------
     # Initialize namelist defaults
     #----------------------------------------------------
+    # To avoid errors with the user_nl_cism file, nmlgen needs to contain all of the
+    # groups from both cism_in and cism.config. However, for the sake of the cism.config file,
+    # we can avoid doing the work of adding the defaults for the cism_in groups.
     nmlgen.init_defaults([infile], config,
-                         skip_default_for_groups=["gthf",
-                                                  "isostasy",
-                                                  "sigma"])
+                         skip_default_for_groups=_CISM_IN_GROUPS+["gthf",
+                                                                  "isostasy",
+                                                                  "sigma"])
 
     _set_restart_options(nmlgen, case,
                          run_type=run_type,
