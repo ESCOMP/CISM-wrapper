@@ -110,7 +110,7 @@
       paramfile_base        ! Base name of the top-level configuration file (actual param
                             ! files will have the ice sheet name on the end)
 
-  character(len=:), allocatable :: paramfile  ! Actual param file name
+  character(fname_length) :: paramfile  ! Actual param file name
 
   character(fname_length) ::  &
       cesm_restart_file  ! Name of the file to be used for a restart
