@@ -454,7 +454,7 @@ subroutine glc_setgsmap_mct( mpicom_g, GLCID, gsMap_g )
   
   ! Initialize MCT global seg map
   
-  use glc_indexing, only : local_to_global_indices
+  use glc_indexing, only : local_to_global_indices, npts_tot
 
   integer        , intent(in)  :: mpicom_g
   integer        , intent(in)  :: GLCID
@@ -469,7 +469,10 @@ subroutine glc_setgsmap_mct( mpicom_g, GLCID, gsMap_g )
   character(*), parameter :: subName = "(glc_SetgsMap_mct) "
   !-------------------------------------------------------------------
 
-  call mct_gsMap_init( gsMap_g, local_to_global_indices(), mpicom_g, GLCID )
+  ! npts_tot is the number of grid cells on CISM's global grid. It is passed to
+  ! mct_gsMapinit in case there are ice-free grid cells on the global grid that are not
+  ! assigned to any processor.
+  call mct_gsMap_init( gsMap_g, local_to_global_indices(), mpicom_g, GLCID, gsize = npts_tot)
 
 end subroutine glc_SetgsMap_mct
 
