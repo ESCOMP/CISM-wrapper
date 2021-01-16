@@ -20,11 +20,11 @@ could within the coupled system.
 A run with standalone CISM in the CESM context is known as a T compset. (In the past this
 was referred to as a TG compset. Now the G appears near the end of the compset name, so
 compsets have names like T1850Gg, where the final g indicates Greenland.) This compset
-uses the active ice sheet model forced by a data land model; all other components are
-stubs. Before running a T compset, you must have coupler history files from a previous run
-that included CLM (version 4.5 or later). You can run with either existing forcing data
-(see :numref:`t-with-existing-data`) or with your own forcing data (see
-:numref:`t-with-your-own-data`).
+uses the active ice sheet model for the specified ice sheet(s), forced by a data land
+model; all other components are stubs. Before running a T compset, you must have coupler
+history files from a previous run that included CLM (version 4.5 or later). You can run
+with either existing forcing data (see :numref:`t-with-existing-data`) or with your own
+forcing data (see :numref:`t-with-your-own-data`).
 
 .. _t-with-existing-data:
 
