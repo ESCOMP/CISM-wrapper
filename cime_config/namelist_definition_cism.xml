@@ -141,6 +141,9 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <!-- TODO(wjs, 2021-02-25) I think we'll need to move this to
+       cism.config, since we will allow cism_evolve to differ for each
+       ice sheet -->
   <entry id="zero_gcm_fluxes">
     <type>logical</type>
     <category>cism</category>
@@ -190,6 +193,9 @@ Sub-elements of each entry include:
   <!-- group: cism_history                                            -->
   <!-- =============================================================  -->
 
+  <!-- TODO(wjs, 2021-02-25) I think we'll need to move this to
+       cism.config, since we will allow cism_evolve to differ for each
+       ice sheet -->
   <entry id="cesm_history_vars" >
     <type>char</type>
     <category>history</category>
@@ -618,14 +624,14 @@ Sub-elements of each entry include:
   <!-- group: cism.config: climate                                    -->
   <!-- =============================================================  -->
 
-  <entry id="evolve_ice" modify_via_xml="CISM_EVOLVE">
+  <entry id="evolve_ice" modify_via_xml="CISM_EVOLVE_ICESHEET for the given ice sheet">
     <type>integer</type>
     <category>cism_config_climate</category>
     <group>glad_climate</group>
     <valid_values>0,1</valid_values>
     <values>
-      <value cism_evolve=".true.">1</value>
-      <value cism_evolve=".false.">0</value>
+      <value cism_evolve_this_icesheet=".true.">1</value>
+      <value cism_evolve_this_icesheet=".false.">0</value>
     </values>
     <desc>
       0: Do not let the ice sheet evolve (hold ice state fixed at initial condition)
