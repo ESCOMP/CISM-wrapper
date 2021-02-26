@@ -4,6 +4,12 @@
 
   <description modifier_mode="+">
     <desc glc="CISM2[%EVOLVE][%NOEVOLVE][%GRIS-EVOLVE][%GRIS-NOEVOLVE][%AIS-EVOLVE][%AIS-NOEVOLVE]">cism2:</desc>
+    <!-- For any ice sheet present in this run, it should be specified
+         exactly once, as either ICESHEET-EVOLVE or ICESHEET-NOEVOLVE
+         for the appropriate ICESHEET (GRIS, AIS). Any ice sheet not
+         specified doesn't exist at all in this run. At least one ice
+         sheet must be present (other than the backwards compatibility
+         that will soon be removed). -->
     <desc option="GRIS-EVOLVE">include evolving Greenland Ice Sheet:</desc>
     <desc option="GRIS-NOEVOLVE">include non-evolving Greenland Ice Sheet:</desc>
     <desc option="AIS-EVOLVE">include evolving Antarctica Ice Sheet:</desc>
@@ -162,8 +168,11 @@
     =========================================
     CISM naming conventions in compset name
 
-    Must specify at least one ice sheet and whether it is evolving
-    (e.g., %GRIS-EVOLVE or %GRIS-NOEVOLVE)
+    For any ice sheet present in this run, it should be specified
+    exactly once, as either %ICESHEET-EVOLVE or %ICESHEET-NOEVOLVE for
+    the appropriate ICESHEET (GRIS, AIS). Any ice sheet not specified
+    doesn't exist at all in this run. You must specify at least one ice
+    sheet.
     =========================================
   </help>
 
