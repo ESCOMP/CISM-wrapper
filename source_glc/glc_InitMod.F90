@@ -108,7 +108,8 @@
 
   character(fname_length) ::  &
       paramfile_base        ! Base name of the top-level configuration file (actual param
-                            ! files will have the ice sheet name on the end)
+                            ! file names are this base name plus ".icesheet.config" for
+                            ! the given ice sheet).
 
   character(fname_length) :: paramfile  ! Actual param file name
 
@@ -293,7 +294,7 @@
   unit = shr_file_getUnit()
 
   ! TODO(wjs, 2020-12-28) Need to loop over ice sheets here (rather than just using icesheet_names(1))
-  paramfile = trim(paramfile_base) // "." // trim(icesheet_names(1))
+  paramfile = trim(paramfile_base) // "." // trim(icesheet_names(1)) // ".config"
   call glad_initialize(ice_sheet,                            &
                        climate_tstep,                        &
                        (/paramfile/),                        &
