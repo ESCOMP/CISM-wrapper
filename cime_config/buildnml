@@ -368,6 +368,10 @@ def _create_cism_config(case, confdir, inst_string, icesheet, infile, nmlgen, da
     # Set values for sections that are added conditionally and write file
     #----------------------------------------------------
     output_file = os.path.join(confdir, _config_fname(icesheet))
+    # This initial write doesn't actually write any values (due to specifying
+    # "groups=[]"). However, it still performs two functions: (1) validation; (2) writing
+    # to the input data list file.
+    nmlgen.write_output_file(output_file, data_list_path, groups=[])
     _update_cism_config(nmlgen, output_file, mode="w", header="grid", group="grid")
     _update_cism_config(nmlgen, output_file, mode="a", header="GLAD climate", group="glad_climate")
     _update_cism_config(nmlgen, output_file, mode="a", header="options", group="options")
