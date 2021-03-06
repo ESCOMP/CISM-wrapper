@@ -2108,7 +2108,50 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <!-- =============================================================  -->
+  <!-- group: cism.config: ocean_data                                 -->
+  <!-- =============================================================  -->
 
+  <entry id="nzocn">
+    <type>integer</type>
+    <category>cism_config_ocean_data</category>
+    <group>ocean_data</group>
+    <values>
+      <value>1</value>
+    </values>
+    <desc>
+      Number of ocean levels fields for ISMIP6-style ocean data input
+      Must be a positive integer
+      Default: 1
+    </desc>
+  </entry>
+
+  <entry id="dzocn">
+    <type>real</type>
+    <category>cism_config_ocean_data</category>
+    <group>ocean_data</group>
+    <values>
+      <value>0.0</value>
+    </values>
+    <desc>
+      Thickness of ocean levels (ISMIP6-style ocean data input); 
+      nonzero value set in config file
+      Default: 0.0
+    </desc>
+  </entry>
+
+  <entry id="nbasin">
+    <type>integer</type>
+    <category>cism_config_ocean_data</category>
+    <group>ocean_data</group>
+    <values>
+      <value>0</value>
+    </values>
+    <desc>
+      Number of basins (= 16 for IMBIE2) for ISMIP6-style ocean data input
+      Default: 0
+    </desc>
+  </entry>
 
   <!-- =============================================================  -->
   <!-- group: cism.config: ho_options (higher-order options)          -->
