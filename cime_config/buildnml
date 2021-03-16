@@ -147,6 +147,7 @@ def _create_namelist(case, confdir, inst_string, infile, nmlgen, data_list_path)
     _add_conditional_section_to_cism_config(nmlgen, output_file, group="isostasy",
                                             control_var="isostasy",
                                             value_for_addition=_ISOSTASY_ON)
+    _update_cism_config(nmlgen, output_file, mode="a", header="grid_ocn", group="grid_ocn")
 
     final_text = _final_template.format(filename=nmlgen.get_value('cisminputfile'))
     with open(output_file, "a") as file_obj:

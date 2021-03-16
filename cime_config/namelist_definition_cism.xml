@@ -2103,19 +2103,19 @@ Sub-elements of each entry include:
     </values>
     <desc>
       Parameters for reducing the effective pressure where the bed is warm, saturated or connected to the ocean:
-      P-exponent parameter for ocean penetration parameterization (unitless, 0 <= p <= 1)
+      P-exponent parameter for ocean penetration parameterization (unitless, 0 .le. p .le. 1)
       Default: 0.0
     </desc>
   </entry>
 
   <!-- =============================================================  -->
-  <!-- group: cism.config: ocean_data                                 -->
+  <!-- group: cism.config: grid_ocn                                   -->
   <!-- =============================================================  -->
 
   <entry id="nzocn">
     <type>integer</type>
-    <category>cism_config_ocean_data</category>
-    <group>ocean_data</group>
+    <category>cism_config_grid_ocn</category>
+    <group>grid_ocn</group>
     <values>
       <value>1</value>
     </values>
@@ -2128,8 +2128,8 @@ Sub-elements of each entry include:
 
   <entry id="dzocn">
     <type>real</type>
-    <category>cism_config_ocean_data</category>
-    <group>ocean_data</group>
+    <category>cism_config_grid_ocn</category>
+    <group>grid_ocn</group>
     <values>
       <value>0.0</value>
     </values>
@@ -2142,8 +2142,8 @@ Sub-elements of each entry include:
 
   <entry id="nbasin">
     <type>integer</type>
-    <category>cism_config_ocean_data</category>
-    <group>ocean_data</group>
+    <category>cism_config_grid_ocn</category>
+    <group>grid_ocn</group>
     <values>
       <value>0</value>
     </values>
