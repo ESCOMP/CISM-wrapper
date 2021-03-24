@@ -499,6 +499,9 @@ Sub-elements of each entry include:
       <value icesheet="gris" glc_grid="gland20">glc/cism/Greenland/gland20.input_c150415.nc</value>
       <!-- this is the resolution that should be used for science applications with cism2 -->
       <value icesheet="gris" glc_grid="gland4">glc/cism/Greenland/greenland_4km_epsg3413_c171126.nc</value>
+
+      <!-- the following is for software testing of Antarctica -->
+      <value icesheet="ais" glc_grid="ais8">glc/cism/Antarctica/ISMIP6_Antarctica_8km.1950_init_c201229.nc</value>
     </values>
     <desc>
       Input file
@@ -520,6 +523,7 @@ Sub-elements of each entry include:
     <values>
       <value icesheet="gris" glc_grid="gland20" >76</value>
       <value icesheet="gris" glc_grid="gland4"  >416</value>
+      <value icesheet="ais"  glc_grid="ais8"    >704</value>
     </values>
     <desc>
       Number of nodes in x-direction
@@ -534,6 +538,7 @@ Sub-elements of each entry include:
     <values>
       <value icesheet="gris" glc_grid="gland20" >141</value>
       <value icesheet="gris" glc_grid="gland4"  >704</value>
+      <value icesheet="ais"  glc_grid="ais8"    >576</value>
     </values>
     <desc>
       Number of nodes in y-direction
@@ -561,6 +566,7 @@ Sub-elements of each entry include:
     <values>
       <value icesheet="gris" glc_grid="gland20" >20000.</value>
       <value icesheet="gris" glc_grid="gland4"  >4000.</value>
+      <value icesheet="ais"  glc_grid="ais8"    >8000.</value>
     </values>
     <desc>
       Node spacing in x-direction (m)
@@ -575,6 +581,7 @@ Sub-elements of each entry include:
     <values>
       <value icesheet="gris" glc_grid="gland20" >20000.</value>
       <value icesheet="gris" glc_grid="gland4"  >4000.</value>
+      <value icesheet="ais"  glc_grid="ais8"    >8000.</value>
     </values>
     <desc>
       Node spacing in y-direction (m)
@@ -1040,6 +1047,10 @@ Sub-elements of each entry include:
            code in a more typical configuration (i.e., with a sub-annual time step) -->
       <value icesheet="gris" glc_grid="gland20">0.5</value>
       <value icesheet="gris" glc_grid="gland4" >0.1</value>
+
+      <!-- Gunter used nsteps_per_year = 6. Can we use that instead of
+           dt here? -->
+      <value icesheet="ais"  glc_grid="ais8"   >0.2</value>
     </values>
     <desc>
       Ice sheet timestep (years)
@@ -1095,6 +1106,8 @@ Sub-elements of each entry include:
       <!-- Set dt_diag same as dt in order to get diagnostics every time step -->
       <value icesheet="gris" glc_grid="gland20">0.5</value>
       <value icesheet="gris" glc_grid="gland4" >0.1</value>
+
+      <value icesheet="ais"  glc_grid="ais8"   >0.2</value>
     </values>
     <desc>
       Diagnostic frequency (years)
@@ -1114,6 +1127,9 @@ Sub-elements of each entry include:
       <!-- Update 5-2-17: The 4-km point should be updated for the new grid -->
       <value icesheet="gris" glc_grid="gland20" >19</value>
       <value icesheet="gris" glc_grid="gland4"  >134</value>
+
+      <!-- AIS 8-km idiag & jdiag: Thwaites shelf near GL -->
+      <value icesheet="ais"  glc_grid="ais8"    >157</value>
     </values>
     <desc>
       x coordinate of point for diagnostic output
@@ -1129,6 +1145,8 @@ Sub-elements of each entry include:
       <!-- See comments for idiag, above -->
       <value icesheet="gris" glc_grid="gland20" >57</value>
       <value icesheet="gris" glc_grid="gland4"  >280</value>
+
+      <value icesheet="ais"  glc_grid="ais8"    >230</value>
     </values>
     <desc>
       y coordinate of point for diagnostic output
