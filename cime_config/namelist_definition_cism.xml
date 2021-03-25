@@ -551,11 +551,14 @@ Sub-elements of each entry include:
     <category>cism_config_grid</category>
     <group>grid</group>
     <values>
-      <value>11</value>
+      <value icesheet="gris" glc_grid="gland20" >11</value>
+      <value icesheet="gris" glc_grid="gland4"  >11</value>
+
+      <value icesheet="ais"  glc_grid="ais8"    >5</value>
     </values>
     <desc>
       Number of nodes in z-direction
-      Default: 11
+      Default: resolution-dependent
     </desc>
   </entry>
 
