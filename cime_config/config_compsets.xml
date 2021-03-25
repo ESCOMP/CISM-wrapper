@@ -47,7 +47,7 @@
 
   <compset>
     <alias>T1850Ga</alias>
-    <lname>1850_SATM_DLND%SCPL_SICE_SOCN_SROF_CISM2%EVOLVE%AIS_SWAV</lname>
+    <lname>1850_SATM_DLND%SCPL_SICE_SOCN_SROF_CISM2%AIS-EVOLVE_SWAV</lname>
   </compset>
 
   <entries>
