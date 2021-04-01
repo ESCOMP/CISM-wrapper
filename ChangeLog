@@ -4,6 +4,50 @@ This file describes what tags were created on master and why
 
 ================================================================================
 Originator: sacks
+Date: April 1, 2021
+Version: cism2_1_77
+One-line summary: Update externals, including updating T compset forcings
+
+Purpose of changes:
+
+   Update all externals to recent versions.
+
+   One important change that comes in with this is that the dlnd forcing
+   data used for T compsets is updated to point to output from the last
+   30 years of the CMIP6 PI-control run.
+
+   Also, change I compset tests to use f10_f10_mg37 instead of
+   f10_f10_musgs grid, since the latter is no longer supported.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: YES
+
+   - T compsets change answers due to new forcing data
+
+   - I compsets change answers due to updated version of CTSM; also,
+     BFAILs due to new grid for some tests
+
+   - Possibly other changes from updated externals
+
+Bugs fixed (include github issue number): none
+
+Summary of testing:
+
+   Full aux_glc test suite on cheyenne and izumi.
+
+   All tests pass, but baseline comparisons fail as expected.
+
+================================================================================
+Originator: sacks
 Date: March 1, 2021
 Version: cism2_1_76
 One-line summary: Add icesheet to compset & support alternative/multiple cism.config files
