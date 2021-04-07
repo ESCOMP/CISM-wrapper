@@ -35,7 +35,7 @@ module glc_comp_nuopc
   use nuopc_shr_methods   , only : chkerr, state_setscalar, state_getscalar, state_diagnose, alarmInit
   use nuopc_shr_methods   , only : set_component_logging, get_component_instance, log_clock_advance
   use perf_mod            , only : t_startf, t_stopf, t_barrierf
-
+!$ use omp_lib            , only : omp_set_num_threads
   implicit none
   private ! except
 
@@ -57,6 +57,7 @@ module glc_comp_nuopc
   integer                    :: lmpicom
   character(len=16)          :: inst_name ! full name of current instance (e.g., GLC_0001)
   integer, parameter         :: dbug = 1
+  integer                    :: nthrds  ! Number of openMP threads per mpi task
   character(len=*),parameter :: modName =  "(glc_comp_nuopc)"
   character(len=*),parameter :: u_FILE_u = &
        __FILE__
@@ -230,6 +231,7 @@ contains
     type(ESMF_TimeInterval) :: timeStep              ! Model timestep
     type(ESMF_Calendar)     :: esmf_calendar         ! esmf calendar
     type(ESMF_CalKind_Flag) :: esmf_caltype          ! esmf calendar type
+    type(ESMF_vm)           :: vm                    ! esmf virtual machine structure
     integer                 :: ref_tod               ! reference time of day (sec)
     integer                 :: yy,mm,dd              ! Temporaries for time query
     integer                 :: start_ymd             ! start date (YYYYMMDD)
@@ -251,6 +253,7 @@ contains
     real(r8), pointer       :: mesh_lats(:), lats(:,:), lats_vec(:)
     real(r8)                :: tolerance = 1.e-5_r8
     integer                 :: elementCount
+    integer                 :: localPet
     integer                 :: i,j
     integer, allocatable    :: gindex(:)
     character(*), parameter :: F00   = "('(InitializeRealize) ',8a)"
@@ -284,6 +287,18 @@ contains
     call NUOPC_CompAttributeGet(gcomp, name='start_type', value=cvalue, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     read(cvalue,*) starttype
+
+    ! Determine openmp threading
+    call ESMF_GridCompGet(gcomp, vm=vm, localPet=localPet, rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    call ESMF_VMGet(vm, pet=localPet, peCount=nthrds, rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    if(nthrds==1) then
+       call NUOPC_CompAttributeGet(gcomp, "nthreads", value=cvalue, rc=rc)
+       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=u_FILE_u)) return
+       read(cvalue,*) nthrds
+    endif
+!$  call omp_set_num_threads(nthrds)
 
     if (cism_evolve) then
        if (     trim(starttype) == trim('startup')) then
@@ -476,6 +491,8 @@ contains
     if (dbug > 5) then
        call ESMF_LogWrite(subname//' called', ESMF_LOGMSG_INFO)
     end if
+
+!$  call omp_set_num_threads(nthrds)
 
     !--------------------------------
     ! Obtain the CISM internal time
