@@ -1164,6 +1164,38 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="dt_input_option">
+    <type>integer</type>
+    <category>cism_config_time</category>
+    <group>time</group>
+    <valid_values>0,1</valid_values>
+    <values>
+      <value>0</value>
+    </values>
+    <desc>
+      Set dt_option to specify whether the dynamic timestep (model%numerics%tinc) 
+      is based on dt (the timestep in years) or nsteps_per_year in the config file.
+      The default (dt_option = 0) is to read dt directly,
+      but the nsteps_per_year option allows more flexibility.
+      [0] Input dt in years
+      [1] Input dt in steps per year
+      Default: 0 (DT_IN_YEARS)
+    </desc>
+  </entry>
+
+  <entry id="nsteps_per_year">
+    <type>integer</type>
+    <category>cism_config_time</category>
+    <group>time</group>
+    <values>
+      <value>0</value>
+    </values>
+    <desc>
+      Number of time steps per year (for dt_input_option=1 (STEPS_PER_YEAR))
+      Default: 0, (dt_input_option=0)
+    </desc>
+  </entry>
+
   <entry id="dt_diag">
     <type>real</type>
     <category>cism_config_time</category>
