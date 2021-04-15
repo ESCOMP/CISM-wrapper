@@ -40,6 +40,16 @@
 
   include 'netcdf.inc'
 
+  ! ------------------------------------------------------------------------
+  ! which ice sheets are included in this run
+  ! ------------------------------------------------------------------------
+
+  integer, parameter :: max_icesheets = 10
+
+  integer :: num_icesheets = 0  ! number of ice sheets in this run
+
+  character(32) :: icesheet_names(max_icesheets)
+
    !-----------------------------------------------------------------
    ! elevation class info
    !-----------------------------------------------------------------

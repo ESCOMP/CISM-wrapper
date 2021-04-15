@@ -2,8 +2,23 @@
 
 <entry_id version="3.0">
 
-  <description modifier_mode="1">
-    <desc glc="CISM2[%EVOLVE][%NOEVOLVE]">cism2 (default, higher-order, can run in parallel):</desc>
+  <description modifier_mode="+">
+    <desc glc="CISM2[%EVOLVE][%NOEVOLVE][%GRIS-EVOLVE][%GRIS-NOEVOLVE][%AIS-EVOLVE][%AIS-NOEVOLVE]">cism2:</desc>
+    <!-- For any ice sheet present in this run, it should be specified
+         exactly once, as either ICESHEET-EVOLVE or ICESHEET-NOEVOLVE
+         for the appropriate ICESHEET (GRIS, AIS). Any ice sheet not
+         specified doesn't exist at all in this run. At least one ice
+         sheet must be present (other than the backwards compatibility
+         that will soon be removed). -->
+    <desc option="GRIS-EVOLVE">include evolving Greenland Ice Sheet:</desc>
+    <desc option="GRIS-NOEVOLVE">include non-evolving Greenland Ice Sheet:</desc>
+    <desc option="AIS-EVOLVE">include evolving Antarctica Ice Sheet:</desc>
+    <desc option="AIS-NOEVOLVE">include non-evolving Antarctica Ice Sheet:</desc>
+
+    <!-- BACKWARDS_COMPATIBILITY(wjs, 2021-02-25) Backwards
+         compatibility with old compsets that don't explicitly set
+         Greenland or Antarctica, but instead use the generic %EVOLVE or
+         %NOEVOLVE -->
     <desc option="EVOLVE">cism ice evolution turned on:</desc>
     <desc option="NOEVOLVE">cism ice evolution turned off (this is the standard configuration unless you're explicitly interested in ice evolution):</desc>
   </description>
@@ -15,6 +30,37 @@
     <group>case_comp</group>
     <file>env_case.xml</file>
     <desc>Name of land ice-sheet component</desc>
+  </entry>
+
+  <entry id="CISM_USE_GREENLAND">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <group>case_comp</group>
+    <file>env_case.xml</file>
+    <values>
+      <value compset="_CISM[^_]*%GRIS">TRUE</value>
+
+      <!-- BACKWARDS_COMPATIBILITY(wjs, 2020-12-23) Backwards
+           compatibility with old compsets that don't explicitly set
+           Greenland or Antarctica: we assume these just use Greenland
+      -->
+      <value compset="_CISM2%EVOLVE_">TRUE</value>
+      <value compset="_CISM2%NOEVOLVE_">TRUE</value>
+    </values>
+    <desc>Whether to include the Greenland Ice Sheet in this CISM simulation</desc>
+  </entry>
+
+  <entry id="CISM_USE_ANTARCTICA">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <group>case_comp</group>
+    <file>env_case.xml</file>
+    <values>
+      <value compset="_CISM[^_]*%AIS">TRUE</value>
+    </values>
+    <desc>Whether to include the Antarctica Ice Sheet in this CISM simulation</desc>
   </entry>
 
   <entry id="CISM_PHYS">
@@ -29,17 +75,65 @@
     <desc>Version of CISM physics/dynamics to use</desc>
   </entry>
 
+  <entry id="CISM_EVOLVE_GREENLAND">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <!-- Note that we use FALSE if the ice sheet isn't being used at
+         all, as well as if the ice sheet is being used but not evolving
+         -->
+    <default_value>FALSE</default_value>
+    <values>
+      <value compset="_CISM[^_]*%GRIS-EVOLVE">TRUE</value>
+
+      <!-- BACKWARDS_COMPATIBILITY(wjs, 2021-02-25) Backwards
+           compatibility with old compsets that don't explicitly set
+           Greenland or Antarctica: we assume these just use Greenland
+      -->
+      <value compset="_CISM2%EVOLVE_">TRUE</value>
+    </values>
+    <group>run_component_cism</group>
+    <file>env_run.xml</file>
+    <desc>Whether CISM ice evolution is on or off for Greenland.</desc>
+  </entry>
+  
+  <entry id="CISM_EVOLVE_ANTARCTICA">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <!-- Note that we use FALSE if the ice sheet isn't being used at
+         all, as well as if the ice sheet is being used but not evolving
+         -->
+    <default_value>FALSE</default_value>
+    <values>
+      <value compset="_CISM[^_]*%AIS-EVOLVE">TRUE</value>
+    </values>
+    <group>run_component_cism</group>
+    <file>env_run.xml</file>
+    <desc>Whether CISM ice evolution is on or off for Antarctica.</desc>
+  </entry>
+  
   <entry id="CISM_EVOLVE">
      <type>logical</type>
      <valid_values>TRUE,FALSE</valid_values>
      <default_value>FALSE</default_value>
      <values>
-        <value compset="_CISM[^_]*%EVOLVE">TRUE</value>
-        <value compset="_CISM[^_]*%NOEVOLVE">FALSE</value>
+       <!-- If ANY ice sheet is evolving, then set the overall
+            CISM_EVOLVE to TRUE. This is needed for some logic in CMEPS,
+            but note that combining an evolving and non-evolving ice
+            sheet has not been tested yet and may not work correctly. -->
+       <value compset="_CISM[^_]*-EVOLVE">TRUE</value>
+       
+       <!-- BACKWARDS_COMPATIBILITY(wjs, 2021-02-25) Backwards
+            compatibility with old compsets that don't explicitly set
+            Greenland or Antarctica, but instead use the generic %EVOLVE
+            or %NOEVOLVE -->
+       <value compset="_CISM[^_]*%EVOLVE">TRUE</value>
      </values>
      <group>run_component_cism</group>
      <file>env_run.xml</file>
-     <desc>Whether CISM ice evolution is on or off.
+     <desc>Whether CISM ice evolution is on or off for CISM as a whole.
+     This must be TRUE if CISM_EVOLVE_ICESHEET is TRUE for any ICESHEET,
+     and FALSE if CISM_EVOLVE_ICESHEET is FALSE for all ICESHEETs that
+     are present in this run.
 
      Setting CISM_EVOLVE to FALSE in a hybrid case also forces the use
      of observed initial conditions, as if you had also set
@@ -47,6 +141,8 @@
      </desc>
   </entry>
 
+  <!-- TODO(wjs, 2021-02-25) Should there be a separate
+       CISM_OBSERVED_IC variable for each ice sheet? -->
   <entry id="CISM_OBSERVED_IC">
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>
@@ -71,6 +167,12 @@
   <help>
     =========================================
     CISM naming conventions in compset name
+
+    For any ice sheet present in this run, it should be specified
+    exactly once, as either %ICESHEET-EVOLVE or %ICESHEET-NOEVOLVE for
+    the appropriate ICESHEET (GRIS, AIS). Any ice sheet not specified
+    doesn't exist at all in this run. You must specify at least one ice
+    sheet.
     =========================================
   </help>
 

@@ -120,7 +120,7 @@ default grid (4 km). For some common grids, you can also specify the grid explic
 the alias, using a ``_gl`` element following the ocean grid. For example, for a compset
 with CISM2, ``f09_g17_gl4`` is equivalent to ``f09_g17``.
 
-For the T1850G compset (described in :numref:`t-compsets`), you should use grid
+For the T1850Gg compset (described in :numref:`t-compsets`), you should use grid
 ``f09_g17_gl4``. For information on introducing new ice sheet grids, see :ref:`new-grids`.
 
 Special considerations for hybrid cases

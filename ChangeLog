@@ -3,6 +3,151 @@ This file describes what tags were created on master and why
 ================================================================================
 
 ================================================================================
+Originator: jedwards / sacks
+Date: April 7, 2021
+Version: cism2_1_78
+One-line summary: Add support for CMEPS threading, update externals
+
+Purpose of changes:
+
+- Add support for threading in cmeps driver:
+  https://github.com/ESCOMP/CISM-wrapper/pull/57
+
+- Update externals to versions needed with this support
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: NO
+
+Bugs fixed (include github issue number): none
+
+Summary of testing:
+
+   Full aux_glc test suite on cheyenne and izumi.
+
+   All tests pass and are bit-for-bit with baselines.
+
+================================================================================
+Originator: sacks
+Date: April 1, 2021
+Version: cism2_1_77
+One-line summary: Update externals, including updating T compset forcings
+
+Purpose of changes:
+
+   Update all externals to recent versions.
+
+   One important change that comes in with this is that the dlnd forcing
+   data used for T compsets is updated to point to output from the last
+   30 years of the CMIP6 PI-control run.
+
+   Also, change I compset tests to use f10_f10_mg37 instead of
+   f10_f10_musgs grid, since the latter is no longer supported.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: YES
+
+   - T compsets change answers due to new forcing data
+
+   - I compsets change answers due to updated version of CTSM; also,
+     BFAILs due to new grid for some tests
+
+   - Possibly other changes from updated externals
+
+Bugs fixed (include github issue number): none
+
+Summary of testing:
+
+   Full aux_glc test suite on cheyenne and izumi.
+
+   All tests pass, but baseline comparisons fail as expected.
+
+================================================================================
+Originator: sacks
+Date: March 1, 2021
+Version: cism2_1_76
+One-line summary: Add icesheet to compset & support alternative/multiple cism.config files
+
+Purpose of changes:
+
+This tag takes two significant steps towards the support of alternative
+and multiple ice sheets:
+
+(1) It adds an ice sheet designation in the compset name. Now Greenland
+    compsets will have `CISM2%GRIS-EVOLVE`, Antarctica
+    `CISM2%AIS-EVOLVE` (not yet functional, but I have added this to the
+    compset definition file for illustrative purposes and so that I
+    could do some initial testing) and compsets with both icesheets will
+    have `CISM2%AIS-EVOLVE%GRIS-EVOLVE`. (`NOEVOLVE` is also an option
+    for all of those.) I have done this in a backwards-compatible way so
+    that compsets without `%AIS` or `%GRIS` (as are still defined in
+    CTSM, CAM and CESM) imply `%GRIS`. (We can remove this backwards
+    compatibility once all of the CESM components have switched to the
+    new, explicit compset definition.) As discussed in #39, I have
+    changed T1850G to T1850Gg.
+
+(2) It reworks buildnml to support the generation of multiple
+    cism.config files, each with their own default values for some
+    config items. The generated cism.config files now have a name
+    designating the ice sheet for which they apply, so we have
+    `cism.gris.config` and/or `cism.ais.config`. For now, anything in
+    `user_nl_cism` applies to all ice sheets, but eventually we'll add a
+    way to make settings for just one ice sheet (see #50).
+
+Also some minor changes:
+
+(3) A small change in the mct cap that is unrelated to the rest of this
+    PR: it is something that @whlipscomb and I discussed a few months
+    ago.
+
+(4) Point to new location for Greenland init files
+
+(5) Fix check_input_data integration (ESCOMP/CISM-wrapper#55)
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: No - but NLCOMP comparisons fail
+
+Bugs fixed (include github issue number):
+- Resolves ESCOMP/CISM-wrapper#39 (Add an explicit "Greenland" designation
+  in the compset name)
+- Resolves ESCOMP/CISM-wrapper#55 (In cism2_1_75, CISM's
+  check_input_data integration is broken)
+
+Summary of testing:
+
+   Full aux_glc test suite on cheyenne and izumi.
+
+   All tests pass and are bit-for-bit with baselines. NLCOMPs fail, as
+   expected, due to minor changes in cism_in and renaming of cism.config
+   file.
+
+================================================================================
 Originator: mvertens, sacks
 Date: December 21, 2020
 Version: cism2_1_75

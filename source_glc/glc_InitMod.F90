@@ -26,7 +26,8 @@
                                   iyear,  imonth,  iday,  elapsed_days,   &
                                   ihour,  iminute, isecond, nsteps_total, &
                                   ymd2eday, eday2ymd, runtype
-   use glc_constants, only: stdout, zero_gcm_fluxes, test_coupling, enable_frac_overrides
+   use glc_constants, only: stdout, zero_gcm_fluxes, test_coupling, enable_frac_overrides, &
+                            max_icesheets, num_icesheets, icesheet_names
    use glc_io,        only: glc_io_read_restart_time
    use glc_files,     only: nml_filename
    use glc_exit_mod
@@ -48,6 +49,8 @@
 !     module variables
 !
 !-----------------------------------------------------------------------
+
+   character(*), parameter :: icesheet_unset = 'UNSET'
 
 !EOC
 !***********************************************************************
@@ -104,8 +107,12 @@
 !-----------------------------------------------------------------------
 
   character(fname_length) ::  &
-      paramfile        ! Name of the top-level configuration file
- 
+      paramfile_base        ! Base name of the top-level configuration file (actual param
+                            ! file names are this base name plus ".icesheet.config" for
+                            ! the given ice sheet).
+
+  character(fname_length) :: paramfile  ! Actual param file name
+
   character(fname_length) ::  &
       cesm_restart_file  ! Name of the file to be used for a restart
  
@@ -147,7 +154,8 @@
   
   integer, parameter :: days_in_year = 365
   
-  namelist /cism_params/  paramfile, cism_debug, ice_flux_routing, zero_gcm_fluxes, &
+  namelist /cism_params/  paramfile_base, num_icesheets, icesheet_names, &
+       cism_debug, ice_flux_routing, zero_gcm_fluxes, &
        test_coupling, enable_frac_overrides
  
 ! TODO - Write version info?
@@ -188,7 +196,8 @@
 ! The following code is largely based on CISM.
 !-----------------------------------------------------------------------
 
-   paramfile  = 'unknown_paramfile'
+   paramfile_base  = 'unknown_paramfile'
+   icesheet_names(:) = icesheet_unset
 
    if (my_task == master_task) then
       open (newunit=nml_in, file=nml_filename, status='old',iostat=nml_error)
@@ -207,7 +216,13 @@
       call exit_glc(sigAbort,'ERROR reading cism_params nml')
    endif
 
-   call broadcast_scalar(paramfile,         master_task)
+   if (my_task == master_task) then
+      call check_icesheet_names(num_icesheets, icesheet_names)
+   end if
+
+   call broadcast_scalar(paramfile_base,    master_task)
+   call broadcast_scalar(num_icesheets,     master_task)
+   call broadcast_array (icesheet_names,    master_task)
    call broadcast_scalar(cism_debug,        master_task)
    call broadcast_scalar(ice_flux_routing,  master_task)
    call broadcast_scalar(zero_gcm_fluxes,   master_task)
@@ -219,10 +234,11 @@
       write(stdout,*) 'zero_gcm_fluxes: ', zero_gcm_fluxes
       write(stdout,*) 'test_coupling:   ', test_coupling
       write(stdout,*) 'enable_frac_overrides: ', enable_frac_overrides
+      write(stdout,*) 'icesheet_names: ', icesheet_names(1:num_icesheets)
    end if
 
    if (verbose .and. my_task==master_task) then
-      write (stdout,*) 'paramfile =   ', paramfile
+      write (stdout,*) 'paramfile_base =   ', paramfile_base
       write (stdout,*) 'dtt =', dtt
       call shr_sys_flush(stdout)
    endif
@@ -277,6 +293,8 @@
 
   unit = shr_file_getUnit()
 
+  ! TODO(wjs, 2020-12-28) Need to loop over ice sheets here (rather than just using icesheet_names(1))
+  paramfile = trim(paramfile_base) // "." // trim(icesheet_names(1)) // ".config"
   call glad_initialize(ice_sheet,                            &
                        climate_tstep,                        &
                        (/paramfile/),                        &
@@ -398,6 +416,66 @@
  end subroutine glc_initialize
 
 !***********************************************************************
+
+!***********************************************************************
+!BOP
+! !IROUTINE: check_icesheet_names
+! !INTERFACE:
+
+ subroutine check_icesheet_names(num_icesheets, icesheet_names)
+
+   ! !DESCRIPTION:
+   ! Do some error checking on the num_icesheets and icesheet_names namelist inputs
+   !
+   ! Abort with error message if any issue is found
+
+   ! !INPUT/OUTPUT PARAMETERS:
+   integer, intent(in) :: num_icesheets
+   character(*), intent(in) :: icesheet_names(:)
+   !EOP
+   !BOC
+   !-----------------------------------------------------------------------
+   !  local variables
+   !-----------------------------------------------------------------------
+   integer :: i
+
+   if (size(icesheet_names) /= max_icesheets) then
+      ! In contrast to the other checks in this subroutine, this one indicates a
+      ! programming error rather than a user error. We check it here, though, because
+      ! other logic below relies on the fact that size(icesheet_names) == max_icesheets.
+      write(stdout,*) 'Expect icesheet_names array size to be max_icesheets'
+      write(stdout,*) 'max_icesheets = ', max_icesheets
+      write(stdout,*) 'size(icesheet_names) = ', size(icesheet_names)
+      call exit_glc(sigAbort, 'ERROR: Expect icesheet_names array size to be max_icesheets')
+   end if
+
+   if (num_icesheets > max_icesheets) then
+      write(stdout,*) 'num_icesheets exceeds hard-coded max_icesheets'
+      write(stdout,*) 'num_icesheets: ', num_icesheets
+      write(stdout,*) 'max_icesheets: ', max_icesheets
+      write(stdout,*) "Increase CISM's max_icesheets parameter and rerun"
+      call exit_glc(sigAbort, 'ERROR: num_icesheets exceeds hard-coded max_icesheets')
+   end if
+
+   do i = 1, num_icesheets
+      if (icesheet_names(i) == icesheet_unset) then
+         write(stdout,*) 'Not all icesheet names are set'
+         write(stdout,*) 'num_icesheets = ', num_icesheets
+         write(stdout,*) 'icesheet_names = ', icesheet_names
+         call exit_glc(sigAbort, 'ERROR: Not all icesheet names are set')
+      end if
+   end do
+
+   do i = num_icesheets+1, max_icesheets
+      if (icesheet_names(i) /= icesheet_unset) then
+         write(stdout,*) 'Too many icesheet names are set'
+         write(stdout,*) 'num_icesheets = ', num_icesheets
+         write(stdout,*) 'icesheet_names = ', icesheet_names
+         call exit_glc(sigAbort, 'ERROR: Too many icesheet names are set')
+      end if
+   end do
+
+ end subroutine check_icesheet_names
 
  end module glc_InitMod
 

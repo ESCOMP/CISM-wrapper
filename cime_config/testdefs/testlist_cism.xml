@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <testlist version="2.0">
 
-  <test name="ERI_Ly44" grid="f09_g17_gl20" compset="T1850G" testmods="cism/isostasy_period4">
+  <test name="ERI_Ly44" grid="f09_g17_gl20" compset="T1850Gg" testmods="cism/isostasy_period4">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="aux_glc">
@@ -13,7 +13,7 @@
 
     </machines>
   </test>
-  <test name="ERI_Vnuopc_Ly44" grid="f09_g17_gl20" compset="T1850G" testmods="cism/isostasy_period4">
+  <test name="ERI_Vnuopc_Ly44" grid="f09_g17_gl20" compset="T1850Gg" testmods="cism/isostasy_period4">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="aux_glc">
@@ -26,7 +26,7 @@
     </machines>
   </test>
 
-  <test name="ERI_Ly15" grid="f09_g17_gl4" compset="T1850G" testmods="cism/isostasy_period4">
+  <test name="ERI_Ly15" grid="f09_g17_gl4" compset="T1850Gg" testmods="cism/isostasy_period4">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="prebeta">
@@ -44,7 +44,7 @@
 
     </machines>
   </test>
-  <test name="ERI_Vnuopc_Ly15" grid="f09_g17_gl4" compset="T1850G" testmods="cism/isostasy_period4">
+  <test name="ERI_Vnuopc_Ly15" grid="f09_g17_gl4" compset="T1850Gg" testmods="cism/isostasy_period4">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="prebeta">
@@ -63,7 +63,7 @@
     </machines>
   </test>
 
-  <test name="ERS_D_Ld9" grid="f10_f10_musgs" compset="I1850Clm50SpG" testmods="cism/override_glc_frac">
+  <test name="ERS_D_Ld9" grid="f10_f10_mg37" compset="I1850Clm50SpG" testmods="cism/override_glc_frac">
     <machines>
 
       <machine name="cheyenne" compiler="gnu" category="aux_glc">
@@ -75,7 +75,7 @@
 
     </machines>
   </test>
-  <test name="ERS_Vnuopc_D_Ld9" grid="f10_f10_musgs" compset="I1850Clm50SpG" testmods="cism/override_glc_frac">
+  <test name="ERS_Vnuopc_D_Ld9" grid="f10_f10_mg37" compset="I1850Clm50SpG" testmods="cism/override_glc_frac">
     <machines>
 
       <machine name="cheyenne" compiler="gnu" category="aux_glc">
@@ -88,7 +88,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Ly11" grid="f09_g17_gl20" compset="T1850G">
+  <test name="ERS_Ly11" grid="f09_g17_gl20" compset="T1850Gg">
     <machines>
 
       <machine name="cheyenne" compiler="gnu" category="aux_glc">
@@ -99,7 +99,7 @@
 
     </machines>
   </test>
-  <test name="ERS_Vnuopc_Ly11" grid="f09_g17_gl20" compset="T1850G">
+  <test name="ERS_Vnuopc_Ly11" grid="f09_g17_gl20" compset="T1850Gg">
     <machines>
 
       <machine name="cheyenne" compiler="gnu" category="aux_glc">
@@ -111,19 +111,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Ly11" grid="f09_g17_gl20" compset="T1850G" testmods="cism/oneway">
-    <machines>
-
-      <machine name="cheyenne" compiler="gnu" category="aux_glc">
-        <options>
-          <option name="wallclock">0:20</option>
-          <option name="comment">(3-3-16) identical to an existing non-oneway test, which generates some non-zero runoff fluxes</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
-  <test name="ERS_Vnuopc_Ly11" grid="f09_g17_gl20" compset="T1850G" testmods="cism/oneway">
+  <test name="ERS_Ly11" grid="f09_g17_gl20" compset="T1850Gg" testmods="cism/oneway">
     <machines>
 
       <machine name="cheyenne" compiler="gnu" category="aux_glc">
@@ -135,8 +123,20 @@
 
     </machines>
   </test>
+  <test name="ERS_Vnuopc_Ly11" grid="f09_g17_gl20" compset="T1850Gg" testmods="cism/oneway">
+    <machines>
 
-  <test name="ERS_D_Ly3" grid="f09_g17_gl4" compset="T1850G" testmods="cism/noevolve">
+      <machine name="cheyenne" compiler="gnu" category="aux_glc">
+        <options>
+          <option name="wallclock">0:20</option>
+          <option name="comment">(3-3-16) identical to an existing non-oneway test, which generates some non-zero runoff fluxes</option>
+        </options>
+      </machine>
+
+    </machines>
+  </test>
+
+  <test name="ERS_D_Ly3" grid="f09_g17_gl4" compset="T1850Gg" testmods="cism/noevolve">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="aux_glc">
@@ -149,7 +149,7 @@
     </machines>
   </test>
 
-  <test name="ERI_N2_Ly9" grid="f09_g17_gl20" compset="T1850G">
+  <test name="ERI_N2_Ly9" grid="f09_g17_gl20" compset="T1850Gg">
     <machines>
 
       <machine name="cheyenne" compiler="gnu" category="aux_glc">
@@ -161,7 +161,7 @@
 
     </machines>
   </test>
-  <test name="ERI_Vnuopc_N2_Ly9" grid="f09_g17_gl20" compset="T1850G">
+  <test name="ERI_Vnuopc_N2_Ly9" grid="f09_g17_gl20" compset="T1850Gg">
     <machines>
 
       <machine name="cheyenne" compiler="gnu" category="aux_glc">
@@ -174,7 +174,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Ly3_N2_D" grid="f09_g17_gl20" compset="T1850G">
+  <test name="ERS_Ly3_N2_D" grid="f09_g17_gl20" compset="T1850Gg">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="aux_glc">
@@ -192,7 +192,7 @@
 
     </machines>
   </test>
-  <test name="ERS_Vnuopc_Ly3_N2_D" grid="f09_g17_gl20" compset="T1850G">
+  <test name="ERS_Vnuopc_Ly3_N2_D" grid="f09_g17_gl20" compset="T1850Gg">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="aux_glc">
@@ -211,7 +211,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Ly7" grid="f09_g17_gl4" compset="T1850G">
+  <test name="ERS_Ly7" grid="f09_g17_gl4" compset="T1850Gg">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="aux_glc">
@@ -229,7 +229,7 @@
 
     </machines>
   </test>
-  <test name="ERS_Vnuopc_Ly7" grid="f09_g17_gl4" compset="T1850G">
+  <test name="ERS_Vnuopc_Ly7" grid="f09_g17_gl4" compset="T1850Gg">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="aux_glc">
@@ -248,7 +248,7 @@
     </machines>
   </test>
 
-  <test name="ERS_D_Ly3" grid="f09_g17_gl4" compset="T1850G" testmods="cism/cmip6_evolving_icesheet">
+  <test name="ERS_D_Ly3" grid="f09_g17_gl4" compset="T1850Gg" testmods="cism/cmip6_evolving_icesheet">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="aux_glc">
@@ -260,7 +260,7 @@
 
     </machines>
   </test>
-  <test name="ERS_Vnuopc_D_Ly3" grid="f09_g17_gl4" compset="T1850G" testmods="cism/cmip6_evolving_icesheet">
+  <test name="ERS_Vnuopc_D_Ly3" grid="f09_g17_gl4" compset="T1850Gg" testmods="cism/cmip6_evolving_icesheet">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="aux_glc">
@@ -273,7 +273,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Ly3" grid="f10_f10_musgs" compset="I1850Clm50SpG">
+  <test name="ERS_Ly3" grid="f10_f10_mg37" compset="I1850Clm50SpG">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="aux_glc">
@@ -291,7 +291,7 @@
 
     </machines>
   </test>
-  <test name="ERS_Vnuopc_Ly3" grid="f10_f10_musgs" compset="I1850Clm50SpG">
+  <test name="ERS_Vnuopc_Ly3" grid="f10_f10_mg37" compset="I1850Clm50SpG">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="aux_glc">
@@ -310,7 +310,7 @@
     </machines>
   </test>
 
-  <test name="SMS_Lm13" grid="f10_f10_musgs" compset="I1850Clm50SpG">
+  <test name="SMS_Lm13" grid="f10_f10_mg37" compset="I1850Clm50SpG">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="prealpha">
@@ -322,7 +322,7 @@
 
     </machines>
   </test>
-  <test name="SMS_Vnuopc_Lm13" grid="f10_f10_musgs" compset="I1850Clm50SpG">
+  <test name="SMS_Vnuopc_Lm13" grid="f10_f10_mg37" compset="I1850Clm50SpG">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="prealpha">
@@ -335,7 +335,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Lm24" grid="f10_f10_musgs" compset="I1850Clm50SpG">
+  <test name="ERS_Lm24" grid="f10_f10_mg37" compset="I1850Clm50SpG">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="aux_glc">
@@ -355,7 +355,7 @@
     </machines>
   </test>
 
-  <test name="ERI_Lm24" grid="f10_f10_musgs" compset="I1850Clm50SpG" testmods="cism/isostasy_period4">
+  <test name="ERI_Lm24" grid="f10_f10_mg37" compset="I1850Clm50SpG" testmods="cism/isostasy_period4">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="aux_glc">
@@ -375,7 +375,7 @@
     </machines>
   </test>
 
-  <test name="ERI" grid="f10_f10_musgs" compset="I1850Clm50SpG" testmods="cism/test_coupling">
+  <test name="ERI" grid="f10_f10_mg37" compset="I1850Clm50SpG" testmods="cism/test_coupling">
     <machines>
 
       <machine name="cheyenne" compiler="gnu" category="aux_glc">
@@ -387,7 +387,7 @@
 
     </machines>
   </test>
-  <test name="ERI_Vnuopc" grid="f10_f10_musgs" compset="I1850Clm50SpG" testmods="cism/test_coupling">
+  <test name="ERI_Vnuopc" grid="f10_f10_mg37" compset="I1850Clm50SpG" testmods="cism/test_coupling">
     <machines>
 
       <machine name="cheyenne" compiler="gnu" category="aux_glc">
@@ -400,7 +400,7 @@
     </machines>
   </test>
 
-  <test name="NCK_Ly3" grid="f09_g17_gl20" compset="T1850G">
+  <test name="NCK_Ly3" grid="f09_g17_gl20" compset="T1850Gg">
     <machines>
 
       <machine name="izumi" compiler="pgi" category="prebeta">
@@ -417,7 +417,7 @@
 
     </machines>
   </test>
-  <test name="MCC_Vnuopc_Ly3" grid="f09_g17_gl20" compset="T1850G">
+  <test name="MCC_Vnuopc_Ly3" grid="f09_g17_gl20" compset="T1850Gg">
     <machines>
 
       <!-- (2020-11-26) Changing the izumi version to cheyenne for now,
@@ -493,7 +493,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D_Ly1" grid="f09_g17_gl4" compset="T1850G" testmods="cism/isostasy_period1">
+  <test name="SMS_D_Ly1" grid="f09_g17_gl4" compset="T1850Gg" testmods="cism/isostasy_period1">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="aux_glc">
@@ -505,7 +505,7 @@
 
     </machines>
   </test>
-  <test name="SMS_Vnuopc_D_Ly1" grid="f09_g17_gl4" compset="T1850G" testmods="cism/isostasy_period1">
+  <test name="SMS_Vnuopc_D_Ly1" grid="f09_g17_gl4" compset="T1850Gg" testmods="cism/isostasy_period1">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="aux_glc">
@@ -518,7 +518,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D_Ly1" grid="f09_g17_gl4" compset="T1850G">
+  <test name="SMS_D_Ly1" grid="f09_g17_gl4" compset="T1850Gg">
     <machines>
 
       <machine name="cheyenne" compiler="gnu" category="aux_glc">
@@ -529,7 +529,7 @@
 
     </machines>
   </test>
-  <test name="SMS_Vnuopc_D_Ly1" grid="f09_g17_gl4" compset="T1850G">
+  <test name="SMS_Vnuopc_D_Ly1" grid="f09_g17_gl4" compset="T1850Gg">
     <machines>
 
       <machine name="cheyenne" compiler="gnu" category="aux_glc">
@@ -541,7 +541,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D_Ly1" grid="f09_g17_gl4" compset="T1850G">
+  <test name="SMS_D_Ly1" grid="f09_g17_gl4" compset="T1850Gg">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="aux_glc">
@@ -558,7 +558,7 @@
 
     </machines>
   </test>
-  <test name="SMS_Vnuopc_D_Ly1" grid="f09_g17_gl4" compset="T1850G">
+  <test name="SMS_Vnuopc_D_Ly1" grid="f09_g17_gl4" compset="T1850Gg">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="aux_glc">
@@ -576,7 +576,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D_Ly1_P24x1" grid="f09_g17_gl4" compset="T1850G">
+  <test name="SMS_D_Ly1_P24x1" grid="f09_g17_gl4" compset="T1850Gg">
     <machines>
 
       <machine name="izumi" compiler="nag" category="aux_glc">
@@ -596,7 +596,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D_Ly3_P24x1" grid="f09_g17_gl20" compset="T1850G">
+  <test name="SMS_D_Ly3_P24x1" grid="f09_g17_gl20" compset="T1850Gg">
     <machines>
 
       <machine name="izumi" compiler="nag" category="aux_glc">
@@ -609,7 +609,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Ly5" grid="f09_g17_gl4" compset="T1850G" testmods="cism/isostasy_period4">
+  <test name="ERS_Ly5" grid="f09_g17_gl4" compset="T1850Gg" testmods="cism/isostasy_period4">
     <machines>
 
       <machine name="cheyenne" compiler="gnu" category="aux_glc">
@@ -621,7 +621,7 @@
 
     </machines>
   </test>
-  <test name="ERS_Vnuopc_Ly5" grid="f09_g17_gl4" compset="T1850G" testmods="cism/isostasy_period4">
+  <test name="ERS_Vnuopc_Ly5" grid="f09_g17_gl4" compset="T1850Gg" testmods="cism/isostasy_period4">
     <machines>
 
       <machine name="cheyenne" compiler="gnu" category="aux_glc">
@@ -634,7 +634,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Ly3" grid="f09_g17_gl4" compset="T1850G" testmods="cism/isostasy_period1">
+  <test name="ERS_Ly3" grid="f09_g17_gl4" compset="T1850Gg" testmods="cism/isostasy_period1">
     <machines>
 
       <machine name="cheyenne" compiler="gnu" category="aux_glc">
@@ -646,7 +646,7 @@
 
     </machines>
   </test>
-  <test name="ERS_Vnuopc_Ly3" grid="f09_g17_gl4" compset="T1850G" testmods="cism/isostasy_period1">
+  <test name="ERS_Vnuopc_Ly3" grid="f09_g17_gl4" compset="T1850Gg" testmods="cism/isostasy_period1">
     <machines>
 
       <machine name="cheyenne" compiler="gnu" category="aux_glc">
@@ -659,7 +659,7 @@
     </machines>
   </test>
 
-  <test name="SMS_Lm13" grid="f10_f10_musgs" compset="I1850Clm50SpG" testmods="cism/noevolve">
+  <test name="SMS_Lm13" grid="f10_f10_mg37" compset="I1850Clm50SpG" testmods="cism/noevolve">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="aux_glc">
@@ -671,7 +671,7 @@
 
     </machines>
   </test>
-  <test name="SMS_Vnuopc_Lm13" grid="f10_f10_musgs" compset="I1850Clm50SpG" testmods="cism/noevolve">
+  <test name="SMS_Vnuopc_Lm13" grid="f10_f10_mg37" compset="I1850Clm50SpG" testmods="cism/noevolve">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="aux_glc">
@@ -692,7 +692,7 @@
        coupling).
   -->
 
-  <test name="SMS_Ly2" grid="f09_g17_gl20" compset="T1850G">
+  <test name="SMS_Ly2" grid="f09_g17_gl20" compset="T1850Gg">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="aux_cime_baselines">

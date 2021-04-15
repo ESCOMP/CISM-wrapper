@@ -49,6 +49,7 @@
                       broadcast_array_real_1d, &
                       broadcast_array_int_1d,  &
                       broadcast_array_log_1d,  &
+                      broadcast_array_char_1d, &
                       broadcast_array_dbl_2d,  &
                       broadcast_array_real_2d, &
                       broadcast_array_int_2d,  &
@@ -557,6 +558,61 @@ subroutine broadcast_array_log_1d(array, root_pe)
 !EOC
 
  end subroutine broadcast_array_log_1d
+
+!***********************************************************************
+!BOP
+! !IROUTINE: broadcast_array_char_1d
+! !INTERFACE:
+
+ subroutine broadcast_array_char_1d(array, root_pe)
+
+! !DESCRIPTION:
+!  Broadcasts a character array variable from one processor (root_pe)
+!  to all other processors. This is a specific instance of the generic
+!  broadcast\_array interface.
+!
+! !REVISION HISTORY:
+!  Written by Bill Sacks (2020-12-28)
+
+! !INCLUDES:
+
+   include 'mpif.h'  ! MPI Fortran include file
+
+! !INPUT PARAMETERS:
+
+   integer (int_kind), intent(in) :: &
+     root_pe              ! processor number to broadcast from
+
+! !INPUT/OUTPUT PARAMETERS:
+
+   character (*), dimension(:), intent(inout) :: &
+     array               ! array to be broadcast
+
+!EOP
+!BOC
+!-----------------------------------------------------------------------
+!
+!  local variables
+!
+!-----------------------------------------------------------------------
+
+   integer (int_kind) :: &
+     clength,            &! length of character
+     nelements,          &! size of array
+     ierr                 ! MPI error flag
+
+!-----------------------------------------------------------------------
+
+   clength = len(array)
+   nelements = size(array)
+
+   call MPI_BCAST(array, clength*nelements, MPI_CHARACTER, root_pe, MPI_COMM_GLC, ierr)
+   call MPI_BARRIER(MPI_COMM_GLC, ierr)
+
+!--------------------------------------------------------------------
+!EOC
+
+ end subroutine broadcast_array_char_1d
 
 !***********************************************************************
 !BOP

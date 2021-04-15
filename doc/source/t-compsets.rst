@@ -19,11 +19,12 @@ could within the coupled system.
 
 A run with standalone CISM in the CESM context is known as a T compset. (In the past this
 was referred to as a TG compset. Now the G appears near the end of the compset name, so
-compsets have names like T1850G.)  This compset uses the active ice sheet model forced by
-a data land model; all other components are stubs. Before running a T compset, you must
-have coupler history files from a previous run that included CLM (version 4.5 or
-later). You can run with either existing forcing data (see :numref:`t-with-existing-data`)
-or with your own forcing data (see :numref:`t-with-your-own-data`).
+compsets have names like T1850Gg, where the final g indicates Greenland.) This compset
+uses the active ice sheet model for the specified ice sheet(s), forced by a data land
+model; all other components are stubs. Before running a T compset, you must have coupler
+history files from a previous run that included CLM (version 4.5 or later). You can run
+with either existing forcing data (see :numref:`t-with-existing-data`) or with your own
+forcing data (see :numref:`t-with-your-own-data`).
 
 .. _t-with-existing-data:
 
@@ -39,7 +40,7 @@ state, with nominally year-1850 forcings and satellite phenology). The resolutio
 ``f09_g17``. The code base was close to the final CESM2.0 release. For more details, see
 `<https://svn-ccsm-inputdata.cgd.ucar.edu/trunk/inputdata/lnd/dlnd7/CPLHIST_SNO/i.e20.I1850Clm50Sp.f09_g17.001_c180502/README>`__.
 
-There is one out-of-the-box T compset that uses these forcing data: T1850G. **You should
+There is one out-of-the-box T compset that uses these forcing data: T1850Gg. **You should
 run this compset at f09_g17 resolution --- i.e., with the same land resolution and ocean
 mask used to create the forcing data.** You can use any CISM resolution, although the
 current forcing data only have complete forcings for Greenland, not Antarctica.
@@ -49,7 +50,7 @@ grid, would look like:
 
 .. code-block:: console
 
-   ./create_newcase --case my_t_case --compset T1850G --res f09_g17_gl4
+   ./create_newcase --case my_t_case --compset T1850Gg --res f09_g17_gl4
 
 .. _t-with-your-own-data:
 
@@ -127,7 +128,7 @@ Performing a T compset run using your own forcing data
 ======================================================
 
 To perform a standalone CISM run forced by your newly-created forcing data, first create a
-new case using one of the existing T compsets (e.g., T1850G). The land and ocean
+new case using one of the existing T compsets (e.g., T1850Gg). The land and ocean
 resolutions of the T compset run (as specified by the ``--res`` flag to
 ``create_newcase``) should match the resolution of the run used to create the forcing
 data. You *can* run with a different glc resolution than the one used to create the

@@ -5,13 +5,13 @@
 <!-- ===================================================================
 
 This file contains entries for all namelist variables that can be output
-by buildnml. These variables can appear either in cism_in or cism.config
-(controlled by the "group" of each variable). A modified version of this
-file can be placed in $CASEROOT/SourceMods/src.cism/; if so, that one is
-used instead of the standard one in the source tree. The handling of
-this file is done by CISM's buildnml script; however, for standard
-variables that don't require any special handling, no changes are needed
-in buildnml.
+by buildnml. These variables can appear either in cism_in or
+cism.icesheet.config (controlled by the "group" of each variable). A
+modified version of this file can be placed in
+$CASEROOT/SourceMods/src.cism/; if so, that one is used instead of the
+standard one in the source tree. The handling of this file is done by
+CISM's buildnml script; however, for standard variables that don't
+require any special handling, no changes are needed in buildnml.
 
 Each namelist variable is defined by an <entry> element. This element
 has a required id, giving the name of the namelist variable. Additional
@@ -20,9 +20,9 @@ optional attributes can also be given; two helpful ones are:
 - skip_default_entry="true": If specified, this variable will NOT
   automatically have a default value added to the namelist. Some
   examples of when you might want to use this are:
-  - If an obscure variable should only appear in cism.config if it is
-    explicitly set in user_nl_cism. In this case, you should NOT define
-    a <values> section for this variable.
+  - If an obscure variable should only appear in cism.icesheet.config if
+    it is explicitly set in user_nl_cism. In this case, you should NOT
+    define a <values> section for this variable.
   - If there is some logic around the default value that should be set
     for this variable, with an explicit add_default call in
     buildnml. This can either invoke the defaults set in this xml file
@@ -41,8 +41,8 @@ Sub-elements of each entry include:
 
 - category: Used for organizing auto-generated documentation
 
-- group: The name of the namelist group or section of cism.config in
-  which this variable will appear
+- group: The name of the namelist group or section of
+  cism.icesheet.config in which this variable will appear
 
 - valid_values (optional): If given, this is a list of allowed values;
   if not given, there are no restrictions on allowed values.
@@ -71,40 +71,43 @@ Sub-elements of each entry include:
 <entry_id version="2.0">
 
   <!-- =============================================================  -->
-  <!-- group: derived                                                 -->
-  <!-- (does not appear in namelist file cism_in; handled uniquely)   -->
   <!-- =============================================================  -->
-
-  <entry id="cisminputfile" skip_default_entry="true">
-    <type>char</type>
-    <category>cism</category>
-    <input_pathname>abs</input_pathname>
-    <group>derived</group>
-    <values>
-      <!-- the following is just for the sake of software testing, and should not be used for science -->
-      <value glc_grid="gland20">glc/cism/gland20.input_c150415.nc</value>
-      <!-- this is the resolution that should be used for science applications with cism2 -->
-      <value glc_grid="gland4">glc/cism/Greenland/glissade/init/greenland_4km_epsg3413_c171126.nc</value>
-    </values>
-    <desc>
-      Input file
-      Default: For startup runs or hybrid runs with CISM_OBSERVED_IC=TRUE, a resolution-dependent
-               initial conditions file.
-               For branch/hybrid runs with CISM_OBSERVED_IC=FALSE, a restart file name
-               built based on RUN_REFCASE and RUN_REFDATE.
-    </desc>
-  </entry>
+  <!-- cism_in groups                                                 -->
+  <!-- =============================================================  -->
+  <!-- =============================================================  -->
 
   <!-- =============================================================  -->
   <!-- group: cism_params                                             -->
   <!-- =============================================================  -->
 
-  <entry id="paramfile" skip_default_entry="true">
+  <entry id="paramfile_base" skip_default_entry="true">
     <type>char</type>
     <category>cism</category>
     <group>cism_params</group>
     <desc>
-      Name of top-level configuration file for CISM
+      Base name of top-level configuration file for CISM
+      Actual param file names are this base name plus ".icesheet.config"
+      for the given ice sheet.
+      (Determined by scripts -- should not be set by user)
+    </desc>
+  </entry>
+
+  <entry id="num_icesheets" skip_default_entry="true" modify_via_xml="CISM_USE_ANTARCTICA, CISM_USE_GREENLAND, etc.">
+    <type>integer</type>
+    <category>cism</category>
+    <group>cism_params</group>
+    <desc>
+      Number of ice sheets in this simulation
+      (Determined by scripts -- cannot be set by user)
+    </desc>
+  </entry>
+
+  <entry id="icesheet_names" skip_default_entry="true" modify_via_xml="CISM_USE_ANTARCTICA, CISM_USE_GREENLAND, etc.">
+    <type>char(10)</type>
+    <category>cism</category>
+    <group>cism_params</group>
+    <desc>
+      List of names of ice sheets in this simulation
       (Determined by scripts -- cannot be set by user)
     </desc>
   </entry>
@@ -139,6 +142,9 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <!-- TODO(wjs, 2021-02-25) I think we'll need to move this to
+       cism.icesheet.config, since we will allow cism_evolve to differ
+       for each ice sheet -->
   <entry id="zero_gcm_fluxes">
     <type>logical</type>
     <category>cism</category>
@@ -188,6 +194,9 @@ Sub-elements of each entry include:
   <!-- group: cism_history                                            -->
   <!-- =============================================================  -->
 
+  <!-- TODO(wjs, 2021-02-25) I think we'll need to move this to
+       cism.icesheet.config, since we will allow cism_evolve to differ
+       for each ice sheet -->
   <entry id="cesm_history_vars" >
     <type>char</type>
     <category>history</category>
@@ -470,9 +479,38 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <!-- =============================================================  -->
+  <!-- =============================================================  -->
+  <!-- cism.icesheet.config groups                                    -->
+  <!-- =============================================================  -->
+  <!-- =============================================================  -->
 
   <!-- =============================================================  -->
-  <!-- group: cism.config: grid                                       -->
+  <!-- group: derived (handled uniquely)                              -->
+  <!-- =============================================================  -->
+
+  <entry id="cisminputfile" skip_default_entry="true">
+    <type>char</type>
+    <category>cism</category>
+    <input_pathname>abs</input_pathname>
+    <group>derived</group>
+    <values>
+      <!-- the following is just for the sake of software testing, and should not be used for science -->
+      <value icesheet="gris" glc_grid="gland20">glc/cism/Greenland/gland20.input_c150415.nc</value>
+      <!-- this is the resolution that should be used for science applications with cism2 -->
+      <value icesheet="gris" glc_grid="gland4">glc/cism/Greenland/greenland_4km_epsg3413_c171126.nc</value>
+    </values>
+    <desc>
+      Input file
+      Default: For startup runs or hybrid runs with CISM_OBSERVED_IC=TRUE, a resolution-dependent
+               initial conditions file.
+               For branch/hybrid runs with CISM_OBSERVED_IC=FALSE, a restart file name
+               built based on RUN_REFCASE and RUN_REFDATE.
+    </desc>
+  </entry>
+
+  <!-- =============================================================  -->
+  <!-- group: cism.icesheet.config: grid                              -->
   <!-- =============================================================  -->
 
   <entry id="ewn" >
@@ -480,8 +518,8 @@ Sub-elements of each entry include:
     <category>cism_config_grid</category>
     <group>grid</group>
     <values>
-      <value glc_grid="gland20" >76</value>
-      <value glc_grid="gland4"  >416</value>
+      <value icesheet="gris" glc_grid="gland20" >76</value>
+      <value icesheet="gris" glc_grid="gland4"  >416</value>
     </values>
     <desc>
       Number of nodes in x-direction
@@ -494,8 +532,8 @@ Sub-elements of each entry include:
     <category>cism_config_grid</category>
     <group>grid</group>
     <values>
-      <value glc_grid="gland20" >141</value>
-      <value glc_grid="gland4"  >704</value>
+      <value icesheet="gris" glc_grid="gland20" >141</value>
+      <value icesheet="gris" glc_grid="gland4"  >704</value>
     </values>
     <desc>
       Number of nodes in y-direction
@@ -521,8 +559,8 @@ Sub-elements of each entry include:
     <category>cism_config_grid</category>
     <group>grid</group>
     <values>
-      <value glc_grid="gland20" >20000.</value>
-      <value glc_grid="gland4"  >4000.</value>
+      <value icesheet="gris" glc_grid="gland20" >20000.</value>
+      <value icesheet="gris" glc_grid="gland4"  >4000.</value>
     </values>
     <desc>
       Node spacing in x-direction (m)
@@ -535,8 +573,8 @@ Sub-elements of each entry include:
     <category>cism_config_grid</category>
     <group>grid</group>
     <values>
-      <value glc_grid="gland20" >20000.</value>
-      <value glc_grid="gland4"  >4000.</value>
+      <value icesheet="gris" glc_grid="gland20" >20000.</value>
+      <value icesheet="gris" glc_grid="gland4"  >4000.</value>
     </values>
     <desc>
       Node spacing in y-direction (m)
@@ -589,7 +627,7 @@ Sub-elements of each entry include:
   </entry>
 
   <!-- =============================================================  -->
-  <!-- group: cism.config: sigma                                      -->
+  <!-- group: cism.icesheet.config: sigma                             -->
   <!-- =============================================================  -->
 
   <!-- This group is only relevant if sigma = 2 -->
@@ -611,17 +649,17 @@ Sub-elements of each entry include:
   </entry>
 
   <!-- =============================================================  -->
-  <!-- group: cism.config: climate                                    -->
+  <!-- group: cism.icesheet.config: climate                           -->
   <!-- =============================================================  -->
 
-  <entry id="evolve_ice" modify_via_xml="CISM_EVOLVE">
+  <entry id="evolve_ice" modify_via_xml="CISM_EVOLVE_ICESHEET for the given ice sheet">
     <type>integer</type>
     <category>cism_config_climate</category>
     <group>glad_climate</group>
     <valid_values>0,1</valid_values>
     <values>
-      <value cism_evolve=".true.">1</value>
-      <value cism_evolve=".false.">0</value>
+      <value cism_evolve_this_icesheet=".true.">1</value>
+      <value cism_evolve_this_icesheet=".false.">0</value>
     </values>
     <desc>
       0: Do not let the ice sheet evolve (hold ice state fixed at initial condition)
@@ -641,7 +679,7 @@ Sub-elements of each entry include:
   </entry>
 
   <!-- =============================================================  -->
-  <!-- group: cism.config: options                                    -->
+  <!-- group: cism.icesheet.config: options                           -->
   <!-- =============================================================  -->
 
   <entry id="dycore">
@@ -1103,7 +1141,7 @@ Sub-elements of each entry include:
   </entry>
 
   <!-- =============================================================  -->
-  <!-- group: cism.config: time                                       -->
+  <!-- group: cism.icesheet.config: time                              -->
   <!-- =============================================================  -->
 
   <entry id="dt">
@@ -1115,8 +1153,8 @@ Sub-elements of each entry include:
       <!-- A dt of 1 seems sufficient for cism2 gland20. However, use 0.5 because (a)
            this is less likely to break due to instabilities, and (b) it exercises the
            code in a more typical configuration (i.e., with a sub-annual time step) -->
-      <value glc_grid="gland20">0.5</value>
-      <value glc_grid="gland4" >0.1</value>
+      <value icesheet="gris" glc_grid="gland20">0.5</value>
+      <value icesheet="gris" glc_grid="gland4" >0.1</value>
     </values>
     <desc>
       Ice sheet timestep (years)
@@ -1202,8 +1240,8 @@ Sub-elements of each entry include:
     <group>time</group>
     <values>
       <!-- Set dt_diag same as dt in order to get diagnostics every time step -->
-      <value glc_grid="gland20">0.5</value>
-      <value glc_grid="gland4" >0.1</value>
+      <value icesheet="gris" glc_grid="gland20">0.5</value>
+      <value icesheet="gris" glc_grid="gland4" >0.1</value>
     </values>
     <desc>
       Diagnostic frequency (years)
@@ -1221,8 +1259,8 @@ Sub-elements of each entry include:
            instability (in trunk of Jakobshavn); 20-km and 4-km points
            chosen to be roughly the same point in space -->
       <!-- Update 5-2-17: The 4-km point should be updated for the new grid -->
-      <value glc_grid="gland20" >17</value>
-      <value glc_grid="gland4"  >134</value>
+      <value icesheet="gris" glc_grid="gland20" >17</value>
+      <value icesheet="gris" glc_grid="gland4"  >134</value>
     </values>
     <desc>
       x coordinate of point for diagnostic output
@@ -1236,8 +1274,8 @@ Sub-elements of each entry include:
     <group>time</group>
     <values>
       <!-- See comments for idiag, above -->
-      <value glc_grid="gland20" >57</value>
-      <value glc_grid="gland4"  >280</value>
+      <value icesheet="gris" glc_grid="gland20" >57</value>
+      <value icesheet="gris" glc_grid="gland4"  >280</value>
     </values>
     <desc>
       y coordinate of point for diagnostic output
@@ -1246,7 +1284,7 @@ Sub-elements of each entry include:
   </entry>
 
   <!-- =============================================================  -->
-  <!-- group: cism.config: parameters                                 -->
+  <!-- group: cism.icesheet.config: parameters                        -->
   <!-- =============================================================  -->
 
   <entry id="log_level">
@@ -2186,7 +2224,7 @@ Sub-elements of each entry include:
   </entry>
 
   <!-- =============================================================  -->
-  <!-- group: cism.config: ho_options (higher-order options)          -->
+  <!-- group: cism.icesheet.config: ho_options (higher-order options) -->
   <!-- =============================================================  -->
 
   <entry id="which_ho_babc">
@@ -2701,7 +2739,7 @@ Sub-elements of each entry include:
   </entry>
 
   <!-- =============================================================  -->
-  <!-- group: cism.config: GTHF (geothermal heat flux)                -->
+  <!-- group: cism.icesheet.config: GTHF (geothermal heat flux)       -->
   <!-- =============================================================  -->
 
   <!-- This group is only relevant if gthf = 2 (calculate using 3d diffusion) -->
@@ -2798,7 +2836,7 @@ Sub-elements of each entry include:
 
 
   <!-- =============================================================  -->
-  <!-- group: cism.config: isostasy                                   -->
+  <!-- group: cism.icesheet.config: isostasy                          -->
   <!-- =============================================================  -->
 
   <!-- This group is only relevant if isostasy = 1 -->
