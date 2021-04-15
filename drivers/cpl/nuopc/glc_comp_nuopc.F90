@@ -223,7 +223,7 @@ contains
     integer, intent(out) :: rc
 
     ! local variables
-    type(ESMF_Mesh)         :: mesh                  ! esmf meshes
+    type(ESMF_Mesh), allocatable :: mesh(:)          ! esmf meshes for ice sheets
     type(ESMF_DistGrid)     :: DistGrid              ! esmf global index space descriptor
     type(ESMF_Time)         :: currTime              ! Current time
     type(ESMF_Time)         :: startTime             ! Start time
@@ -254,8 +254,9 @@ contains
     real(r8)                :: tolerance = 1.e-5_r8
     integer                 :: elementCount
     integer                 :: localPet
-    integer                 :: i,j
+    integer                 :: i,j,ns
     integer, allocatable    :: gindex(:)
+    integer                 :: num_icesheets
     character(*), parameter :: F00   = "('(InitializeRealize) ',8a)"
     character(*), parameter :: F01   = "('(InitializeRealize) ',a,8i8)"
     character(*), parameter :: F91   = "('(InitializeRealize) ',73('-'))"
@@ -353,20 +354,33 @@ contains
     ! Realize the actively coupled fields
     !--------------------------------
 
-    ! create distGrid from global index array
-    gindex = local_to_global_indices()
-    DistGrid = ESMF_DistGridCreate(arbSeqIndexList=gindex, rc=rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    call NUOPC_CompAttributeGet(gcomp, name='num_icesheets', value=cvalue, rc=rc)
+    if (chkerr(rc,__LINE__,u_FILE_u)) return
+    read(cvalue,*) num_icesheets
 
-    ! read in the mesh on the cism decomposition
-    call NUOPC_CompAttributeGet(gcomp, name='mesh_glc', value=cvalue, rc=rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    if (my_task == master_task) then
-       write(stdout,*)'mesh file for domain is ',trim(cvalue)
-    end if
-    mesh = ESMF_MeshCreate(filename=trim(cvalue), fileformat=ESMF_FILEFORMAT_ESMFMESH, &
-          elementDistgrid=Distgrid,  rc=rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    allocate(mesh(num_icesheets))
+    do ns = 1,num_icesheets
+       ! create distGrid from global index array
+       ! TODO: this must be generalized so that gindex depends on the mesh
+       ! so local_to_global indices will depend on the target ice sheet
+       gindex = local_to_global_indices()
+       DistGrid = ESMF_DistGridCreate(arbSeqIndexList=gindex, rc=rc)
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
+       deallocate(gindex)
+
+       ! Determine the mesh for ice sheet ns
+       ! TODO: this must be generalized so mesh_glcN refers to the target ice sheet
+       call NUOPC_CompAttributeGet(gcomp, name='mesh_glc', value=cvalue, rc=rc)
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
+       if (my_task == master_task) then
+          write(stdout,'(a,i4,a)')'mesh file for ice_sheeet_domain ',ns,' is ',trim(cvalue)
+       end if
+
+       ! read in the ice sheet mesh on the cism decomposition
+       mesh(ns) = ESMF_MeshCreate(filename=trim(cvalue), fileformat=ESMF_FILEFORMAT_ESMFMESH, &
+            elementDistgrid=Distgrid,  rc=rc)
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    end do
 
     ! Realize the actively coupled fields
     call realize_fields(gcomp, mesh, rc)
@@ -376,45 +390,50 @@ contains
     ! Check consistency of mesh with internal CISM lats and lons
     !--------------------------------
 
-    ! obtain mesh lats and lons
-    call ESMF_MeshGet(mesh, spatialDim=spatialDim, numOwnedElements=numOwnedElements, rc=rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    if (numOwnedElements /= npts) then
-       call shr_sys_abort('ERROR: numOwnedElements is not equal to npts')
-    end if
-
-    allocate(ownedElemCoords(spatialDim*numOwnedElements))
-    call ESMF_MeshGet(mesh, ownedElemCoords=ownedElemCoords, rc=rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    allocate(mesh_lons(numOwnedElements))
-    allocate(mesh_lats(numOwnedElements))
-    do n = 1,npts
-       mesh_lons(n) = ownedElemCoords(2*n-1)
-       mesh_lats(n) = ownedElemCoords(2*n)
-    end do
-
-    ! obtain CISM internal mesh lats and lons
-    allocate(lats(nx,ny))
-    allocate(lons(nx,ny))
-    allocate(lats_vec(npts))
-    allocate(lons_vec(npts))
-    call glad_get_lat_lon(ice_sheet, instance_index = 1, lats = lats, lons = lons)
-    call spatial_to_vector(lons, lons_vec)
-    call spatial_to_vector(lats, lats_vec)
-
-    ! check lats and lons from the mesh are not different to a tolerance factor
-    ! from lats and lons calculated internally
-    do n = 1, npts
-       if ( abs(mesh_lons(n) - lons_vec(n)) > tolerance) then
-          write(stdout,'(a,i8,2x,3(d13.5,2x))')'ERROR: CISM lon check: n, lon, mesh_lon, lon_diff = ',&
-               n, lons_vec(n), mesh_lons(n),abs(mesh_lons(n)-lons_vec(n))
-          call shr_sys_abort()
+    do ns = 1,num_icesheets
+       ! obtain mesh lats and lons
+       call ESMF_MeshGet(mesh(ns), spatialDim=spatialDim, numOwnedElements=numOwnedElements, rc=rc)
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
+       if (numOwnedElements /= npts) then
+          call shr_sys_abort('ERROR: numOwnedElements is not equal to npts')
        end if
-       if (abs(mesh_lats(n) - lats_vec(n)) > tolerance) then
-          write(stdout,'(a,i8,2x,3(d13.5,2x))')'ERROR: CISM lat check: n, lat, mesh_lat, lat_diff = ',&
-               n, lats_vec(n), mesh_lats(n),abs(mesh_lats(n)-lats_vec(n))
-          call shr_sys_abort()
-       end if
+
+       allocate(ownedElemCoords(spatialDim*numOwnedElements))
+       call ESMF_MeshGet(mesh(ns), ownedElemCoords=ownedElemCoords, rc=rc)
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
+       allocate(mesh_lons(numOwnedElements))
+       allocate(mesh_lats(numOwnedElements))
+       do n = 1,npts
+          mesh_lons(n) = ownedElemCoords(2*n-1)
+          mesh_lats(n) = ownedElemCoords(2*n)
+       end do
+
+       ! obtain CISM internal mesh lats and lons
+       allocate(lats(nx,ny))
+       allocate(lons(nx,ny))
+       allocate(lats_vec(npts))
+       allocate(lons_vec(npts))
+       call glad_get_lat_lon(ice_sheet, instance_index = 1, lats = lats, lons = lons)
+       call spatial_to_vector(lons, lons_vec)
+       call spatial_to_vector(lats, lats_vec)
+
+       ! check lats and lons from the mesh are not different to a tolerance factor
+       ! from lats and lons calculated internally
+       do n = 1, npts
+          if ( abs(mesh_lons(n) - lons_vec(n)) > tolerance) then
+             write(stdout,'(a,i8,2x,3(d13.5,2x))')'ERROR: CISM lon check: n, lon, mesh_lon, lon_diff = ',&
+                  n, lons_vec(n), mesh_lons(n),abs(mesh_lons(n)-lons_vec(n))
+             call shr_sys_abort()
+          end if
+          if (abs(mesh_lats(n) - lats_vec(n)) > tolerance) then
+             write(stdout,'(a,i8,2x,3(d13.5,2x))')'ERROR: CISM lat check: n, lat, mesh_lat, lat_diff = ',&
+                  n, lats_vec(n), mesh_lats(n),abs(mesh_lats(n)-lats_vec(n))
+             call shr_sys_abort()
+          end if
+       end do
+       deallocate(mesh_lons, mesh_lats)
+       deallocate(lons, lats)
+       deallocate(lons_vec, lats_vec)
     end do
 
     !--------------------------------
