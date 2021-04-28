@@ -35,6 +35,11 @@ module glc_fields
                    ! received from coupler in Kelvin, must be converted
      qsmb          ! flux of new glacier ice (kg/m^2/s)
 
+  real(r8),dimension(:,:,:), allocatable ::  & 
+     salinity    ,&! surface temperature (Celsius)
+                   ! received from coupler in Kelvin, must be converted
+     tocn          ! flux of new glacier ice (kg/m^2/s)
+
   ! output to coupler
 
   ! the following need to be targets for the sake of the override code in glc_export
@@ -88,6 +93,9 @@ module glc_fields
    ! from coupler
    allocate(tsfc(nx,ny))
    allocate(qsmb(nx,ny))
+   ! ktc temporary
+   allocate(salinity(1,nx,ny))
+   allocate(tocn(1,nx,ny))
 
    ! to coupler
    allocate(ice_covered(nx,ny))
@@ -128,6 +136,8 @@ module glc_fields
    ! from coupler
    deallocate(tsfc)
    deallocate(qsmb)
+   deallocate(salinity)
+   deallocate(tocn)
 
    ! to coupler
    deallocate(ice_covered)

@@ -74,7 +74,7 @@
 !  same as module
 !
 ! !USES:
-   use parallel, only : parallel_set_info
+   use parallel_mod, only : parallel_set_info
 
 ! !INPUT PARAMETERS:
  
