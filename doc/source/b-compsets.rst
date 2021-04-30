@@ -179,7 +179,7 @@ CISM Topography Updating Workflow
 
 2. Create your case. When you create your case you will need to add the flag ``--workflow topo_regen_10yr_cycle`` . For example: ::
 
-     ./create_newcase --case Test_topo_regen_workflow_m03 --compset B1850G --res f09_g17_gl4 --workflow topo_regen_10yr_cycle --project P93300606 --run-unsupported
+     ./create_newcase --case Test_topo_regen_workflow_m03 --compset B1850G --res f09_g17_gris4 --workflow topo_regen_10yr_cycle --project P93300606 --run-unsupported
 
 3. Go into your new case directory and run ``./case.setup`` you should see a warning that says "Input template file /glade/scratch/katec/Test_topo_regen_workflow_m03/bld/../run/dynamic_atm_topo/template.topo_regen for job case.topo_regen does not exist or cannot be read." If you don't see a warning like this for your case than something has gone wrong. Check that you did the first two steps correctly.
 
