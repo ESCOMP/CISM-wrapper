@@ -381,6 +381,7 @@ def _create_cism_config(case, confdir, inst_string, icesheet, infile, nmlgen, da
     _add_conditional_section_to_cism_config(nmlgen, output_file, group="isostasy",
                                             control_var="isostasy",
                                             value_for_addition=_ISOSTASY_ON)
+    _update_cism_config(nmlgen, output_file, mode="a", header="grid_ocn", group="grid_ocn")
 
     final_text = _final_template.format(filename=nmlgen.get_value('cisminputfile'))
     with open(output_file, "a") as file_obj:

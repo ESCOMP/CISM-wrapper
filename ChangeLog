@@ -3,6 +3,92 @@ This file describes what tags were created on master and why
 ================================================================================
 
 ================================================================================
+Originator: katetc / whlipscomb
+Date: April 7, 2021
+Version: cismwrap_2_1_79
+One-line summary: Support for new CISM version cism_main_2.01.002
+
+Purpose of changes:
+
+- Point to new CISM, now using tags on the main branch. This new version includes
+several new features such as support for ISMIP6 standalone experiments, new
+schemes for sub-ice-shelf melting and CESM ocean coupling support.
+
+- Adding new namelist options for CISM's new options and parameterizations, as
+well as ocean coupling grid specifications.
+
+- Basic support for gathering temperature and salinity information from the coupler
+to support sub-ice-sheet melting in CESM.
+
+- Updates to a few tests that may take a little longer with the new CISM code.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+   Changes answers relative to previous tag: YES
+
+   Bugs fixed (include github issue number): none
+
+   Summary of testing:
+
+   Full aux_glc test suite on cheyenne and izumi.
+
+	No baselines stored or compared on Izumi.
+	All tests fail NL compare due to extensive namelist updates.
+	All tests with an active ice sheet DIFF against baselines.
+	Tests with GNU compiler on Cheyenne use default mpi library (not openmpi).
+
+	Different from baselines:
+  ERI_Lm24.f10_f10_mg37.I1850Clm50SpG.cheyenne_intel.cism-isostasy_period4 (Overall: DIFF)
+  ERI_Ly15.f09_g17_gl4.T1850Gg.cheyenne_intel.cism-isostasy_period4 (Overall: DIFF)
+  ERI_Ly44.f09_g17_gl20.T1850Gg.cheyenne_intel.cism-isostasy_period4 (Overall: DIFF)
+  ERI_Vnuopc_Ly15.f09_g17_gl4.T1850Gg.cheyenne_intel.cism-isostasy_period4 (Overall: DIFF)
+  ERI_Vnuopc_Ly44.f09_g17_gl20.T1850Gg.cheyenne_intel.cism-isostasy_period4 (Overall: DIFF)
+  ERS_D_Ly3.f09_g17_gl4.T1850Gg.cheyenne_intel.cism-cmip6_evolving_icesheet (Overall: DIFF)
+  ERS_D_Ly3.f09_g17_gl4.T1850Gg.cheyenne_intel.cism-noevolve (Overall: NLFAIL)
+  ERS_Lm24.f10_f10_mg37.I1850Clm50SpG.cheyenne_intel (Overall: DIFF)
+  ERS_Ly3.f10_f10_mg37.I1850Clm50SpG.cheyenne_intel (Overall: DIFF)
+  ERS_Ly3_N2_D.f09_g17_gl20.T1850Gg.cheyenne_intel (Overall: DIFF)
+  ERS_Ly7.f09_g17_gl4.T1850Gg.cheyenne_intel (Overall: DIFF)
+  ERS_Vnuopc_D_Ly3.f09_g17_gl4.T1850Gg.cheyenne_intel.cism-cmip6_evolving_icesheet (Overall: DIFF)
+  ERS_Vnuopc_Ly3.f10_f10_mg37.I1850Clm50SpG.cheyenne_intel (Overall: DIFF)
+  ERS_Vnuopc_Ly3_N2_D.f09_g17_gl20.T1850Gg.cheyenne_intel (Overall: DIFF)
+  ERS_Vnuopc_Ly7.f09_g17_gl4.T1850Gg.cheyenne_intel (Overall: DIFF)
+  SMS_D_Ly1.f09_g17_gl4.T1850Gg.cheyenne_intel.cism-isostasy_period1 (Overall: DIFF)
+  SMS_D_Ly1.f09_g17_gl4.T1850Gg.cheyenne_intel (Overall: DIFF)
+  SMS_Lm13.f10_f10_mg37.I1850Clm50SpG.cheyenne_intel.cism-noevolve (Overall: NLFAIL)
+  SMS_Vnuopc_D_Ly1.f09_g17_gl4.T1850Gg.cheyenne_intel.cism-isostasy_period1 (Overall: DIFF)
+  SMS_Vnuopc_D_Ly1.f09_g17_gl4.T1850Gg.cheyenne_intel (Overall: DIFF)
+  SMS_Vnuopc_Lm13.f10_f10_mg37.I1850Clm50SpG.cheyenne_intel.cism-noevolve (Overall: NLFAIL)
+  ERI.f10_f10_mg37.I1850Clm50SpG.cheyenne_gnu.cism-test_coupling (Overall: DIFF)
+  ERI_N2_Ly9.f09_g17_gl20.T1850Gg.cheyenne_gnu (Overall: DIFF)
+  ERI_Vnuopc.f10_f10_mg37.I1850Clm50SpG.cheyenne_gnu.cism-test_coupling (Overall: DIFF)
+  ERI_Vnuopc_N2_Ly9.f09_g17_gl20.T1850Gg.cheyenne_gnu (Overall: DIFF)
+  ERS_D_Ld9.f10_f10_mg37.I1850Clm50SpG.cheyenne_gnu.cism-override_glc_frac (Overall: DIFF)
+  ERS_Ly11.f09_g17_gl20.T1850Gg.cheyenne_gnu.cism-oneway (Overall: DIFF)
+  ERS_Ly11.f09_g17_gl20.T1850Gg.cheyenne_gnu (Overall: DIFF)
+  ERS_Ly3.f09_g17_gl4.T1850Gg.cheyenne_gnu.cism-isostasy_period1 (Overall: DIFF)
+  ERS_Ly5.f09_g17_gl4.T1850Gg.cheyenne_gnu.cism-isostasy_period4 (Overall: DIFF)
+  ERS_Vnuopc_D_Ld9.f10_f10_mg37.I1850Clm50SpG.cheyenne_gnu.cism-override_glc_frac (Overall: DIFF)
+  ERS_Vnuopc_Ly11.f09_g17_gl20.T1850Gg.cheyenne_gnu.cism-oneway (Overall: DIFF)
+  ERS_Vnuopc_Ly11.f09_g17_gl20.T1850Gg.cheyenne_gnu (Overall: DIFF)
+  ERS_Vnuopc_Ly3.f09_g17_gl4.T1850Gg.cheyenne_gnu.cism-isostasy_period1 (Overall: DIFF)
+  ERS_Vnuopc_Ly5.f09_g17_gl4.T1850Gg.cheyenne_gnu.cism-isostasy_period4 (Overall: DIFF)
+  MCC_Vnuopc_Ly3.f09_g17_gl20.T1850Gg.cheyenne_gnu (Overall: DIFF)
+  NCK_Ly3.f09_g17_gl20.T1850Gg.cheyenne_gnu (Overall: DIFF)
+  SMS_D_Ly1.f09_g17_gl4.T1850Gg.cheyenne_gnu (Overall: DIFF)
+  SMS_D.T31_g37_gl20.I1850Clm50SpG.cheyenne_gnu.cism-test_coupling (Overall: DIFF)
+  SMS_Vnuopc_D_Ly1.f09_g17_gl4.T1850Gg.cheyenne_gnu (Overall: DIFF)
+  SMS_Vnuopc_D.T31_g37_gl20.I1850Clm50SpG.cheyenne_gnu.cism-test_coupling (Overall: DIFF)
+
+================================================================================
 Originator: jedwards / sacks
 Date: April 7, 2021
 Version: cism2_1_78

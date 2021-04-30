@@ -80,7 +80,7 @@
 
       <machine name="cheyenne" compiler="gnu" category="aux_glc">
         <options>
-          <option name="wallclock">0:30</option>
+          <option name="wallclock">01:30:00</option>
           <option name="comment">Make sure glc override options work correctly, and restart properly. Note that we do not generate cism history files in this test, but that is okay: this test is about what is sent to the coupler, not what is output by CISM. (And currently CISM history files do not restart properly in this test.)</option>
         </options>
       </machine>
@@ -380,7 +380,7 @@
 
       <machine name="cheyenne" compiler="gnu" category="aux_glc">
         <options>
-          <option name="wallclock">0:45</option>
+          <option name="wallclock">1:45</option>
           <option name="comment">Changes often break the test_coupling testmod, so include an ERI test with this testmod to help catch these problems</option>
         </options>
       </machine>
@@ -392,7 +392,7 @@
 
       <machine name="cheyenne" compiler="gnu" category="aux_glc">
         <options>
-          <option name="wallclock">0:45</option>
+          <option name="wallclock">1:45</option>
           <option name="comment">Changes often break the test_coupling testmod, so include an ERI test with this testmod to help catch these problems</option>
         </options>
       </machine>
