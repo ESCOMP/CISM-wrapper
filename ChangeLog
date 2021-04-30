@@ -3,6 +3,55 @@ This file describes what tags were created on master and why
 ================================================================================
 
 ================================================================================
+Originator: sacks
+Date: April 30, 2021
+Version: cismwrap_2_1_80
+One-line summary: Rename Greenland grid "gland" to "gris"
+
+Purpose of changes:
+
+   We want to consistently refer to the Greenland ice sheet as "gris".
+   This will be particularly helpful as we move to supporting multiple
+   ice sheets in a single run. Therefore, this tag renames "gland" to
+   "gris" in the grid long name and uses "_gris4" or "_gris20" in place
+   of "_gl4" and "_gl20" in the grid aliases. This is accomplished via
+   changes in both CISM-wrapper and CIME.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: NO
+
+   However:
+
+   1. In order to perform baseline comparisons, I made a temporary
+      baselines directory where I changed the test directory names to
+      use the new grid alias names.
+
+   2. ERI_Vnuopc.f10_f10_mg37.I1850Clm50SpG.cheyenne_gnu.cism-test_coupling
+      failed against baselines. However, it also failed baseline
+      comparisons when I ran it from master. I get bfb answers when
+      comparing my branch with a test that I ran myself from master. One
+      hypothesis is that the version stored in the baseline directory
+      mistakenly used --mpilib openmpi.
+
+Bugs fixed (include github issue number): none
+
+Summary of testing:
+
+   Full aux_glc test suite on cheyenne and izumi.
+
+   All tests pass and are bit-for-bit with the previous tag, with the
+   caveats noted above.
+
+================================================================================
 Originator: katetc / whlipscomb
 Date: April 7, 2021
 Version: cismwrap_2_1_79
