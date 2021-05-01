@@ -50,7 +50,7 @@ grid, would look like:
 
 .. code-block:: console
 
-   ./create_newcase --case my_t_case --compset T1850Gg --res f09_g17_gl4
+   ./create_newcase --case my_t_case --compset T1850Gg --res f09_g17_gris4
 
 .. _t-with-your-own-data:
 
@@ -133,7 +133,7 @@ resolutions of the T compset run (as specified by the ``--res`` flag to
 ``create_newcase``) should match the resolution of the run used to create the forcing
 data. You *can* run with a different glc resolution than the one used to create the
 forcing data. So, for example, if you created the forcing data from an I or B compset with
-resolution ``f09_g17_gl4``, the T compset run should use resolution ``f09_g17_xxx``, where
+resolution ``f09_g17_gris4``, the T compset run should use resolution ``f09_g17_xxx``, where
 any value of ``xxx`` is acceptable.
 
 The following variables in ``env_run.xml`` should be modified appropriately for your

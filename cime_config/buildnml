@@ -49,11 +49,6 @@ _CISM_CONFIG_GROUPS = ["grid", "glad_climate", "options", "sigma", "time", "para
 _ICESHEET_OPTIONS = OrderedDict([('ais', 'ANTARCTICA'),
                                  ('gris', 'GREENLAND')])
 
-# dictionary mapping ice sheet names to grid specifications
-# if an ice sheet isn't given here, we assume its grid specification is the same as the
-# ice sheet name
-_ICESHEET_GRIDNAMES = {'gris': 'gland'}
-
 # value of 'sigma' that signifies that values are read from a sigma section
 _SIGMA_IN_CONFIG_FILE = 2
 
@@ -222,10 +217,9 @@ def _icesheet_consistency_checks(case, icesheet_names):
     # ------------------------------------------------------------------------
     glc_grid = case.get_value("GLC_GRID")
     for icesheet in _ICESHEET_OPTIONS:
-        # if the given icesheet has a grid name explicitly specified in
-        # _ICESHEET_GRIDNAMES, use that; otherwise, assume that the grid name matches the
-        # icesheet name
-        gridname = _ICESHEET_GRIDNAMES.get(icesheet, icesheet)
+        # assume that the grid name matches the icesheet name (this is true for ais and
+        # gris; if needed, we could add flexibility later)
+        gridname = icesheet
         if icesheet in icesheet_names:
             expect(gridname in glc_grid, "{} included in compset but {} not in grid {}".format(
                 icesheet, gridname, glc_grid))
@@ -387,6 +381,7 @@ def _create_cism_config(case, confdir, inst_string, icesheet, infile, nmlgen, da
     _add_conditional_section_to_cism_config(nmlgen, output_file, group="isostasy",
                                             control_var="isostasy",
                                             value_for_addition=_ISOSTASY_ON)
+    _update_cism_config(nmlgen, output_file, mode="a", header="grid_ocn", group="grid_ocn")
 
     final_text = _final_template.format(filename=nmlgen.get_value('cisminputfile'))
     with open(output_file, "a") as file_obj:
