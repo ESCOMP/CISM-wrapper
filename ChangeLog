@@ -3,6 +3,41 @@ This file describes what tags were created on master and why
 ================================================================================
 
 ================================================================================
+Originator: mvertens, sacks
+Date: May 4, 2021
+Version: cismwrap_2_1_81
+One-line summary: Updates for multiple ice sheet support
+
+Purpose of changes:
+
+   Some updates to the NUOPC cap for multiple ice sheet support, along
+   with an updated CMEPS external with similar updates.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: NO
+
+   However, cpl hist files differ in their field lists due to renamed
+   glc fields for the sake of supporting multiple ice sheets.
+
+Bugs fixed (include github issue number): None
+
+Summary of testing:
+
+   Full aux_glc test suite on cheyenne and izumi.
+
+   All tests pass and are bit-for-bit with the previous tag, with the
+   caveats noted above.
+
+================================================================================
 Originator: sacks
 Date: April 30, 2021
 Version: cismwrap_2_1_80
