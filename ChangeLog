@@ -4,6 +4,40 @@ This file describes what tags were created on master and why
 
 ================================================================================
 Originator: sacks
+Date: May 11, 2021
+Version: cismwrap_2_1_83
+One-line summary: Rename CISM's parallel_mod to cism_parallel
+
+Purpose of changes:
+
+   Rename CISM's parallel_mod to cism_parallel, because parallel_mod
+   conflicts with a CAM-SE module name.
+
+   The main change here is an update to the CISM external, with code
+   changes from Bill Lipscomb and Kate Thayer-Calder
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: NO
+
+Bugs fixed (include github issue number): none
+
+Summary of testing:
+
+   Full aux_glc test suite on cheyenne and izumi.
+
+   All tests pass and are bit-for-bit with the previous tag.
+
+================================================================================
+Originator: sacks
 Date: May 7, 2021
 Version: cismwrap_2_1_82
 One-line summary: Update externals to cesm2_3_beta02
