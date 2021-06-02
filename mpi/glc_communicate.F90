@@ -74,7 +74,7 @@
 !  same as module
 !
 ! !USES:
-   use parallel, only : parallel_set_info
+   use cism_parallel, only : parallel_set_info
 
 ! !INPUT PARAMETERS:
  

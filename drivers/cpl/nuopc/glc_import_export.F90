@@ -6,7 +6,7 @@ module glc_import_export
   use ESMF                , only : ESMF_KIND_R8, ESMF_SUCCESS, ESMF_MAXSTR, ESMF_LOGMSG_INFO
   use ESMF                , only : ESMF_LogWrite, ESMF_LOGMSG_ERROR, ESMF_LogFoundError
   use ESMF                , only : ESMF_STATEITEM_NOTFOUND, ESMF_StateItem_Flag
-  use ESMF                , only : ESMF_LogFoundAllocError
+  use ESMF                , only : ESMF_LogFoundAllocError, ESMF_MeshIsCreated
   use ESMF                , only : operator(/=), operator(==)
   use NUOPC               , only : NUOPC_CompAttributeGet, NUOPC_Advertise, NUOPC_IsConnected
   use NUOPC               , only : NUOPC_AddNamespace, NUOPC_AddNestedState
@@ -63,10 +63,9 @@ module glc_import_export
   type (fld_list_type)   :: fldsToGlc(fldsMax)
   type (fld_list_type)   :: fldsFrGlc(fldsMax)
 
-  integer, parameter :: max_icesheets = 1
-  integer            :: num_icesheets = 1
-  type(ESMF_State)   :: NStateImp(max_icesheets)
-  type(ESMF_State)   :: NStateExp(max_icesheets)
+  type(ESMF_State), allocatable :: NStateImp(:)
+  type(ESMF_State), allocatable :: NStateExp(:)
+  integer            :: num_icesheets
   real(r8), pointer  :: glc_areas(:,:)
   integer            :: dbug_flag = 0
 
@@ -152,6 +151,13 @@ contains
     ! Create nested state for active ice sheets only
     !--------------------------------
 
+    call NUOPC_CompAttributeGet(gcomp, name='num_icesheets', value=cvalue, rc=rc)
+    if (chkerr(rc,__LINE__,u_FILE_u)) return
+    read(cvalue,*) num_icesheets
+
+    allocate(NStateImp(num_icesheets))
+    allocate(NStateExp(num_icesheets))
+
     do ns = 1,num_icesheets
        write(cnum,'(i0)') ns
        call NUOPC_AddNestedState(importState, CplSet="GLC"//trim(cnum), nestedState=NStateImp(ns), rc=rc)
@@ -233,11 +239,12 @@ contains
 
     ! input/output variables
     type(ESMF_GridComp) , intent(inout) :: gcomp
-    type(ESMF_Mesh)     , intent(in)    :: mesh
+    type(ESMF_Mesh)     , intent(in)    :: mesh(:)
     integer             , intent(out)   :: rc
 
     ! local variables
-    integer             :: ns
+    integer           :: ns
+    character(len=CS) :: cns
     character(len=*), parameter :: subname='(glc_import_export:realize_fields)'
     !---------------------------------------------------------------------------
 
@@ -245,14 +252,16 @@ contains
 
     ! Realize import and export states for each ice sheet
     do ns = 1,num_icesheets
+       write(cns,'(i0)') ns
+
        call fldlist_realize( &
             state=NStateExp(ns), &
             fldList=fldsFrGlc, &
             numflds=fldsFrGlc_num, &
             flds_scalar_name=flds_scalar_name, &
             flds_scalar_num=flds_scalar_num, &
-            tag=subname//':cismExport',&
-            mesh=mesh, rc=rc)
+            tag=subname//':cismExport'//trim(cns),&
+            mesh=mesh(ns), rc=rc)
        if (chkErr(rc,__LINE__,u_FILE_u)) return
 
        call fldlist_realize( &
@@ -261,8 +270,8 @@ contains
             numflds=fldsToGlc_num, &
             flds_scalar_name=flds_scalar_name, &
             flds_scalar_num=flds_scalar_num, &
-            tag=subname//':cismImport',&
-            mesh=mesh, rc=rc)
+            tag=subname//':cismImport'//trim(cns),&
+            mesh=mesh(ns), rc=rc)
        if (chkErr(rc,__LINE__,u_FILE_u)) return
 
        if (dbug_flag > 1) then

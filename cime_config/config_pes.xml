@@ -39,7 +39,7 @@
       </pes>
     </mach>
   </grid>
-  <grid name="g%gland4">
+  <grid name="g%gris4">
     <mach name="any">
       <pes pesize="any" compset="CISM2">
 	<comment>none</comment>
@@ -113,7 +113,7 @@
       </pes>
     </mach>
   </grid>
-  <grid name="g%gland20">
+  <grid name="g%gris20">
     <mach name="any">
       <pes pesize="any" compset="CISM2">
 	<comment>none</comment>

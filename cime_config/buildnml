@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 CISM namelist creator
@@ -18,6 +18,7 @@ from CIME.buildnml import create_namelist_infile, parse_input
 from CIME.case import Case
 from CIME.utils import expect, safe_copy
 from CIME.nmlgen import NamelistGenerator
+from CIME.XML.grids import GRID_SEP
 
 _final_template = """########################################
 # I/O configuration follows
@@ -46,13 +47,10 @@ _CISM_CONFIG_GROUPS = ["grid", "glad_climate", "options", "sigma", "time", "para
 # dictionary mapping all possible ice sheet names to the names used in xml variables
 # we use an OrderedDict to get reliable ordering (this is unnecessary in python3.6 and
 # later because standard dicts maintain order, but necessary for 3.5 and earlier)
+#
+# It is important that this ordering be consistent with the ordering of grids in CIME's config_grids xml file.
 _ICESHEET_OPTIONS = OrderedDict([('ais', 'ANTARCTICA'),
                                  ('gris', 'GREENLAND')])
-
-# dictionary mapping ice sheet names to grid specifications
-# if an ice sheet isn't given here, we assume its grid specification is the same as the
-# ice sheet name
-_ICESHEET_GRIDNAMES = {'gris': 'gland'}
 
 # value of 'sigma' that signifies that values are read from a sigma section
 _SIGMA_IN_CONFIG_FILE = 2
@@ -75,7 +73,8 @@ def buildnml(case, caseroot, compname):
         raise AttributeError
 
     icesheet_names = _get_icesheet_names(case)
-    _icesheet_consistency_checks(case, icesheet_names)
+    glc_grid_names = _get_glc_grid_names(case)
+    _icesheet_consistency_checks(case, icesheet_names, glc_grid_names)
 
     _initial_consistency_checks(case)
 
@@ -134,13 +133,17 @@ def buildnml(case, caseroot, compname):
             logger.debug("CISM namelist copy: file_src {} file_dest {} ".format(file_src, file_dest))
             safe_copy(file_src,file_dest)
 
-        for icesheet in icesheet_names:
+        for idx, icesheet in enumerate(icesheet_names):
             infile = os.path.join(confdir, "namelist")
             create_namelist_infile(case, user_nl_file, infile)
+            # In _check_compset_grid_consistency, we confirmed that the ordering of ice
+            # sheets matches the ordering of grids; we make use of that consistency here:
+            glc_grid = glc_grid_names[idx]
             _create_cism_config(case=case,
                                 confdir=confdir,
                                 inst_string=inst_string,
                                 icesheet=icesheet,
+                                glc_grid=glc_grid,
                                 infile=infile,
                                 nmlgen=nmlgen,
                                 data_list_path=data_list_path)
@@ -204,15 +207,22 @@ def _get_icesheet_names(case):
             if _is_icesheet_present(case, icesheet_name)]
 
 ####################################################################################
+def _get_glc_grid_names(case):
+####################################################################################
+    """Returns a list of GLC grid names for this case"""
+    glc_grid = case.get_value("GLC_GRID")
+    return glc_grid.split(GRID_SEP)
+
+####################################################################################
 def _config_fname(icesheet, base="cism"):
 ####################################################################################
     """Returns the name of the cism config file for the given ice sheet"""
     return "{}.{}.config".format(base, icesheet)
 
 ####################################################################################
-def _icesheet_consistency_checks(case, icesheet_names):
+def _icesheet_consistency_checks(case, icesheet_names, glc_grid_names):
 ####################################################################################
-    """Run various consistency checks on the list of icesheet names, and related checks"""
+    """Run various consistency checks on the list of icesheet names & glc grid names, and related checks"""
     expect(len(icesheet_names) > 0, "Compsets with CISM must specify at least one ice sheet")
     # Eventually we'll remove the following line
     expect(len(icesheet_names) == 1, "For now, there can only be one ice sheet")
@@ -220,18 +230,7 @@ def _icesheet_consistency_checks(case, icesheet_names):
     # ------------------------------------------------------------------------
     # Check consistency between compset and grid
     # ------------------------------------------------------------------------
-    glc_grid = case.get_value("GLC_GRID")
-    for icesheet in _ICESHEET_OPTIONS:
-        # if the given icesheet has a grid name explicitly specified in
-        # _ICESHEET_GRIDNAMES, use that; otherwise, assume that the grid name matches the
-        # icesheet name
-        gridname = _ICESHEET_GRIDNAMES.get(icesheet, icesheet)
-        if icesheet in icesheet_names:
-            expect(gridname in glc_grid, "{} included in compset but {} not in grid {}".format(
-                icesheet, gridname, glc_grid))
-        elif gridname in glc_grid:
-            expect(False, "{} included in grid {} but {} not in compset".format(
-                gridname, glc_grid, icesheet))
+    _check_compset_grid_consistency(case, icesheet_names, glc_grid_names)
 
     # ------------------------------------------------------------------------
     # Check consistency of EVOLVE settings
@@ -259,7 +258,79 @@ def _icesheet_consistency_checks(case, icesheet_names):
     icesheet_evolution = _is_icesheet_evolving(case, icesheet_names[0])
     for icesheet in icesheet_names[1:]:
         expect(_is_icesheet_evolving(case, icesheet) == icesheet_evolution,
-               "For now, all ice sheets must either be evolving or non-evolving")
+               "For now, ice sheets must either all be evolving or all be non-evolving")
+
+####################################################################################
+def _check_compset_grid_consistency(case, icesheet_names, glc_grid_names):
+####################################################################################
+    """Check consistency between the compset and the grid
+
+    Note that these checks assume that the grid name for a given ice sheet starts with
+    that ice sheet name (e.g., Greenland's grids start with 'gris').
+
+    Args:
+    - case: case object
+    - icesheet_names: list of ice sheets included in this compset; the available options
+      are the keys of _ICESHEET_OPTIONS
+    - glc_grid_names: list of glc grids (based on separating the overall GLC_GRID by the
+      grid separator)
+
+    """
+    glc_grid = case.get_value("GLC_GRID")
+
+    # ------------------------------------------------------------------------
+    # First confirm that every ice sheet in the compset is also present in the grid, and
+    # vice versa. Errors here typically indicate user error: using a grid that is
+    # inconsistent with the compset.
+    # ------------------------------------------------------------------------
+
+    for icesheet in icesheet_names:
+        grid_startswith_icesheet = [g.startswith(icesheet) for g in glc_grid_names]
+        num_matches = grid_startswith_icesheet.count(True)
+        expect(num_matches == 1,
+               "Inconsistency between compset and grid: "
+               "{} included in compset, so expect one grid starting with that name, "
+               "but found {} grids with that name in GLC_GRID {}".format(
+                   icesheet, num_matches, glc_grid))
+
+    for grid in glc_grid_names:
+        icesheet_is_prefix_of_grid = [grid.startswith(i) for i in icesheet_names]
+        num_matches = icesheet_is_prefix_of_grid.count(True)
+        expect(num_matches == 1,
+               "Inconsistency between compset and grid: "
+               "{} included in GLC_GRID, so expect it to be the grid for one ice sheet in this case, "
+               "but found {} ice sheets that are the prefix of this grid name".format(
+                   grid, num_matches))
+
+    # ------------------------------------------------------------------------
+    # Now check for consistency in ordering. Errors here typically indicate an
+    # inconsistency between the ordering defined in _ICESHEET_OPTIONS above and the
+    # ordering of the grids as defined in config_grids.xml.
+    #
+    # Given that the below checks pass, the above checks may be partly or entirely
+    # redundant. However, it is still valuable to do the above checks because we can get
+    # more meaningful errors from them, for the sake of informing the user. (If the
+    # ordering check failed without doing the above checks, we wouldn't know, for example,
+    # if the problem is that a given grid is completely absent or just in the wrong
+    # order.)
+    # ------------------------------------------------------------------------
+
+    # The checks we have already done above should only have passed if the number of ice
+    # sheets matches the number of glc grids. But to be sure, we check that here.
+    expect(len(icesheet_names) == len(glc_grid_names),
+           "Mismatch between number of ice sheets in compset ({}) "
+           "and number of glc grids in {} ({})".format(
+               len(icesheet_names), glc_grid, len(glc_grid_names)))
+
+    for idx, icesheet in enumerate(icesheet_names):
+        expect(glc_grid_names[idx].startswith(icesheet),
+               "GLC grid ordering inconsistent with expectations in CISM's buildnml: "
+               "Expect ice sheet #{} to be {}, but grid in that index is {}. "
+               "This likely indicates an inconsistency between the _ICESHEET_OPTIONS "
+               "defined in CISM's buildnml and the ordering of the grids as defined in "
+               "CIME's config_grids.xml file.".format(
+                   # we print idx+1 rather than idx so that we're using 1-based instead of 0-based counting
+                   idx+1, icesheet, glc_grid_names[idx]))
 
 ####################################################################################
 def _create_cism_in(case, confdir, inst_string, icesheet_names, infile, nmlgen, data_list_path):
@@ -320,22 +391,26 @@ def _create_cism_in(case, confdir, inst_string, icesheet_names, infile, nmlgen, 
     _cism_in_final_consistency_checks(nmlgen, config)
 
 ####################################################################################
-def _create_cism_config(case, confdir, inst_string, icesheet, infile, nmlgen, data_list_path):
+def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid, infile, nmlgen, data_list_path):
 ####################################################################################
-    """Write the cism.icesheet.config file for the given icesheet
+    """Write the cism.icesheet.config file for the given ice sheet
+
+    Note that glc_grid is the grid name for *this* ice sheet (not the full GLC_GRID
+    variable, which gives the grid names for all ice sheets present in this case).
 
     Most arguments are the same as those for `NamelistGenerator`. The `inst_string`
     argument is used as a suffix to distinguish files for different instances. The
     `icesheet` argument gives the name of the ice sheet for which we're creating a
     namelist.  The `confdir` argument is used to specify the directory in which output
     files will be placed.
+
     """
     #----------------------------------------------------
     # Create config dictionary
     #----------------------------------------------------
     config = {}
     config['icesheet'] = icesheet
-    config['glc_grid']  = case.get_value("GLC_GRID")
+    config['glc_grid']  = glc_grid
     config['cism_phys'] = case.get_value("CISM_PHYS")
     if _is_icesheet_evolving(case, icesheet):
         config['cism_evolve_this_icesheet'] = '.true.'
@@ -387,6 +462,7 @@ def _create_cism_config(case, confdir, inst_string, icesheet, infile, nmlgen, da
     _add_conditional_section_to_cism_config(nmlgen, output_file, group="isostasy",
                                             control_var="isostasy",
                                             value_for_addition=_ISOSTASY_ON)
+    _update_cism_config(nmlgen, output_file, mode="a", header="grid_ocn", group="grid_ocn")
 
     final_text = _final_template.format(filename=nmlgen.get_value('cisminputfile'))
     with open(output_file, "a") as file_obj:

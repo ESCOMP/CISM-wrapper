@@ -117,11 +117,11 @@ grid. For example, ``f09_g17`` runs the atmosphere and land on a 0.9\ |deg|\ x1.
 finite-volume grid and the ocean and sea ice on a displaced Greenland pole 1\ |deg|
 grid. If you don't specify the CISM grid explicitly in the grid alias, it will use the
 default grid (4 km). For some common grids, you can also specify the grid explicitly in
-the alias, using a ``_gl`` element following the ocean grid. For example, for a compset
-with CISM2, ``f09_g17_gl4`` is equivalent to ``f09_g17``.
+the alias, using a ``_gris`` element following the ocean grid. For example, for a compset
+with CISM2, ``f09_g17_gris4`` is equivalent to ``f09_g17``.
 
 For the T1850Gg compset (described in :numref:`t-compsets`), you should use grid
-``f09_g17_gl4``. For information on introducing new ice sheet grids, see :ref:`new-grids`.
+``f09_g17_gris4``. For information on introducing new ice sheet grids, see :ref:`new-grids`.
 
 Special considerations for hybrid cases
 ---------------------------------------
