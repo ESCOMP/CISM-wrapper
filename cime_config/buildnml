@@ -431,11 +431,15 @@ def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid,
     #----------------------------------------------------
     # Initialize namelist defaults
     #----------------------------------------------------
+    # Use settings from both the overall user_nl_cism and the icesheet-specific
+    # user_nl_cism_icesheet files. The icesheet-specific file is given first so that it
+    # takes precedence over the general file, in case the same setting is given in both.
+    #
     # To avoid errors with the user_nl_cism file, nmlgen needs to contain all of the
     # groups from both cism_in and cism.icesheet.config. However, for the sake of the
     # cism.icesheet.config file, we can avoid doing the work of adding the defaults for
     # the cism_in groups.
-    nmlgen.init_defaults([infile_overall, infile_this_icesheet], config,
+    nmlgen.init_defaults([infile_this_icesheet, infile_overall], config,
                          skip_default_for_groups=_CISM_IN_GROUPS+["gthf",
                                                                   "isostasy",
                                                                   "sigma"])
