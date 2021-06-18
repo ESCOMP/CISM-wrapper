@@ -115,15 +115,15 @@ def buildnml(case, caseroot, compname):
         expect(os.path.isfile(user_nl_file),
                "Missing required user_nl_file {}".format(user_nl_file))
 
-        infile = os.path.join(confdir, "namelist")
-        create_namelist_infile(case, user_nl_file, infile)
+        infile_overall = os.path.join(confdir, "namelist_cism_overall")
+        create_namelist_infile(case, user_nl_file, infile_overall)
         _create_cism_in(case=case,
                         confdir=confdir,
                         inst_string=inst_string,
                         # need to make a copy of icesheet_names because add_default
                         # modifies the values for some reason
                         icesheet_names=icesheet_names[:],
-                        infile=infile,
+                        infile=infile_overall,
                         nmlgen=nmlgen,
                         data_list_path=data_list_path)
         # Copy resolved namelist to rundir
@@ -134,8 +134,12 @@ def buildnml(case, caseroot, compname):
             safe_copy(file_src,file_dest)
 
         for idx, icesheet in enumerate(icesheet_names):
-            infile = os.path.join(confdir, "namelist")
-            create_namelist_infile(case, user_nl_file, infile)
+            user_nl_file = os.path.join(caseroot, "user_nl_cism_" + icesheet + inst_string)
+            expect(os.path.isfile(user_nl_file),
+                   "Missing required user_nl_file {}".format(user_nl_file))
+
+            infile_this_icesheet = os.path.join(confdir, "namelist_cism_" + icesheet)
+            create_namelist_infile(case, user_nl_file, infile_this_icesheet)
             # In _check_compset_grid_consistency, we confirmed that the ordering of ice
             # sheets matches the ordering of grids; we make use of that consistency here:
             glc_grid = glc_grid_names[idx]
@@ -144,7 +148,8 @@ def buildnml(case, caseroot, compname):
                                 inst_string=inst_string,
                                 icesheet=icesheet,
                                 glc_grid=glc_grid,
-                                infile=infile,
+                                infile_overall=infile_overall,
+                                infile_this_icesheet=infile_this_icesheet,
                                 nmlgen=nmlgen,
                                 data_list_path=data_list_path)
             # Copy resolved namelist to rundir
@@ -391,18 +396,22 @@ def _create_cism_in(case, confdir, inst_string, icesheet_names, infile, nmlgen, 
     _cism_in_final_consistency_checks(nmlgen, config)
 
 ####################################################################################
-def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid, infile, nmlgen, data_list_path):
+def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid,
+                        infile_overall, infile_this_icesheet, nmlgen, data_list_path):
 ####################################################################################
     """Write the cism.icesheet.config file for the given ice sheet
+
+    The `inst_string` argument is used as a suffix to distinguish files for different
+    instances. The `icesheet` argument gives the name of the ice sheet for which we're
+    creating a namelist. The `confdir` argument is used to specify the directory in which
+    output files will be placed.
 
     Note that glc_grid is the grid name for *this* ice sheet (not the full GLC_GRID
     variable, which gives the grid names for all ice sheets present in this case).
 
-    Most arguments are the same as those for `NamelistGenerator`. The `inst_string`
-    argument is used as a suffix to distinguish files for different instances. The
-    `icesheet` argument gives the name of the ice sheet for which we're creating a
-    namelist.  The `confdir` argument is used to specify the directory in which output
-    files will be placed.
+    infile_overall gives the path to the namelist file that applies to all ice sheets;
+    infile_this_icesheet gives the path to the namelist file that contains settings
+    specific to this ice sheet.
 
     """
     #----------------------------------------------------
@@ -428,7 +437,7 @@ def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid, infile, 
     # groups from both cism_in and cism.icesheet.config. However, for the sake of the
     # cism.icesheet.config file, we can avoid doing the work of adding the defaults for
     # the cism_in groups.
-    nmlgen.init_defaults([infile], config,
+    nmlgen.init_defaults([infile_overall, infile_this_icesheet], config,
                          skip_default_for_groups=_CISM_IN_GROUPS+["gthf",
                                                                   "isostasy",
                                                                   "sigma"])
