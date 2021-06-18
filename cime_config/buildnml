@@ -229,8 +229,6 @@ def _icesheet_consistency_checks(case, icesheet_names, glc_grid_names):
 ####################################################################################
     """Run various consistency checks on the list of icesheet names & glc grid names, and related checks"""
     expect(len(icesheet_names) > 0, "Compsets with CISM must specify at least one ice sheet")
-    # Eventually we'll remove the following line
-    expect(len(icesheet_names) == 1, "For now, there can only be one ice sheet")
 
     # ------------------------------------------------------------------------
     # Check consistency between compset and grid
