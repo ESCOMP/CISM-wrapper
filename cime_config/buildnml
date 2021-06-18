@@ -115,7 +115,7 @@ def buildnml(case, caseroot, compname):
         expect(os.path.isfile(user_nl_file),
                "Missing required user_nl_file {}".format(user_nl_file))
 
-        infile_overall = os.path.join(confdir, "namelist_cism_overall")
+        infile_overall = os.path.join(confdir, "namelist_overall")
         create_namelist_infile(case, user_nl_file, infile_overall)
         _create_cism_in(case=case,
                         confdir=confdir,
@@ -138,7 +138,7 @@ def buildnml(case, caseroot, compname):
             expect(os.path.isfile(user_nl_file),
                    "Missing required user_nl_file {}".format(user_nl_file))
 
-            infile_this_icesheet = os.path.join(confdir, "namelist_cism_" + icesheet)
+            infile_this_icesheet = os.path.join(confdir, "namelist_" + icesheet)
             create_namelist_infile(case, user_nl_file, infile_this_icesheet)
             # In _check_compset_grid_consistency, we confirmed that the ordering of ice
             # sheets matches the ordering of grids; we make use of that consistency here:
