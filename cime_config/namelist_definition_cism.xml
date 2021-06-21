@@ -501,7 +501,7 @@ Sub-elements of each entry include:
       <value icesheet="gris" glc_grid="gris4">glc/cism/Greenland/greenland_4km_epsg3413_c171126.nc</value>
 
       <!-- the following is for software testing of Antarctica -->
-      <value icesheet="ais" glc_grid="ais8">glc/cism/Antarctica/ISMIP6_Antarctica_8km.1950_init_c201229.nc</value>
+      <value icesheet="ais" glc_grid="ais8">glc/cism/Antarctica/ISMIP6_Antarctica_8km.1950_init_c210613.nc</value>
     </values>
     <desc>
       Input file
