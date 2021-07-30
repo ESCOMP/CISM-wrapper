@@ -64,6 +64,20 @@ _GTHF_CALCULATE = 2
 _ISOSTASY_ON = 1
 
 ###############################################################################
+def get_user_nl_list(case):
+###############################################################################
+    """Returns a list of user_nl_cism* files needed in this case
+
+    This function is called by CIME to stage the user_nl_cism* files in the case
+    directory.
+
+    """
+    user_nl_list = ["user_nl_cism"]
+    for icesheet in _get_icesheet_names(case):
+        user_nl_list.append("user_nl_cism_" + icesheet)
+    return user_nl_list
+
+###############################################################################
 def buildnml(case, caseroot, compname):
 ###############################################################################
     """Build the cism namelist """
