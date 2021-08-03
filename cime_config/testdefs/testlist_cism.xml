@@ -354,7 +354,7 @@
 
     </machines>
   </test>
-  <test name="ERS_Vnuopc_Lm24" grid="f10_f10_musgs" compset="I1850Clm50SpG">
+  <test name="ERS_Vnuopc_Lm24" grid="f10_f10_mg37" compset="I1850Clm50SpG">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="aux_glc">
@@ -393,7 +393,7 @@
 
     </machines>
   </test>
-  <test name="ERI_Vnuopc_Lm24" grid="f10_f10_musgs" compset="I1850Clm50SpG" testmods="cism/isostasy_period4">
+  <test name="ERI_Vnuopc_Lm24" grid="f10_f10_mg37" compset="I1850Clm50SpG" testmods="cism/isostasy_period4">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="aux_glc">
