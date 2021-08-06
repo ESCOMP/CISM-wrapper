@@ -3,6 +3,75 @@ This file describes what tags were created on master and why
 ================================================================================
 
 ================================================================================
+Originator: mvertens
+Date: August 3, 2021
+Version: cismwrap_2_1_87
+One-line summary: Fix mid-year restarts with CMEPS driver
+
+Purpose of changes:
+
+   Small code change and update to the CMEPS external to fix mid-year
+   restarts with the CMEPS driver. Also add _Vnuopc tests with mid-year
+   restart back to the test suite.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: NO
+
+Bugs fixed (include github issue number):
+- https://github.com/ESCOMP/CMEPS/issues/143
+
+Summary of testing:
+
+   Full aux_glc test suite on cheyenne and izumi.
+
+   All tests passed and are bit-for-bit.
+
+================================================================================
+Originator: sacks
+Date: August 2, 2021
+Version: cismwrap_2_1_86
+One-line summary: Update externals
+
+Purpose of changes:
+
+   Update externals to versions used in ctsm5.1.dev049 - generally a
+   little past cesm2_3_beta04. This includes the separation of cime into
+   multiple repositories, so there are some new externals in this tag.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: YES
+
+   The externals update causes answer changes for:
+   - I compsets: diffs
+   - NUOPC cases: just field list changes
+
+Bugs fixed (include github issue number): none
+
+Summary of testing:
+
+   Full aux_glc test suite on cheyenne and izumi.
+
+   All tests pass, with answer changes as noted above.
+
+================================================================================
 Originator: sacks
 Date: May 29, 2021
 Version: cismwrap_2_1_85

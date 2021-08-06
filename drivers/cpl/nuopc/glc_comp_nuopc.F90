@@ -693,7 +693,7 @@ contains
           call alarmInit(mclock, alarm, 'ndays' , opt_n=1, alarmname='alarm_valid_inputs', rc=rc)
           if (ChkErr(rc,__LINE__,u_FILE_u)) return
        else if (trim(glc_avg_period) == 'yearly') then
-          call alarmInit(mclock, alarm, 'nyears', opt_n=1, alarmname='alarm_valid_inputs', rc=rc)
+          call alarmInit(mclock, alarm, 'yearly', alarmname='alarm_valid_inputs', rc=rc)
           if (ChkErr(rc,__LINE__,u_FILE_u)) return
        else if (trim(glc_avg_period) == 'glc_coupling_period') then
           call ESMF_TimeIntervalGet(mtimestep, s=dtime, rc=rc)
