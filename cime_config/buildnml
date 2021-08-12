@@ -42,7 +42,7 @@ _CISM_IN_GROUPS = ["cism_params", "cism_history", "time_manager_nml", "glc_overr
 
 # namelist groups in the cism.icesheet.config file
 _CISM_CONFIG_GROUPS = ["grid", "glad_climate", "options", "sigma", "time", "parameters",
-                       "ho_options", "gthf", "isostasy", "derived"]
+                       "grid_ocn", "ho_options", "gthf", "isostasy", "derived"]
 
 # dictionary mapping all possible ice sheet names to the names used in xml variables
 # we use an OrderedDict to get reliable ordering (this is unnecessary in python3.6 and

@@ -36,9 +36,8 @@ module glc_fields
      qsmb          ! flux of new glacier ice (kg/m^2/s)
 
   real(r8),dimension(:,:,:), allocatable ::  & 
-     salinity    ,&! surface temperature (Celsius)
-                   ! received from coupler in Kelvin, must be converted
-     tocn          ! flux of new glacier ice (kg/m^2/s)
+     salinity    ,&! ocean salinity, per layer (g/kg)
+     tocn          ! ocean temperature, per layer (K)
 
   ! output to coupler
 

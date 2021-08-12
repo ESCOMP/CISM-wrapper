@@ -248,6 +248,19 @@
     </machines>
   </test>
 
+  <test name="ERS_Vnuopc_Ly5" grid="f09_g17_ais8" compset="T1850Ga">
+    <machines>
+
+      <machine name="cheyenne" compiler="intel" category="aux_glc">
+        <options>
+          <option name="wallclock">0:20</option>
+          <option name="comment">include a non-debug T compset test of Antarctica</option>
+        </options>
+      </machine>
+
+    </machines>
+  </test>
+
   <test name="ERS_D_Ly3" grid="f09_g17_gris4" compset="T1850Gg" testmods="cism/cmip6_evolving_icesheet">
     <machines>
 
@@ -304,6 +317,26 @@
                believe this is not actually a problem. -->
           <option name="memleak_tolerance">0.34</option>
           <option name="comment">Need IG ERS test to catch problems with fields sent before the end of the first year after restart. Also note that this is the only multi-year non-TG test in the test list, so this is the one test that a production-like configuration can run for a few years.</option>
+        </options>
+      </machine>
+
+    </machines>
+  </test>
+
+  <test name="ERS_Vnuopc_Ly3" grid="f10_f10_ais8_mg37" compset="I1850Clm50SpGa">
+    <machines>
+
+      <machine name="cheyenne" compiler="intel" category="aux_glc">
+        <options>
+          <option name="wallclock">1:59</option>
+          <!-- 2016-10-25: Notes from similar Greenland, non-NUOPC test:
+               There is a big jump in memory at the start of year
+               2. In the 5-year run, things then stay roughly constant after
+               that. Note that the start of year 2 is when CISM does its first
+               prognostic solve, so I think this is expected behavior. Thus, I
+               believe this is not actually a problem. -->
+          <option name="memleak_tolerance">0.34</option>
+          <option name="comment">include a multi-year I compset test with Antarctica</option>
         </options>
       </machine>
 
@@ -507,6 +540,19 @@
     </machines>
   </test>
 
+  <test name="SMS_Vnuopc_D" grid="f10_f10_ais8_mg37" compset="I1850Clm50SpGa" testmods="cism/test_coupling">
+    <machines>
+
+      <machine name="cheyenne" compiler="gnu" category="aux_glc">
+        <options>
+          <option name="wallclock">0:30</option>
+          <option name="comment">include a short debug I compset test with Antarctica</option>
+        </options>
+      </machine>
+
+    </machines>
+  </test>
+
   <test name="SMS_D_Ld5_P24x1" grid="T31_g37_gris20" compset="I1850Clm50SpG" testmods="cism/test_coupling">
     <machines>
 
@@ -608,6 +654,38 @@
       <machine name="cheyenne" compiler="intel" category="prebeta">
         <options>
           <option name="wallclock">0:20</option>
+        </options>
+      </machine>
+
+    </machines>
+  </test>
+
+  <test name="SMS_Vnuopc_D_Ly1" grid="f09_g17_ais8" compset="T1850Ga">
+    <machines>
+
+      <machine name="cheyenne" compiler="gnu" category="aux_glc">
+        <options>
+          <option name="wallclock">0:20</option>
+          <option name="comment">include a debug T compset test with Antarctica, gnu compiler</option>
+        </options>
+      </machine>
+
+      <machine name="cheyenne" compiler="gnu" category="prealpha">
+        <options>
+          <option name="wallclock">0:20</option>
+          <option name="comment">include an Antarctica test in the prealpha suite</option>
+        </options>
+      </machine>
+
+    </machines>
+  </test>
+  <test name="SMS_Vnuopc_D_Ly1" grid="f09_g17_ais8" compset="T1850Ga">
+    <machines>
+
+      <machine name="cheyenne" compiler="intel" category="aux_glc">
+        <options>
+          <option name="wallclock">0:20</option>
+          <option name="comment">include a debug T compset test with Antarctica, intel compiler</option>
         </options>
       </machine>
 
