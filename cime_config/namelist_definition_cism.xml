@@ -501,7 +501,7 @@ Sub-elements of each entry include:
       <value icesheet="gris" glc_grid="gris4">glc/cism/Greenland/greenland_4km_epsg3413_c171126.nc</value>
 
       <!-- the following is for software testing of Antarctica -->
-      <value icesheet="ais" glc_grid="ais8">glc/cism/Antarctica/ISMIP6_Antarctica_8km.1950_init_c201229.nc</value>
+      <value icesheet="ais" glc_grid="ais8">glc/cism/Antarctica/ISMIP6_Antarctica_8km.1950_init_c210613.nc</value>
     </values>
     <desc>
       Input file
@@ -811,7 +811,7 @@ Sub-elements of each entry include:
   
   <entry id="bmlt_float_thermal_forcing_param">
     <type>integer</type>
-    <category>cism_config_parameters</category>
+    <category>cism_config_options</category>
     <group>options</group>
     <valid_values>0,1,2,3</valid_values>
     <values>
@@ -829,7 +829,7 @@ Sub-elements of each entry include:
 
   <entry id="ocean_data_domain">
     <type>integer</type>
-    <category>cism_config_parameters</category>
+    <category>cism_config_options</category>
     <group>options</group>
     <valid_values>0,1,2</valid_values>
     <values>
@@ -837,10 +837,25 @@ Sub-elements of each entry include:
       <value icesheet="ais" >1</value>
     </values>
     <desc>
-      0: Ocean data on ocean domain only; extrapolate data to shelf cavities 
-      1: Ocean data available everywhere; already extrapolated to shelf cavities 
-      2: Ocean data applied where CISM has ice-free ocean; extrapolated to shelf cavities
+      0: ocean data set internally by CISM
+      1: ocean data read from external file
+      2: ocean data received from coupler via Glad
       Default: 0 for Greenland, 1 for Antarctica
+    </desc>
+  </entry>
+
+  <entry id="ocean_data_extrapolate">
+    <type>integer</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <valid_values>0,1</valid_values>
+    <values>
+      <value>0</value>
+    </values>
+    <desc>
+      0: ocean data not extrapolated to shelf cavities
+      1: ocean data extrapolated to shelf cavities
+      Default: 0
     </desc>
   </entry>
 

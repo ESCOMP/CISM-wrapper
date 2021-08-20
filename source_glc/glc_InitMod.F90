@@ -336,8 +336,14 @@
 
   tsfc(:,:) = 0._r8
   qsmb(:,:) = 0._r8
-  salinity(:,:,:) = 0._r8
-  tocn(:,:,:) = 0._r8
+
+  ! For now, hard-code salinity and tocn to reasonable constant values, until we have the
+  ! necessary ocean coupling in place
+  !
+  ! TODO(wjs, 2021-06-25) change these to 0 or some other place-holder value once we have
+  ! the coupling in place
+  salinity(:,:,:) = 35._r8
+  tocn(:,:,:) = 274._r8
   
   call glad_get_initial_outputs(ice_sheet, instance_index = 1, &
                                 ice_covered = ice_covered, &
