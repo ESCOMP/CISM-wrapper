@@ -501,7 +501,7 @@ Sub-elements of each entry include:
       <value icesheet="gris" glc_grid="gris4">glc/cism/Greenland/greenland_4km_epsg3413_c171126.nc</value>
 
       <!-- the following is for software testing of Antarctica -->
-      <value icesheet="ais" glc_grid="ais8">glc/cism/Antarctica/ISMIP6_Antarctica_8km.1950_init_c210613.nc</value>
+      <value icesheet="ais" glc_grid="ais8">glc/cism/Antarctica/ISMIP6_Antarctica_8km.init.c210908.nc</value>
     </values>
     <desc>
       Input file
@@ -736,13 +736,12 @@ Sub-elements of each entry include:
     <group>options</group>
     <valid_values>0,1,2,3,4</valid_values>
     <values>
-      <!-- temp_init = 3 can only generate an advective-diffusive-balance profile if
-           acab is present in the input file (which is currently only the case for the
-           4km input file). But it defaults to a linear profile (temp_init 2) if acab
-           is not present. So to keep things simple, we specify temp_init = 3 for all
-           input files, rather than making this dependent on glc_grid. -->
-      <value icesheet="gris">3</value>
-      <value icesheet="ais" >4</value>
+      <!-- temp_init = 3 can only generate an advective-diffusive-balance profile if acab
+           or smb are present in the input file (which is currently only the case for some
+           input files). But it defaults to a linear profile (temp_init 2) if neither of
+           these fields are present. So to keep things simple, we specify temp_init = 3
+           for all input files, rather than making this dependent on glc_grid. -->
+      <value>3</value>
     </values>
     <desc>
       Temperature initialization method
@@ -751,7 +750,7 @@ Sub-elements of each entry include:
       2: Initialize temperature with a linear profile in each column
       3: Initialize temperature with an advective-diffusive balance in each column
       4: Initialize temperature from external file
-      Default: 3 for Greenland, 4 for Antarctica
+      Default: 3
     </desc>
   </entry>
 
@@ -974,11 +973,12 @@ Sub-elements of each entry include:
     <category>cism_config_options</category>
     <group>options</group>
     <values>
-      <value>.false.</value>
+      <value icesheet="gris">.false.</value>
+      <value icesheet="ais" >.true.</value>
     </values>
     <desc>
       If true, then adjust thck to maintain usrf, instead of deriving usrf from topg and thck.
-      Default: .false.
+      Default: .false. for Greenland, .true. for Antarctica
     </desc>
   </entry>
 
@@ -2010,12 +2010,12 @@ Sub-elements of each entry include:
     <category>cism_config_parameters</category>
     <group>parameters</group>
     <values>
-      <value>1.</value>
+      <value>2.</value>
     </values>
     <desc>
       If usrf_obs implies thck near the flotation thickness,
       set to thck_flotation +/- thck_flotation_buffer (m).
-      Default: 1.0
+      Default: 2.0
     </desc>
   </entry>
 
@@ -2024,11 +2024,11 @@ Sub-elements of each entry include:
     <category>cism_config_parameters</category>
     <group>parameters</group>
     <values>
-      <value>0.</value>
+      <value>1.</value>
     </values>
     <desc>
       Ice thinner than this threshold (m) is removed at initialization.
-      Default: 0.0
+      Default: 1.0
     </desc>
   </entry>
 
@@ -2050,11 +2050,11 @@ Sub-elements of each entry include:
     <category>cism_config_parameters</category>
     <group>parameters</group>
     <values>
-      <value>10.0</value>
+      <value>100.0</value>
     </values>
     <desc>
       Timescale (yr) for adjusting deltaT_basin
-      Default: 10.0
+      Default: 100.0
     </desc>
   </entry>
 
@@ -2076,11 +2076,11 @@ Sub-elements of each entry include:
     <category>cism_config_parameters</category>
     <group>parameters</group>
     <values>
-      <value>0.0</value>
+      <value>1000.0</value>
     </values>
     <desc>
       Optional mass correction (Gt) for a selected basin
-      Default: 0.0
+      Default: 1000.0
     </desc>
   </entry>
 
@@ -2089,11 +2089,11 @@ Sub-elements of each entry include:
     <category>cism_config_parameters</category>
     <group>parameters</group>
     <values>
-      <value>0</value>
+      <value>9</value>
     </values>
     <desc>
       integer ID for the basin receiving the correction
-      Default: 0
+      Default: 9
     </desc>
   </entry>
 
@@ -2354,7 +2354,7 @@ Sub-elements of each entry include:
     <valid_values>0,1,2</valid_values>
     <values>
       <value icesheet="gris">0</value>
-      <value icesheet="ais" >2</value>
+      <value icesheet="ais" >1</value>
     </values>
     <desc>
       Flag for basal inversion options: invert for Cp = powerlaw_c
@@ -2362,7 +2362,7 @@ Sub-elements of each entry include:
       0: no inversion                                                                             
       1: invert for basal friction parameter Cp                                                   
       2: apply Cp from a previous inversion  
-      Default: 0 for Greenland, 2 for Antarctica
+      Default: 0 for Greenland, 1 for Antarctica
     </desc>
   </entry>
 
@@ -2373,14 +2373,14 @@ Sub-elements of each entry include:
     <valid_values>0,1,2</valid_values>
     <values>
       <value icesheet="gris">0</value>
-      <value icesheet="ais" >2</value>
+      <value icesheet="ais" >1</value>
     </values>
     <desc>
       Flag for inversion of basin-based basal melting parameters 
       0: no inversion                                                                             
       1: invert for basin-based melting parameters
       2: apply basin-based melting parameters from a previous inversion
-      Default: 0 for Greenland, 2 for Antarctica
+      Default: 0 for Greenland, 1 for Antarctica
     </desc>
   </entry>
 
