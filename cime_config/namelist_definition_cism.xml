@@ -2723,9 +2723,9 @@ Sub-elements of each entry include:
     <desc>
       Flag that indicates how the grounded ice fraction is computed in the Glissade dycore
       Not valid for other dycores
-      0: fground = 0 in floating cells (based on flotation condition), else fground = 1
+      0: f_ground = 0 in floating cells (based on flotation condition), else f_ground = 1
       1: basal friction GLP with 0 .lte. f_ground .lte. 1 at vertices
-      2: "deluxe" GLP with f_ground at both cells and vertices; includes basal fraction and basal melting
+      2: "deluxe" GLP with f_ground at both cells and vertices; includes both friction and melting
       Default: 0
     </desc>
   </entry>
