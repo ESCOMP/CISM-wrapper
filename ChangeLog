@@ -4,6 +4,80 @@ This file describes what tags were created on master and why
 
 ================================================================================
 Originator: sacks
+Date: September 14, 2021
+Version: cismwrap_2_1_91
+One-line summary: Fixes for Antarctica
+
+Purpose of changes:
+
+- Point to new Antarctica init file that fixes
+  https://github.com/ESCOMP/CISM/issues/39 and removes some unnecessary
+  fields (see discussion in that issue for details)
+
+- Update some Antarctica config settings (see
+  https://github.com/ESCOMP/CISM/issues/39 for details)
+
+- Point to new version of CISM external that fixes an issue in debug mode
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: YES
+
+   Changes answers for Antarctica. Greenland cases are bit-for-bit (but
+   have namelist changes that do not impact the simulation)
+
+Bugs fixed (include github issue number):
+- Resolves ESCOMP/CISM#39 (For Antarctica simulations in CESM, SMB can
+  accumulate in the ocean)
+
+Summary of testing:
+
+   Full aux_glc test suite on cheyenne and izumi.
+
+   Tests pass. Antarctica tests change answers as expected. All tests
+   have NLCOMP diffs as expected.
+
+================================================================================
+Originator: katetc
+Date: September 8, 2021
+Version: cismwrap_2_1_90
+One-line summary: Default for pseudo_plastic_bedmin and namelist changes
+
+Purpose of changes:
+   The default value for pseudo_plastic_bedmin is changed from -700m to -300m.
+   Clean up comments (desc field) for which_ho_ground so that it is more clear.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: NO
+
+Bugs fixed (include github issue number):
+- No specific issue (email conversation with Adam Herrington)
+
+Summary of testing:
+
+   Full aux_glc test suite on cheyenne and izumi.
+
+   All tests passed and are bit-for-bit.
+
+================================================================================
+Originator: sacks
 Date: August 23, 2021
 Version: cismwrap_2_1_89
 One-line summary: Support multiple user_nl_cism files
