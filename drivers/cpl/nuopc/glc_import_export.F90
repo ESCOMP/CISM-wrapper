@@ -289,7 +289,7 @@ contains
     ! Convert the input data from the mediator to cism
     !---------------------------------------------------------------------------
 
-    use glc_fields, only : tsfc, qsmb
+    use glc_fields, only : cpl_bundles
 
     ! input/output variabes
     integer, intent(out) :: rc
@@ -301,10 +301,12 @@ contains
 
     rc = ESMF_SUCCESS
 
-    ! TODO: generalize tsfc to work with multiple ice sheets - for now there is only 1
-
     ! Get cism import fields
     do ns = 1,num_icesheets
+       associate(&
+            tsfc => cpl_bundles(ns)%tsfc, &
+            qsmb => cpl_bundles(ns)%qsmb)
+
        call state_getimport(NStateImp(ns), field_in_tsrf, tsfc, &
             instance_index=ns, rc=rc)
        if (chkErr(rc,__LINE__,u_FILE_u)) return
@@ -325,6 +327,8 @@ contains
           call State_diagnose(NStateImp(ns), subname//':ES',rc=rc)
           if (ChkErr(rc,__LINE__,u_FILE_u)) return
        end if
+
+       end associate
     end do
 
   end subroutine import_fields
@@ -337,8 +341,7 @@ contains
     ! Convert the cism data to export data to the mediator
     !---------------------------------------------------------------------------
 
-    use glc_fields           , only : ice_covered, topo, rofi, rofl
-    use glc_fields           , only : hflx, ice_sheet_grid_mask
+    use glc_fields           , only : cpl_bundles
     use glc_route_ice_runoff , only : route_ice_runoff
     use glc_override_frac    , only : do_frac_overrides
 
@@ -382,6 +385,14 @@ contains
     call ESMF_LogWrite(subname//' called', ESMF_LOGMSG_INFO)
 
     do ns = 1,num_icesheets
+       associate( &
+            ice_covered         => cpl_bundles(ns)%ice_covered, &
+            topo                => cpl_bundles(ns)%topo, &
+            rofi                => cpl_bundles(ns)%rofi, &
+            rofl                => cpl_bundles(ns)%rofl, &
+            hflx                => cpl_bundles(ns)%hflx, &
+            ice_sheet_grid_mask => cpl_bundles(ns)%ice_sheet_grid_mask)
+
        nx = get_nx(instance_index=ns)
        ny = get_ny(instance_index=ns)
 
@@ -486,6 +497,8 @@ contains
           deallocate(ice_covered_to_cpl)
           deallocate(topo_to_cpl)
        end if
+
+       end associate
     end do
 
   end subroutine export_fields

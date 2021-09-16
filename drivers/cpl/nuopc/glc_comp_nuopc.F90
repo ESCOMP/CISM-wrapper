@@ -416,7 +416,7 @@ contains
        allocate(lons(nx,ny))
        allocate(lats_vec(npts))
        allocate(lons_vec(npts))
-       call glad_get_lat_lon(ice_sheet, instance_index = 1, lats = lats, lons = lons)
+       call glad_get_lat_lon(ice_sheet, instance_index = ns, lats = lats, lons = lons)
        call spatial_to_vector(instance_index = ns, &
             arr_spatial = lons, &
             arr_vector = lons_vec)

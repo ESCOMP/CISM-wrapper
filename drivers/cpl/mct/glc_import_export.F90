@@ -22,12 +22,16 @@ contains
 
     !-------------------------------------------------------------------
      use glc_indexing, only : vector_to_spatial
-     use glc_fields, only: tsfc, qsmb 
+     use glc_fields, only: cpl_bundles
 
     real(r8)   , intent(in) :: x2g(:,:)
 
     character(*), parameter :: subName = "(glc_import) "
     !-------------------------------------------------------------------
+
+    associate(&
+         tsfc => cpl_bundles(1)%tsfc, &
+         qsmb => cpl_bundles(1)%qsmb)
 
     call vector_to_spatial(instance_index=1, &
          arr_vector = x2g(index_x2g_Sl_tsrf,:), &
@@ -44,6 +48,8 @@ contains
     !manually reverse this, below, to set to 0C.
     where (tsfc < -250.d0) tsfc=0.d0 
 
+    end associate
+
   end subroutine glc_import
 
 !=================================================================================
@@ -52,9 +58,8 @@ contains
 
     !-------------------------------------------------------------------
     use glc_indexing, only : get_nx, get_ny, spatial_to_vector
-    use glc_fields   , only: ice_covered, topo, rofi, rofl, hflx, &
-                             ice_sheet_grid_mask
-    use glc_route_ice_runoff, only: route_ice_runoff    
+    use glc_fields, only : cpl_bundles
+    use glc_route_ice_runoff, only: route_ice_runoff
     use glc_override_frac   , only: do_frac_overrides
     
     real(r8)    ,intent(inout) :: g2x(:,:)
@@ -86,6 +91,14 @@ contains
 
     character(*), parameter :: subName = "(glc_export) "
     !-------------------------------------------------------------------
+
+    associate( &
+         ice_covered         => cpl_bundles(1)%ice_covered, &
+         topo                => cpl_bundles(1)%topo, &
+         rofi                => cpl_bundles(1)%rofi, &
+         rofl                => cpl_bundles(1)%rofl, &
+         hflx                => cpl_bundles(1)%hflx, &
+         ice_sheet_grid_mask => cpl_bundles(1)%ice_sheet_grid_mask)
 
     ! If overrides of glc fraction are enabled (for testing purposes), then apply
     ! these overrides, otherwise use the real version of ice_covered and topo
@@ -163,6 +176,8 @@ contains
        deallocate(ice_covered_to_cpl)
        deallocate(topo_to_cpl)
     end if
+
+    end associate
 
   end subroutine glc_export
 

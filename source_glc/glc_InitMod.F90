@@ -78,11 +78,7 @@
 ! !USES:
    use glad_main
 
-   use glc_fields, only: glc_allocate_fields, ice_sheet,   &
-                         tsfc, qsmb, salinity, tocn,   &
-                         ice_covered, topo,   rofi,   rofl,  hflx,  &
-                         ice_sheet_grid_mask
-
+   use glc_fields, only: allocate_cpl_bundles, glc_allocate_fields, ice_sheet, cpl_bundles
    use glc_override_frac, only: init_glc_frac_overrides
    use glc_constants
    use glc_communicate, only: init_communicate
@@ -330,9 +326,19 @@
   end if
 
   call allocate_indices(ice_sheet%ninstances)
+  call allocate_cpl_bundles(ice_sheet%ninstances)
   do ns = 1, ice_sheet%ninstances
-     ! FIXME(wjs, 2021-09-08) Make everything in this block work on each instance, as per
-     ! Brian's original changes
+     associate( &
+          tsfc                => cpl_bundles(ns)%tsfc, &
+          qsmb                => cpl_bundles(ns)%qsmb, &
+          salinity            => cpl_bundles(ns)%salinity, &
+          tocn                => cpl_bundles(ns)%tocn, &
+          ice_covered         => cpl_bundles(ns)%ice_covered, &
+          topo                => cpl_bundles(ns)%topo, &
+          rofi                => cpl_bundles(ns)%rofi, &
+          rofl                => cpl_bundles(ns)%rofl, &
+          hflx                => cpl_bundles(ns)%hflx, &
+          ice_sheet_grid_mask => cpl_bundles(ns)%ice_sheet_grid_mask)
 
      call glad_initialize_instance(ice_sheet, instance_index = ns, &
           my_forcing_start_time = forcing_start_time, &
@@ -341,7 +347,7 @@
      ! Initialize global to local index translation for this ice sheet instance
      call init_indices_one_icesheet(instance_index = ns, params = ice_sheet)
 
-     call glc_allocate_fields(get_nx(ns), get_ny(ns))
+     call glc_allocate_fields(instance_index = ns, nx = get_nx(ns), ny = get_ny(ns))
 
      tsfc(:,:) = 0._r8
      qsmb(:,:) = 0._r8
@@ -354,13 +360,15 @@
      salinity(:,:,:) = 35._r8
      tocn(:,:,:) = 274._r8
 
-     call glad_get_initial_outputs(ice_sheet, instance_index = 1, &
+     call glad_get_initial_outputs(ice_sheet, instance_index = ns, &
           ice_covered = ice_covered, &
           topo = topo, &
           rofi = rofi, &
           rofl = rofl, &
           hflx = hflx, &
           ice_sheet_grid_mask = ice_sheet_grid_mask)
+
+     end associate
   end do
 
   call glad_initialization_wrapup(ice_sheet)

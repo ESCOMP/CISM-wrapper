@@ -68,7 +68,7 @@
 
    use glad_main
    use glimmer_log
-   use glc_fields 
+   use glc_fields, only : ice_sheet, cpl_bundles
    use glc_history, only : glc_history_write
    use esmf, only : ESMF_Clock
 
@@ -95,7 +95,7 @@
  
   ! Other variables
 
-  integer (i4) :: instance_index
+  integer (i4) :: ns
  
   !TODO - Remove?  Currently not used
   logical ::  &
@@ -134,32 +134,44 @@
             write(stdout,*) ' '
          endif
 
-         ! TODO(wjs, 2015-03-23) We will need a loop over instances, either here or
-         ! around the call to glc_run
-         instance_index = 1
-         
-         call glad_gcm( params = ice_sheet, &
-                        instance_index = instance_index,               &
-                        time = nint(thour),                            &
-                        qsmb = qsmb, tsfc = tsfc,                      &
-                        salinity = salinity, tocn = tocn,              &
-                        ice_covered = ice_covered, topo = topo,        &
-                        rofi = rofi, rofl = rofl, hflx = hflx,         &
-                        ice_sheet_grid_mask=ice_sheet_grid_mask,       &
-                        valid_inputs=valid_inputs,                     &
-                        ice_tstep = ice_tstep)
+         do ns = 1, ice_sheet%ninstances
+            associate( &
+                 tsfc                => cpl_bundles(ns)%tsfc, &
+                 qsmb                => cpl_bundles(ns)%qsmb, &
+                 salinity            => cpl_bundles(ns)%salinity, &
+                 tocn                => cpl_bundles(ns)%tocn, &
+                 ice_covered         => cpl_bundles(ns)%ice_covered, &
+                 topo                => cpl_bundles(ns)%topo, &
+                 rofi                => cpl_bundles(ns)%rofi, &
+                 rofl                => cpl_bundles(ns)%rofl, &
+                 hflx                => cpl_bundles(ns)%hflx, &
+                 ice_sheet_grid_mask => cpl_bundles(ns)%ice_sheet_grid_mask)
 
-         if (test_coupling) then
-            call test_coupling_adjust_rofi(rofi = rofi, &
-                 ice_sheet_instance = ice_sheet%instances(instance_index))
-         end if
+            call glad_gcm( params = ice_sheet, &
+                 instance_index = ns,               &
+                 time = nint(thour),                            &
+                 qsmb = qsmb, tsfc = tsfc,                      &
+                 salinity = salinity, tocn = tocn,              &
+                 ice_covered = ice_covered, topo = topo,        &
+                 rofi = rofi, rofl = rofl, hflx = hflx,         &
+                 ice_sheet_grid_mask=ice_sheet_grid_mask,       &
+                 valid_inputs=valid_inputs,                     &
+                 ice_tstep = ice_tstep)
 
-     else    ! use PDD scheme
+            if (test_coupling) then
+               call test_coupling_adjust_rofi(rofi = rofi, &
+                    ice_sheet_instance = ice_sheet%instances(ns))
+            end if
 
-!TODO - Implement and test PDD option
-        call exit_glc(sigAbort, 'ERROR: attempt to use PDD scheme, which has not been implemented')
+            end associate
+         end do
 
-     endif   ! glc_smb
+      else    ! use PDD scheme
+
+         !TODO - Implement and test PDD option
+         call exit_glc(sigAbort, 'ERROR: attempt to use PDD scheme, which has not been implemented')
+
+      endif   ! glc_smb
 
 !-----------------------------------------------------------------------
 !
