@@ -27,8 +27,8 @@ module glc_comp_nuopc
   use glc_communicate     , only : init_communicate, my_task, master_task
   use glc_time_management , only : iyear,imonth,iday,ihour,iminute,isecond,runtype
   use glc_fields          , only : ice_sheet
-  use glc_indexing        , only : nx_tot, ny_tot, local_to_global_indices
-  use glc_indexing        , only : npts, nx, ny, spatial_to_vector
+  use glc_indexing        , only : local_to_global_indices
+  use glc_indexing        , only : get_npts, get_nx, get_ny, spatial_to_vector
   use glc_ensemble        , only : set_inst_vars
   use glc_files           , only : set_filenames, ionml_filename
   use glad_main           , only : glad_get_lat_lon
@@ -255,6 +255,7 @@ contains
     integer                 :: elementCount
     integer                 :: localPet
     integer                 :: i,j,ns
+    integer                 :: npts,nx,ny
     integer, allocatable    :: gindex(:)
     integer                 :: num_icesheets
     character(*), parameter :: F00   = "('(InitializeRealize) ',8a)"
@@ -361,9 +362,7 @@ contains
     allocate(mesh(num_icesheets))
     do ns = 1,num_icesheets
        ! create distGrid from global index array
-       ! TODO: this must be generalized so that gindex depends on the mesh
-       ! so local_to_global indices will depend on the target ice sheet
-       gindex = local_to_global_indices()
+       gindex = local_to_global_indices(instance_index=ns)
        DistGrid = ESMF_DistGridCreate(arbSeqIndexList=gindex, rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
        deallocate(gindex)
@@ -391,6 +390,10 @@ contains
     !--------------------------------
 
     do ns = 1,num_icesheets
+       npts = get_npts(instance_index=ns)
+       nx = get_nx(instance_index=ns)
+       ny = get_ny(instance_index=ns)
+
        ! obtain mesh lats and lons
        call ESMF_MeshGet(mesh(ns), spatialDim=spatialDim, numOwnedElements=numOwnedElements, rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
@@ -414,8 +417,12 @@ contains
        allocate(lats_vec(npts))
        allocate(lons_vec(npts))
        call glad_get_lat_lon(ice_sheet, instance_index = 1, lats = lats, lons = lons)
-       call spatial_to_vector(lons, lons_vec)
-       call spatial_to_vector(lats, lats_vec)
+       call spatial_to_vector(instance_index = ns, &
+            arr_spatial = lons, &
+            arr_vector = lons_vec)
+       call spatial_to_vector(instance_index = ns, &
+            arr_spatial = lats, &
+            arr_vector = lats_vec)
 
        ! check lats and lons from the mesh are not different to a tolerance factor
        ! from lats and lons calculated internally

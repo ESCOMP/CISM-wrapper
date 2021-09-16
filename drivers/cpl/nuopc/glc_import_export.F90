@@ -16,7 +16,7 @@ module glc_import_export
   use glc_constants       , only : verbose, stdout, stderr, tkfrz, zero_gcm_fluxes, radius, enable_frac_overrides
   use glc_communicate     , only : my_task, master_task
   use glc_time_management , only : iyear,imonth,iday,ihour,iminute,isecond,runtype
-  use glc_indexing        , only : nx_tot, ny_tot, nx, ny, spatial_to_vector
+  use glc_indexing        , only : get_nx_tot, get_ny_tot, get_nx, get_ny, spatial_to_vector, vector_to_spatial
   use glc_fields          , only : ice_sheet
   use glad_main           , only : glad_get_areas
   use nuopc_shr_methods   , only : chkerr, state_setscalar, state_getscalar, state_diagnose
@@ -66,7 +66,6 @@ module glc_import_export
   type(ESMF_State), allocatable :: NStateImp(:)
   type(ESMF_State), allocatable :: NStateExp(:)
   integer            :: num_icesheets
-  real(r8), pointer  :: glc_areas(:,:)
   integer            :: dbug_flag = 0
 
   character(*), parameter :: u_FILE_u = &
@@ -306,9 +305,11 @@ contains
 
     ! Get cism import fields
     do ns = 1,num_icesheets
-       call state_getimport(NStateImp(ns), field_in_tsrf, tsfc, rc=rc)
+       call state_getimport(NStateImp(ns), field_in_tsrf, tsfc, &
+            instance_index=ns, rc=rc)
        if (chkErr(rc,__LINE__,u_FILE_u)) return
-       call state_getimport(NStateImp(ns), field_in_qice, qsmb, rc=rc)
+       call state_getimport(NStateImp(ns), field_in_qice, qsmb, &
+            instance_index=ns, rc=rc)
        if (chkErr(rc,__LINE__,u_FILE_u)) return
 
        tsfc = tsfc - tkfrz
@@ -336,7 +337,6 @@ contains
     ! Convert the cism data to export data to the mediator
     !---------------------------------------------------------------------------
 
-    use glc_indexing         , only : nx, ny
     use glc_fields           , only : ice_covered, topo, rofi, rofl
     use glc_fields           , only : hflx, ice_sheet_grid_mask
     use glc_route_ice_runoff , only : route_ice_runoff
@@ -347,6 +347,8 @@ contains
     integer, intent(out) :: rc
 
     ! local variables
+    integer :: nx, ny
+
     ! if doing frac overrides, these are the modified versions sent to the coupler;
     ! otherwise they point to the real fields
     real(r8), pointer :: ice_covered_to_cpl(:,:)
@@ -367,94 +369,104 @@ contains
     ! mask of ice sheet grid coverage where we are potentially sending non-zero fluxes
     real(r8), allocatable :: icemask_coupled_fluxes(:,:)
 
+    real(r8), allocatable :: glc_areas(:,:)
     real(r8), allocatable :: hflx_to_cpl(:,:)
     real(r8), allocatable :: rofl_to_cpl(:,:)
     real(r8), allocatable :: rofi_to_ocn(:,:)
     real(r8), allocatable :: rofi_to_ice(:,:)
     integer :: ns
-    logical :: first_call = .true.
     character(*), parameter :: subName = "(glc_import_export:export_fields) "
     !---------------------------------------------------------------------------
 
     rc = ESMF_SUCCESS
     call ESMF_LogWrite(subname//' called', ESMF_LOGMSG_INFO)
 
-    ! Set module variable glc_areas
-    if (first_call) then
-       allocate(glc_areas(nx,ny))
-       call glad_get_areas(ice_sheet, instance_index = 1, areas=glc_areas)
-       glc_areas(:,:) = glc_areas(:,:)/(radius*radius) ! convert from m^2 to radians^2
-       first_call = .false.
-    end if
-
-    ! If overrides of glc fraction are enabled (for testing purposes), then apply
-    ! these overrides, otherwise use the real version of ice_covered and topo
-    if (enable_frac_overrides) then
-       allocate(ice_covered_to_cpl(lbound(ice_covered,1):ubound(ice_covered,1), &
-                                   lbound(ice_covered,2):ubound(ice_covered,2)))
-       allocate(topo_to_cpl(lbound(topo,1):ubound(topo,1), &
-                            lbound(topo,2):ubound(topo,2)))
-
-       ice_covered_to_cpl = ice_covered
-       topo_to_cpl = topo
-       call do_frac_overrides(ice_covered_to_cpl, topo_to_cpl, ice_sheet_grid_mask)
-       fields_to_cpl_allocated = .true.
-    else
-       ice_covered_to_cpl => ice_covered
-       topo_to_cpl => topo
-       fields_to_cpl_allocated = .false.
-    end if
-
-    allocate(icemask_coupled_fluxes(nx, ny))
-    allocate(hflx_to_cpl(nx, ny))
-    allocate(rofl_to_cpl(nx, ny))
-    allocate(rofi_to_ocn(nx, ny))
-    allocate(rofi_to_ice(nx, ny))
-
-    if (zero_gcm_fluxes) then
-       icemask_coupled_fluxes = 0._r8
-       hflx_to_cpl = 0._r8
-       rofl_to_cpl = 0._r8
-       rofi_to_ocn = 0._r8
-       rofi_to_ice = 0._r8
-    else
-       icemask_coupled_fluxes = ice_sheet_grid_mask
-       hflx_to_cpl = hflx
-       rofl_to_cpl = rofl
-       call route_ice_runoff(rofi, rofi_to_ocn, rofi_to_ice)
-    end if
-
     do ns = 1,num_icesheets
+       nx = get_nx(instance_index=ns)
+       ny = get_ny(instance_index=ns)
+
+       ! glc_areas are constant in time, so we could just set it once in initialization;
+       ! but for simplicity we just reset it each time
+       allocate(glc_areas(nx,ny))
+       call glad_get_areas(ice_sheet, instance_index = ns, areas=glc_areas)
+       glc_areas(:,:) = glc_areas(:,:)/(radius*radius) ! convert from m^2 to radians^2
+
+       ! If overrides of glc fraction are enabled (for testing purposes), then apply
+       ! these overrides, otherwise use the real version of ice_covered and topo
+       if (enable_frac_overrides) then
+          allocate(ice_covered_to_cpl(lbound(ice_covered,1):ubound(ice_covered,1), &
+               lbound(ice_covered,2):ubound(ice_covered,2)))
+          allocate(topo_to_cpl(lbound(topo,1):ubound(topo,1), &
+               lbound(topo,2):ubound(topo,2)))
+
+          ice_covered_to_cpl = ice_covered
+          topo_to_cpl = topo
+          call do_frac_overrides(ice_covered_to_cpl, topo_to_cpl, ice_sheet_grid_mask)
+          fields_to_cpl_allocated = .true.
+       else
+          ice_covered_to_cpl => ice_covered
+          topo_to_cpl => topo
+          fields_to_cpl_allocated = .false.
+       end if
+
+       allocate(icemask_coupled_fluxes(nx, ny))
+       allocate(hflx_to_cpl(nx, ny))
+       allocate(rofl_to_cpl(nx, ny))
+       allocate(rofi_to_ocn(nx, ny))
+       allocate(rofi_to_ice(nx, ny))
+
+       if (zero_gcm_fluxes) then
+          icemask_coupled_fluxes = 0._r8
+          hflx_to_cpl = 0._r8
+          rofl_to_cpl = 0._r8
+          rofi_to_ocn = 0._r8
+          rofi_to_ice = 0._r8
+       else
+          icemask_coupled_fluxes = ice_sheet_grid_mask
+          hflx_to_cpl = hflx
+          rofl_to_cpl = rofl
+          call route_ice_runoff(rofi, rofi_to_ocn, rofi_to_ice)
+       end if
+
        ! Fill export state for ice sheet
 
        ! area is constant in time, so if it were easy to just send this during
        ! initialization, we could do that - but currently, for ease of implementation, we
        ! resend it every coupling interval
-       call state_setexport(NStateExp(ns), field_out_area, glc_areas, rc=rc)
+       call state_setexport(NStateExp(ns), field_out_area, glc_areas, &
+            instance_index=ns, rc=rc)
        if (chkErr(rc,__LINE__,u_FILE_u)) return
 
-       call state_setexport(NStateExp(ns), field_out_rofi_to_ocn, rofi_to_ocn, rc=rc)
+       call state_setexport(NStateExp(ns), field_out_rofi_to_ocn, rofi_to_ocn, &
+            instance_index=ns, rc=rc)
        if (chkErr(rc,__LINE__,u_FILE_u)) return
-       call state_setexport(NStateExp(ns), field_out_rofi_to_ice, rofi_to_ice, rc=rc)
+       call state_setexport(NStateExp(ns), field_out_rofi_to_ice, rofi_to_ice, &
+            instance_index=ns, rc=rc)
        if (chkErr(rc,__LINE__,u_FILE_u)) return
-       call state_setexport(NStateExp(ns), field_out_rofl_to_ocn, rofl_to_cpl, rc=rc)
+       call state_setexport(NStateExp(ns), field_out_rofl_to_ocn, rofl_to_cpl, &
+            instance_index=ns, rc=rc)
        if (chkErr(rc,__LINE__,u_FILE_u)) return
-       call state_setexport(NStateExp(ns), field_out_ice_covered, ice_covered_to_cpl, rc=rc)
+       call state_setexport(NStateExp(ns), field_out_ice_covered, ice_covered_to_cpl, &
+            instance_index=ns, rc=rc)
        if (chkErr(rc,__LINE__,u_FILE_u)) return
-       call state_setexport(NStateExp(ns), field_out_topo, topo_to_cpl, rc=rc)
+       call state_setexport(NStateExp(ns), field_out_topo, topo_to_cpl, &
+            instance_index=ns, rc=rc)
        if (chkErr(rc,__LINE__,u_FILE_u)) return
-       call state_setexport(NStateExp(ns), field_out_hflx_to_lnd, hflx_to_cpl, rc=rc)
+       call state_setexport(NStateExp(ns), field_out_hflx_to_lnd, hflx_to_cpl, &
+            instance_index=ns, rc=rc)
        if (chkErr(rc,__LINE__,u_FILE_u)) return
-       call state_setexport(NStateExp(ns), field_out_icemask, ice_sheet_grid_mask, rc=rc)
+       call state_setexport(NStateExp(ns), field_out_icemask, ice_sheet_grid_mask, &
+            instance_index=ns, rc=rc)
        if (chkErr(rc,__LINE__,u_FILE_u)) return
-       call state_setexport(NStateExp(ns), field_out_icemask_coupled_fluxes, icemask_coupled_fluxes, rc=rc)
+       call state_setexport(NStateExp(ns), field_out_icemask_coupled_fluxes, icemask_coupled_fluxes, &
+            instance_index=ns, rc=rc)
        if (chkErr(rc,__LINE__,u_FILE_u)) return
 
        ! Set scalars in export state
-       call State_SetScalar(dble(nx_tot), flds_scalar_index_nx, &
+       call State_SetScalar(dble(get_nx_tot(instance_index=ns)), flds_scalar_index_nx, &
             NStateExp(ns), flds_scalar_name, flds_scalar_num, rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
-       call State_SetScalar(dble(ny_tot), flds_scalar_index_ny, &
+       call State_SetScalar(dble(get_ny_tot(instance_index=ns)), flds_scalar_index_ny, &
             NStateExp(ns), flds_scalar_name, flds_scalar_num, rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
@@ -463,17 +475,18 @@ contains
           call State_diagnose(NStateExp(ns), trim(subname)//':ES',rc=rc)
           if (ChkErr(rc,__LINE__,u_FILE_u)) return
        end if
-    end do
 
-    deallocate(icemask_coupled_fluxes)
-    deallocate(hflx_to_cpl)
-    deallocate(rofl_to_cpl)
-    deallocate(rofi_to_ocn)
-    deallocate(rofi_to_ice)
-    if (fields_to_cpl_allocated) then
-       deallocate(ice_covered_to_cpl)
-       deallocate(topo_to_cpl)
-    end if
+       deallocate(glc_areas)
+       deallocate(icemask_coupled_fluxes)
+       deallocate(hflx_to_cpl)
+       deallocate(rofl_to_cpl)
+       deallocate(rofi_to_ocn)
+       deallocate(rofi_to_ice)
+       if (fields_to_cpl_allocated) then
+          deallocate(ice_covered_to_cpl)
+          deallocate(topo_to_cpl)
+       end if
+    end do
 
   end subroutine export_fields
 
@@ -613,18 +626,17 @@ contains
 
   !===============================================================================
 
-  subroutine state_getimport(state, fldname, output, rc)
+  subroutine state_getimport(state, fldname, output, instance_index, rc)
 
     ! ----------------------------------------------
     ! Map import state field to output array
     ! ----------------------------------------------
 
-    use glc_indexing, only : vector_to_spatial
-
     ! input/output variables
     type(ESMF_State)    , intent(in)    :: state
     character(len=*)    , intent(in)    :: fldname
     real(r8)            , intent(out)   :: output(:,:)
+    integer             , intent(in)    :: instance_index  ! index of current ice sheet
     integer             , intent(out)   :: rc
 
     ! local variables
@@ -646,14 +658,14 @@ contains
        if (chkErr(rc,__LINE__,u_FILE_u)) return
 
        ! determine output array
-       call vector_to_spatial(fldptr, output)
+       call vector_to_spatial(instance_index, fldptr, output)
     end if
 
   end subroutine state_getimport
 
   !===============================================================================
 
-  subroutine state_setexport(state, fldname, input, rc)
+  subroutine state_setexport(state, fldname, input, instance_index, rc)
 
     ! ----------------------------------------------
     ! Map input array to export state field
@@ -663,6 +675,7 @@ contains
     type(ESMF_State)    , intent(inout) :: state
     character(len=*)    , intent(in)    :: fldname
     real(r8)            , intent(in)    :: input(:,:)
+    integer             , intent(in)    :: instance_index  ! index of current ice sheet
     integer             , intent(out)   :: rc
 
     ! local variables
@@ -684,7 +697,7 @@ contains
        if (chkErr(rc,__LINE__,u_FILE_u)) return
 
        ! set fldptr values to input array
-       call spatial_to_vector(input, fldptr)
+       call spatial_to_vector(instance_index, input, fldptr)
     end if
 
   end subroutine state_setexport

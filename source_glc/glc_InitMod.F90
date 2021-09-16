@@ -90,7 +90,7 @@
    use glimmer_log
    use glc_route_ice_runoff, only: set_routing
    use glc_history, only : glc_history_init, glc_history_write
-   use glc_indexing, only : glc_indexing_init, nx, ny
+   use glc_indexing, only : allocate_indices, init_indices_one_icesheet, get_nx, get_ny
    use shr_file_mod, only : shr_file_getunit, shr_file_freeunit
    use esmf, only : ESMF_Clock
 
@@ -123,6 +123,9 @@
  
   integer (i4) ::  &
       i,j              ! Array index counters
+
+  integer (i4) :: &
+       ns              ! Ice sheet instance number
 
   integer (i4) :: &
       nml_error        ! namelist i/o error flag
@@ -326,33 +329,40 @@
      forcing_start_time = nhour_glad - days_this_year * 24
   end if
 
-  call glad_initialize_instance(ice_sheet, instance_index = 1, &
-       my_forcing_start_time = forcing_start_time, &
-       test_coupling = test_coupling)
+  call allocate_indices(ice_sheet%ninstances)
+  do ns = 1, ice_sheet%ninstances
+     ! FIXME(wjs, 2021-09-08) Make everything in this block work on each instance, as per
+     ! Brian's original changes
 
-  call glc_indexing_init(ice_sheet, instance_index = 1)
-  
-  call glc_allocate_fields(nx, ny)
+     call glad_initialize_instance(ice_sheet, instance_index = ns, &
+          my_forcing_start_time = forcing_start_time, &
+          test_coupling = test_coupling)
 
-  tsfc(:,:) = 0._r8
-  qsmb(:,:) = 0._r8
+     ! Initialize global to local index translation for this ice sheet instance
+     call init_indices_one_icesheet(instance_index = ns, params = ice_sheet)
 
-  ! For now, hard-code salinity and tocn to reasonable constant values, until we have the
-  ! necessary ocean coupling in place
-  !
-  ! TODO(wjs, 2021-06-25) change these to 0 or some other place-holder value once we have
-  ! the coupling in place
-  salinity(:,:,:) = 35._r8
-  tocn(:,:,:) = 274._r8
-  
-  call glad_get_initial_outputs(ice_sheet, instance_index = 1, &
-                                ice_covered = ice_covered, &
-                                topo = topo, &
-                                rofi = rofi, &
-                                rofl = rofl, &
-                                hflx = hflx, &
-                                ice_sheet_grid_mask = ice_sheet_grid_mask)
-  
+     call glc_allocate_fields(get_nx(ns), get_ny(ns))
+
+     tsfc(:,:) = 0._r8
+     qsmb(:,:) = 0._r8
+
+     ! For now, hard-code salinity and tocn to reasonable constant values, until we have the
+     ! necessary ocean coupling in place
+     !
+     ! TODO(wjs, 2021-06-25) change these to 0 or some other place-holder value once we have
+     ! the coupling in place
+     salinity(:,:,:) = 35._r8
+     tocn(:,:,:) = 274._r8
+
+     call glad_get_initial_outputs(ice_sheet, instance_index = 1, &
+          ice_covered = ice_covered, &
+          topo = topo, &
+          rofi = rofi, &
+          rofl = rofl, &
+          hflx = hflx, &
+          ice_sheet_grid_mask = ice_sheet_grid_mask)
+  end do
+
   call glad_initialization_wrapup(ice_sheet)
 
 !TODO - Implement PDD option
