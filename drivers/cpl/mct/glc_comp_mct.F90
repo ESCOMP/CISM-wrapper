@@ -65,7 +65,7 @@ CONTAINS
     use glc_ensemble       , only : set_inst_vars, write_inst_vars, get_inst_name
     use glc_files          , only : set_filenames, ionml_filename
     use glc_coupling_flags , only : has_ocn_coupling, has_ice_coupling
-    use glc_indexing       , only : get_nx_tot, get_ny_tot
+    use glc_indexing       , only : get_nx_tot, get_ny_tot, get_npts
     
     ! input/output parameters:
 
@@ -222,10 +222,10 @@ CONTAINS
 
     ! Initialize MCT attribute vectors
 
-    call mct_aVect_init(g2x, rList=seq_flds_g2x_fields, lsize=npts)
+    call mct_aVect_init(g2x, rList=seq_flds_g2x_fields, lsize=get_npts(instance_index=1))
     call mct_aVect_zero(g2x)
 
-    call mct_aVect_init(x2g, rList=seq_flds_x2g_fields, lsize=npts)
+    call mct_aVect_init(x2g, rList=seq_flds_x2g_fields, lsize=get_npts(instance_index=1))
     call mct_aVect_zero(x2g)
 
     ! Create initial glc export state
