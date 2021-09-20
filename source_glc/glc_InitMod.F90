@@ -328,6 +328,15 @@
   call allocate_indices(ice_sheet%ninstances)
   call allocate_cpl_bundles(ice_sheet%ninstances)
   do ns = 1, ice_sheet%ninstances
+     call glad_initialize_instance(ice_sheet, instance_index = ns, &
+          my_forcing_start_time = forcing_start_time, &
+          test_coupling = test_coupling)
+
+     ! Initialize global to local index translation for this ice sheet instance
+     call init_indices_one_icesheet(instance_index = ns, params = ice_sheet)
+
+     call glc_allocate_fields(instance_index = ns, nx = get_nx(ns), ny = get_ny(ns))
+
      associate( &
           tsfc                => cpl_bundles(ns)%tsfc, &
           qsmb                => cpl_bundles(ns)%qsmb, &
@@ -339,15 +348,6 @@
           rofl                => cpl_bundles(ns)%rofl, &
           hflx                => cpl_bundles(ns)%hflx, &
           ice_sheet_grid_mask => cpl_bundles(ns)%ice_sheet_grid_mask)
-
-     call glad_initialize_instance(ice_sheet, instance_index = ns, &
-          my_forcing_start_time = forcing_start_time, &
-          test_coupling = test_coupling)
-
-     ! Initialize global to local index translation for this ice sheet instance
-     call init_indices_one_icesheet(instance_index = ns, params = ice_sheet)
-
-     call glc_allocate_fields(instance_index = ns, nx = get_nx(ns), ny = get_ny(ns))
 
      tsfc(:,:) = 0._r8
      qsmb(:,:) = 0._r8

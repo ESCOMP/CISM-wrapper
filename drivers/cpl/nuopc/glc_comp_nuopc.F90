@@ -241,6 +241,7 @@ contains
     integer                 :: curr_ymd              ! Start date (YYYYMMDD)
     integer                 :: curr_tod              ! Start time of day (sec)
     character(ESMF_MAXSTR)  :: cvalue                ! config data
+    character(ESMF_MAXSTR)  :: mesh_glc_list         ! colon-delimited list of meshes
     integer                 :: g,n                   ! indices
     character(len=CL)       :: caseid                ! case identifier name
     character(len=CL)       :: starttype             ! start-type (startup, continue, branch, hybrid)
@@ -358,6 +359,11 @@ contains
     call NUOPC_CompAttributeGet(gcomp, name='num_icesheets', value=cvalue, rc=rc)
     if (chkerr(rc,__LINE__,u_FILE_u)) return
     read(cvalue,*) num_icesheets
+    ! FIXME(wjs, 2021-09-20) Check consistency with internal number of ice sheets
+
+    ! Determine the mesh for ice sheet ns
+    call NUOPC_CompAttributeGet(gcomp, name='mesh_glc', value=mesh_glc_list, rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     allocate(mesh(num_icesheets))
     do ns = 1,num_icesheets
@@ -367,16 +373,14 @@ contains
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
        deallocate(gindex)
 
-       ! Determine the mesh for ice sheet ns
-       ! TODO: this must be generalized so mesh_glcN refers to the target ice sheet
-       call NUOPC_CompAttributeGet(gcomp, name='mesh_glc', value=cvalue, rc=rc)
-       if (ChkErr(rc,__LINE__,u_FILE_u)) return
-       if (my_task == master_task) then
-          write(stdout,'(a,i4,a)')'mesh file for ice_sheeet_domain ',ns,' is ',trim(cvalue)
-       end if
-
+       ! FIXME(wjs, 2021-09-20) mesh_glc_list here is a colon-delimited list; we need to get the
+       ! individual mesh out of that.
+       !
        ! read in the ice sheet mesh on the cism decomposition
-       mesh(ns) = ESMF_MeshCreate(filename=trim(cvalue), fileformat=ESMF_FILEFORMAT_ESMFMESH, &
+       if (my_task == master_task) then
+          write(stdout,'(a,i4,a)')'mesh file for ice_sheeet_domain ',ns,' is ',trim(mesh_glc_list)
+       end if
+       mesh(ns) = ESMF_MeshCreate(filename=trim(mesh_glc_list), fileformat=ESMF_FILEFORMAT_ESMFMESH, &
             elementDistgrid=Distgrid,  rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
     end do
