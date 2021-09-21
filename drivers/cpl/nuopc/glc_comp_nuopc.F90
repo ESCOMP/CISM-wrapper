@@ -18,6 +18,7 @@ module glc_comp_nuopc
   use shr_sys_mod         , only : shr_sys_abort
   use shr_cal_mod         , only : shr_cal_ymd2date
   use shr_kind_mod        , only : r8 => shr_kind_r8, cl=>shr_kind_cl, cs=>shr_kind_cs
+  use shr_string_mod      , only : shr_string_listGetNum, shr_string_listGetName
   use glc_import_export   , only : advertise_fields, realize_fields, export_fields, import_fields
   use glc_constants       , only : verbose, stdout, model_doi_url
   use glc_InitMod         , only : glc_initialize
@@ -242,6 +243,7 @@ contains
     integer                 :: curr_tod              ! Start time of day (sec)
     character(ESMF_MAXSTR)  :: cvalue                ! config data
     character(ESMF_MAXSTR)  :: mesh_glc_list         ! colon-delimited list of meshes
+    character(ESMF_MAXSTR)  :: mesh_glc_filename     ! mesh filename for kth icesheet
     integer                 :: g,n                   ! indices
     character(len=CL)       :: caseid                ! case identifier name
     character(len=CL)       :: starttype             ! start-type (startup, continue, branch, hybrid)
@@ -356,31 +358,38 @@ contains
     ! Realize the actively coupled fields
     !--------------------------------
 
+    ! Get number of ice sheets
     call NUOPC_CompAttributeGet(gcomp, name='num_icesheets', value=cvalue, rc=rc)
     if (chkerr(rc,__LINE__,u_FILE_u)) return
     read(cvalue,*) num_icesheets
-    ! FIXME(wjs, 2021-09-20) Check consistency with internal number of ice sheets
 
-    ! Determine the mesh for ice sheet ns
+    ! Get colon delimited string of mesh filenames
     call NUOPC_CompAttributeGet(gcomp, name='mesh_glc', value=mesh_glc_list, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    ns = shr_string_listGetNum(mesh_glc_list)
 
+    ! Consistency check
+    if (ns /= num_icesheets) then
+       call shr_sys_abort(' input number of meshes in mesh_glc does not equal num_ice_sheets')
+    end if
+
+    ! Allocate and read in mesh array
     allocate(mesh(num_icesheets))
     do ns = 1,num_icesheets
+       ! determine mesh filename
+       call shr_string_listGetName(mesh_glc_list, ns, mesh_glc_filename)
+       if (my_task == master_task) then
+          write(stdout,'(a,i4,a)')'mesh file for ice_sheeet_domain ',ns,' is ',trim(mesh_glc_filename)
+       end if
+
        ! create distGrid from global index array
        gindex = local_to_global_indices(instance_index=ns)
        DistGrid = ESMF_DistGridCreate(arbSeqIndexList=gindex, rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
        deallocate(gindex)
 
-       ! FIXME(wjs, 2021-09-20) mesh_glc_list here is a colon-delimited list; we need to get the
-       ! individual mesh out of that.
-       !
        ! read in the ice sheet mesh on the cism decomposition
-       if (my_task == master_task) then
-          write(stdout,'(a,i4,a)')'mesh file for ice_sheeet_domain ',ns,' is ',trim(mesh_glc_list)
-       end if
-       mesh(ns) = ESMF_MeshCreate(filename=trim(mesh_glc_list), fileformat=ESMF_FILEFORMAT_ESMFMESH, &
+       mesh(ns) = ESMF_MeshCreate(filename=trim(mesh_glc_filename), fileformat=ESMF_FILEFORMAT_ESMFMESH, &
             elementDistgrid=Distgrid,  rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
     end do
