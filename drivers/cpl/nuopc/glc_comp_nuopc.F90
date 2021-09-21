@@ -20,7 +20,7 @@ module glc_comp_nuopc
   use shr_kind_mod        , only : r8 => shr_kind_r8, cl=>shr_kind_cl, cs=>shr_kind_cs
   use shr_string_mod      , only : shr_string_listGetNum, shr_string_listGetName
   use glc_import_export   , only : advertise_fields, realize_fields, export_fields, import_fields
-  use glc_constants       , only : verbose, stdout, model_doi_url
+  use glc_constants       , only : verbose, stdout, model_doi_url, num_icesheets
   use glc_InitMod         , only : glc_initialize
   use glc_RunMod          , only : glc_run
   use glc_FinalMod        , only : glc_final
@@ -260,7 +260,7 @@ contains
     integer                 :: i,j,ns
     integer                 :: npts,nx,ny
     integer, allocatable    :: gindex(:)
-    integer                 :: num_icesheets
+    integer                 :: num_icesheets_from_mediator
     character(*), parameter :: F00   = "('(InitializeRealize) ',8a)"
     character(*), parameter :: F01   = "('(InitializeRealize) ',a,8i8)"
     character(*), parameter :: F91   = "('(InitializeRealize) ',73('-'))"
@@ -361,16 +361,19 @@ contains
     ! Get number of ice sheets
     call NUOPC_CompAttributeGet(gcomp, name='num_icesheets', value=cvalue, rc=rc)
     if (chkerr(rc,__LINE__,u_FILE_u)) return
-    read(cvalue,*) num_icesheets
+    read(cvalue,*) num_icesheets_from_mediator
 
     ! Get colon delimited string of mesh filenames
     call NUOPC_CompAttributeGet(gcomp, name='mesh_glc', value=mesh_glc_list, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     ns = shr_string_listGetNum(mesh_glc_list)
 
-    ! Consistency check
+    ! Consistency checks
+    if (num_icesheets_from_mediator /= num_icesheets) then
+       call shr_sys_abort('num_icesheets from mediator differs from number set in cism namelist')
+    end if
     if (ns /= num_icesheets) then
-       call shr_sys_abort(' input number of meshes in mesh_glc does not equal num_ice_sheets')
+       call shr_sys_abort(' input number of meshes in mesh_glc does not equal num_icesheets')
     end if
 
     ! Allocate and read in mesh array
