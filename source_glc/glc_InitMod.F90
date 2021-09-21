@@ -107,7 +107,7 @@
                             ! file names are this base name plus ".icesheet.config" for
                             ! the given ice sheet).
 
-  character(fname_length) :: paramfile  ! Actual param file name
+  character(fname_length), allocatable :: paramfiles(:)  ! Actual param file names
 
   character(fname_length) ::  &
       cesm_restart_file  ! Name of the file to be used for a restart
@@ -292,11 +292,13 @@
 
   unit = shr_file_getUnit()
 
-  ! TODO(wjs, 2020-12-28) Need to loop over ice sheets here (rather than just using icesheet_names(1))
-  paramfile = trim(paramfile_base) // "." // trim(icesheet_names(1)) // ".config"
+  allocate(paramfiles(num_icesheets))
+  do ns = 1, num_icesheets
+     paramfiles(ns) = trim(paramfile_base) // "." // trim(icesheet_names(ns)) // ".config"
+  end do
   call glad_initialize(ice_sheet,                            &
                        climate_tstep,                        &
-                       (/paramfile/),                        &
+                       paramfiles,                           &
                        daysinyear = days_in_year,            &
                        start_time = nhour_glad,             &
                        gcm_restart = cesm_restart,           &
