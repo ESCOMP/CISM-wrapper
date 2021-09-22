@@ -302,6 +302,10 @@
                        daysinyear = days_in_year,            &
                        start_time = nhour_glad,             &
                        gcm_restart = cesm_restart,           &
+                       ! FIXME(wjs, 2021-09-22) Does the cesm_restart_file need to differ
+                       ! per instance? If so, we may need to put it in the per-instance
+                       ! derived type... maybe sending it in to glad_initialize_instance
+                       ! instead of glad_initialize???
                        gcm_restart_file = cesm_restart_file, &
                        gcm_debug = cism_debug,               &
                        gcm_fileunit = unit)
