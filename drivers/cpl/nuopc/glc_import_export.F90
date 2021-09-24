@@ -14,6 +14,7 @@ module glc_import_export
   use shr_kind_mod        , only : r8 => shr_kind_r8, cl=>shr_kind_cl, cs=>shr_kind_cs
   use shr_sys_mod         , only : shr_sys_abort
   use glc_constants       , only : verbose, stdout, stderr, tkfrz, zero_gcm_fluxes, radius, enable_frac_overrides
+  use glc_constants       , only : num_icesheets
   use glc_communicate     , only : my_task, master_task
   use glc_time_management , only : iyear,imonth,iday,ihour,iminute,isecond,runtype
   use glc_indexing        , only : get_nx_tot, get_ny_tot, get_nx, get_ny, spatial_to_vector, vector_to_spatial
@@ -65,7 +66,6 @@ module glc_import_export
 
   type(ESMF_State), allocatable :: NStateImp(:)
   type(ESMF_State), allocatable :: NStateExp(:)
-  integer            :: num_icesheets
   integer            :: dbug_flag = 0
 
   character(*), parameter :: u_FILE_u = &
@@ -147,10 +147,6 @@ contains
     !--------------------------------
     ! Create nested state for active ice sheets only
     !--------------------------------
-
-    call NUOPC_CompAttributeGet(gcomp, name='num_icesheets', value=cvalue, rc=rc)
-    if (chkerr(rc,__LINE__,u_FILE_u)) return
-    read(cvalue,*) num_icesheets
 
     allocate(NStateImp(num_icesheets))
     allocate(NStateExp(num_icesheets))
