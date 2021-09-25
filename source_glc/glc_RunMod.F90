@@ -19,7 +19,7 @@
    use glc_time_management, only:  thour, time_manager, check_time_flag, init_time_flag
    use shr_sys_mod
    use glc_communicate, only: my_task, master_task
-   use glc_constants, only: verbose, stdout, glc_smb, test_coupling
+   use glc_constants, only: verbose, stdout, glc_smb, test_coupling, num_icesheets
    use glc_exit_mod, only : exit_glc, sigAbort
    
    implicit none
@@ -134,7 +134,7 @@
             write(stdout,*) ' '
          endif
 
-         do ns = 1, ice_sheet%ninstances
+         do ns = 1, num_icesheets
             associate( &
                  tsfc                => cpl_bundles(ns)%tsfc, &
                  qsmb                => cpl_bundles(ns)%qsmb, &
@@ -190,8 +190,9 @@
    ! Write a history file if it's time to do so
    !-----------------------------------------------------------------------
 
-   ! TODO loop over instances
-   call glc_history_write(ice_sheet%instances(1), EClock)
+   do ns = 1, num_icesheets
+      call glc_history_write(ns, ice_sheet%instances(1), EClock)
+   end do
    
 !-----------------------------------------------------------------------
 !EOC

@@ -32,7 +32,7 @@ module history_tape_standard
 contains
 
   !-----------------------------------------------------------------------
-  function constructor(history_vars, freq_opt, freq)
+  function constructor(icesheet_name, history_vars, freq_opt, freq)
     !
     ! !DESCRIPTION:
     ! Creates a history_tape_standard_type object
@@ -41,6 +41,9 @@ contains
     !
     ! !ARGUMENTS:
     type(history_tape_standard_type) :: constructor  ! function result
+
+    ! Name of this ice sheet
+    character(len=*), intent(in) :: icesheet_name
 
     ! List of variables to write to file
     character(len=*), intent(in) :: history_vars
@@ -55,15 +58,13 @@ contains
 
     !-----------------------------------------------------------------------
 
+    call constructor%set_icesheet_name(icesheet_name)
     call constructor%set_history_vars(history_vars)
     constructor%freq_opt = freq_opt
     constructor%freq = freq
 
-    ! TODO(wjs, 2015-02-18) If we allow multiple history tapes, we should construct a time
-    ! flag name that includes the history tape index, so that we have unique time flags
-    ! for each history tape. In that case, the history tape index should be passed into
-    ! the constructor, and stored as a component of the class.
-    constructor%time_flag = init_time_flag('do_hist', freq_opt = freq_opt, freq = freq)
+    constructor%time_flag = init_time_flag('do_hist_'//icesheet_name, &
+         freq_opt = freq_opt, freq = freq)
     
   end function constructor
 

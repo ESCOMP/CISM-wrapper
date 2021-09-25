@@ -48,7 +48,8 @@
 
   integer :: num_icesheets = 0  ! number of ice sheets in this run
 
-  character(32) :: icesheet_names(max_icesheets)
+  integer, parameter :: icesheet_name_len = 32
+  character(icesheet_name_len) :: icesheet_names(max_icesheets)
 
    !-----------------------------------------------------------------
    ! elevation class info

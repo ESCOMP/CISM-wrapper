@@ -30,7 +30,7 @@
                             max_icesheets, num_icesheets, icesheet_names
    use glc_io,        only: glc_io_read_restart_time
    use glc_files,     only: nml_filename
-   use glc_exit_mod
+   use glc_exit_mod, only : exit_glc, sigAbort
    use shr_kind_mod,  only: CL=>SHR_KIND_CL
    use shr_sys_mod, only: shr_sys_flush
 
@@ -85,7 +85,7 @@
    use glc_time_management, only: init_time1, init_time2, dtt, ihour
    use glimmer_log
    use glc_route_ice_runoff, only: set_routing
-   use glc_history, only : glc_history_init, glc_history_write
+   use glc_history, only : allocate_history, glc_history_init, glc_history_write
    use glc_indexing, only : allocate_indices, init_indices_one_icesheet, get_nx, get_ny
    use shr_file_mod, only : shr_file_getunit, shr_file_freeunit
    use esmf, only : ESMF_Clock
@@ -109,8 +109,8 @@
 
   character(fname_length), allocatable :: paramfiles(:)  ! Actual param file names
 
-  character(fname_length) ::  &
-      cesm_restart_file  ! Name of the file to be used for a restart
+  character(fname_length), allocatable :: &
+      cesm_restart_files(:)  ! Names of the files to be used for a restart (one per ice sheet)
  
   character(CL) :: &
        ice_flux_routing  ! Code for how solid ice should be routed to ocean or sea ice
@@ -130,7 +130,13 @@
       nhour_glad      ! number of hours since start of complete glad/CISM run
 
   integer (i4) :: &
+       nhour_glad_this_icesheet ! nhour_glad for the current ice sheet, for comparison
+
+  integer (i4) :: &
        av_start_time_restart  ! glad averaging start time
+
+  integer (i4) :: &
+       av_start_time_restart_this_icesheet ! av_start_time_restart for the current ice sheet, for comparison
 
   integer (i4) :: &
        days_this_year  ! days since beginning of year
@@ -267,23 +273,46 @@
   end if
 
   ! if this is a continuation run, then set up to read restart file and get the restart time
+  allocate(cesm_restart_files(num_icesheets))
+  cesm_restart_files(:) = ' '
   if (runtype == 'continue') then
-    cesm_restart = .true.
-    call glc_io_read_restart_time(nhour_glad, av_start_time_restart, cesm_restart_file)
-    call ymd2eday (iyear0, imonth0, iday0, elapsed_days0)
-    elapsed_days = elapsed_days0 + nhour_glad/24     
-    call eday2ymd(elapsed_days, iyear, imonth, iday)
-    ihour = 0
-    iminute = 0
-    isecond = 0
-    nsteps_total = nhour_glad / climate_tstep     
-    if (verbose .and. my_task==master_task) then
-       write(stdout,*) 'Successfully read restart, nhour_glad =', nhour_glad
-       write(stdout,*) 'Initial eday/y/m/d:', elapsed_days0, iyear0, imonth0, iday0
-       write(stdout,*) 'eday/y/m/d after restart:', elapsed_days, iyear, imonth, iday
-       write(stdout,*) 'nsteps_total =', nsteps_total
-       write(stdout,*) 'Initialize glad:'
-    endif
+     cesm_restart = .true.
+
+     ! Read info for the first ice sheet
+     call glc_io_read_restart_time(icesheet_names(1), nhour_glad, av_start_time_restart, cesm_restart_files(1))
+
+     ! For other ice sheets, read cesm_restart_file; for nhour_glad and
+     ! av_start_time_restart, just compare with the first to ensure consistency
+     do ns = 2, num_icesheets
+        call glc_io_read_restart_time(icesheet_names(ns), nhour_glad_this_icesheet, &
+             av_start_time_restart_this_icesheet, cesm_restart_files(ns))
+        if (nhour_glad_this_icesheet /= nhour_glad .or. &
+             av_start_time_restart_this_icesheet /= av_start_time_restart) then
+           write(stdout,*) 'Inconsistency between ice sheets in nhour_glad and/or av_start_time_restart:'
+           write(stdout,*) 'Values for ', trim(icesheet_names(1)), ':'
+           write(stdout,*) 'nhour_glad = ', nhour_glad
+           write(stdout,*) 'av_start_time_restart = ', av_start_time_restart
+           write(stdout,*) 'Values for ', trim(icesheet_names(ns)), ':'
+           write(stdout,*) 'nhour_glad = ', nhour_glad_this_icesheet
+           write(stdout,*) 'av_start_time_restart = ', av_start_time_restart_this_icesheet
+           call exit_glc(sigAbort, 'ERROR: Inconsistency between ice sheets in nhour_glad and/or av_start_time_restart')
+        end if
+     end do
+
+     call ymd2eday (iyear0, imonth0, iday0, elapsed_days0)
+     elapsed_days = elapsed_days0 + nhour_glad/24
+     call eday2ymd(elapsed_days, iyear, imonth, iday)
+     ihour = 0
+     iminute = 0
+     isecond = 0
+     nsteps_total = nhour_glad / climate_tstep
+     if (verbose .and. my_task==master_task) then
+        write(stdout,*) 'Successfully read restart, nhour_glad =', nhour_glad
+        write(stdout,*) 'Initial eday/y/m/d:', elapsed_days0, iyear0, imonth0, iday0
+        write(stdout,*) 'eday/y/m/d after restart:', elapsed_days, iyear, imonth, iday
+        write(stdout,*) 'nsteps_total =', nsteps_total
+        write(stdout,*) 'Initialize glad:'
+     endif
   endif
 
   if (verbose .and. my_task==master_task) then
@@ -302,11 +331,6 @@
                        daysinyear = days_in_year,            &
                        start_time = nhour_glad,             &
                        gcm_restart = cesm_restart,           &
-                       ! FIXME(wjs, 2021-09-22) Does the cesm_restart_file need to differ
-                       ! per instance? If so, we may need to put it in the per-instance
-                       ! derived type... maybe sending it in to glad_initialize_instance
-                       ! instead of glad_initialize???
-                       gcm_restart_file = cesm_restart_file, &
                        gcm_debug = cism_debug,               &
                        gcm_fileunit = unit)
 
@@ -331,10 +355,11 @@
      forcing_start_time = nhour_glad - days_this_year * 24
   end if
 
-  call allocate_indices(ice_sheet%ninstances)
-  call allocate_cpl_bundles(ice_sheet%ninstances)
-  do ns = 1, ice_sheet%ninstances
+  call allocate_indices(num_icesheets)
+  call allocate_cpl_bundles(num_icesheets)
+  do ns = 1, num_icesheets
      call glad_initialize_instance(ice_sheet, instance_index = ns, &
+          gcm_restart_file = cesm_restart_files(ns), &
           my_forcing_start_time = forcing_start_time, &
           test_coupling = test_coupling)
 
@@ -413,7 +438,12 @@
 !
 !-----------------------------------------------------------------------
 
-   call glc_history_init()
+   call allocate_history(num_icesheets)
+   do ns = 1, num_icesheets
+      call glc_history_init(instance_index = ns, &
+           instance_name = icesheet_names(ns), &
+           instance = ice_sheet%instances(ns))
+   end do
 
 !-----------------------------------------------------------------------
 !
@@ -422,8 +452,9 @@
 !-----------------------------------------------------------------------
 
    if (.not. cesm_restart) then
-      ! TODO loop over instances
-      call glc_history_write(ice_sheet%instances(1), EClock, initial_history=.true.)
+      do ns = 1, num_icesheets
+         call glc_history_write(ns, ice_sheet%instances(1), EClock, initial_history=.true.)
+      end do
    end if
    
 !-----------------------------------------------------------------------

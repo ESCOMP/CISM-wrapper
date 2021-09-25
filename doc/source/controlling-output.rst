@@ -11,30 +11,32 @@ Controlling output from CISM and CLM
 The default CISM output frequency is yearly. Most of the CISM output fields are
 instantaneous, so this default frequency means that you get a snapshot of the current
 state at the end of each year. You can change the output to be less frequent via the
-namelist variable ``history_frequency``, which can be set in ``user_nl_cism``. For
-example, to give output every 10 years, set:
+namelist variable ``history_frequency``, which can be set in ``user_nl_cism`` (to change
+the setting for all ice sheets) or ``user_nl_cism_ICESHEET`` (to change the setting for a
+specific ice sheet). For example, to give output every 10 years, set:
 
 .. code-block:: Fortran
 
    history_frequency = 10
 
 The set of variables written to each history file is controlled by the namelist variable
-``cesm_history_vars``. To see the variables output by default, examine
-``CaseDocs/cism_in`` after running ``preview_namelists`` for your case. Among the standard
-fields written to the history file are the ice thickness (``thk``), upper surface
-elevation (``usurf``), bedrock elevation (``topg``), and the surface mass balance
-(``smb``) and surface temperature (``artm``) downscaled to the ice sheet grid.
+``esm_history_vars``. To see the variables output by default, examine
+``CaseDocs/cism.ICESHEET.config`` (for some ICESHEET, e.g., gris) after running
+``preview_namelists`` for your case. Among the standard fields written to the history file
+are the ice thickness (``thk``), upper surface elevation (``usurf``), bedrock elevation
+(``topg``), and the surface mass balance (``smb``) and surface temperature (``artm``)
+downscaled to the ice sheet grid.
 
-To modify the list of history fields, set ``cesm_history_vars`` in ``user_nl_cism``. Files
-with names ending in ``vars.def`` in the source tree specify the fields that can be
-written out. You can add new variables to one of these ``vars.def`` files and rebuild the
-model in order to enable new output fields. (Note: These ``vars.def`` files can NOT be
-placed in SourceMods: they need to be changed in-place in the source tree.)
+To modify the list of history fields, set ``esm_history_vars`` in ``user_nl_cism`` (to
+change the list for all ice sheets) or in ``user_nl_cism_ICESHEET`` (to change the setting
+for a specific ice sheet). Files with names ending in ``vars.def`` in the source tree
+specify the fields that can be written out. You can add new variables to one of these
+``vars.def`` files and rebuild the model in order to enable new output fields. (Note:
+These ``vars.def`` files can NOT be placed in SourceMods: they need to be changed in-place
+in the source tree.)
 
 Model restart frequency is coordinated by the CESM coupler. The restart file contains all
-the fields required for exact restart.  However, the restart will be exact only if the
-file is written immediately after an ice dynamics time step. This will normally be the
-case for restart files written at the end of any model year.
+the fields required for exact restart.
 
 =============================================
  Producing land ice-specific output from CLM

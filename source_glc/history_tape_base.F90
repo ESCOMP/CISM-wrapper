@@ -2,18 +2,19 @@ module history_tape_base
 
   ! This module defines an abstract base class to implement a single history tape.
 
-  use shr_kind_mod, only : CXX => SHR_KIND_CXX
+  use glad_type, only : len_history_vars
+  use glimmer_ncdf, only : glimmer_nc_output
+  use glc_constants, only : icesheet_name_len
 
   implicit none
   private
   save
 
-  ! max character length
-  integer, parameter, public :: len_history_vars = CXX
-
   public :: history_tape_base_type
   type, abstract :: history_tape_base_type
      private
+
+     character(len=icesheet_name_len) :: icesheet_name
 
      ! Names of CISM variables to be output in cesm history files
      !
@@ -23,12 +24,24 @@ module history_tape_base
      ! it's not being set to greater than its length.
      character(len=len_history_vars) :: history_vars
 
+     ! This output structure is accessible to CISM throughout the run, and is
+     ! used to accumulate and average the time-average ("tavg") output fields.
+     !
+     ! NOTE(wjs, 2021-09-24) By storing this in the history_tape object, we ensure that we
+     ! have a separate oc_tavg_helper for each ice sheet (since there is a separate
+     ! history_tape object for each ice sheet). If we ever had multiple history tapes per
+     ! ice sheet, I'm not sure off-hand if we'd want to have a single oc_tavg_helper for
+     ! the ice sheet or a separate one for each history tape.
+     type(glimmer_nc_output), pointer :: oc_tavg_helper => null()
+
    contains
      ! ------------------------------------------------------------------------
      ! Public methods
      ! ------------------------------------------------------------------------
-     procedure :: write_history    ! write history, if it's time to do so
-     procedure :: set_history_vars ! set the list of history variables
+     procedure :: write_history     ! write history, if it's time to do so
+     procedure :: set_icesheet_name ! set the icesheet name for this history tape
+     procedure :: get_icesheet_name ! get the icesheet name for this history tape
+     procedure :: set_history_vars  ! set the list of history variables
 
      ! ------------------------------------------------------------------------
      ! The following are public simply because they need to be overridden by derived
@@ -83,7 +96,7 @@ contains
 
     !
     ! !ARGUMENTS:
-    class(history_tape_base_type), intent(in) :: this
+    class(history_tape_base_type), intent(inout) :: this
     type(glad_instance), intent(inout) :: instance
     type(ESMF_Clock),     intent(in)    :: EClock
     logical, intent(in), optional :: initial_history
@@ -102,23 +115,62 @@ contains
 
     if (l_initial_history) then
 
-       call glc_io_write_history(instance, EClock, &
-            this%history_vars, initial_history = .true.)
+       call glc_io_write_history(instance, this%icesheet_name, EClock, &
+            this%history_vars, this%oc_tavg_helper, initial_history = .true.)
 
     else if (this%is_time_to_write_hist(EClock)) then
 
-       call glc_io_write_history(instance, EClock, &
-            this%history_vars, initial_history = .false., &
+       call glc_io_write_history(instance, this%icesheet_name, EClock, &
+            this%history_vars, this%oc_tavg_helper, initial_history = .false., &
             history_frequency_metadata = this%history_frequency_string())
 
     end if
 
     ! This subroutine manages an auxiliary output structure that is used to accumulate
     ! time-average fields in history files.
-    call glc_io_write_history_tavg_helper(instance, this%history_vars)
+    call glc_io_write_history_tavg_helper(instance, this%oc_tavg_helper, &
+         this%icesheet_name, this%history_vars)
 
   end subroutine write_history
 
+  !-----------------------------------------------------------------------
+  subroutine set_icesheet_name(this, icesheet_name)
+    !
+    ! !DESCRIPTION:
+    ! Set the icesheet name for this history tape
+    !
+    ! !ARGUMENTS:
+    class(history_tape_base_type), intent(inout) :: this
+    character(len=*), intent(in) :: icesheet_name
+    !
+    ! !LOCAL VARIABLES:
+
+    character(len=*), parameter :: subname = 'set_icesheet_name'
+    !-----------------------------------------------------------------------
+
+    this%icesheet_name = icesheet_name
+
+  end subroutine set_icesheet_name
+
+  !-----------------------------------------------------------------------
+  function get_icesheet_name(this) result(icesheet_name)
+    !
+    ! !DESCRIPTION:
+    ! Get the icesheet name for this history tape
+    !
+    ! !ARGUMENTS:
+    class(history_tape_base_type), intent(in) :: this
+    character(len=:), allocatable :: icesheet_name  ! function result
+    !
+    ! !LOCAL VARIABLES:
+
+    character(len=*), parameter :: subname = 'get_icesheet_name'
+    !-----------------------------------------------------------------------
+
+    icesheet_name = this%icesheet_name
+
+  end function get_icesheet_name
+  
   !-----------------------------------------------------------------------
   subroutine set_history_vars(this, history_vars)
     !

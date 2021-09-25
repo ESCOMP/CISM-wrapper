@@ -96,20 +96,20 @@ contains
   end subroutine init
 
   !-----------------------------------------------------------------------
-  subroutine allocate_indices(num_ice_sheets)
+  subroutine allocate_indices(num_icesheets)
     !
     ! !DESCRIPTION:
     ! Allocate the indices array for the number of ice sheet instances
     !
     ! !ARGUMENTS:
-    integer, intent(in) :: num_ice_sheets  ! number of ice sheet instances in this run
+    integer, intent(in) :: num_icesheets  ! number of ice sheet instances in this run
     !
     ! !LOCAL VARIABLES:
 
     character(len=*), parameter :: subname = 'allocate_indices'
     !-----------------------------------------------------------------------
 
-    allocate(indices(num_ice_sheets))
+    allocate(indices(num_icesheets))
 
   end subroutine allocate_indices
 

@@ -80,7 +80,7 @@ module glc_fields
    ! !IROUTINE: allocate_cpl_bundles
    ! !INTERFACE:
 
-   subroutine allocate_cpl_bundles (num_ice_sheets)
+   subroutine allocate_cpl_bundles (num_icesheets)
 
      ! !DESCRIPTION:
      !  Allocate the cpl_bundles array for the number of ice sheet instances
@@ -91,12 +91,12 @@ module glc_fields
      ! !INPUT/OUTPUT PARAMETERS:
 
      integer (i4), intent(in) :: &
-          num_ice_sheets  ! number of ice sheet instances in this run
+          num_icesheets  ! number of ice sheet instances in this run
 
      !EOP
      !BOC
 
-     allocate(cpl_bundles(num_ice_sheets))
+     allocate(cpl_bundles(num_icesheets))
 
    end subroutine allocate_cpl_bundles
 

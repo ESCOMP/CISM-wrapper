@@ -20,7 +20,7 @@ module glc_comp_nuopc
   use shr_kind_mod        , only : r8 => shr_kind_r8, cl=>shr_kind_cl, cs=>shr_kind_cs
   use shr_string_mod      , only : shr_string_listGetNum, shr_string_listGetName
   use glc_import_export   , only : advertise_fields, realize_fields, export_fields, import_fields
-  use glc_constants       , only : verbose, stdout, model_doi_url, num_icesheets
+  use glc_constants       , only : verbose, stdout, model_doi_url, num_icesheets, icesheet_names
   use glc_InitMod         , only : glc_initialize
   use glc_RunMod          , only : glc_run
   use glc_FinalMod        , only : glc_final
@@ -370,6 +370,8 @@ contains
 
     ! Consistency checks
     if (num_icesheets_from_mediator /= num_icesheets) then
+       write(stdout,*) 'num_icesheets from mediator: ', num_icesheets_from_mediator
+       write(stdout,*) 'num_icesheets from cism namelist: ', num_icesheets
        call shr_sys_abort('num_icesheets from mediator differs from number set in cism namelist')
     end if
     if (ns /= num_icesheets) then
@@ -394,6 +396,9 @@ contains
        ! read in the ice sheet mesh on the cism decomposition
        mesh(ns) = ESMF_MeshCreate(filename=trim(mesh_glc_filename), fileformat=ESMF_FILEFORMAT_ESMFMESH, &
             elementDistgrid=Distgrid,  rc=rc)
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
+
+       call ESMF_DistGridDestroy(DistGrid, rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
     end do
 
@@ -521,7 +526,7 @@ contains
     integer                :: cesmYR       ! cesm model year
     integer                :: cesmMON      ! cesm model month
     integer                :: cesmDAY      ! cesm model day
-    integer                :: n            ! index
+    integer                :: ns           ! index
     logical                :: done         ! time loop logical
     logical                :: valid_inputs ! if true, inputs from mediator are valid
     character(ESMF_MAXSTR) :: cvalue
@@ -630,8 +635,9 @@ contains
     call ESMF_ClockGetAlarm(clock, alarmname='alarm_restart', alarm=alarm, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     if (ESMF_AlarmIsRinging(alarm, rc=rc)) then
-       ! TODO loop over instances
-       call glc_io_write_restart(ice_sheet%instances(1), clock)
+       do ns = 1, num_icesheets
+          call glc_io_write_restart(ice_sheet%instances(ns), icesheet_names(ns), clock)
+       end do
        call ESMF_AlarmRingerOff( alarm, rc=rc )
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
     endif

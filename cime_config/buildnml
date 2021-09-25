@@ -38,10 +38,10 @@ logger = logging.getLogger(__name__)
 # values of certain config file parameters
 #----------------------------------------------------
 # namelist groups in the cism_in file
-_CISM_IN_GROUPS = ["cism_params", "cism_history", "time_manager_nml", "glc_override_nml"]
+_CISM_IN_GROUPS = ["cism_params", "time_manager_nml", "glc_override_nml"]
 
 # namelist groups in the cism.icesheet.config file
-_CISM_CONFIG_GROUPS = ["grid", "glad_climate", "options", "sigma", "time", "parameters",
+_CISM_CONFIG_GROUPS = ["grid", "glad_climate", "esm_output", "options", "sigma", "time", "parameters",
                        "grid_ocn", "ho_options", "gthf", "isostasy", "derived"]
 
 # dictionary mapping all possible ice sheet names to the names used in xml variables
@@ -117,14 +117,6 @@ def buildnml(case, caseroot, compname):
         if ninst > 1:
             inst_string = '_' + '{:04d}'.format(inst_counter)
 
-        # If multi-instance case does not have restart file, use
-        # single-case restart for each instance
-        rpointer = "rpointer.glc"
-        if (os.path.isfile(os.path.join(rundir,rpointer)) and
-            (not os.path.isfile(os.path.join(rundir,rpointer + inst_string)))):
-            safe_copy(os.path.join(rundir, rpointer),
-                      os.path.join(rundir, rpointer + inst_string))
-
         user_nl_file = os.path.join(caseroot, "user_nl_cism" + inst_string)
         expect(os.path.isfile(user_nl_file),
                "Missing required user_nl_file {}".format(user_nl_file))
@@ -148,6 +140,14 @@ def buildnml(case, caseroot, compname):
             safe_copy(file_src,file_dest)
 
         for idx, icesheet in enumerate(icesheet_names):
+            # If multi-instance case does not have restart file, use
+            # single-case restart for each instance
+            rpointer = "rpointer.glc." + icesheet
+            if (os.path.isfile(os.path.join(rundir,rpointer)) and
+                (not os.path.isfile(os.path.join(rundir,rpointer + inst_string)))):
+                safe_copy(os.path.join(rundir, rpointer),
+                          os.path.join(rundir, rpointer + inst_string))
+
             user_nl_file = os.path.join(caseroot, "user_nl_cism_" + icesheet + inst_string)
             expect(os.path.isfile(user_nl_file),
                    "Missing required user_nl_file {}".format(user_nl_file))
@@ -474,6 +474,7 @@ def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid,
     nmlgen.write_output_file(output_file, data_list_path, groups=[])
     _update_cism_config(nmlgen, output_file, mode="w", header="grid", group="grid")
     _update_cism_config(nmlgen, output_file, mode="a", header="GLAD climate", group="glad_climate")
+    _update_cism_config(nmlgen, output_file, mode="a", header="esm_output", group="esm_output")
     _update_cism_config(nmlgen, output_file, mode="a", header="options", group="options")
     _add_conditional_section_to_cism_config(nmlgen, output_file, group="sigma",
                                             control_var="sigma",

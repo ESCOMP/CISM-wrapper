@@ -50,10 +50,6 @@
    ! a baseline year other than 0, we'd need to change how we specify that external_time.
    integer, parameter :: baseline_year = 0
 
-   ! This output structure is accessible to CISM throughout the run, and is
-   ! used to accumulate and average the time-average ("tavg") output fields.
-   type(glimmer_nc_output), pointer :: oc_tavg_helper => null()
-
 !EOP
 !BOC
 !EOC
@@ -67,11 +63,12 @@
 ! !IROUTINE: glc_io_read_restart_time
 ! !INTERFACE:
 
-   subroutine glc_io_read_restart_time(nhour_glad, av_start_time_restart, filename)
+   subroutine glc_io_read_restart_time(icesheet_name, nhour_glad, av_start_time_restart, filename)
 
-    use glc_files, only : ptr_filename
+    use glc_files, only : get_rpointer_filename
 
     implicit none
+    character(len=*),        intent(in)  :: icesheet_name
     integer(IN),             intent(out) :: nhour_glad
     integer(IN),             intent(out) :: av_start_time_restart
     character(fname_length), intent(out) :: filename
@@ -89,7 +86,7 @@
 
        ! get restart filename from rpointer file
        ptr_unit = shr_file_getUnit()
-       open(ptr_unit,file=ptr_filename)
+       open(ptr_unit,file=get_rpointer_filename(icesheet_name))
        read(ptr_unit,'(a)') filename0
        filename = trim(filename0)
        close(ptr_unit)
@@ -124,8 +121,8 @@
 ! !IROUTINE: glc_io_write_history
 ! !INTERFACE:
 
-  subroutine glc_io_write_history(instance, EClock, history_vars, &
-       initial_history, history_frequency_metadata)
+  subroutine glc_io_write_history(instance, icesheet_name, EClock, history_vars, &
+       oc_tavg_helper, initial_history, history_frequency_metadata)
 
     ! Write a CISM history file
     !
@@ -143,10 +140,12 @@
 
     implicit none
 
-    type(glad_instance) , intent(inout) :: instance
-    type(ESMF_Clock)    , intent(in)    :: EClock
-    character(len=*)    , intent(in)    :: history_vars
-    logical             , intent(in)    :: initial_history
+    type(glad_instance)     , intent(inout)       :: instance
+    character(len=*)        , intent(in)          :: icesheet_name
+    type(ESMF_Clock)        , intent(in)          :: EClock
+    character(len=*)        , intent(in)          :: history_vars
+    type(glimmer_nc_output) , pointer, intent(in) :: oc_tavg_helper
+    logical                 , intent(in)          :: initial_history
 
     ! If present, history_frequency_metadata gives the text to use for the
     ! time_period_freq global attribute. If absent, there will be no time_period_freq
@@ -193,7 +192,7 @@
     else
        file_type = 'history'
     end if
-    filename = glc_filename(cesmYR, cesmMON, cesmDAY, cesmTOD, file_type)
+    filename = glc_filename(icesheet_name, cesmYR, cesmMON, cesmDAY, cesmTOD, file_type)
 
     if (my_task == master_task) then
        write(stdout,*) &
@@ -286,7 +285,7 @@
 ! !IROUTINE: glc_io_write_history_tavg_helper
 ! !INTERFACE:
 
-  subroutine glc_io_write_history_tavg_helper(instance, history_vars)
+  subroutine glc_io_write_history_tavg_helper(instance, oc_tavg_helper, icesheet_name, history_vars)
 
     ! Manage an auxiliary output structure that is used to handle time-average ("tavg") fields
     ! in history files.
@@ -314,8 +313,10 @@
 
     implicit none
 
-    type(glad_instance) , intent(inout) :: instance
-    character(len=*)    , intent(in)    :: history_vars
+    type(glad_instance)     , intent(inout)          :: instance
+    type(glimmer_nc_output) , pointer, intent(inout) :: oc_tavg_helper
+    character(len=*)        , intent(in)             :: icesheet_name
+    character(len=*)        , intent(in)             :: history_vars
 
     character(CL) :: filename
 
@@ -339,7 +340,7 @@
        allocate(oc_tavg_helper)
 
        ! assign a generic filename
-       filename = glc_filename(0, 0, 0, 0, 'tavg_helper')
+       filename = glc_filename(icesheet_name, 0, 0, 0, 0, 'tavg_helper')
 
        ! set up a structure that includes all the history vars but will not be written out
        oc_tavg_helper%freq           = 9999999      ! large number such that output will not be written
@@ -372,9 +373,9 @@
 ! !IROUTINE: glc_io_write_restart
 ! !INTERFACE:
 
-   subroutine glc_io_write_restart(instance, EClock)
+   subroutine glc_io_write_restart(instance, icesheet_name, EClock)
 
-    use glc_files           , only : ptr_filename
+    use glc_files           , only : get_rpointer_filename
     use glad_type
     use glide_io            , only : glide_io_create, glide_io_write
     use glad_io             , only : glad_io_create, glad_io_write
@@ -384,6 +385,7 @@
 
     implicit none
     type(glad_instance), intent(inout) :: instance
+    character(len=*)   , intent(in)    :: icesheet_name
     type(ESMF_Clock),     intent(in)    :: EClock
 
     ! local variables
@@ -428,7 +430,7 @@
 
     call shr_cal_ymd2date(cesmYR, cesmMON, cesmDAY, cesmYMD)
 
-    filename = glc_filename(cesmYR, cesmMON, cesmDAY, cesmTOD, 'restart')
+    filename = glc_filename(icesheet_name, cesmYR, cesmMON, cesmDAY, cesmTOD, 'restart')
 
     if (my_task == master_task) then
        write(stdout,*) &
@@ -496,7 +498,7 @@
     ! write pointer to restart file
     if (my_task == master_task) then
        ptr_unit = shr_file_getUnit()
-       open(ptr_unit,file=ptr_filename)
+       open(ptr_unit,file=get_rpointer_filename(icesheet_name))
        write(ptr_unit,'(a)') filename
        close(ptr_unit)
        call shr_file_freeunit(ptr_unit)
@@ -510,16 +512,17 @@
 ! !ROUTINE: glc_filename
 !
 ! !INTERFACE:
-  character(CL) function glc_filename( yr_spec, mon_spec, day_spec, sec_spec, file_type )
+  character(CL) function glc_filename( reg_spec, yr_spec, mon_spec, day_spec, sec_spec, file_type )
 !
 ! !DESCRIPTION: Create a filename from a filename specifier. Interpret filename specifier
 ! string with:
 ! %c for case
-! %i for instance suffix
+! %i for instance suffix (in the CESM multi-instance sense)
 ! %y for year
 ! %m for month
 ! %d for day
 ! %s for second
+! %n for ice sheet name (elsewhere referred to as ice sheet instance)
 ! %% for the "%" character
 ! If the filename specifier has spaces " ", they will be trimmed out
 ! of the resulting filename.
@@ -529,6 +532,7 @@
     use glc_ensemble       , only: get_inst_suffix
 !
 ! !INPUT/OUTPUT PARAMETERS:
+  character(len=*) ,      intent(in) :: reg_spec  ! Simulation region (e.g., Greenland vs. Antarctica)
   integer          ,      intent(in) :: yr_spec   ! Simulation year
   integer          ,      intent(in) :: mon_spec  ! Simulation month
   integer          ,      intent(in) :: day_spec  ! Simulation day
@@ -538,6 +542,7 @@
 ! EOP
 !
   integer       :: i, n           ! Loop variables
+  character(CL) :: region         ! Simulation region
   integer       :: year           ! Simulation year
   integer       :: month          ! Simulation month
   integer       :: day            ! Simulation day
@@ -552,18 +557,18 @@
 
   filename_spec = ' '
   if (file_type.eq.'history') then
-     filename_spec = '%c.cism%i.h.%y-%m-%d-%s'
+     filename_spec = '%c.cism%i.%r.h.%y-%m-%d-%s'
   else if (file_type.eq.'tavg_helper') then
-     filename_spec = '%c.cism%i.tavg_helper.%y-%m-%d-%s'
+     filename_spec = '%c.cism%i.%r.tavg_helper.%y-%m-%d-%s'
   else if (file_type.eq.'initial_history') then
      ! Give the initial history file (i.e., the file generated based on the diagnostic
      ! solve in initialization) a different extension so that it isn't picked up by the
      ! CESM test system. (If the test system picks it up, there will sometimes be
      ! failures - e.g., in ERI tests - because this file can be present in one run but
      ! not in another.)
-     filename_spec = '%c.cism%i.initial_hist.%y-%m-%d-%s'
+     filename_spec = '%c.cism%i.%r.initial_hist.%y-%m-%d-%s'
   else if (file_type.eq.'restart') then
-     filename_spec = '%c.cism%i.r.%y-%m-%d-%s'
+     filename_spec = '%c.cism%i.%r.r.%y-%m-%d-%s'
   else
      call shr_sys_abort ('glc_filename: file_type specifier is invalid')
   endif
@@ -579,6 +584,7 @@
      call shr_sys_abort ('glc_filename: filename specifier can not contain a space:'//trim(filename_spec))
   end if
 
+  region = reg_spec
   year  = yr_spec
   month = mon_spec
   day   = day_spec
@@ -595,6 +601,8 @@
         select case( filename_spec(i:i) )
         case( 'c' )   ! runid
            string = trim(runid)
+        case( 'r' )   ! region
+           string = trim(region)
         case( 'i' )   ! instance suffix
            call get_inst_suffix(string)
         case( 'y' )   ! year
