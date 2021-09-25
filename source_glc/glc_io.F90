@@ -522,7 +522,7 @@
 ! %m for month
 ! %d for day
 ! %s for second
-! %n for ice sheet name (elsewhere referred to as ice sheet instance)
+! %r for ice sheet name (elsewhere referred to as ice sheet instance)
 ! %% for the "%" character
 ! If the filename specifier has spaces " ", they will be trimmed out
 ! of the resulting filename.
