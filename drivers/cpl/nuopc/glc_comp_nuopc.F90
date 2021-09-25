@@ -20,6 +20,7 @@ module glc_comp_nuopc
   use shr_kind_mod        , only : r8 => shr_kind_r8, cl=>shr_kind_cl, cs=>shr_kind_cs
   use shr_string_mod      , only : shr_string_listGetNum, shr_string_listGetName
   use glc_import_export   , only : advertise_fields, realize_fields, export_fields, import_fields
+  use glc_import_export   , only : get_num_icesheets
   use glc_constants       , only : verbose, stdout, model_doi_url, num_icesheets, icesheet_names
   use glc_InitMod         , only : glc_initialize
   use glc_RunMod          , only : glc_run
@@ -55,6 +56,7 @@ module glc_comp_nuopc
   !--------------------------------------------------------------------------
 
   logical                    :: cism_evolve
+  character(ESMF_MAXSTR)     :: mesh_glc_list ! colon-delimited list of meshes
   integer                    :: lmpicom
   character(len=16)          :: inst_name ! full name of current instance (e.g., GLC_0001)
   integer, parameter         :: dbug = 1
@@ -159,6 +161,7 @@ contains
     integer                :: inst_index    ! number of current instance (e.g., 1)
     character(len=16)      :: inst_suffix   ! character string associated with instance number
     logical                :: glc_coupled_fluxes ! are we sending fluxes to other components?
+    integer                :: num_icesheets_from_mediator ! number of icesheets in this run
     character(len=*), parameter :: subname=trim(modName)//':(InitializeAdvertise) '
     character(len=*), parameter :: format = "('("//trim(subname)//") :',A)"
     !-------------------------------------------------------------------------------
@@ -202,8 +205,16 @@ contains
        call shr_sys_abort(subname//'Need to set cism_evolve')
     endif
 
+    ! Get colon delimited string of mesh filenames
+    call NUOPC_CompAttributeGet(gcomp, name='mesh_glc', value=mesh_glc_list, rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    num_icesheets_from_mediator = shr_string_listGetNum(mesh_glc_list)
+    if (my_task == master_task) then
+       write(stdout,'(a,i4)')'number of ice sheets is ',num_icesheets_from_mediator
+    end if
+
     ! Advertise fields
-    call advertise_fields(gcomp, cism_evolve, rc)
+    call advertise_fields(gcomp, cism_evolve, num_icesheets_from_mediator, rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     if (dbug > 5) then
@@ -242,7 +253,6 @@ contains
     integer                 :: curr_ymd              ! Start date (YYYYMMDD)
     integer                 :: curr_tod              ! Start time of day (sec)
     character(ESMF_MAXSTR)  :: cvalue                ! config data
-    character(ESMF_MAXSTR)  :: mesh_glc_list         ! colon-delimited list of meshes
     character(ESMF_MAXSTR)  :: mesh_glc_filename     ! mesh filename for kth icesheet
     integer                 :: g,n                   ! indices
     character(len=CL)       :: caseid                ! case identifier name
@@ -358,24 +368,13 @@ contains
     ! Realize the actively coupled fields
     !--------------------------------
 
-    ! Get number of ice sheets
-    call NUOPC_CompAttributeGet(gcomp, name='num_icesheets', value=cvalue, rc=rc)
-    if (chkerr(rc,__LINE__,u_FILE_u)) return
-    read(cvalue,*) num_icesheets_from_mediator
-
-    ! Get colon delimited string of mesh filenames
-    call NUOPC_CompAttributeGet(gcomp, name='mesh_glc', value=mesh_glc_list, rc=rc)
-    if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    ns = shr_string_listGetNum(mesh_glc_list)
-
     ! Consistency checks
+
+    num_icesheets_from_mediator = get_num_icesheets()
     if (num_icesheets_from_mediator /= num_icesheets) then
        write(stdout,*) 'num_icesheets from mediator: ', num_icesheets_from_mediator
        write(stdout,*) 'num_icesheets from cism namelist: ', num_icesheets
        call shr_sys_abort('num_icesheets from mediator differs from number set in cism namelist')
-    end if
-    if (ns /= num_icesheets) then
-       call shr_sys_abort(' input number of meshes in mesh_glc does not equal num_icesheets')
     end if
 
     ! Allocate and read in mesh array

@@ -28,6 +28,7 @@ module glc_import_export
   public  :: realize_fields
   public  :: import_fields
   public  :: export_fields
+  public  :: get_num_icesheets
 
   private :: fldlist_add
   private :: fldlist_realize
@@ -75,13 +76,14 @@ module glc_import_export
 contains
 !===============================================================================
 
-  subroutine advertise_fields(gcomp, cism_evolve, rc)
+  subroutine advertise_fields(gcomp, cism_evolve, num_icesheets_in, rc)
 
     use glc_constants, only : glc_smb
 
     ! input/output variables
     type(ESMF_GridComp)            :: gcomp
     logical          , intent(in)  :: cism_evolve
+    integer          , intent(in)  :: num_icesheets_in
     integer          , intent(out) :: rc
 
     ! local variables
@@ -97,6 +99,8 @@ contains
     !-------------------------------------------------------------------------------
 
     rc = ESMF_SUCCESS
+
+    num_icesheets = num_icesheets_in
 
     call NUOPC_ModelGet(gcomp, importState=importState, exportState=exportState, rc=rc)
     if (chkErr(rc,__LINE__,u_FILE_u)) return
@@ -147,10 +151,6 @@ contains
     !--------------------------------
     ! Create nested state for active ice sheets only
     !--------------------------------
-
-    call NUOPC_CompAttributeGet(gcomp, name='num_icesheets', value=cvalue, rc=rc)
-    if (chkerr(rc,__LINE__,u_FILE_u)) return
-    read(cvalue,*) num_icesheets
 
     allocate(NStateImp(num_icesheets))
     allocate(NStateExp(num_icesheets))
@@ -500,6 +500,15 @@ contains
     end do
 
   end subroutine export_fields
+
+  !===============================================================================
+
+  integer function get_num_icesheets()
+    ! ----------------------------------------------
+    ! Return the num_icesheets value stored in this module
+    ! ----------------------------------------------
+    get_num_icesheets = num_icesheets
+  end function get_num_icesheets
 
   !===============================================================================
 
