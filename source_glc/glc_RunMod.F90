@@ -191,7 +191,7 @@
    !-----------------------------------------------------------------------
 
    do ns = 1, num_icesheets
-      call glc_history_write(ns, ice_sheet%instances(1), EClock)
+      call glc_history_write(ns, ice_sheet%instances(ns), EClock)
    end do
    
 !-----------------------------------------------------------------------

@@ -450,7 +450,7 @@
 
    if (.not. cesm_restart) then
       do ns = 1, num_icesheets
-         call glc_history_write(ns, ice_sheet%instances(1), EClock, initial_history=.true.)
+         call glc_history_write(ns, ice_sheet%instances(ns), EClock, initial_history=.true.)
       end do
    end if
    
