@@ -334,9 +334,6 @@
                        gcm_debug = cism_debug,               &
                        gcm_fileunit = unit)
 
-  ! TODO(wjs, 2015-03-24) We will need a loop over instances, either here or around the
-  ! call to glc_initialize
-
   if (cesm_restart) then
      forcing_start_time = av_start_time_restart
   else if (test_coupling) then
