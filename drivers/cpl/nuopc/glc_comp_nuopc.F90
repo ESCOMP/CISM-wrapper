@@ -236,7 +236,7 @@ contains
 
     ! local variables
     type(ESMF_Mesh), allocatable :: mesh(:)          ! esmf meshes for ice sheets
-    type(ESMF_DistGrid)     :: DistGrid              ! esmf global index space descriptor
+    type(ESMF_DistGrid), allocatable :: DistGrid(:)  ! esmf global index space descriptor, per ice sheet
     type(ESMF_Time)         :: currTime              ! Current time
     type(ESMF_Time)         :: startTime             ! Start time
     type(ESMF_Time)         :: stopTime              ! Stop time
@@ -378,6 +378,7 @@ contains
     end if
 
     ! Allocate and read in mesh array
+    allocate(DistGrid(num_icesheets))
     allocate(mesh(num_icesheets))
     do ns = 1,num_icesheets
        ! determine mesh filename
@@ -388,16 +389,13 @@ contains
 
        ! create distGrid from global index array
        gindex = local_to_global_indices(instance_index=ns)
-       DistGrid = ESMF_DistGridCreate(arbSeqIndexList=gindex, rc=rc)
+       DistGrid(ns) = ESMF_DistGridCreate(arbSeqIndexList=gindex, rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
        deallocate(gindex)
 
        ! read in the ice sheet mesh on the cism decomposition
        mesh(ns) = ESMF_MeshCreate(filename=trim(mesh_glc_filename), fileformat=ESMF_FILEFORMAT_ESMFMESH, &
-            elementDistgrid=Distgrid,  rc=rc)
-       if (ChkErr(rc,__LINE__,u_FILE_u)) return
-
-       call ESMF_DistGridDestroy(DistGrid, rc=rc)
+            elementDistgrid=Distgrid(ns),  rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
     end do
 
