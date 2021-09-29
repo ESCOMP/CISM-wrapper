@@ -58,7 +58,7 @@ module glc_comp_nuopc
   logical                    :: cism_evolve
   character(ESMF_MAXSTR)     :: mesh_glc_list ! colon-delimited list of meshes
   integer                    :: lmpicom
-  character(len=16)          :: inst_name ! full name of current instance (e.g., GLC_0001)
+  character(len=16)          :: inst_name ! full name of current instance (in the CESM multi-instance/ensemble sense; e.g., GLC_0001)
   integer, parameter         :: dbug = 1
   integer                    :: nthrds  ! Number of openMP threads per mpi task
   character(len=*),parameter :: modName =  "(glc_comp_nuopc)"
@@ -158,7 +158,7 @@ contains
     integer                :: shrlogunit  ! original log unit
     integer                :: i,j,n
     character(len=CL)      :: logmsg
-    integer                :: inst_index    ! number of current instance (e.g., 1)
+    integer                :: inst_index    ! number of current instance (in the CESM multi-instance/ensemble sense; e.g., 1)
     character(len=16)      :: inst_suffix   ! character string associated with instance number
     logical                :: glc_coupled_fluxes ! are we sending fluxes to other components?
     integer                :: num_icesheets_from_mediator ! number of icesheets in this run

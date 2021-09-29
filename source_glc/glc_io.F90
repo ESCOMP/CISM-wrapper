@@ -517,7 +517,7 @@
 ! !DESCRIPTION: Create a filename from a filename specifier. Interpret filename specifier
 ! string with:
 ! %c for case
-! %i for instance suffix (in the CESM multi-instance sense)
+! %i for instance suffix (in the CESM multi-instance/ensemble sense)
 ! %y for year
 ! %m for month
 ! %d for day

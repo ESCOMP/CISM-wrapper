@@ -529,7 +529,6 @@ end subroutine glc_SetgsMap_mct
     allocate(lons(nx, ny))
     allocate(areas(nx, ny))
     
-    ! TODO(wjs, 2015-04-02) The following may need a loop over instances
     call glad_get_lat_lon(ice_sheet, instance_index = 1, &
          lats = lats, lons = lons)
     call glad_get_areas(ice_sheet, instance_index = 1, areas = areas)

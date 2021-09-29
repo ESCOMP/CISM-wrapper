@@ -9,8 +9,11 @@
 !  Contains data and routines for running an ensemble with multiple, independent
 !  instances of GLC. This module is also used in the standard (non-ensemble) case.
 !
-!  This should not be confused with the ability to have multiple instances of cism
-!  running in different places (e.g., Greenland & Antarctica). 
+!  This should not be confused with the ability to have multiple instances of cism running
+!  in different places (e.g., Greenland & Antarctica). Confusingly, both are referred to
+!  as "instances". For the most part (though maybe not 100% consistently), variables with
+!  the full word "instance" in their name refer to different ice sheets, whereas variables
+!  with the abbreviated "inst" refer to these multi-instance ensemble members.
 !
 ! !REVISION HISTORY:
 !  Created by Bill Sacks
