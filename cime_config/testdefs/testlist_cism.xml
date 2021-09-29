@@ -149,6 +149,19 @@
     </machines>
   </test>
 
+  <test name="ERS_D_Ly3" grid="f09_g17_gris4" compset="T1850Gg" testmods="cism/noevolve">
+    <machines>
+
+      <machine name="cheyenne" compiler="intel" category="aux_glc">
+        <options>
+          <option name="wallclock">0:30</option>
+          <option name="comment">ice evolution off is the typical operation of cism within cesm, so test that configuration</option>
+        </options>
+      </machine>
+
+    </machines>
+  </test>
+
   <test name="ERI_Vmct_N2_Ly9" grid="f09_g17_gris20" compset="T1850Gg">
     <machines>
 
