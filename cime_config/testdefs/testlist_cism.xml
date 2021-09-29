@@ -149,6 +149,12 @@
     </machines>
   </test>
 
+  <!-- BUG(wjs, 2021-09-29, ESCOMP/CISM-wrapper#60) This currently fails
+       at namelist generation time, with "ERROR: for TG compset require
+       that lnd_cpl_time equal glc_cpl_time". If I remember correctly,
+       Mariana Vertenstein has fixed this issue on a branch of CMEPS.
+       Once it is working, we should restore this test. -->
+  <!--
   <test name="ERS_D_Ly3" grid="f09_g17_gris4" compset="T1850Gg" testmods="cism/noevolve">
     <machines>
 
@@ -161,6 +167,7 @@
 
     </machines>
   </test>
+  -->
 
   <test name="ERI_Vmct_N2_Ly9" grid="f09_g17_gris20" compset="T1850Gg">
     <machines>
