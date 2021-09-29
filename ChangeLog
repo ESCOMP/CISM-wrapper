@@ -33,13 +33,12 @@ Standalone checkout supported in this tag (Yes/No): Yes
 
    If No: Notes on externals used for testing:
 
-Changes answers relative to previous tag: Not investigated: all test
-names have changed
+Changes answers relative to previous tag: No, but test names have changed
 
-   All baseline comparisons failed due to changes in test names.
-   However, note that the only substantive changes in this tag are
-   externals updates, so if there are any answer changes, they arise
-   from the change in externals.
+   To do baseline comparisons, I needed to create a temporary baseline
+   directory where I renamed the tests as in this tag. With those
+   renames, all tests passed baseline comparisons, though I compset
+   tests had fieldlist differences.
 
 Bugs fixed (include github issue number):
 - Partially addresses ESCOMP/CISM-wrapper#60 (Once nuopc/cmeps cases
@@ -49,10 +48,11 @@ Summary of testing:
 
    Full aux_glc test suite on cheyenne and izumi.
 
-   Most testing was done on a8a3a5d6; just reran izumi_nag tests on
-   latest change (which removed an unused variable).
+   All tests passed and are bit-for-bit.
 
-   Baselines not compared due to changes in all test names.
+   Note that there are a few other nuopc tests I feel we should add, but
+   I have left them out for now because they would fail: see
+   https://github.com/ESCOMP/CISM-wrapper/issues/60 for details.
 
 ================================================================================
 Originator: sacks
