@@ -491,15 +491,6 @@
   <test name="MCC_Ly3" grid="f09_g17_gris20" compset="T1850Gg">
     <machines>
 
-      <!-- (2020-11-26) Changing the izumi version to cheyenne for now,
-           because I'm not including any nuopc tests on izumi -->
-      <!--
-      <machine name="izumi" compiler="pgi" category="prebeta">
-        <options>
-          <option name="wallclock">1:59</option>
-        </options>
-      </machine>
-      -->
       <machine name="cheyenne" compiler="gnu" category="prebeta">
         <options>
           <option name="wallclock">0:20</option>
@@ -554,6 +545,30 @@
   </test>
 
   <test name="SMS_Vmct_D_Ld5_P24x1" grid="T31_g37_gris20" compset="I1850Clm50SpG" testmods="cism/test_coupling">
+    <machines>
+
+      <machine name="izumi" compiler="nag" category="aux_glc">
+        <options>
+          <option name="wallclock">1:59</option>
+          <!-- 2016-10-25: There is an increase of about 10 MB per day over the
+               5 days of this test. This may truly be a memory leak. But this
+               'test_coupling' configuration is a hacky configuration made just
+               for testing, so I'm not too concerned about it.  -->
+          <option name="memleak_tolerance">0.24</option>
+          <option name="comment">IG nag debug test, to check logic for fields sent from glc to lnd</option>
+        </options>
+      </machine>
+
+      <machine name="izumi" compiler="nag" category="prealpha">
+        <options>
+          <option name="wallclock">1:59</option>
+        </options>
+      </machine>
+
+    </machines>
+  </test>
+
+  <test name="SMS_D_Ld5_P24x1" grid="T31_g37_gris20" compset="I1850Clm50SpG" testmods="cism/test_coupling">
     <machines>
 
       <machine name="izumi" compiler="nag" category="aux_glc">
@@ -712,6 +727,23 @@
     </machines>
   </test>
 
+  <test name="SMS_D_Ly1_P24x1" grid="f09_g17_gris4" compset="T1850Gg">
+    <machines>
+
+      <machine name="izumi" compiler="nag" category="aux_glc">
+        <options>
+          <option name="wallclock">1:59</option>
+          <option name="comment">short nag debug test of CISM2 at production resolution, to test options specific to the production resolution (currently, which_ho_babc differs at the production resolution)</option>
+        </options>
+      </machine>
+
+      <!-- BUG(wjs, 2021-09-29, ESCOMP/CISM-wrapper#60) Add a pgi
+           version of this test once nuopc is working with pgi
+           (similarly to how we have both nag and pgi versions of the
+           equivalent mct test above). -->
+    </machines>
+  </test>
+  
   <test name="SMS_Vmct_D_Ly3_P24x1" grid="f09_g17_gris20" compset="T1850Gg">
     <machines>
 
@@ -725,6 +757,19 @@
     </machines>
   </test>
 
+  <test name="SMS_D_Ly3_P24x1" grid="f09_g17_gris20" compset="T1850Gg">
+    <machines>
+
+      <machine name="izumi" compiler="nag" category="aux_glc">
+        <options>
+          <option name="wallclock">1:59</option>
+          <option name="comment">multi-year nag debug test of CISM2 at coarse resolution</option>
+        </options>
+      </machine>
+
+    </machines>
+  </test>
+  
   <test name="ERS_Vmct_Ly5" grid="f09_g17_gris4" compset="T1850Gg" testmods="cism/isostasy_period4">
     <machines>
 
