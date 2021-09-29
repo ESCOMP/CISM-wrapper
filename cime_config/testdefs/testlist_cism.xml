@@ -592,6 +592,19 @@
     </machines>
   </test>
 
+  <test name="SMS_D_Ld5_P24x1" grid="f10_f10_ais8_mg37" compset="I1850Clm50SpGa" testmods="cism/test_coupling">
+    <machines>
+
+      <machine name="izumi" compiler="nag" category="aux_glc">
+        <options>
+          <option name="wallclock">1:59</option>
+          <option name="comment">IG nag debug test with Antarctica</option>
+        </options>
+      </machine>
+
+    </machines>
+  </test>
+
   <test name="SMS_Vmct_D_Ly1" grid="f09_g17_gris4" compset="T1850Gg" testmods="cism/isostasy_period1">
     <machines>
 
@@ -741,6 +754,21 @@
            version of this test once nuopc is working with pgi
            (similarly to how we have both nag and pgi versions of the
            equivalent mct test above). -->
+    </machines>
+  </test>
+
+  <test name="SMS_D_Ly1_P24x1" grid="f09_g17_ais8" compset="T1850Ga">
+    <machines>
+
+      <machine name="izumi" compiler="nag" category="aux_glc">
+        <options>
+          <option name="wallclock">1:59</option>
+          <option name="comment">short nag debug T compset test of CISM2 with Antarctica</option>
+        </options>
+      </machine>
+
+      <!-- BUG(wjs, 2021-09-29, ESCOMP/CISM-wrapper#60) Add a pgi
+           version of this test once nuopc is working with pgi -->
     </machines>
   </test>
   
