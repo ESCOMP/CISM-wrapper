@@ -4,6 +4,58 @@ This file describes what tags were created on master and why
 
 ================================================================================
 Originator: sacks
+Date: September 29, 2021
+Version: cismwrap_2_1_92
+One-line summary: Update externals (nuopc now the default!) and test list
+
+Purpose of changes:
+
+   - Update externals to versions tentatively planned for
+     cesm2_3_beta06. A key change here is to make nuopc the default
+     driver.
+
+   - Rework test names now that nuopc is the default driver (so _Vmct is
+     needed explicitly, _Vnuopc is not)
+
+   - Add a few more nuopc tests, now that nuopc is working on izumi_nag
+     (partially addresses
+     https://github.com/ESCOMP/CISM-wrapper/issues/60)
+
+   - Fix for build issue on izumi_nag
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: Not investigated: all test
+names have changed
+
+   All baseline comparisons failed due to changes in test names.
+   However, note that the only substantive changes in this tag are
+   externals updates, so if there are any answer changes, they arise
+   from the change in externals.
+
+Bugs fixed (include github issue number):
+- Partially addresses ESCOMP/CISM-wrapper#60 (Once nuopc/cmeps cases
+  work on izumi, add some testing)
+
+Summary of testing:
+
+   Full aux_glc test suite on cheyenne and izumi.
+
+   Most testing was done on a8a3a5d6; just reran izumi_nag tests on
+   latest change (which removed an unused variable).
+
+   Baselines not compared due to changes in all test names.
+
+================================================================================
+Originator: sacks
 Date: September 14, 2021
 Version: cismwrap_2_1_91
 One-line summary: Fixes for Antarctica
