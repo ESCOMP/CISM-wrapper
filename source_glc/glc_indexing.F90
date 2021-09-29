@@ -34,6 +34,7 @@ module glc_indexing
   integer, public :: nx_tot   ! total number of columns in full grid (all procs)
   integer, public :: ny_tot   ! total number of rows in full grid (all procs)
   integer, public :: npts_tot ! total number of points in full grid (all procs)
+  integer, public :: nzocn    ! number of ocean levels for ocean coupling fields
 
   integer, allocatable, private :: local_indices(:,:)  ! mapping from (i,j) to 1..npts
   integer, allocatable, private :: global_indices(:,:) ! unique indices across all procs (matches indexing on mapping files)
@@ -50,7 +51,7 @@ contains
     ! that is used to generate GLC mapping files for the coupler.
     !
     ! !USES:
-    use glad_main, only : glad_params, glad_get_grid_size, glad_get_grid_indices
+    use glad_main, only : glad_params, glad_get_grid_size, glad_get_grid_indices, glad_get_nzocn
     !
     ! !ARGUMENTS:
     type(glad_params), intent(in) :: params
@@ -65,9 +66,11 @@ contains
          ewn = nx, nsn = ny, npts = npts, &
          ewn_tot = nx_tot, nsn_tot = ny_tot, npts_tot = npts_tot)
     
+    call glad_get_nzocn(params, instance_index, nzocn)
+
     allocate(local_indices(nx, ny))
     allocate(global_indices(nx, ny))
-    
+
     call glad_get_grid_indices(params, instance_index, global_indices, local_indices)
     
   end subroutine glc_indexing_init

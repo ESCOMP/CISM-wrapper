@@ -90,7 +90,7 @@
    use glimmer_log
    use glc_route_ice_runoff, only: set_routing
    use glc_history, only : glc_history_init, glc_history_write
-   use glc_indexing, only : glc_indexing_init, nx, ny
+   use glc_indexing, only : glc_indexing_init, nx, ny, nzocn
    use shr_file_mod, only : shr_file_getunit, shr_file_freeunit
    use esmf, only : ESMF_Clock
 
@@ -332,7 +332,7 @@
 
   call glc_indexing_init(ice_sheet, instance_index = 1)
   
-  call glc_allocate_fields(nx, ny)
+  call glc_allocate_fields(nx, ny, nzocn)
 
   tsfc(:,:) = 0._r8
   qsmb(:,:) = 0._r8
