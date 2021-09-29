@@ -66,7 +66,7 @@ module glc_fields
 ! !IROUTINE: glc_allocate_fields
 ! !INTERFACE:
 
- subroutine glc_allocate_fields (nx, ny)
+ subroutine glc_allocate_fields (nx, ny, nzocn)
 
 ! !DESCRIPTION:
 !  Allocate fields declared here
@@ -84,7 +84,7 @@ module glc_fields
 ! !INPUT/OUTPUT PARAMETERS:
 
    integer (i4), intent(in) :: &
-        nx, ny           ! grid dimensions
+        nx, ny, nzocn           ! grid dimensions
 
 !EOP
 !BOC
@@ -93,8 +93,8 @@ module glc_fields
    allocate(tsfc(nx,ny))
    allocate(qsmb(nx,ny))
    ! ktc temporary
-   allocate(salinity(1,nx,ny))
-   allocate(tocn(1,nx,ny))
+   allocate(salinity(nzocn,nx,ny))
+   allocate(tocn(nzocn,nx,ny))
 
    ! to coupler
    allocate(ice_covered(nx,ny))
