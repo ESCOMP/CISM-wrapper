@@ -65,7 +65,7 @@
  subroutine glc_initialize(EClock)
 
 ! !DESCRIPTION:
-!  This routine is the initialization driver that initializes a glc run 
+!  This routine is the initialization driver that initializes a glc run
 !  by calling individual module initialization routines.
 !
 ! !USERDOC:
@@ -86,7 +86,7 @@
    use glimmer_log
    use glc_route_ice_runoff, only: set_routing
    use glc_history, only : allocate_history, glc_history_init, glc_history_write
-   use glc_indexing, only : allocate_indices, init_indices_one_icesheet, get_nx, get_ny
+   use glc_indexing, only : allocate_indices, init_indices_one_icesheet, get_nx, get_ny, get_nzocn
    use shr_file_mod, only : shr_file_getunit, shr_file_freeunit
    use esmf, only : ESMF_Clock
 
@@ -111,12 +111,12 @@
 
   character(fname_length), allocatable :: &
       cesm_restart_files(:)  ! Names of the files to be used for a restart (one per ice sheet)
- 
+
   character(CL) :: &
        ice_flux_routing  ! Code for how solid ice should be routed to ocean or sea ice
 
   ! Scalars which hold information about the global grid --------------
- 
+
   integer (i4) ::  &
       i,j              ! Array index counters
 
@@ -156,13 +156,13 @@
   integer :: nml_in    ! namelist file unit number
 
   integer :: climate_tstep  ! climate time step (hours)
-  
+
   integer, parameter :: days_in_year = 365
-  
+
   namelist /cism_params/  paramfile_base, num_icesheets, icesheet_names, &
        cism_debug, ice_flux_routing, zero_gcm_fluxes, &
        test_coupling, enable_frac_overrides
- 
+
 ! TODO - Write version info?
 !-----------------------------------------------------------------------
 !  write version information to output log after output redirection
@@ -181,21 +181,21 @@
 !  compute time step and initialize time-related quantities
 !
 !-----------------------------------------------------------------------
- 
+
    call init_time1
- 
+
 !-----------------------------------------------------------------------
 !
 !  output delimiter to log file
 !
 !-----------------------------------------------------------------------
- 
+
    if (my_task == master_task) then
       write(stdout,blank_fmt)
       write(stdout,ndelim_fmt)
       call shr_sys_flush (stdout)
    endif
- 
+
 !--------------------------------------------------------------------
 ! Initialize ice sheet model, grid, and coupling.
 ! The following code is largely based on CISM.
@@ -262,7 +262,7 @@
 !  call open_log(unit=101)
 
   call set_glimmer_unit(stdout)
- 
+
   ! Initialize the ice sheet model
 
   nhour_glad = 0     ! number of hours glad has run since start of complete simulation
@@ -363,7 +363,8 @@
      ! Initialize global to local index translation for this ice sheet instance
      call init_indices_one_icesheet(instance_index = ns, params = ice_sheet)
 
-     call glc_allocate_fields(instance_index = ns, nx = get_nx(ns), ny = get_ny(ns))
+     call glc_allocate_fields(instance_index = ns, nx = get_nx(ns), ny = get_ny(ns), &
+          nzocn = get_nzocn(ns))
 
      associate( &
           tsfc                => cpl_bundles(ns)%tsfc, &
@@ -402,7 +403,7 @@
   call glad_initialization_wrapup(ice_sheet)
 
 !TODO - Implement PDD option
- 
+
    call shr_file_freeunit(unit)
 
 ! Do the following:
@@ -417,16 +418,16 @@
 
   ! Set the message level (1 is the default - only fatal errors)
   ! N.B. Must do this after initialization
- 
+
   call glimmer_set_msg_level(6)
- 
+
 !-----------------------------------------------------------------------
 !
 !  finish computing time-related quantities after restart info
 !  available (including iyear, imonth, and iday)
 !
 !-----------------------------------------------------------------------
- 
+
    call init_time2
 
 !-----------------------------------------------------------------------
@@ -453,13 +454,13 @@
          call glc_history_write(ns, ice_sheet%instances(ns), EClock, initial_history=.true.)
       end do
    end if
-   
+
 !-----------------------------------------------------------------------
 !
 !  output delimiter to log file
 !
 !-----------------------------------------------------------------------
- 
+
    if (my_task == master_task) then
       write(stdout,blank_fmt)
       write(stdout,'(" End of GLC initialization")')

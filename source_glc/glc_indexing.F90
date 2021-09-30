@@ -1,7 +1,7 @@
 !|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
 module glc_indexing
-  
+
   !BOP
   ! !MODULE: glc_indexing
 
@@ -35,6 +35,7 @@ module glc_indexing
   public :: get_nx_tot
   public :: get_ny_tot
   public :: get_npts_tot
+  public :: get_nzocn
   public :: local_to_global_indices
   public :: vector_to_spatial
   public :: spatial_to_vector
@@ -49,6 +50,7 @@ module glc_indexing
      integer :: nx_tot   ! total number of columns in full grid (all procs)
      integer :: ny_tot   ! total number of rows in full grid (all procs)
      integer :: npts_tot ! total number of points in full grid (all procs)
+     integer :: nzocn    ! number of ocean levels for ocean coupling fields
 
      integer, allocatable :: local_indices(:,:)  ! mapping from (i,j) to 1..npts
      integer, allocatable :: global_indices(:,:) ! unique indices across all procs (matches indexing on mapping files)
@@ -72,7 +74,7 @@ contains
     ! that is used to generate GLC mapping files for the coupler.
     !
     ! !USES:
-    use glad_main, only : glad_params, glad_get_grid_size, glad_get_grid_indices
+    use glad_main, only : glad_params, glad_get_grid_size, glad_get_grid_indices, glad_get_nzocn
     !
     ! !ARGUMENTS:
     class(indices_type), intent(inout) :: this
@@ -87,6 +89,8 @@ contains
     call glad_get_grid_size(params, instance_index, &
          ewn = this%nx, nsn = this%ny, npts = this%npts, &
          ewn_tot = this%nx_tot, nsn_tot = this%ny_tot, npts_tot = this%npts_tot)
+
+    call glad_get_nzocn(params, instance_index, this%nzocn)
 
     allocate(this%local_indices(this%nx, this%ny))
     allocate(this%global_indices(this%nx, this%ny))
@@ -248,6 +252,25 @@ contains
     npts_tot = indices(instance_index)%npts_tot
 
   end function get_npts_tot
+
+  !-----------------------------------------------------------------------
+  function get_nzocn(instance_index) result(nzocn)
+    !
+    ! !DESCRIPTION:
+    ! Get nzocn for the given ice sheet instance
+    !
+    ! !ARGUMENTS:
+    integer :: nzocn  ! function result
+    integer, intent(in) :: instance_index
+    !
+    ! !LOCAL VARIABLES:
+
+    character(len=*), parameter :: subname = 'get_nzocn'
+    !-----------------------------------------------------------------------
+
+    nzocn = indices(instance_index)%nzocn
+
+  end function get_nzocn
 
   !-----------------------------------------------------------------------
   function local_to_global_indices(instance_index) result(gindex)

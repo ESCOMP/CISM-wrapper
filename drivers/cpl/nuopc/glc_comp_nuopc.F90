@@ -241,7 +241,6 @@ contains
     type(ESMF_Time)         :: startTime             ! Start time
     type(ESMF_Time)         :: stopTime              ! Stop time
     type(ESMF_TimeInterval) :: timeStep              ! Model timestep
-    type(ESMF_Calendar)     :: esmf_calendar         ! esmf calendar
     type(ESMF_CalKind_Flag) :: esmf_caltype          ! esmf calendar type
     type(ESMF_vm)           :: vm                    ! esmf virtual machine structure
     integer                 :: ref_tod               ! reference time of day (sec)

@@ -14,7 +14,7 @@ module glc_fields
   ! the multi-instance sense as used for data assimilation, etc.
 
 ! !REVISION HISTORY:
-! 
+!
 !  Author: William Lipscomb, LANL
 !
 ! !USES:
@@ -105,7 +105,7 @@ module glc_fields
 ! !IROUTINE: glc_allocate_fields
 ! !INTERFACE:
 
- subroutine glc_allocate_fields (instance_index, nx, ny)
+ subroutine glc_allocate_fields (instance_index, nx, ny, nzocn)
 
 ! !DESCRIPTION:
 !  Allocate coupling fields for one ice sheet
@@ -126,7 +126,7 @@ module glc_fields
         instance_index   ! index of current ice sheet
 
    integer (i4), intent(in) :: &
-        nx, ny           ! grid dimensions
+        nx, ny, nzocn    ! grid dimensions
 
 !EOP
 !BOC
@@ -135,8 +135,8 @@ module glc_fields
    allocate(cpl_bundles(instance_index)%tsfc(nx,ny))
    allocate(cpl_bundles(instance_index)%qsmb(nx,ny))
    ! ktc temporary
-   allocate(cpl_bundles(instance_index)%salinity(1,nx,ny))
-   allocate(cpl_bundles(instance_index)%tocn(1,nx,ny))
+   allocate(cpl_bundles(instance_index)%salinity(nzocn,nx,ny))
+   allocate(cpl_bundles(instance_index)%tocn(nzocn,nx,ny))
 
    ! to coupler
    allocate(cpl_bundles(instance_index)%ice_covered(nx,ny))
@@ -145,7 +145,7 @@ module glc_fields
    allocate(cpl_bundles(instance_index)%rofl(nx,ny))
    allocate(cpl_bundles(instance_index)%hflx(nx,ny))
    allocate(cpl_bundles(instance_index)%ice_sheet_grid_mask(nx,ny))
-   
+
  end subroutine glc_allocate_fields
 
 !***********************************************************************
@@ -190,7 +190,7 @@ module glc_fields
    deallocate(cpl_bundles(instance_index)%rofl)
    deallocate(cpl_bundles(instance_index)%hflx)
    deallocate(cpl_bundles(instance_index)%ice_sheet_grid_mask)
-  
+
    end subroutine glc_deallocate_fields
 
 !***********************************************************************
