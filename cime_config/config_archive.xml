@@ -9,6 +9,14 @@
     <hist_file_extension>[a-z]+\.h\..*\.nc$</hist_file_extension>
     <!-- Another possible hist extension is initial_hist; we want to handle those similarly. -->
     <hist_file_extension>[a-z]+\.initial_hist\..*\.nc$</hist_file_extension>
+
+    <!-- Regular expression for the piece of the history file name following the
+         component name that is used to differentiate between different history file
+         streams. For CISM, history file names look like casename.cism.gris.h.*; we
+         want this to capture the "gris.h" portion of the filename, hence a regex,
+         "\w+\.\w+" -->
+    <hist_file_ext_regex>\w+\.\w+</hist_file_ext_regex>
+
     <rest_history_varname>unset</rest_history_varname>
 
     <!-- We need separate rpointer entries for each possible ice sheet. This is
