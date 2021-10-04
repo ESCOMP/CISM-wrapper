@@ -57,8 +57,8 @@ _CISM_CONFIG_GROUPS = ["grid", "glad_climate", "esm_output", "options", "sigma",
 #   relationship to compset names; follow the examples of other ice sheets there)
 # - cime_config/namelist_definition_cism.xml (defaults for this ice sheet for ice
 #   sheet-specific variables)
-# - cime_config/config_archive.xml (follow the examples for other ice sheets there, both
-#   in the main entries at the top and the test_file_names section)
+# - cime_config/config_archive.xml (add a new rpointer section for the new ice sheet, as
+#   well as rpointer test file entries for this new ice sheet)
 #
 # Optional:
 # - cime_config/config_compsets.xml (compset aliases using your new ice sheet)
