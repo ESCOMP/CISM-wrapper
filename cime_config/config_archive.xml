@@ -23,7 +23,11 @@
          needed for the sake of saving interim restart files (i.e., from a time other
          than the end of the run): the code to do this needs to know the details of
          all of the needed rpointer files, so having wildcard matches is not
-         sufficient. -->
+         sufficient. Note that, when interim restart sets are generated, this leads
+         to an rpointer file being created for each possible ice sheet; this can mean
+         that some unneeded rpointer files are created (e.g., a rpointer.glc.gris
+         file will be created in a run that just includes Antarctica, not Greenland),
+         but this doesn't seem to cause problems in practice. -->
     <rpointer>
       <rpointer_file>rpointer.glc.ais$NINST_STRING</rpointer_file>
       <rpointer_content>./$CASE.cism$NINST_STRING.ais.r.$DATENAME.nc</rpointer_content>
