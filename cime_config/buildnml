@@ -473,6 +473,7 @@ def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid,
                                                                   "sigma"])
 
     _set_restart_options(nmlgen, case,
+                         icesheet=icesheet,
                          run_type=run_type,
                          cism_observed_ic=cism_observed_ic,
                          cism_evolve_this_icesheet=config['cism_evolve_this_icesheet'],
@@ -545,7 +546,7 @@ def _get_effective_run_type(case):
     return run_type
 
 ###############################################################################
-def _set_restart_options(nmlgen, case, run_type, cism_observed_ic,
+def _set_restart_options(nmlgen, case, icesheet, run_type, cism_observed_ic,
                          cism_evolve_this_icesheet, inst_string):
 ###############################################################################
     """
@@ -554,6 +555,7 @@ def _set_restart_options(nmlgen, case, run_type, cism_observed_ic,
     Args:
     - nmlgen: nmlgen instance
     - case: case instance
+    - icesheet: name of this ice sheet
     - run_type: string - 'startup', 'hybrid' or 'branch'
     - cism_observed_ic: logical
     - cism_evolve_this_icesheet: string - '.true.' or '.false.'
@@ -592,14 +594,16 @@ def _set_restart_options(nmlgen, case, run_type, cism_observed_ic,
         run_refcase = case.get_value('RUN_REFCASE')
         run_refdate = case.get_value('RUN_REFDATE')
         rundir = case.get_value('RUNDIR')
-        filename = "{refcase}.cism{inst_string}.r.{refdate}-00000.nc".format(
-            refcase=run_refcase, inst_string=inst_string, refdate=run_refdate)
+        filename = "{refcase}.cism{inst_string}.{icesheet}.r.{refdate}-00000.nc".format(
+            refcase=run_refcase, inst_string=inst_string,
+            icesheet=icesheet, refdate=run_refdate)
         if not os.path.exists(os.path.join(rundir, filename)):
             # If the version with INST_STRING doesn't exist, try without INST_STRING. This
             # is needed when starting a multi-instance case from a single-instance
             # refcase.
-            filename = "{refcase}.cism.r.{refdate}-00000.nc".format(
-                refcase=run_refcase, refdate=run_refdate)
+            filename = "{refcase}.cism.{icesheet}.r.{refdate}-00000.nc".format(
+                refcase=run_refcase,
+                icesheet=icesheet, refdate=run_refdate)
 
         nmlgen.add_default('cisminputfile', filename, ignore_abs_path=True)
         restart = 1
