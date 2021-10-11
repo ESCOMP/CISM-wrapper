@@ -38,15 +38,25 @@ class MULTIVSSINGLE(SystemTestsCompareTwo):
         pass
 
     def _case_two_setup(self):
+        # Turn off the given ice sheet
         self._case.set_value("CISM_USE_{}".format(self._icesheet_xml_name), "FALSE")
         self._case.set_value("CISM_EVOLVE_{}".format(self._icesheet_xml_name), "FALSE")
 
+        # Remove the given ice sheet from GLC_GRID and related variables
         glc_grid = self._case.get_value("GLC_GRID")
-        glc_grid_names = glc_grid.split(GRID_SEP)
-        expect(len(glc_grid_names) >= 2, "expect at least two GLC grids")
-        remaining_grids = [one_grid for one_grid in glc_grid_names
-                           if not one_grid.startswith(self._icesheet_grid_name)]
-        expect(len(remaining_grids) == (len(glc_grid_names) - 1),
+        glc_grid_list = glc_grid.split(GRID_SEP)
+        expect(len(glc_grid_list) >= 2, "expect at least two GLC grids")
+        glc_domain_mesh = self._case.get_value("GLC_DOMAIN_MESH")
+        glc_domain_mesh_list = glc_domain_mesh.split(GRID_SEP)
+        glc_grid_list_new = []
+        glc_domain_mesh_list_new = []
+        for i, one_grid in enumerate(glc_grid_list):
+            if not one_grid.startswith(self._icesheet_grid_name):
+                glc_grid_list_new.append(one_grid)
+                glc_domain_mesh_list_new.append(glc_domain_mesh_list[i])
+        expect(len(glc_grid_list_new) == (len(glc_grid_list) - 1),
                "Expected exactly one grid to be removed")
-        glc_grid_new = ":".join(remaining_grids)
+        glc_grid_new = ":".join(glc_grid_list_new)
+        glc_domain_mesh_new = ":".join(glc_domain_mesh_list_new)
         self._case.set_value("GLC_GRID", glc_grid_new)
+        self._case.set_value("GLC_DOMAIN_MESH", glc_domain_mesh_new)
