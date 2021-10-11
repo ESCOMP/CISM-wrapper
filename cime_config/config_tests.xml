@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+
+<!--
+This defines various CISM-specific system tests
+-->
+
+<config_test>
+
+  <test NAME="MULTINOGRIS">
+    <DESC>Compare a multi-ice sheet run with an equivalent run without Greenland; the other icesheet(s) should be bit-for-bit</DESC>
+    <INFO_DBUG>1</INFO_DBUG>
+    <DOUT_S>FALSE</DOUT_S>
+    <CONTINUE_RUN>FALSE</CONTINUE_RUN>
+    <REST_OPTION>never</REST_OPTION>
+    <STOP_OPTION>nyears</STOP_OPTION>
+    <STOP_N>2</STOP_N>
+  </test>
+
+  <test NAME="MULTINOAIS">
+    <DESC>Compare a multi-ice sheet run with an equivalent run without Antarctica; the other icesheet(s) should be bit-for-bit</DESC>
+    <INFO_DBUG>1</INFO_DBUG>
+    <DOUT_S>FALSE</DOUT_S>
+    <CONTINUE_RUN>FALSE</CONTINUE_RUN>
+    <REST_OPTION>never</REST_OPTION>
+    <STOP_OPTION>nyears</STOP_OPTION>
+    <STOP_N>2</STOP_N>
+  </test>
+
+</config_test>
