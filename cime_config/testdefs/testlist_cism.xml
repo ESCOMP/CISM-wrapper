@@ -532,7 +532,7 @@
       <machine name="cheyenne" compiler="gnu" category="aux_glc">
         <options>
           <option name="wallclock">0:30</option>
-          <option name="comment">Basically duplicates a similar test on hobart_nag; I want a version on cheyenne so we do not need to do baseline comparisons on hobart</option>
+          <option name="comment">Basically duplicates a similar test on izumi_nag; I want a version on cheyenne so we do not need to do baseline comparisons on izumi</option>
         </options>
       </machine>
 
@@ -544,7 +544,7 @@
       <machine name="cheyenne" compiler="gnu" category="aux_glc">
         <options>
           <option name="wallclock">0:30</option>
-          <option name="comment">Basically duplicates a similar test on hobart_nag; I want a version on cheyenne so we do not need to do baseline comparisons on hobart</option>
+          <option name="comment">Basically duplicates a similar test on izumi_nag; I want a version on cheyenne so we do not need to do baseline comparisons on izumi</option>
         </options>
       </machine>
 

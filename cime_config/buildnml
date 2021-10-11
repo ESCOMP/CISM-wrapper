@@ -50,6 +50,8 @@ _CISM_CONFIG_GROUPS = ["grid", "glad_climate", "esm_output", "options", "sigma",
 #
 # It is important that this ordering be consistent with the ordering of grids in CIME's config_grids xml file.
 #
+# Problems may arise if one ice sheet's name is a prefix of another (e.g., "gris" and "grisa").
+#
 # If you add a new ice sheet here, you should also add entries in the following:
 #
 # Required:
