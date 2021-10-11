@@ -36,8 +36,8 @@
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>
     <default_value>FALSE</default_value>
-    <group>case_comp</group>
-    <file>env_case.xml</file>
+    <group>run_component_cism</group>
+    <file>env_run.xml</file>
     <values>
       <value compset="_CISM[^_]*%GRIS">TRUE</value>
 
@@ -48,19 +48,29 @@
       <value compset="_CISM2%EVOLVE_">TRUE</value>
       <value compset="_CISM2%NOEVOLVE_">TRUE</value>
     </values>
-    <desc>Whether to include the Greenland Ice Sheet in this CISM simulation</desc>
+    <desc>Whether to include the Greenland Ice Sheet in this CISM simulation
+
+    This should generally be set at create_newcase time. In principle it can be changed
+    later, but great care is needed to change a number of other variables to be consistent
+    (GLC_GRID, GLC_DOMAIN_MESH, CISM_EVOLVE_GREENLAND, and possibly others).
+    </desc>
   </entry>
 
   <entry id="CISM_USE_ANTARCTICA">
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>
     <default_value>FALSE</default_value>
-    <group>case_comp</group>
-    <file>env_case.xml</file>
+    <group>run_component_cism</group>
+    <file>env_run.xml</file>
     <values>
       <value compset="_CISM[^_]*%AIS">TRUE</value>
     </values>
-    <desc>Whether to include the Antarctica Ice Sheet in this CISM simulation</desc>
+    <desc>Whether to include the Antarctica Ice Sheet in this CISM simulation
+
+    This should generally be set at create_newcase time. In principle it can be changed
+    later, but great care is needed to change a number of other variables to be consistent
+    (GLC_GRID, GLC_DOMAIN_MESH, CISM_EVOLVE_ANTARCTICA, and possibly others).
+    </desc>
   </entry>
 
   <entry id="CISM_PHYS">
