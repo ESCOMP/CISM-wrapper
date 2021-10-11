@@ -18,29 +18,29 @@ logger = logging.getLogger(__name__)
 
 class MULTIVSSINGLE(SystemTestsCompareTwo):
 
-    def __init__(self, case, icesheet_xml_name, icesheet_grid_name):
+    def __init__(self, case, remove_icesheet_xml_name, remove_icesheet_grid_name):
         """Initialize this test instance
 
         The following specify the ice sheet to turn off:
-        - icesheet_xml_name is the name of the icesheet in xml variables like CISM_USE_* (e.g., GREENLAND)
-        - icesheet_grid_name is the name of the icesheet in the grid name (e.g., gris)
+        - remove_icesheet_xml_name is the name of the icesheet in xml variables like CISM_USE_* (e.g., GREENLAND)
+        - remove_icesheet_grid_name is the name of the icesheet in the grid name (e.g., gris)
         """
-        self._icesheet_xml_name = icesheet_xml_name
-        self._icesheet_grid_name = icesheet_grid_name
+        self._remove_icesheet_xml_name = remove_icesheet_xml_name
+        self._remove_icesheet_grid_name = remove_icesheet_grid_name
 
         SystemTestsCompareTwo.__init__(self, case,
                                        separate_builds=False,
                                        run_two_suffix="single",
                                        run_one_description="multiple ice sheets",
-                                       run_two_description="{} ice sheet removed".format(icesheet_grid_name))
+                                       run_two_description="{} ice sheet removed".format(remove_icesheet_grid_name))
 
     def _case_one_setup(self):
         pass
 
     def _case_two_setup(self):
         # Turn off the given ice sheet
-        self._case.set_value("CISM_USE_{}".format(self._icesheet_xml_name), "FALSE")
-        self._case.set_value("CISM_EVOLVE_{}".format(self._icesheet_xml_name), "FALSE")
+        self._case.set_value("CISM_USE_{}".format(self._remove_icesheet_xml_name), "FALSE")
+        self._case.set_value("CISM_EVOLVE_{}".format(self._remove_icesheet_xml_name), "FALSE")
 
         # Remove the given ice sheet from GLC_GRID and related variables
         glc_grid = self._case.get_value("GLC_GRID")
@@ -51,7 +51,7 @@ class MULTIVSSINGLE(SystemTestsCompareTwo):
         glc_grid_list_new = []
         glc_domain_mesh_list_new = []
         for i, one_grid in enumerate(glc_grid_list):
-            if not one_grid.startswith(self._icesheet_grid_name):
+            if not one_grid.startswith(self._remove_icesheet_grid_name):
                 glc_grid_list_new.append(one_grid)
                 glc_domain_mesh_list_new.append(glc_domain_mesh_list[i])
         expect(len(glc_grid_list_new) == (len(glc_grid_list) - 1),

@@ -16,5 +16,5 @@ class MULTINOAIS(MULTIVSSINGLE):
 
     def __init__(self, case):
         MULTIVSSINGLE.__init__(self, case,
-                               icesheet_xml_name="ANTARCTICA",
-                               icesheet_grid_name="ais")
+                               remove_icesheet_xml_name="ANTARCTICA",
+                               remove_icesheet_grid_name="ais")

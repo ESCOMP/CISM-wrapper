@@ -16,5 +16,5 @@ class MULTINOGRIS(MULTIVSSINGLE):
 
     def __init__(self, case):
         MULTIVSSINGLE.__init__(self, case,
-                               icesheet_xml_name="GREENLAND",
-                               icesheet_grid_name="gris")
+                               remove_icesheet_xml_name="GREENLAND",
+                               remove_icesheet_grid_name="gris")
