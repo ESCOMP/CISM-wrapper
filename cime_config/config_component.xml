@@ -50,9 +50,10 @@
     </values>
     <desc>Whether to include the Greenland Ice Sheet in this CISM simulation
 
-    This should generally be set at create_newcase time. In principle it can be changed
-    later, but great care is needed to change a number of other variables to be consistent
-    (GLC_GRID, GLC_DOMAIN_MESH, CISM_EVOLVE_GREENLAND, and possibly others).
+    This should generally be set at create_newcase time (via the compset). In principle it
+    can be changed later, but great care is needed to change a number of other variables
+    to be consistent (GLC_GRID, GLC_DOMAIN_MESH, CISM_EVOLVE_GREENLAND, and possibly
+    others).
     </desc>
   </entry>
 
@@ -67,9 +68,10 @@
     </values>
     <desc>Whether to include the Antarctica Ice Sheet in this CISM simulation
 
-    This should generally be set at create_newcase time. In principle it can be changed
-    later, but great care is needed to change a number of other variables to be consistent
-    (GLC_GRID, GLC_DOMAIN_MESH, CISM_EVOLVE_ANTARCTICA, and possibly others).
+    This should generally be set at create_newcase time (via the compset). In principle it
+    can be changed later, but great care is needed to change a number of other variables
+    to be consistent (GLC_GRID, GLC_DOMAIN_MESH, CISM_EVOLVE_ANTARCTICA, and possibly
+    others).
     </desc>
   </entry>
 
