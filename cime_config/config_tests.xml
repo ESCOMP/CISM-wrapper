@@ -14,6 +14,10 @@ This defines various CISM-specific system tests
     <REST_OPTION>never</REST_OPTION>
     <STOP_OPTION>nyears</STOP_OPTION>
     <STOP_N>2</STOP_N>
+    <!-- Need HIST_OPTION=never for this test because we expect answer
+         changes and variable name changes in the cpl hist file. We will
+         just compare CISM history files for this test. -->
+    <HIST_OPTION>never</HIST_OPTION>
   </test>
 
   <test NAME="MULTINOAIS">
@@ -24,6 +28,10 @@ This defines various CISM-specific system tests
     <REST_OPTION>never</REST_OPTION>
     <STOP_OPTION>nyears</STOP_OPTION>
     <STOP_N>2</STOP_N>
+    <!-- Need HIST_OPTION=never for this test because we expect answer
+         changes and variable name changes in the cpl hist file. We will
+         just compare CISM history files for this test. -->
+    <HIST_OPTION>never</HIST_OPTION>
   </test>
 
 </config_test>
