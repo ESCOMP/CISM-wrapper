@@ -11,6 +11,7 @@ Verifies that the remaining ice sheet(s) are bit-for-bit according to CISM histo
 """
 
 from CIME.SystemTests.system_tests_compare_two import SystemTestsCompareTwo
+from CIME.SystemTests.test_utils.user_nl_utils import append_to_user_nl_files
 from CIME.XML.grids import GRID_SEP
 from CIME.XML.standard_module_setup import *
 
@@ -34,8 +35,21 @@ class MULTIVSSINGLE(SystemTestsCompareTwo):
                                        run_one_description="multiple ice sheets",
                                        run_two_description="{} ice sheet removed".format(remove_icesheet_grid_name))
 
+    def _common_setup(self):
+        # Turn off history for CLM: We expect answer changes for CLM in the part of the
+        # world where we turn off one of the ice sheets in the single-ice sheet case.
+        append_to_user_nl_files(caseroot = self._get_caseroot(),
+                                component = "clm",
+                                contents = "hist_empty_htapes = .true.")
+
     def _case_one_setup(self):
-        pass
+        # Turn off history output for the given ice sheet in the multi-ice sheet case:
+        # otherwise, the comparison between the cases will fail due to a history file
+        # being present in one case but not the other.
+        append_to_user_nl_files(caseroot = self._get_caseroot(),
+                                component = "cism_{}".format(self._remove_icesheet_grid_name),
+                                # setting history_frequency to 10000 years should be effectively the same as 'never'
+                                contents = "history_frequency = 10000")
 
     def _case_two_setup(self):
         # Turn off the given ice sheet
