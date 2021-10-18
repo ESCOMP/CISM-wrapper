@@ -8,6 +8,15 @@ This is a CISM-specific test:
 Verifies that the remaining ice sheet(s) are bit-for-bit according to CISM history files
 (other history files should be turned off in this test).
 
+For this to work in an I compset test (or any compset that includes an active land model),
+there must not be any feedbacks between different grid cells in the land model - or at
+least no feedbacks that operate distantly enough so that turning off one ice sheet impacts
+results over the remaining ice sheet(s) in the land model. (If this becomes difficult to
+achieve, then we could stick to using T compsets (i.e., CISM forced by dlnd) for this
+test; in this case, we should probably force the renormalization of SMB to be turned on
+for this test: renormalization is off by default for T compsets, and it would be helpful
+to have renormalization on to cover that code in this test.)
+
 """
 
 from CIME.SystemTests.system_tests_compare_two import SystemTestsCompareTwo
