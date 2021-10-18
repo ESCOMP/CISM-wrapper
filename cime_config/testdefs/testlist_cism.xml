@@ -181,18 +181,6 @@
 
     </machines>
   </test>
-  <test name="ERI_C2_Ly9" grid="f09_g17_gris20" compset="T1850Gg">
-    <machines>
-
-      <machine name="cheyenne" compiler="gnu" category="aux_glc">
-        <options>
-          <option name="wallclock">0:45</option>
-          <option name="comment">Include a multi-instance ERI test to catch problems with multi-instance branch/hybrid runs</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
 
   <test name="ERS_Vmct_Ly3_N2_D" grid="f09_g17_gris20" compset="T1850Gg">
     <machines>
@@ -407,12 +395,12 @@
 
     </machines>
   </test>
-  <test name="ERS_Lm24" grid="f10_f10_mg37" compset="I1850Clm50SpG">
+  <test name="ERS_Lm24" grid="f10_f10_ais8gris4_mg37" compset="I1850Clm50SpGag">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="aux_glc">
         <options>
-          <option name="wallclock">1:59</option>
+          <option name="wallclock">1:59:00</option>
           <!-- 2016-10-25: At least in the ERS_Ly5 test: There is a big jump in
                memory at the start of year 2. In the 5-year run, things then
                stay roughly constant after that. Note that the start of year 2
@@ -420,7 +408,7 @@
                expected behavior. Thus, I believe this is not actually a
                problem. -->
           <option name="memleak_tolerance">0.34</option>
-          <option name="comment">Mid-year exact restart test</option>
+          <option name="comment">Mid-year exact restart test. Also covers multiple ice sheets in a multi-year I compset test.</option>
         </options>
       </machine>
 
@@ -526,99 +514,32 @@
     </machines>
   </test>
 
-  <test name="SMS_Vmct_D" grid="T31_g37_gris20" compset="I1850Clm50SpG" testmods="cism/test_coupling">
+  <test name="SMS_D_Ld5" grid="f10_f10_ais8gris4_mg37" compset="I1850Clm50SpGag" testmods="cism/test_coupling">
     <machines>
 
       <machine name="cheyenne" compiler="gnu" category="aux_glc">
         <options>
-          <option name="wallclock">0:30</option>
-          <option name="comment">Basically duplicates a similar test on izumi_nag; I want a version on cheyenne so we do not need to do baseline comparisons on izumi</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
-  <test name="SMS_D" grid="T31_g37_gris20" compset="I1850Clm50SpG" testmods="cism/test_coupling">
-    <machines>
-
-      <machine name="cheyenne" compiler="gnu" category="aux_glc">
-        <options>
-          <option name="wallclock">0:30</option>
-          <option name="comment">Basically duplicates a similar test on izumi_nag; I want a version on cheyenne so we do not need to do baseline comparisons on izumi</option>
+          <option name="wallclock">0:30:00</option>
+          <option name="comment">Include a short debug I compset test with both Antarctica and Greenland (basically duplicates a test on izumi, so we don't need to do baseline comparisons on izumi)</option>
         </options>
       </machine>
 
     </machines>
   </test>
 
-  <test name="SMS_D" grid="f10_f10_ais8_mg37" compset="I1850Clm50SpGa" testmods="cism/test_coupling">
-    <machines>
-
-      <machine name="cheyenne" compiler="gnu" category="aux_glc">
-        <options>
-          <option name="wallclock">0:30</option>
-          <option name="comment">include a short debug I compset test with Antarctica</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
-
-  <test name="SMS_Vmct_D_Ld5_P24x1" grid="T31_g37_gris20" compset="I1850Clm50SpG" testmods="cism/test_coupling">
+  <test name="SMS_D_Ld5_P24x1" grid="f10_f10_ais8gris4_mg37" compset="I1850Clm50SpGag" testmods="cism/test_coupling">
     <machines>
 
       <machine name="izumi" compiler="nag" category="aux_glc">
         <options>
-          <option name="wallclock">1:59</option>
-          <!-- 2016-10-25: There is an increase of about 10 MB per day over the
-               5 days of this test. This may truly be a memory leak. But this
-               'test_coupling' configuration is a hacky configuration made just
-               for testing, so I'm not too concerned about it.  -->
-          <option name="memleak_tolerance">0.24</option>
-          <option name="comment">IG nag debug test, to check logic for fields sent from glc to lnd</option>
+          <option name="wallclock">1:59:00</option>
+          <option name="comment">IG nag debug test with both Antarctica and Greenland, to check logic for fields sent from glc to lnd</option>
         </options>
       </machine>
 
       <machine name="izumi" compiler="nag" category="prealpha">
         <options>
-          <option name="wallclock">1:59</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
-
-  <test name="SMS_D_Ld5_P24x1" grid="T31_g37_gris20" compset="I1850Clm50SpG" testmods="cism/test_coupling">
-    <machines>
-
-      <machine name="izumi" compiler="nag" category="aux_glc">
-        <options>
-          <option name="wallclock">1:59</option>
-          <!-- 2016-10-25: There is an increase of about 10 MB per day over the
-               5 days of this test. This may truly be a memory leak. But this
-               'test_coupling' configuration is a hacky configuration made just
-               for testing, so I'm not too concerned about it.  -->
-          <option name="memleak_tolerance">0.24</option>
-          <option name="comment">IG nag debug test, to check logic for fields sent from glc to lnd</option>
-        </options>
-      </machine>
-
-      <machine name="izumi" compiler="nag" category="prealpha">
-        <options>
-          <option name="wallclock">1:59</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
-
-  <test name="SMS_D_Ld5_P24x1" grid="f10_f10_ais8_mg37" compset="I1850Clm50SpGa" testmods="cism/test_coupling">
-    <machines>
-
-      <machine name="izumi" compiler="nag" category="aux_glc">
-        <options>
-          <option name="wallclock">1:59</option>
-          <option name="comment">IG nag debug test with Antarctica</option>
+          <option name="wallclock">1:59:00</option>
         </options>
       </machine>
 
@@ -893,12 +814,85 @@
     </machines>
   </test>
 
+  <test name="ERS_D_Ly3" grid="f09_g17_ais8gris4" compset="T1850Gag">
+    <machines>
+
+      <machine name="cheyenne" compiler="intel" category="aux_glc">
+        <options>
+          <option name="wallclock">1:00:00</option>
+          <option name="comment">Include an ERS_D test with multiple ice sheets</option>
+        </options>
+      </machine>
+
+    </machines>
+  </test>
+
+  <test name="ERI_C2_Ly9" grid="f09_g17_ais8gris4" compset="T1850Gag">
+    <machines>
+
+      <machine name="cheyenne" compiler="gnu" category="aux_glc">
+        <options>
+          <option name="wallclock">0:50:00</option>
+          <option name="comment">This test covers a lot of things we want: (1) a multi-instance ERI test (to catch problems with multi-instance branch/hybrid runs); (2) a multi-ice sheet ERI test; (3) a multi-instance multi-ice sheet test.</option>
+        </options>
+      </machine>
+
+    </machines>
+  </test>
+
+  <test name="IRT_Ly5" grid="f09_g17_ais8gris4" compset="T1850Gag">
+    <machines>
+
+      <machine name="cheyenne" compiler="gnu" category="aux_glc">
+        <options>
+          <option name="wallclock">0:30:00</option>
+          <option name="comment">Include a multi-ice sheet IRT test to test saving and restoring interim restart files to/from the archive (partly because the specification of interim restart file patterns for multiple ice sheets in config_archive.xml is a bit tricky).</option>
+        </options>
+      </machine>
+
+    </machines>
+  </test>
+
+  <test name="MULTINOAIS_Ly2" grid="f10_f10_ais8gris4_mg37" compset="I1850Clm50SpRsGag" testmods="cism/change_params">
+    <machines>
+
+      <machine name="cheyenne" compiler="intel" category="aux_glc">
+        <options>
+          <option name="wallclock">1:50:00</option>
+          <option name="comment">Compare a run with Antarctica and Greenland against a run with just Greenland; Greenland should be bit-for-bit in the two runs. Using an I compset test to exercise smb renormalization and possibly other code. The use of the change_params testmod is not critical for this test, but this test is a useful one for exercising that testmod.</option>
+        </options>
+      </machine>
+
+      <machine name="cheyenne" compiler="intel" category="prealpha">
+        <options>
+          <option name="wallclock">1:50:00</option>
+          <option name="comment">Compare a run with Antarctica and Greenland against a run with just Greenland; Greenland should be bit-for-bit in the two runs. Using an I compset test to exercise smb renormalization and possibly other code. The use of the change_params testmod is not critical for this test, but this test is a useful one for exercising that testmod.</option>
+        </options>
+      </machine>
+
+    </machines>
+  </test>
+
+  <test name="MULTINOGRIS_Ly2" grid="f10_f10_ais8gris4_mg37" compset="I1850Clm50SpRsGag" testmods="cism/change_params">
+    <machines>
+
+      <machine name="cheyenne" compiler="intel" category="aux_glc">
+        <options>
+          <option name="wallclock">1:50:00</option>
+          <option name="comment">Compare a run with Antarctica and Greenland against a run with just Antarctica; Antarctica should be bit-for-bit in the two runs. Using an I compset test to exercise smb renormalization and possibly other code. The use of the change_params testmod is not critical for this test, but this test is a useful one for exercising that testmod.</option>
+        </options>
+      </machine>
+
+    </machines>
+  </test>
+
   <!-- aux_cime_baselines category
 
        For the sake of making sure cime hasn't inadvertently changed
        answers, make sure we cover a T compset (to test dlnd) and an I
        compset with test_coupling (to test both directions of two-way
-       coupling).
+       coupling); note that the test_coupling test also tests multiple
+       ice sheets.
   -->
 
   <test name="SMS_Ly2" grid="f09_g17_gris20" compset="T1850Gg">
@@ -906,19 +900,19 @@
 
       <machine name="cheyenne" compiler="intel" category="aux_cime_baselines">
         <options>
-          <option name="wallclock">0:30</option>
+          <option name="wallclock">0:30:00</option>
         </options>
       </machine>
 
     </machines>
   </test>
 
-  <test name="SMS_Ld5" grid="T31_g37_gris20" compset="I1850Clm50SpG" testmods="cism/test_coupling">
+  <test name="SMS_Ld5" grid="f10_f10_ais8gris4_mg37" compset="I1850Clm50SpGag" testmods="cism/test_coupling">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="aux_cime_baselines">
         <options>
-          <option name="wallclock">0:30</option>
+          <option name="wallclock">0:30:00</option>
         </options>
       </machine>
 

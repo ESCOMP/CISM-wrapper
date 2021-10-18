@@ -1,0 +1,22 @@
+This testmod value tests changing parameters in a multiple ice sheet run
+(with both Antarctica and Greenland) via setting different user_nl
+values for each ice sheet. The point of this is largely to test the
+buildnml code, but I can't think of an easy way to just cover the
+buildnml code.
+
+The ideal way to use this testmod is in a test that compares a multiple
+ice sheet run with a single ice sheet run, though it can also work to
+include it in any test with multiple ice sheets. (In the latter case,
+the baseline comparisons would be doing most of the work to ensure that
+things are working correctly.)
+
+This testmod includes:
+
+(1) A parameter value set in user_nl_cism that applies to both ice
+    sheets (flow_factor)
+
+(2) A parameter value that is set to one thing in user_nl_cism but then
+    overridden with different values in user_nl_cism_ais and
+    user_nl_cism_gris (so there are 3 different values in total; the ice
+    sheet-specific values should override the general value)
+    (effstrain_min).

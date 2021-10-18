@@ -8,6 +8,11 @@ This is a CISM-specific test:
 Verifies that the remaining ice sheet(s) are bit-for-bit according to CISM history files
 (other history files should be turned off in this test).
 
+This test type cannot be instantiated directly. Instead, it needs to be subclassed by a
+specific test type that specifies which ice sheet should be removed in the single ice
+sheet run. The subclass simply needs to have an __init__ method that calls the __init__
+method of this base class with the appropriate arguments.
+
 For this to work in an I compset test (or any compset that includes an active land model),
 there must not be any feedbacks between different grid cells in the land model - or at
 least no feedbacks that operate distantly enough so that turning off one ice sheet impacts
