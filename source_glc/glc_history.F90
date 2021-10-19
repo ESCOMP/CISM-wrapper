@@ -42,7 +42,9 @@ module glc_history
      class(history_tape_base_type), allocatable :: history_tape
   end type history_tape_container
 
-  type(history_tape_container), allocatable :: history_tapes(:)
+  ! This needs to have the target attribute so we can point to it in glc_history_write;
+  ! that is needed to work around a pgi compiler bug.
+  type(history_tape_container), allocatable, target :: history_tapes(:)
 
 contains
 
@@ -134,9 +136,18 @@ contains
     type(glad_instance), intent(inout) :: instance
     type(ESMF_Clock),     intent(in)    :: EClock
     logical, intent(in), optional :: initial_history
+
+    class(history_tape_base_type), pointer :: htape_ptr
     !-----------------------------------------------------------------------
 
-    call history_tapes(instance_index)%history_tape%write_history(instance, EClock, initial_history)
+    ! COMPILER_BUG(wjs, 2021-10-18, pgi20.1) With a straightforward call like this:
+    !     call history_tapes(instance_index)%history_tape%write_history(instance, EClock, initial_history)
+    ! pgi20.1 fails with:
+    !     /tmp/pgf90PFtg7F9Be42q.ll:1034:16: error: use of undefined type named 'struct.BSS4'
+    !         %20 = bitcast %struct.BSS4* @.BSS4 to i8*, !dbg !14930
+    ! Adding this pointer indirection prevents this compiler error
+    htape_ptr => history_tapes(instance_index)%history_tape
+    call htape_ptr%write_history(instance, EClock, initial_history)
     
   end subroutine glc_history_write
 
