@@ -840,7 +840,7 @@
     </machines>
   </test>
 
-  <test name="IRT_Ly5" grid="f09_g17_ais8gris4" compset="T1850Gag">
+  <test name="IRT_Ly5_P24x1" grid="f09_g17_ais8gris4" compset="T1850Gag">
     <machines>
 
       <!-- BUG(wjs, 2021-10-20, ESMCI/cime#3978) I wanted this test to
