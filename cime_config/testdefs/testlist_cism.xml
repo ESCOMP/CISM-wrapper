@@ -843,7 +843,16 @@
   <test name="IRT_Ly5" grid="f09_g17_ais8gris4" compset="T1850Gag">
     <machines>
 
-      <machine name="cheyenne" compiler="gnu" category="aux_glc">
+      <!-- BUG(wjs, 2021-10-20, ESMCI/cime#3978) I wanted this test to
+           be on cheyenne_gnu. However, IRT tests are currently failing
+           in the GENERATE phase (and presumably would fail in the
+           COMPARE phase, too). So for now I'm putting this test on
+           izumi_nag, since we don't do baseline generation or
+           comparison on izumi. Once ESMCI/cime#3978 is resolved,
+           probably move this back to cheyenne_gnu (though it isn't
+           really critical for baseline generation and comparison to be
+           done with this test). -->
+      <machine name="izumi" compiler="nag" category="aux_glc">
         <options>
           <option name="wallclock">0:30:00</option>
           <option name="comment">Include a multi-ice sheet IRT test to test saving and restoring interim restart files to/from the archive (partly because the specification of interim restart file patterns for multiple ice sheets in config_archive.xml is a bit tricky).</option>
