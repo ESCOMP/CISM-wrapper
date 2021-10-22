@@ -18,7 +18,7 @@ module glc_comp_mct
   use glc_import_export
   use glc_cpl_indices
   use glc_constants,       only: verbose, stdout, stderr, radius
-  use glc_constants,       only: zero_gcm_fluxes, model_doi_url
+  use glc_constants,       only: zero_gcm_fluxes, model_doi_url, icesheet_names
   use glc_InitMod,         only: glc_initialize
   use glc_RunMod,          only: glc_run
   use glc_FinalMod,        only: glc_final
@@ -65,7 +65,7 @@ CONTAINS
     use glc_ensemble       , only : set_inst_vars, write_inst_vars, get_inst_name
     use glc_files          , only : set_filenames, ionml_filename
     use glc_coupling_flags , only : has_ocn_coupling, has_ice_coupling
-    use glc_indexing       , only : nx_tot, ny_tot, npts
+    use glc_indexing       , only : get_nx_tot, get_ny_tot, get_npts
     
     ! input/output parameters:
 
@@ -217,15 +217,15 @@ CONTAINS
          glcice_present = has_ice_coupling(), &
          glc_prognostic = .true., &
          glc_coupled_fluxes = glc_coupled_fluxes, &
-         glc_nx=nx_tot, &
-         glc_ny=ny_tot)
+         glc_nx=get_nx_tot(instance_index=1), &
+         glc_ny=get_ny_tot(instance_index=1))
 
     ! Initialize MCT attribute vectors
 
-    call mct_aVect_init(g2x, rList=seq_flds_g2x_fields, lsize=npts)
+    call mct_aVect_init(g2x, rList=seq_flds_g2x_fields, lsize=get_npts(instance_index=1))
     call mct_aVect_zero(g2x)
 
-    call mct_aVect_init(x2g, rList=seq_flds_x2g_fields, lsize=npts)
+    call mct_aVect_init(x2g, rList=seq_flds_x2g_fields, lsize=get_npts(instance_index=1))
     call mct_aVect_zero(x2g)
 
     ! Create initial glc export state
@@ -367,8 +367,7 @@ subroutine glc_run_mct( EClock, cdata, x2g, g2x)
 
     rest_alarm = seq_timemgr_RestartAlarmIsOn( EClock )
     if (rest_alarm) then
-       ! TODO loop over instances
-       call glc_io_write_restart(ice_sheet%instances(1), EClock)
+       call glc_io_write_restart(ice_sheet%instances(1), icesheet_names(1), EClock)
     endif
 
     ! Reset shr logging to original values
@@ -454,7 +453,7 @@ subroutine glc_setgsmap_mct( mpicom_g, GLCID, gsMap_g )
   
   ! Initialize MCT global seg map
   
-  use glc_indexing, only : local_to_global_indices, npts_tot
+  use glc_indexing, only : local_to_global_indices, get_npts_tot
 
   integer        , intent(in)  :: mpicom_g
   integer        , intent(in)  :: GLCID
@@ -472,7 +471,8 @@ subroutine glc_setgsmap_mct( mpicom_g, GLCID, gsMap_g )
   ! npts_tot is the number of grid cells on CISM's global grid. It is passed to
   ! mct_gsMapinit in case there are ice-free grid cells on the global grid that are not
   ! assigned to any processor.
-  call mct_gsMap_init( gsMap_g, local_to_global_indices(), mpicom_g, GLCID, gsize = npts_tot)
+  call mct_gsMap_init( gsMap_g, local_to_global_indices(instance_index=1), mpicom_g, GLCID, &
+       gsize = get_npts_tot(instance_index=1))
 
 end subroutine glc_SetgsMap_mct
 
@@ -480,7 +480,7 @@ end subroutine glc_SetgsMap_mct
 
   subroutine glc_domain_mct( gsMap_g, dom_g )
 
-    use glc_indexing, only : npts, nx, ny, spatial_to_vector
+    use glc_indexing, only : get_npts, get_nx, get_ny, spatial_to_vector
     use glad_main, only : glad_get_lat_lon, glad_get_areas
     
     !-------------------------------------------------------------------
@@ -489,6 +489,7 @@ end subroutine glc_SetgsMap_mct
 
     ! Local Variables
 
+    integer :: npts, nx, ny
     integer :: i,n                ! index
     real(r8), pointer :: data(:)  ! temporary
     integer , pointer :: idata(:) ! temporary
@@ -497,6 +498,10 @@ end subroutine glc_SetgsMap_mct
     real(r8), allocatable :: areas(:,:) ! area of each point (square meters)
     character(*), parameter :: subName = "(glc_domain_mct) "
     !-------------------------------------------------------------------
+
+    npts = get_npts(instance_index=1)
+    nx = get_nx(instance_index=1)
+    ny = get_ny(instance_index=1)
 
     ! Initialize mct domain type
 
@@ -524,18 +529,23 @@ end subroutine glc_SetgsMap_mct
     allocate(lons(nx, ny))
     allocate(areas(nx, ny))
     
-    ! TODO(wjs, 2015-04-02) The following may need a loop over instances
     call glad_get_lat_lon(ice_sheet, instance_index = 1, &
          lats = lats, lons = lons)
     call glad_get_areas(ice_sheet, instance_index = 1, areas = areas)
 
-    call spatial_to_vector(lons, data)
+    call spatial_to_vector(instance_index=1, &
+         arr_spatial = lons, &
+         arr_vector = data)
     call mct_gGrid_importRattr(dom_g,"lon",data,npts) 
 
-    call spatial_to_vector(lats, data)
+    call spatial_to_vector(instance_index=1, &
+         arr_spatial = lats, &
+         arr_vector = data)
     call mct_gGrid_importRattr(dom_g,"lat",data,npts) 
 
-    call spatial_to_vector(areas, data)
+    call spatial_to_vector(instance_index=1, &
+         arr_spatial = areas, &
+         arr_vector = data)
     ! convert from m^2 to radians^2
     data = data/(radius*radius)
     call mct_gGrid_importRattr(dom_g,"area",data,npts) 

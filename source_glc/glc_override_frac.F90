@@ -5,7 +5,10 @@ module glc_override_frac
   !---------------------------------------------------------------------------
   ! !DESCRIPTION:
   ! This module provides functionality to allow overriding the ice fractions (i.e., the
-  ! ice_covered field) and topographic heights that are sent to the coupler
+  ! ice_covered field) and topographic heights that are sent to the coupler.
+  !
+  ! It currently is not fully general for multiple ice sheets: all ice sheets will share
+  ! the same overrides. But this is okay, since it is only used for software testing.
 
   ! !USES:
 

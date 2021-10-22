@@ -191,59 +191,6 @@ Sub-elements of each entry include:
   </entry>
 
   <!-- =============================================================  -->
-  <!-- group: cism_history                                            -->
-  <!-- =============================================================  -->
-
-  <!-- TODO(wjs, 2021-02-25) I think we'll need to move this to
-       cism.icesheet.config, since we will allow cism_evolve to differ
-       for each ice sheet -->
-  <entry id="cesm_history_vars" >
-    <type>char</type>
-    <category>history</category>
-    <group>cism_history</group>
-    <values>
-      <value cism_evolve=".true." >smb artm thk usurf topg uvel vvel temp bmlt bwat beta_internal floating_mask grounded_mask bpmp acab_applied bmlt_applied calving_rate iareaf iareag imass imass_above_flotation total_smb_flux total_bmb_flux total_calving_flux total_gl_flux ice_sheet_mask ice_cap_mask</value>
-      <value cism_evolve=".false.">smb artm thk usurf topg</value>
-    </values>
-    <desc>
-      Space-delimited list of variables output to history file
-      Default: Depends on physics and ice evolution options
-    </desc>
-  </entry>
-
-  <entry id="history_option">
-    <type>char</type>
-    <category>history</category>
-    <group>cism_history</group>
-    <valid_values>nyears,coupler</valid_values>
-    <values>
-      <value>nyears</value>
-    </values>
-    <desc>
-      How history frequency is specified
-      nyears: Write history every N years
-      coupler: Get history frequency from coupler (HIST_OPTION/HIST_N xml variables)
-               WARNING: SHOULD NOT BE USED IN PRODUCTION RUNS - frequency metadata not set properly
-      Default: nyears
-    </desc>
-  </entry>
-
-  <entry id="history_frequency">
-    <type>integer</type>
-    <category>history</category>
-    <group>cism_history</group>
-    <values>
-      <value>1</value>
-    </values>
-    <desc>
-      History frequency
-      e.g., if history_option=nyears, then 1 = annual, 2 = every two years, etc.
-      Ignored for history_option = 'coupler'
-      Default: 1
-    </desc>
-  </entry>
-
-  <!-- =============================================================  -->
   <!-- group: time_manager_nml                                        -->
   <!-- =============================================================  -->
 
@@ -686,6 +633,56 @@ Sub-elements of each entry include:
     <desc>
       Ice time-step multiplier: allows asynchronous climate-ice coupling
       Default: (use hard-coded default- currently 1)
+    </desc>
+  </entry>
+
+  <!-- =============================================================  -->
+  <!-- group: cism.icesheet.config: esm_output                        -->
+  <!-- =============================================================  -->
+
+  <entry id="esm_history_vars" >
+    <type>char</type>
+    <category>cism_config_history</category>
+    <group>esm_output</group>
+    <values>
+      <value cism_evolve_this_icesheet=".true." >smb artm thk usurf topg uvel vvel temp bmlt bwat beta_internal floating_mask grounded_mask bpmp acab_applied bmlt_applied calving_rate iareaf iareag imass imass_above_flotation total_smb_flux total_bmb_flux total_calving_flux total_gl_flux ice_sheet_mask ice_cap_mask</value>
+      <value cism_evolve_this_icesheet=".false.">smb artm thk usurf topg</value>
+    </values>
+    <desc>
+      Space-delimited list of variables output to history file
+      Default: Depends on physics and ice evolution options
+    </desc>
+  </entry>
+
+  <entry id="history_option">
+    <type>char</type>
+    <category>cism_config_history</category>
+    <group>esm_output</group>
+    <valid_values>nyears,coupler</valid_values>
+    <values>
+      <value>nyears</value>
+    </values>
+    <desc>
+      How history frequency is specified
+      nyears: Write history every N years
+      coupler: Get history frequency from coupler (HIST_OPTION/HIST_N xml variables)
+               WARNING: SHOULD NOT BE USED IN PRODUCTION RUNS - frequency metadata not set properly
+      Default: nyears
+    </desc>
+  </entry>
+
+  <entry id="history_frequency">
+    <type>integer</type>
+    <category>cism_config_history</category>
+    <group>esm_output</group>
+    <values>
+      <value>1</value>
+    </values>
+    <desc>
+      History frequency
+      e.g., if history_option=nyears, then 1 = annual, 2 = every two years, etc.
+      Ignored for history_option = 'coupler'
+      Default: 1
     </desc>
   </entry>
 

@@ -18,8 +18,10 @@ module glc_comp_nuopc
   use shr_sys_mod         , only : shr_sys_abort
   use shr_cal_mod         , only : shr_cal_ymd2date
   use shr_kind_mod        , only : r8 => shr_kind_r8, cl=>shr_kind_cl, cs=>shr_kind_cs
+  use shr_string_mod      , only : shr_string_listGetNum, shr_string_listGetName
   use glc_import_export   , only : advertise_fields, realize_fields, export_fields, import_fields
-  use glc_constants       , only : verbose, stdout, model_doi_url
+  use glc_import_export   , only : get_num_icesheets
+  use glc_constants       , only : verbose, stdout, model_doi_url, num_icesheets, icesheet_names
   use glc_InitMod         , only : glc_initialize
   use glc_RunMod          , only : glc_run
   use glc_FinalMod        , only : glc_final
@@ -27,8 +29,8 @@ module glc_comp_nuopc
   use glc_communicate     , only : init_communicate, my_task, master_task
   use glc_time_management , only : iyear,imonth,iday,ihour,iminute,isecond,runtype
   use glc_fields          , only : ice_sheet
-  use glc_indexing        , only : nx_tot, ny_tot, local_to_global_indices
-  use glc_indexing        , only : npts, nx, ny, spatial_to_vector
+  use glc_indexing        , only : local_to_global_indices
+  use glc_indexing        , only : get_npts, get_nx, get_ny, spatial_to_vector
   use glc_ensemble        , only : set_inst_vars
   use glc_files           , only : set_filenames, ionml_filename
   use glad_main           , only : glad_get_lat_lon
@@ -54,8 +56,9 @@ module glc_comp_nuopc
   !--------------------------------------------------------------------------
 
   logical                    :: cism_evolve
+  character(ESMF_MAXSTR)     :: mesh_glc_list ! colon-delimited list of meshes
   integer                    :: lmpicom
-  character(len=16)          :: inst_name ! full name of current instance (e.g., GLC_0001)
+  character(len=16)          :: inst_name ! full name of current instance (in the CESM multi-instance/ensemble sense; e.g., GLC_0001)
   integer, parameter         :: dbug = 1
   integer                    :: nthrds  ! Number of openMP threads per mpi task
   character(len=*),parameter :: modName =  "(glc_comp_nuopc)"
@@ -155,9 +158,10 @@ contains
     integer                :: shrlogunit  ! original log unit
     integer                :: i,j,n
     character(len=CL)      :: logmsg
-    integer                :: inst_index    ! number of current instance (e.g., 1)
+    integer                :: inst_index    ! number of current instance (in the CESM multi-instance/ensemble sense; e.g., 1)
     character(len=16)      :: inst_suffix   ! character string associated with instance number
     logical                :: glc_coupled_fluxes ! are we sending fluxes to other components?
+    integer                :: num_icesheets_from_mediator ! number of icesheets in this run
     character(len=*), parameter :: subname=trim(modName)//':(InitializeAdvertise) '
     character(len=*), parameter :: format = "('("//trim(subname)//") :',A)"
     !-------------------------------------------------------------------------------
@@ -201,8 +205,16 @@ contains
        call shr_sys_abort(subname//'Need to set cism_evolve')
     endif
 
+    ! Get colon delimited string of mesh filenames
+    call NUOPC_CompAttributeGet(gcomp, name='mesh_glc', value=mesh_glc_list, rc=rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    num_icesheets_from_mediator = shr_string_listGetNum(mesh_glc_list)
+    if (my_task == master_task) then
+       write(stdout,'(a,i4)')'number of ice sheets is ',num_icesheets_from_mediator
+    end if
+
     ! Advertise fields
-    call advertise_fields(gcomp, cism_evolve, rc)
+    call advertise_fields(gcomp, cism_evolve, num_icesheets_from_mediator, rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     if (dbug > 5) then
@@ -224,7 +236,7 @@ contains
 
     ! local variables
     type(ESMF_Mesh), allocatable :: mesh(:)          ! esmf meshes for ice sheets
-    type(ESMF_DistGrid)     :: DistGrid              ! esmf global index space descriptor
+    type(ESMF_DistGrid), allocatable :: DistGrid(:)  ! esmf global index space descriptor, per ice sheet
     type(ESMF_Time)         :: currTime              ! Current time
     type(ESMF_Time)         :: startTime             ! Start time
     type(ESMF_Time)         :: stopTime              ! Stop time
@@ -240,6 +252,7 @@ contains
     integer                 :: curr_ymd              ! Start date (YYYYMMDD)
     integer                 :: curr_tod              ! Start time of day (sec)
     character(ESMF_MAXSTR)  :: cvalue                ! config data
+    character(ESMF_MAXSTR)  :: mesh_glc_filename     ! mesh filename for kth icesheet
     integer                 :: g,n                   ! indices
     character(len=CL)       :: caseid                ! case identifier name
     character(len=CL)       :: starttype             ! start-type (startup, continue, branch, hybrid)
@@ -254,8 +267,9 @@ contains
     integer                 :: elementCount
     integer                 :: localPet
     integer                 :: i,j,ns
+    integer                 :: npts,nx,ny
     integer, allocatable    :: gindex(:)
-    integer                 :: num_icesheets
+    integer                 :: num_icesheets_from_mediator
     character(*), parameter :: F00   = "('(InitializeRealize) ',8a)"
     character(*), parameter :: F01   = "('(InitializeRealize) ',a,8i8)"
     character(*), parameter :: F91   = "('(InitializeRealize) ',73('-'))"
@@ -353,31 +367,34 @@ contains
     ! Realize the actively coupled fields
     !--------------------------------
 
-    call NUOPC_CompAttributeGet(gcomp, name='num_icesheets', value=cvalue, rc=rc)
-    if (chkerr(rc,__LINE__,u_FILE_u)) return
-    read(cvalue,*) num_icesheets
+    ! Consistency checks
 
+    num_icesheets_from_mediator = get_num_icesheets()
+    if (num_icesheets_from_mediator /= num_icesheets) then
+       write(stdout,*) 'num_icesheets from mediator: ', num_icesheets_from_mediator
+       write(stdout,*) 'num_icesheets from cism namelist: ', num_icesheets
+       call shr_sys_abort('num_icesheets from mediator differs from number set in cism namelist')
+    end if
+
+    ! Allocate and read in mesh array
+    allocate(DistGrid(num_icesheets))
     allocate(mesh(num_icesheets))
     do ns = 1,num_icesheets
+       ! determine mesh filename
+       call shr_string_listGetName(mesh_glc_list, ns, mesh_glc_filename)
+       if (my_task == master_task) then
+          write(stdout,'(a,i4,a)')'mesh file for ice_sheeet_domain ',ns,' is ',trim(mesh_glc_filename)
+       end if
+
        ! create distGrid from global index array
-       ! TODO: this must be generalized so that gindex depends on the mesh
-       ! so local_to_global indices will depend on the target ice sheet
-       gindex = local_to_global_indices()
-       DistGrid = ESMF_DistGridCreate(arbSeqIndexList=gindex, rc=rc)
+       gindex = local_to_global_indices(instance_index=ns)
+       DistGrid(ns) = ESMF_DistGridCreate(arbSeqIndexList=gindex, rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
        deallocate(gindex)
 
-       ! Determine the mesh for ice sheet ns
-       ! TODO: this must be generalized so mesh_glcN refers to the target ice sheet
-       call NUOPC_CompAttributeGet(gcomp, name='mesh_glc', value=cvalue, rc=rc)
-       if (ChkErr(rc,__LINE__,u_FILE_u)) return
-       if (my_task == master_task) then
-          write(stdout,'(a,i4,a)')'mesh file for ice_sheeet_domain ',ns,' is ',trim(cvalue)
-       end if
-
        ! read in the ice sheet mesh on the cism decomposition
-       mesh(ns) = ESMF_MeshCreate(filename=trim(cvalue), fileformat=ESMF_FILEFORMAT_ESMFMESH, &
-            elementDistgrid=Distgrid,  rc=rc)
+       mesh(ns) = ESMF_MeshCreate(filename=trim(mesh_glc_filename), fileformat=ESMF_FILEFORMAT_ESMFMESH, &
+            elementDistgrid=Distgrid(ns),  rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
     end do
 
@@ -390,6 +407,10 @@ contains
     !--------------------------------
 
     do ns = 1,num_icesheets
+       npts = get_npts(instance_index=ns)
+       nx = get_nx(instance_index=ns)
+       ny = get_ny(instance_index=ns)
+
        ! obtain mesh lats and lons
        call ESMF_MeshGet(mesh(ns), spatialDim=spatialDim, numOwnedElements=numOwnedElements, rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
@@ -412,9 +433,13 @@ contains
        allocate(lons(nx,ny))
        allocate(lats_vec(npts))
        allocate(lons_vec(npts))
-       call glad_get_lat_lon(ice_sheet, instance_index = 1, lats = lats, lons = lons)
-       call spatial_to_vector(lons, lons_vec)
-       call spatial_to_vector(lats, lats_vec)
+       call glad_get_lat_lon(ice_sheet, instance_index = ns, lats = lats, lons = lons)
+       call spatial_to_vector(instance_index = ns, &
+            arr_spatial = lons, &
+            arr_vector = lons_vec)
+       call spatial_to_vector(instance_index = ns, &
+            arr_spatial = lats, &
+            arr_vector = lats_vec)
 
        ! check lats and lons from the mesh are not different to a tolerance factor
        ! from lats and lons calculated internally
@@ -497,7 +522,7 @@ contains
     integer                :: cesmYR       ! cesm model year
     integer                :: cesmMON      ! cesm model month
     integer                :: cesmDAY      ! cesm model day
-    integer                :: n            ! index
+    integer                :: ns           ! index
     logical                :: done         ! time loop logical
     logical                :: valid_inputs ! if true, inputs from mediator are valid
     character(ESMF_MAXSTR) :: cvalue
@@ -606,8 +631,9 @@ contains
     call ESMF_ClockGetAlarm(clock, alarmname='alarm_restart', alarm=alarm, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     if (ESMF_AlarmIsRinging(alarm, rc=rc)) then
-       ! TODO loop over instances
-       call glc_io_write_restart(ice_sheet%instances(1), clock)
+       do ns = 1, num_icesheets
+          call glc_io_write_restart(ice_sheet%instances(ns), icesheet_names(ns), clock)
+       end do
        call ESMF_AlarmRingerOff( alarm, rc=rc )
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
     endif

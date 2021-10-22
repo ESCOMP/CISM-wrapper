@@ -1,0 +1,74 @@
+<components version="2.0">
+  <comp_archive_spec compname="cism" compclass="glc">
+    <!-- Restart file names have an extension like ais.r or gris.r; in the following
+         pattern, [a-z]+ matches the ice sheet name (ais, gris, etc.). -->
+    <rest_file_extension>[a-z]+\.r</rest_file_extension>
+
+    <!-- History file names have an extension like ais.h or gris.h; in the following
+         pattern, [a-z]+ matches the ice sheet name (ais, gris, etc.). -->
+    <hist_file_extension>[a-z]+\.h\..*\.nc$</hist_file_extension>
+    <!-- Another possible hist extension is initial_hist; we want to handle those similarly. -->
+    <hist_file_extension>[a-z]+\.initial_hist\..*\.nc$</hist_file_extension>
+
+    <!-- Regular expression for the piece of the history file name following the
+         component name that is used to differentiate between different history file
+         streams. For CISM, history file names look like casename.cism.gris.h.*; we
+         want this to capture the "gris.h" portion of the filename, hence a regex,
+         "\w+\.\w+" -->
+    <hist_file_ext_regex>\w+\.\w+</hist_file_ext_regex>
+
+    <rest_history_varname>unset</rest_history_varname>
+
+    <!-- We need separate rpointer entries for each possible ice sheet. This is
+         needed for the sake of saving interim restart files (i.e., from a time other
+         than the end of the run): the code to do this needs to know the details of
+         all of the needed rpointer files, so having wildcard matches is not
+         sufficient. Note that, when interim restart sets are generated, this leads
+         to an rpointer file being created for each possible ice sheet; this can mean
+         that some unneeded rpointer files are created (e.g., a rpointer.glc.gris
+         file will be created in a run that just includes Antarctica, not Greenland),
+         but this doesn't seem to cause problems in practice. -->
+    <rpointer>
+      <rpointer_file>rpointer.glc.ais$NINST_STRING</rpointer_file>
+      <rpointer_content>./$CASE.cism$NINST_STRING.ais.r.$DATENAME.nc</rpointer_content>
+    </rpointer>
+    <rpointer>
+      <rpointer_file>rpointer.glc.gris$NINST_STRING</rpointer_file>
+      <rpointer_content>./$CASE.cism$NINST_STRING.gris.r.$DATENAME.nc</rpointer_content>
+    </rpointer>
+
+    <test_file_names>
+      <!-- Should copy rpointer file(s) -->
+      <tfile disposition="copy">rpointer.glc.ais</tfile>
+      <tfile disposition="copy">rpointer.glc.gris</tfile>
+      <tfile disposition="copy">rpointer.glc.ais_9999</tfile>
+      <tfile disposition="copy">rpointer.glc.gris_9999</tfile>
+      <!-- Should only copy last restart file -->
+      <tfile disposition="ignore">casename.cism.gris.r.1975-01-01-00000.nc</tfile>
+      <!-- Should copy restart files for all ice sheets -->
+      <tfile disposition="copy">casename.cism.ais.r.1976-01-01-00000.nc</tfile>
+      <tfile disposition="copy">casename.cism.gris.r.1976-01-01-00000.nc</tfile>
+      <!-- Should copy multi-instance restart files for all ice sheets -->
+      <tfile disposition="copy">casename.cism_0001.ais.r.1976-01-01-00000.nc</tfile>
+      <tfile disposition="copy">casename.cism_0001.gris.r.1976-01-01-00000.nc</tfile>
+      <!-- Should move all history files for all ice sheets -->
+      <tfile disposition="move">casename.cism.ais.initial_hist.0001-01-01-00000.nc</tfile>
+      <tfile disposition="move">casename.cism.gris.initial_hist.0001-01-01-00000.nc</tfile>
+      <tfile disposition="move">casename.cism.ais.h.1975-01-01-00000.nc</tfile>
+      <tfile disposition="move">casename.cism.ais.h.1976-01-01-00000.nc</tfile>
+      <tfile disposition="move">casename.cism.gris.h.1975-01-01-00000.nc</tfile>
+      <tfile disposition="move">casename.cism.gris.h.1976-01-01-00000.nc</tfile>
+      <!-- Should move all multi-instance history files for all ice sheets -->
+      <tfile disposition="move">casename.cism_0001.ais.initial_hist.0001-01-01-00000.nc</tfile>
+      <tfile disposition="move">casename.cism_0001.gris.initial_hist.0001-01-01-00000.nc</tfile>
+      <tfile disposition="move">casename.cism_0001.ais.h.1975-01-01-00000.nc</tfile>
+      <tfile disposition="move">casename.cism_0001.ais.h.1976-01-01-00000.nc</tfile>
+      <tfile disposition="move">casename.cism_0001.gris.h.1975-01-01-00000.nc</tfile>
+      <tfile disposition="move">casename.cism_0001.gris.h.1976-01-01-00000.nc</tfile>
+      <!-- Should ignore files created by test suite, files from other cases, etc.
+           (no need to give examples for all ice sheets here) -->
+      <tfile disposition="ignore">casename.cism.gris.h.1976-01-01-00000.nc.base</tfile>
+      <tfile disposition="ignore">anothercasename.cism.gris.r.1976-01-01-00000.nc</tfile>
+    </test_file_names>
+  </comp_archive_spec>
+</components>

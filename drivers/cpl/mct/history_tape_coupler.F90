@@ -27,7 +27,7 @@ module history_tape_coupler
 contains
 
   !-----------------------------------------------------------------------
-  function constructor(history_vars)
+  function constructor(icesheet_name, history_vars)
     !
     ! !DESCRIPTION:
     ! Creates a history_tape_coupler_type object
@@ -37,11 +37,15 @@ contains
     ! !ARGUMENTS:
     type(history_tape_coupler_type) :: constructor  ! function result
 
+    ! Name of this ice sheet
+    character(len=*), intent(in) :: icesheet_name
+
     ! List of variables to write to file
     character(len=*), intent(in) :: history_vars
 
     !-----------------------------------------------------------------------
   
+    call constructor%set_icesheet_name(icesheet_name)
     call constructor%set_history_vars(history_vars)
   end function constructor
 

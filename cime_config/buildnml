@@ -38,10 +38,10 @@ logger = logging.getLogger(__name__)
 # values of certain config file parameters
 #----------------------------------------------------
 # namelist groups in the cism_in file
-_CISM_IN_GROUPS = ["cism_params", "cism_history", "time_manager_nml", "glc_override_nml"]
+_CISM_IN_GROUPS = ["cism_params", "time_manager_nml", "glc_override_nml"]
 
 # namelist groups in the cism.icesheet.config file
-_CISM_CONFIG_GROUPS = ["grid", "glad_climate", "options", "sigma", "time", "parameters",
+_CISM_CONFIG_GROUPS = ["grid", "glad_climate", "esm_output", "options", "sigma", "time", "parameters",
                        "grid_ocn", "ho_options", "gthf", "isostasy", "derived"]
 
 # dictionary mapping all possible ice sheet names to the names used in xml variables
@@ -49,6 +49,22 @@ _CISM_CONFIG_GROUPS = ["grid", "glad_climate", "options", "sigma", "time", "para
 # later because standard dicts maintain order, but necessary for 3.5 and earlier)
 #
 # It is important that this ordering be consistent with the ordering of grids in CIME's config_grids xml file.
+#
+# Problems may arise if one ice sheet's name is a prefix of another (e.g., "gris" and "grisa").
+#
+# If you add a new ice sheet here, you should also add entries in the following:
+#
+# Required:
+# - cime_config/config_component.xml (xml variables for each ice sheet and their
+#   relationship to compset names; follow the examples of other ice sheets there)
+# - cime_config/namelist_definition_cism.xml (defaults for this ice sheet for ice
+#   sheet-specific variables)
+# - cime_config/config_archive.xml (add a new rpointer section for the new ice sheet, as
+#   well as rpointer test file entries for this new ice sheet)
+#
+# Optional:
+# - cime_config/config_compsets.xml (compset aliases using your new ice sheet)
+# - cime_config/config_pes.xml (default processor layouts for your new ice sheet)
 _ICESHEET_OPTIONS = OrderedDict([('ais', 'ANTARCTICA'),
                                  ('gris', 'GREENLAND')])
 
@@ -117,14 +133,6 @@ def buildnml(case, caseroot, compname):
         if ninst > 1:
             inst_string = '_' + '{:04d}'.format(inst_counter)
 
-        # If multi-instance case does not have restart file, use
-        # single-case restart for each instance
-        rpointer = "rpointer.glc"
-        if (os.path.isfile(os.path.join(rundir,rpointer)) and
-            (not os.path.isfile(os.path.join(rundir,rpointer + inst_string)))):
-            safe_copy(os.path.join(rundir, rpointer),
-                      os.path.join(rundir, rpointer + inst_string))
-
         user_nl_file = os.path.join(caseroot, "user_nl_cism" + inst_string)
         expect(os.path.isfile(user_nl_file),
                "Missing required user_nl_file {}".format(user_nl_file))
@@ -148,6 +156,14 @@ def buildnml(case, caseroot, compname):
             safe_copy(file_src,file_dest)
 
         for idx, icesheet in enumerate(icesheet_names):
+            # If multi-instance case does not have restart file, use
+            # single-case restart for each instance
+            rpointer = "rpointer.glc." + icesheet
+            if (os.path.isfile(os.path.join(rundir,rpointer)) and
+                (not os.path.isfile(os.path.join(rundir,rpointer + inst_string)))):
+                safe_copy(os.path.join(rundir, rpointer),
+                          os.path.join(rundir, rpointer + inst_string))
+
             user_nl_file = os.path.join(caseroot, "user_nl_cism_" + icesheet + inst_string)
             expect(os.path.isfile(user_nl_file),
                    "Missing required user_nl_file {}".format(user_nl_file))
@@ -459,6 +475,7 @@ def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid,
                                                                   "sigma"])
 
     _set_restart_options(nmlgen, case,
+                         icesheet=icesheet,
                          run_type=run_type,
                          cism_observed_ic=cism_observed_ic,
                          cism_evolve_this_icesheet=config['cism_evolve_this_icesheet'],
@@ -474,6 +491,7 @@ def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid,
     nmlgen.write_output_file(output_file, data_list_path, groups=[])
     _update_cism_config(nmlgen, output_file, mode="w", header="grid", group="grid")
     _update_cism_config(nmlgen, output_file, mode="a", header="GLAD climate", group="glad_climate")
+    _update_cism_config(nmlgen, output_file, mode="a", header="esm_output", group="esm_output")
     _update_cism_config(nmlgen, output_file, mode="a", header="options", group="options")
     _add_conditional_section_to_cism_config(nmlgen, output_file, group="sigma",
                                             control_var="sigma",
@@ -530,7 +548,7 @@ def _get_effective_run_type(case):
     return run_type
 
 ###############################################################################
-def _set_restart_options(nmlgen, case, run_type, cism_observed_ic,
+def _set_restart_options(nmlgen, case, icesheet, run_type, cism_observed_ic,
                          cism_evolve_this_icesheet, inst_string):
 ###############################################################################
     """
@@ -539,6 +557,7 @@ def _set_restart_options(nmlgen, case, run_type, cism_observed_ic,
     Args:
     - nmlgen: nmlgen instance
     - case: case instance
+    - icesheet: name of this ice sheet
     - run_type: string - 'startup', 'hybrid' or 'branch'
     - cism_observed_ic: logical
     - cism_evolve_this_icesheet: string - '.true.' or '.false.'
@@ -577,14 +596,16 @@ def _set_restart_options(nmlgen, case, run_type, cism_observed_ic,
         run_refcase = case.get_value('RUN_REFCASE')
         run_refdate = case.get_value('RUN_REFDATE')
         rundir = case.get_value('RUNDIR')
-        filename = "{refcase}.cism{inst_string}.r.{refdate}-00000.nc".format(
-            refcase=run_refcase, inst_string=inst_string, refdate=run_refdate)
+        filename = "{refcase}.cism{inst_string}.{icesheet}.r.{refdate}-00000.nc".format(
+            refcase=run_refcase, inst_string=inst_string,
+            icesheet=icesheet, refdate=run_refdate)
         if not os.path.exists(os.path.join(rundir, filename)):
             # If the version with INST_STRING doesn't exist, try without INST_STRING. This
             # is needed when starting a multi-instance case from a single-instance
             # refcase.
-            filename = "{refcase}.cism.r.{refdate}-00000.nc".format(
-                refcase=run_refcase, refdate=run_refdate)
+            filename = "{refcase}.cism.{icesheet}.r.{refdate}-00000.nc".format(
+                refcase=run_refcase,
+                icesheet=icesheet, refdate=run_refdate)
 
         nmlgen.add_default('cisminputfile', filename, ignore_abs_path=True)
         restart = 1

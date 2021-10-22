@@ -22,15 +22,23 @@ contains
 
     !-------------------------------------------------------------------
      use glc_indexing, only : vector_to_spatial
-     use glc_fields, only: tsfc, qsmb 
+     use glc_fields, only: cpl_bundles
 
     real(r8)   , intent(in) :: x2g(:,:)
 
     character(*), parameter :: subName = "(glc_import) "
     !-------------------------------------------------------------------
 
-    call vector_to_spatial(x2g(index_x2g_Sl_tsrf,:), tsfc)
-    call vector_to_spatial(x2g(index_x2g_Flgl_qice,:), qsmb)
+    associate(&
+         tsfc => cpl_bundles(1)%tsfc, &
+         qsmb => cpl_bundles(1)%qsmb)
+
+    call vector_to_spatial(instance_index=1, &
+         arr_vector = x2g(index_x2g_Sl_tsrf,:), &
+         arr_spatial = tsfc)
+    call vector_to_spatial(instance_index=1, &
+         arr_vector = x2g(index_x2g_Flgl_qice,:), &
+         arr_spatial = qsmb)
 
     tsfc = tsfc - tkfrz
 
@@ -40,6 +48,8 @@ contains
     !manually reverse this, below, to set to 0C.
     where (tsfc < -250.d0) tsfc=0.d0 
 
+    end associate
+
   end subroutine glc_import
 
 !=================================================================================
@@ -47,13 +57,14 @@ contains
   subroutine glc_export(g2x)
 
     !-------------------------------------------------------------------
-    use glc_indexing, only : nx, ny, spatial_to_vector
-    use glc_fields   , only: ice_covered, topo, rofi, rofl, hflx, &
-                             ice_sheet_grid_mask
-    use glc_route_ice_runoff, only: route_ice_runoff    
+    use glc_indexing, only : get_nx, get_ny, spatial_to_vector
+    use glc_fields, only : cpl_bundles
+    use glc_route_ice_runoff, only: route_ice_runoff
     use glc_override_frac   , only: do_frac_overrides
     
     real(r8)    ,intent(inout) :: g2x(:,:)
+
+    integer :: nx, ny
 
     ! if doing frac overrides, these are the modified versions sent to the coupler;
     ! otherwise they point to the real fields
@@ -81,6 +92,14 @@ contains
     character(*), parameter :: subName = "(glc_export) "
     !-------------------------------------------------------------------
 
+    associate( &
+         ice_covered         => cpl_bundles(1)%ice_covered, &
+         topo                => cpl_bundles(1)%topo, &
+         rofi                => cpl_bundles(1)%rofi, &
+         rofl                => cpl_bundles(1)%rofl, &
+         hflx                => cpl_bundles(1)%hflx, &
+         ice_sheet_grid_mask => cpl_bundles(1)%ice_sheet_grid_mask)
+
     ! If overrides of glc fraction are enabled (for testing purposes), then apply
     ! these overrides, otherwise use the real version of ice_covered and topo
     if (enable_frac_overrides) then
@@ -98,6 +117,9 @@ contains
        topo_to_cpl => topo
        fields_to_cpl_allocated = .false.
     end if
+
+    nx = get_nx(instance_index=1)
+    ny = get_ny(instance_index=1)
 
     allocate(icemask_coupled_fluxes(nx, ny))
     allocate(hflx_to_cpl(nx, ny))
@@ -118,16 +140,32 @@ contains
        call route_ice_runoff(rofi, rofi_to_ocn, rofi_to_ice)
     end if
 
-    call spatial_to_vector(rofi_to_ocn, g2x(index_g2x_Fogg_rofi,:))
-    call spatial_to_vector(rofi_to_ice, g2x(index_g2x_Figg_rofi,:))
-    call spatial_to_vector(rofl_to_cpl, g2x(index_g2x_Fogg_rofl,:))
+    call spatial_to_vector(instance_index = 1, &
+         arr_spatial = rofi_to_ocn, &
+         arr_vector = g2x(index_g2x_Fogg_rofi,:))
+    call spatial_to_vector(instance_index = 1, &
+         arr_spatial = rofi_to_ice, &
+         arr_vector = g2x(index_g2x_Figg_rofi,:))
+    call spatial_to_vector(instance_index = 1, &
+         arr_spatial = rofl_to_cpl, &
+         arr_vector = g2x(index_g2x_Fogg_rofl,:))
 
-    call spatial_to_vector(ice_covered_to_cpl, g2x(index_g2x_Sg_ice_covered,:))
-    call spatial_to_vector(topo_to_cpl, g2x(index_g2x_Sg_topo,:))
-    call spatial_to_vector(hflx_to_cpl, g2x(index_g2x_Flgg_hflx,:))
+    call spatial_to_vector(instance_index = 1, &
+         arr_spatial = ice_covered_to_cpl, &
+         arr_vector = g2x(index_g2x_Sg_ice_covered,:))
+    call spatial_to_vector(instance_index = 1, &
+         arr_spatial = topo_to_cpl, &
+         arr_vector = g2x(index_g2x_Sg_topo,:))
+    call spatial_to_vector(instance_index = 1, &
+         arr_spatial = hflx_to_cpl, &
+         arr_vector = g2x(index_g2x_Flgg_hflx,:))
 
-    call spatial_to_vector(ice_sheet_grid_mask, g2x(index_g2x_Sg_icemask,:))
-    call spatial_to_vector(icemask_coupled_fluxes, g2x(index_g2x_Sg_icemask_coupled_fluxes,:))
+    call spatial_to_vector(instance_index = 1, &
+         arr_spatial = ice_sheet_grid_mask, &
+         arr_vector = g2x(index_g2x_Sg_icemask,:))
+    call spatial_to_vector(instance_index = 1, &
+         arr_spatial = icemask_coupled_fluxes, &
+         arr_vector = g2x(index_g2x_Sg_icemask_coupled_fluxes,:))
 
     deallocate(icemask_coupled_fluxes)
     deallocate(hflx_to_cpl)
@@ -138,6 +176,8 @@ contains
        deallocate(ice_covered_to_cpl)
        deallocate(topo_to_cpl)
     end if
+
+    end associate
 
   end subroutine glc_export
 

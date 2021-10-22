@@ -4,6 +4,83 @@ This file describes what tags were created on master and why
 
 ================================================================================
 Originator: sacks
+Date: October 22, 2021
+Version: cismwrap_2_1_93
+One-line summary: Support multiple ice sheets
+
+Purpose of changes:
+
+   Many changes to support multiple ice sheets. Multiple ice sheet
+   support is now essentially working, though there are still one or two
+   additions needed (supporting one ice sheet evolving and the other
+   not; and maybe one or two other things).
+
+   This tag also moves CISM's config_archive information into CISM
+   instead of being in CIME.
+
+   In addition, this tag adds some multiple ice sheet tests to the
+   aux_glc and prealpha test suites - either modifying existing tests to
+   have multiple ice sheets, adding new tests. It also adds two new,
+   related test types (MULTINOAIS and MULTINOGRIS) for comparing runs
+   with multiple vs. single ice sheets, to help ensure that the multiple
+   ice sheet functionality is working correctly.
+
+Standalone checkout supported in this tag (Yes/No): Yes (but note that
+   some externals point to hashes on branches)
+   
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: Yes
+
+   Changes answers in the topo export field from glc to lnd, but this
+   change doesn't impact the evolution of the model: The difference is
+   that, previously, outside of the CISM domain, topo was topo_virtual;
+   now, outside of the CISM domain, topo is 0. This change arises from a
+   change in CMEPS which was done for the sake of multiple ice sheets,
+   but seems fine in general, because these topo values shouldn't be
+   used outside of the CISM domain in CTSM.
+
+   This impacted the following tests in the test list:
+   - ERI.f10_f10_mg37.I1850Clm50SpG.cheyenne_gnu.cism-test_coupling
+   - ERS_D_Ld9.f10_f10_mg37.I1850Clm50SpG.cheyenne_gnu.cism-override_glc_frac
+   - ERI_Lm24.f10_f10_mg37.I1850Clm50SpG.cheyenne_intel.cism-isostasy_period4
+   - ERS_Ly3.f10_f10_ais8_mg37.I1850Clm50SpGa.cheyenne_intel
+   - ERS_Ly3.f10_f10_mg37.I1850Clm50SpG.cheyenne_intel
+   - SMS_Lm13.f10_f10_mg37.I1850Clm50SpG.cheyenne_intel.cism-noevolve
+
+   As well as the following tests that I replaced but ran for this tag:
+   - ERS_Lm24.f10_f10_mg37.I1850Clm50SpG.cheyenne_intel
+   - SMS_D.f10_f10_ais8_mg37.I1850Clm50SpGa.cheyenne_gnu.cism-test_coupling
+   - SMS_D.T31_g37_gris20.I1850Clm50SpG.cheyenne_gnu.cism-test_coupling
+
+   I have verified that, if I back out the relevant logic change in
+   CMEPS (by changing the 'icemask_l(l) > 0._r8' conditional to a
+   hard-coded '.true.'), then baseline comparisons pass.
+
+Bugs fixed (include github issue number):
+- Resolves ESCOMP/CISM-wrapper#41 (Bring in Fortran changes needed for
+  multiple ice sheets)
+
+Summary of testing:
+
+   Full aux_glc test suite on cheyenne and izumi.
+
+   All tests passed, and were bit-for-bit other than the change noted
+   above.
+
+   For tests that used to be in the test suite and have now been
+   replaced by multi-ice sheet tests, I ran the original version with
+   baseline comparisons as well.
+
+================================================================================
+Originator: sacks
 Date: September 29, 2021
 Version: cismwrap_2_1_92
 One-line summary: Update externals (nuopc now the default!) and test list

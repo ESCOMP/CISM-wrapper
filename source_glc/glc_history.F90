@@ -16,34 +16,36 @@ module glc_history
   !
   ! !USES:
   use glc_kinds_mod
-  use history_tape_base , only : history_tape_base_type, len_history_vars
-  use shr_kind_mod      , only : CL=>SHR_KIND_CL, CXX=>SHR_KIND_CXX
+  use history_tape_base , only : history_tape_base_type
   use glc_exit_mod      , only : exit_glc, sigAbort
-  use glc_constants     , only : stdout, blank_fmt, ndelim_fmt
+  use glc_constants     , only : stdout
   
   implicit none
   private
   save
 
   ! !PUBLIC ROUTINES:
+  public :: allocate_history  ! allocate the array containing the history tape objects
   public :: glc_history_init  ! initialize the history_tape instance
   public :: glc_history_write ! write to history file, if it's time to do so
   
-  ! !PRIVATE ROUTINES:
-  private :: read_namelist
-  
   ! !PRIVATE MODULE VARIABLES:
 
-  ! TODO(wjs, 2015-02-18) Eventually, we may want to allow for multiple history tapes. In
-  ! that case, we should replace this scalar variable with an array. We would also need
-  ! to modify the code in this module to read namelist options for all history tapes, and
-  ! then have a loop that creates all history tape objects. Note that the history tape
-  ! index should become a field in the history tape class; this is needed to create
-  ! unique time flags for each history tape (and possibly other things).
-  class(history_tape_base_type), allocatable :: history_tape
+  ! There is an array of history tape objects, one per ice sheet. This does *not*
+  ! currently allow for more than one history tape for a given ice sheet.
 
-  ! max character lengths
-  integer, parameter :: len_history_option = CL
+  ! In order to have an array of history_tape_base_type objects, with each one
+  ! potentially having a different runtime type, we need this container type so we can
+  ! have an array of objects of this container type.
+  type :: history_tape_container
+     private
+     class(history_tape_base_type), allocatable :: history_tape
+  end type history_tape_container
+
+  ! This needs to have the target attribute so we can point to it in glc_history_write;
+  ! that is needed to work around a pgi compiler bug.
+  type(history_tape_container), allocatable, target :: history_tapes(:)
+
 contains
 
   !------------------------------------------------------------------------
@@ -51,47 +53,69 @@ contains
   !------------------------------------------------------------------------
 
   !-----------------------------------------------------------------------
-  subroutine glc_history_init
+  subroutine allocate_history(num_icesheets)
     !
     ! !DESCRIPTION:
-    ! Initialize the history_tape instance
+    ! Allocate the array containing the history tape objects
     !
-    ! Should be called once, in model initialization
+    ! !ARGUMENTS:
+    integer, intent(in) :: num_icesheets ! number of ice sheet instances in this run
+    !
+    ! !LOCAL VARIABLES:
+
+    character(len=*), parameter :: subname = 'allocate_history'
+    !-----------------------------------------------------------------------
+
+    allocate(history_tapes(num_icesheets))
+
+  end subroutine allocate_history
+
+  !-----------------------------------------------------------------------
+  subroutine glc_history_init(instance_index, instance_name, instance)
+    !
+    ! !DESCRIPTION:
+    ! Initialize the history_tape instance for one ice sheet instance
+    !
+    ! Should be called once per ice sheet, in model initialization
     !
     ! !USES:
+    use glad_type, only : glad_instance
     use glc_time_management, only : freq_opt_nyear
     use history_tape_standard, only : history_tape_standard_type
     use history_tape_coupler, only : history_tape_coupler_type
     !
     ! !ARGUMENTS:
+    integer(i4), intent(in) :: instance_index     ! index of current ice sheet
+    character(len=*), intent(in) :: instance_name ! name of current ice sheet
+    type(glad_instance), intent(in) :: instance
     !
     ! !LOCAL VARIABLES:
-    character(len=len_history_vars) :: cesm_history_vars
-    character(len=len_history_option) :: history_option
-    integer(int_kind) :: history_frequency
-    
+
     character(len=*), parameter :: subname = 'glc_history_init'
     !-----------------------------------------------------------------------
 
-    call read_namelist(cesm_history_vars, history_option, history_frequency)
-    
-    select case (history_option)
+    select case (instance%history_option)
     case ('nyears')
-       allocate(history_tape, source = history_tape_standard_type( &
-            history_vars = cesm_history_vars, freq_opt = freq_opt_nyear, &
-            freq = history_frequency))
+       allocate(history_tapes(instance_index)%history_tape, &
+            source = history_tape_standard_type( &
+            icesheet_name = instance_name, &
+            history_vars = instance%esm_history_vars, &
+            freq_opt = freq_opt_nyear, &
+            freq = instance%history_frequency))
     case ('coupler')
-       allocate(history_tape, source = history_tape_coupler_type( &
-            history_vars = cesm_history_vars))
+       allocate(history_tapes(instance_index)%history_tape, &
+            source = history_tape_coupler_type( &
+            icesheet_name = instance_name, &
+            history_vars = instance%esm_history_vars))
     case default
-       write(stdout,*) subname//' ERROR: Unhandled history_option: ', trim(history_option)
+       write(stdout,*) subname//' ERROR: Unhandled history_option: ', trim(instance%history_option)
        call exit_glc(sigAbort, subname//' ERROR: Unhandled history_option')
     end select
        
   end subroutine glc_history_init
 
   !-----------------------------------------------------------------------
-  subroutine glc_history_write(instance, EClock, initial_history)
+  subroutine glc_history_write(instance_index, instance, EClock, initial_history)
     !
     ! !DESCRIPTION:
     ! Write a CISM history file, if it's time to do so.
@@ -108,94 +132,23 @@ contains
     use esmf, only: ESMF_Clock
     !
     ! !ARGUMENTS:
+    integer(i4), intent(in) :: instance_index     ! index of current ice sheet
     type(glad_instance), intent(inout) :: instance
     type(ESMF_Clock),     intent(in)    :: EClock
     logical, intent(in), optional :: initial_history
+
+    class(history_tape_base_type), pointer :: htape_ptr
     !-----------------------------------------------------------------------
 
-    call history_tape%write_history(instance, EClock, initial_history)
+    ! COMPILER_BUG(wjs, 2021-10-18, pgi20.1) With a straightforward call like this:
+    !     call history_tapes(instance_index)%history_tape%write_history(instance, EClock, initial_history)
+    ! pgi20.1 fails with:
+    !     /tmp/pgf90PFtg7F9Be42q.ll:1034:16: error: use of undefined type named 'struct.BSS4'
+    !         %20 = bitcast %struct.BSS4* @.BSS4 to i8*, !dbg !14930
+    ! Adding this pointer indirection prevents this compiler error
+    htape_ptr => history_tapes(instance_index)%history_tape
+    call htape_ptr%write_history(instance, EClock, initial_history)
     
   end subroutine glc_history_write
 
-
-  !------------------------------------------------------------------------
-  ! PRIVATE ROUTINES
-  !------------------------------------------------------------------------
-
-  !-----------------------------------------------------------------------
-  subroutine read_namelist(cesm_history_vars, history_option, history_frequency)
-    !
-    ! !DESCRIPTION:
-    ! Reads the namelist containing history options
-    !
-    ! !USES:
-    use glc_communicate , only: my_task, master_task
-    use glc_files       , only: nml_filename
-    use glc_broadcast   , only: broadcast_scalar
-    !
-    ! !ARGUMENTS:
-    character(len=len_history_vars), intent(out) :: cesm_history_vars
-    character(len=len_history_option), intent(out) :: history_option
-    integer(int_kind), intent(out) :: history_frequency
-    !
-    ! !LOCAL VARIABLES:
-    
-    integer :: nml_error
-    integer :: nml_in
-    
-    character(len=*), parameter :: subname = 'read_namelist'
-    !-----------------------------------------------------------------------
-
-    namelist /cism_history/ cesm_history_vars, history_option, history_frequency
-
-    ! Set default values
-    cesm_history_vars = ' '
-    history_option = ' '
-    history_frequency = 1
-    
-    if (my_task == master_task) then
-       open(newunit=nml_in, file=nml_filename, status='old', iostat=nml_error)
-       if (nml_error /= 0) then
-          nml_error = -1
-       else
-          nml_error =  1
-       end if
-       do while (nml_error > 0)
-          read(nml_in, nml=cism_history, iostat=nml_error)
-       end do
-       if (nml_error == 0) then
-          close(nml_in)
-       end if
-    end if
-
-    call broadcast_scalar(nml_error, master_task)
-    if (nml_error /= 0) then
-       call exit_glc(sigAbort,'ERROR reading cism_history namelist')
-    end if
-
-    ! Write namelist settings
-    if (my_task == master_task) then
-       write(stdout,blank_fmt)
-       write(stdout,ndelim_fmt)
-       write(stdout,blank_fmt)
-       write(stdout,*) ' cism_history namelist settings:'
-       write(stdout,blank_fmt)
-       write(stdout, cism_history)
-    end if
-
-    ! Send namelist settings to all procs
-    call broadcast_scalar(cesm_history_vars, master_task)
-    call broadcast_scalar(history_option, master_task)
-    call broadcast_scalar(history_frequency, master_task)
-
-    if ((len_trim(cesm_history_vars)+3) >= len(cesm_history_vars)) then
-       ! Assume that if we get within 3 spaces of the variable legth (excluding spaces)
-       ! then we may be truncating the intended value
-       call exit_glc(sigAbort, subname// &
-            ' ERROR: The value of cesm_history_vars is too long for the variable')
-    end if
-    
-  end subroutine read_namelist
-
-  
 end module glc_history
