@@ -15,7 +15,7 @@ module glc_coupling_flags
 ! !USES:
 
   use glc_kinds_mod
-  use glc_constants, only: stdout, zero_gcm_fluxes
+  use glc_constants, only: stdout, zero_gcm_fluxes_for_all_icesheets
   use glc_exit_mod
 
   implicit none
@@ -57,7 +57,7 @@ contains
 
 !-----------------------------------------------------------------------
 
-    if (zero_gcm_fluxes) then
+    if (zero_gcm_fluxes_for_all_icesheets) then
        has_ocn_coupling = .false.
     else
        ! For now, liquid runoff is always sent to the ocean
@@ -89,7 +89,7 @@ contains
 !EOP
 !-----------------------------------------------------------------------
 
-    if (zero_gcm_fluxes) then
+    if (zero_gcm_fluxes_for_all_icesheets) then
        has_ice_coupling = .false.
     else
        has_ice_coupling = ice_needs_sea_ice_coupling()

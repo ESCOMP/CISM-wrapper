@@ -18,7 +18,7 @@ module glc_comp_mct
   use glc_import_export
   use glc_cpl_indices
   use glc_constants,       only: verbose, stdout, stderr, radius
-  use glc_constants,       only: zero_gcm_fluxes, model_doi_url, icesheet_names
+  use glc_constants,       only: zero_gcm_fluxes_for_all_icesheets, model_doi_url, icesheet_names
   use glc_InitMod,         only: glc_initialize
   use glc_RunMod,          only: glc_run
   use glc_FinalMod,        only: glc_final
@@ -209,7 +209,7 @@ CONTAINS
 
     ! Set flags in infodata
 
-    glc_coupled_fluxes = (.not. zero_gcm_fluxes)
+    glc_coupled_fluxes = (.not. zero_gcm_fluxes_for_all_icesheets)
     call seq_infodata_PutData(infodata, &
          glc_present= .true., &
          glclnd_present = .true., &

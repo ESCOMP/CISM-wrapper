@@ -142,25 +142,6 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <!-- TODO(wjs, 2021-02-25) I think we'll need to move this to
-       cism.icesheet.config, since we will allow cism_evolve to differ
-       for each ice sheet -->
-  <entry id="zero_gcm_fluxes">
-    <type>logical</type>
-    <category>cism</category>
-    <group>cism_params</group>
-    <values>
-      <value glc_two_way_coupling=".true." cism_evolve=".true.">.false.</value>
-      <value glc_two_way_coupling=".false." cism_evolve=".true.">.true.</value>
-      <value glc_two_way_coupling=".true." cism_evolve=".false.">.true.</value>
-      <value glc_two_way_coupling=".false." cism_evolve=".false.">.true.</value>
-    </values>
-    <desc>
-      If true, zero out all fluxes sent to the GCM
-      Default: Depends on GLC_TWO_WAY_COUPLING xml variable
-    </desc>
-  </entry>
-
   <entry id="test_coupling">
     <type>logical</type>
     <category>cism</category>
@@ -186,6 +167,9 @@ Sub-elements of each entry include:
       Whether to enable overrides of the glc fraction sent to the coupler.
       If this is true, then settings in glc_override_nml are used.
       ONLY MEANT FOR TESTING - SHOULD NOT BE USED FOR SCIENCE RUNS.
+      Note that, if running with multiple ice sheets, this and the
+      various override settings apply to all ice sheets: there is no way
+      to do overrides for one ice sheet but not the others.
       Default: .false.
     </desc>
   </entry>
@@ -623,6 +607,23 @@ Sub-elements of each entry include:
       0: Do not let the ice sheet evolve (hold ice state fixed at initial condition)
       1: Let the ice sheet evolve
       Default: 1
+    </desc>
+  </entry>
+
+  <entry id="zero_gcm_fluxes">
+    <type>logical</type>
+    <category>cism_config_climate</category>
+    <group>glad_climate</group>
+    <values>
+      <value glc_two_way_coupling=".true." cism_evolve_this_icesheet=".true.">.false.</value>
+      <value glc_two_way_coupling=".false." cism_evolve_this_icesheet=".true.">.true.</value>
+      <value glc_two_way_coupling=".true." cism_evolve_this_icesheet=".false.">.true.</value>
+      <value glc_two_way_coupling=".false." cism_evolve_this_icesheet=".false.">.true.</value>
+    </values>
+    <desc>
+      If true, zero out all fluxes sent to the GCM
+      Default: Depends on GLC_TWO_WAY_COUPLING xml variable and whether
+      this ice sheet is evolving
     </desc>
   </entry>
 

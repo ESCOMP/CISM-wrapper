@@ -26,7 +26,7 @@
                                   iyear,  imonth,  iday,  elapsed_days,   &
                                   ihour,  iminute, isecond, nsteps_total, &
                                   ymd2eday, eday2ymd, runtype
-   use glc_constants, only: stdout, zero_gcm_fluxes, test_coupling, enable_frac_overrides, &
+   use glc_constants, only: stdout, zero_gcm_fluxes_for_all_icesheets, test_coupling, enable_frac_overrides, &
                             max_icesheets, num_icesheets, icesheet_names
    use glc_io,        only: glc_io_read_restart_time
    use glc_files,     only: nml_filename
@@ -160,7 +160,7 @@
   integer, parameter :: days_in_year = 365
 
   namelist /cism_params/  paramfile_base, num_icesheets, icesheet_names, &
-       cism_debug, ice_flux_routing, zero_gcm_fluxes, &
+       cism_debug, ice_flux_routing, &
        test_coupling, enable_frac_overrides
 
 ! TODO - Write version info?
@@ -230,13 +230,11 @@
    call broadcast_array (icesheet_names,    master_task)
    call broadcast_scalar(cism_debug,        master_task)
    call broadcast_scalar(ice_flux_routing,  master_task)
-   call broadcast_scalar(zero_gcm_fluxes,   master_task)
    call broadcast_scalar(test_coupling,     master_task)
    call broadcast_scalar(enable_frac_overrides, master_task)
    call set_routing(ice_flux_routing)
 
    if (my_task == master_task) then
-      write(stdout,*) 'zero_gcm_fluxes: ', zero_gcm_fluxes
       write(stdout,*) 'test_coupling:   ', test_coupling
       write(stdout,*) 'enable_frac_overrides: ', enable_frac_overrides
       write(stdout,*) 'icesheet_names: ', icesheet_names(1:num_icesheets)
@@ -354,6 +352,7 @@
 
   call allocate_indices(num_icesheets)
   call allocate_cpl_bundles(num_icesheets)
+  zero_gcm_fluxes_for_all_icesheets = .true.  ! true until we find at least one ice sheet for which it is false
   do ns = 1, num_icesheets
      call glad_initialize_instance(ice_sheet, instance_index = ns, &
           gcm_restart_file = cesm_restart_files(ns), &
@@ -365,6 +364,10 @@
 
      call glc_allocate_fields(instance_index = ns, nx = get_nx(ns), ny = get_ny(ns), &
           nzocn = get_nzocn(ns))
+
+     if (.not. ice_sheet%instances(ns)%zero_gcm_fluxes) then
+        zero_gcm_fluxes_for_all_icesheets = .false.
+     end if
 
      associate( &
           tsfc                => cpl_bundles(ns)%tsfc, &

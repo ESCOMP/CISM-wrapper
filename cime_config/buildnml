@@ -284,15 +284,6 @@ def _icesheet_consistency_checks(case, icesheet_names, glc_grid_names):
         expect(found_evolving_icesheet,
                "CISM_EVOLVE is TRUE, but no ice sheets are set to evolve")
 
-    # TODO(wjs, 2021-02-26) This is a temporary check that we can remove once we resolve
-    # https://github.com/ESCOMP/CISM-wrapper/issues/54
-    # For now, ensure that all ice sheets are either evolving or non-evolving (having one
-    # evolving and one non-evolving is untested)
-    icesheet_evolution = _is_icesheet_evolving(case, icesheet_names[0])
-    for icesheet in icesheet_names[1:]:
-        expect(_is_icesheet_evolving(case, icesheet) == icesheet_evolution,
-               "For now, ice sheets must either all be evolving or all be non-evolving")
-
 ####################################################################################
 def _check_compset_grid_consistency(case, icesheet_names, glc_grid_names):
 ####################################################################################
@@ -383,7 +374,6 @@ def _create_cism_in(case, confdir, inst_string, icesheet_names, infile, nmlgen, 
     # Note that the cism_evolve value used in cism_in is the overall CISM_EVOLVE, which is
     # true if *any* ice sheet is evolving.
     config['cism_evolve'] = '.true.' if case.get_value('CISM_EVOLVE') else '.false.'
-    config['glc_two_way_coupling'] = '.true.' if case.get_value('GLC_TWO_WAY_COUPLING') else '.false.'
     config['calendar'] = case.get_value("CALENDAR")
 
     run_type = _get_effective_run_type(case)
@@ -421,8 +411,6 @@ def _create_cism_in(case, confdir, inst_string, icesheet_names, infile, nmlgen, 
     output_file = os.path.join(confdir, "cism_in")
     nmlgen.write_output_file(output_file, data_list_path, groups=groups, sorted_groups=False)
 
-    _cism_in_final_consistency_checks(nmlgen, config)
-
 ####################################################################################
 def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid,
                         infile_overall, infile_this_icesheet, nmlgen, data_list_path):
@@ -449,6 +437,10 @@ def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid,
     config['icesheet'] = icesheet
     config['glc_grid']  = glc_grid
     config['cism_phys'] = case.get_value("CISM_PHYS")
+    if case.get_value('GLC_TWO_WAY_COUPLING'):
+        config['glc_two_way_coupling'] = '.true.'
+    else:
+        config['glc_two_way_coupling'] = '.false.'
     if _is_icesheet_evolving(case, icesheet):
         config['cism_evolve_this_icesheet'] = '.true.'
     else:
@@ -514,7 +506,7 @@ def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid,
     # ------------------------------------------------------------------------
     # Final consistency checks
     # ------------------------------------------------------------------------
-    _cism_config_final_consistency_checks(nmlgen)
+    _cism_config_final_consistency_checks(nmlgen, icesheet)
 
 ###############################################################################
 def _initial_consistency_checks(case):
@@ -692,41 +684,28 @@ def _add_conditional_section_to_cism_config(nmlgen, output_file, group,
         nmlgen.confirm_group_is_empty(group, errmsg)
 
 ###############################################################################
-def _cism_in_final_consistency_checks(nmlgen, config):
+def _cism_config_final_consistency_checks(nmlgen, icesheet):
 ###############################################################################
     num_errors = 0
+    num_errors += _check_cism_dt(float(nmlgen.get_value("dt")), icesheet)
 
-    # TODO(wjs, 2021-02-25) We will move zero_gcm_fluxes to the cism.icesheet.config file,
-    # making it ice sheet-specific. Then this needs to be changed to check the ice
-    # sheet-specific zero_gcm_fluxes against the ice sheet-specific evolve_ice. See also
-    # https://github.com/ESCOMP/CISM-wrapper/issues/53.
-    if _value_is_false(config["cism_evolve"]):
-        # The important condition is if evolve_ice = 0. But since evolve_ice is in
-        # cism.icesheet.config, we don't have access to that value when doing consistency
-        # checks on cism_in. We force evolve_ice to match CISM_EVOLVE, so we can check
-        # this by checking CISM_EVOLVE.
+    if int(nmlgen.get_value("evolve_ice")) == 0:
         if _value_is_false(nmlgen.get_value("zero_gcm_fluxes")):
             errmsg = """\
-ERROR: For CISM_EVOLVE FALSE, you must also set zero_gcm_fluxes = .true.
+ERROR for ice sheet {}:
+For evolve_ice = 0 (set from CISM_EVOLVE_ICESHEET for this icesheet),
+zero_gcm_fluxes must be set to .true.
 (This is because evolve_ice = 0 implies that there will be no fluxes,
-and you must explicitly set zero_gcm_fluxes = .true. for the sake of logic
+and so zero_gcm_fluxes must also be set to .true. for the sake of logic
 that depends on whether these fluxes will be zero - particularly, the creation
-of icemask_coupled_fluxes used by CTSM)."""
+of icemask_coupled_fluxes used by CTSM).""".format(icesheet)
             print(errmsg)
             num_errors += 1
 
-    expect(num_errors == 0, "Errors in cism_in final consistency checks (see above)")
+    expect(num_errors == 0, "Errors in cism.{}.config final consistency checks (see above)".format(icesheet))
 
 ###############################################################################
-def _cism_config_final_consistency_checks(nmlgen):
-###############################################################################
-    num_errors = 0
-    num_errors += _check_cism_dt(float(nmlgen.get_value("dt")))
-
-    expect(num_errors == 0, "Errors in cism.config final consistency checks (see above)")
-
-###############################################################################
-def _check_cism_dt(dt):
+def _check_cism_dt(dt, icesheet):
 ###############################################################################
     """Checks CISM's dt value: i.e., the dt variable in the time section of cism.icesheet.config
 
@@ -742,9 +721,10 @@ def _check_cism_dt(dt):
     # value near machine epsilon
     if (abs(dt_hours - dt_hours_int)/dt_hours > 1e-15):
         errmsg = """\
-ERROR: dt (in years) must translate into an integer number of hours
+ERROR for ice sheet {}:
+dt (in years) must translate into an integer number of hours
 dt = {}
-dt (hours) = {}""".format(dt, dt_hours)
+dt (hours) = {}""".format(icesheet, dt, dt_hours)
         print(errmsg)
         num_errors += 1
 

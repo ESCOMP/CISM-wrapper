@@ -68,7 +68,7 @@
    !-----------------------------------------------------------------
 
   logical :: &
-       zero_gcm_fluxes = .false.  ! If true, zero out all fluxes sent to the coupler
+       zero_gcm_fluxes_for_all_icesheets = .false.  ! If zero_gcm_fluxes is true for all ice sheets
 
   logical :: &
        test_coupling   = .false.  ! If true, force frequent coupling for testing purposes

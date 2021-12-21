@@ -13,7 +13,7 @@ module glc_import_export
   use NUOPC_Model         , only : NUOPC_ModelGet
   use shr_kind_mod        , only : r8 => shr_kind_r8, cl=>shr_kind_cl, cs=>shr_kind_cs
   use shr_sys_mod         , only : shr_sys_abort
-  use glc_constants       , only : verbose, stdout, stderr, tkfrz, zero_gcm_fluxes, radius, enable_frac_overrides
+  use glc_constants       , only : verbose, stdout, stderr, tkfrz, radius, enable_frac_overrides
   use glc_communicate     , only : my_task, master_task
   use glc_time_management , only : iyear,imonth,iday,ihour,iminute,isecond,runtype
   use glc_indexing        , only : get_nx_tot, get_ny_tot, get_nx, get_ny, spatial_to_vector, vector_to_spatial
@@ -424,7 +424,7 @@ contains
        allocate(rofi_to_ocn(nx, ny))
        allocate(rofi_to_ice(nx, ny))
 
-       if (zero_gcm_fluxes) then
+       if (ice_sheet%instances(ns)%zero_gcm_fluxes) then
           icemask_coupled_fluxes = 0._r8
           hflx_to_cpl = 0._r8
           rofl_to_cpl = 0._r8
