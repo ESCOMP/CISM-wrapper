@@ -325,10 +325,20 @@ contains
           call shr_sys_abort(subname//' ERROR: unknown starttype' )
        end if
     else
+       ! NOTE: with the NUOPC interface, the CISM run phase is never called when running
+       ! in noevolve mode, so a restart file will never be written for CISM. Since we
+       ! don't have a restart file to start from, we need to tell CISM to start in
+       ! startup/initial mode in this situation.
+       !
+       ! Note that this looks at the overall cism_evolve, which is only .false. if no ice
+       ! sheets are evolving: In the situation where one ice sheet is evolving but another
+       ! is not, the overall cism_evolve will be .true. and restart files will still be
+       ! written for every ice sheet (even non-evolving ones), so we can safely restart
+       ! from these restart files (so we do not need to force runtype to "initial").
        if (my_task == master_task) then
           write(stdout,*)' GLC cism is not evolving, runtype is always set to initial'
-          runtype = 'initial'
        end if
+       runtype = 'initial'
     end if
 
     ! Get properties from clock

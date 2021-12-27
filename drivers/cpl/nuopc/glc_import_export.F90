@@ -15,7 +15,7 @@ module glc_import_export
   use shr_sys_mod         , only : shr_sys_abort
   use glc_constants       , only : verbose, stdout, stderr, tkfrz, radius, enable_frac_overrides
   use glc_communicate     , only : my_task, master_task
-  use glc_time_management , only : iyear,imonth,iday,ihour,iminute,isecond,runtype
+  use glc_time_management , only : iyear,imonth,iday,ihour,iminute,isecond
   use glc_indexing        , only : get_nx_tot, get_ny_tot, get_nx, get_ny, spatial_to_vector, vector_to_spatial
   use glc_fields          , only : ice_sheet
   use glad_main           , only : glad_get_areas
@@ -219,15 +219,13 @@ contains
              call ESMF_LogWrite(subname//'Import field'//': '//trim(fldsToGlc(nf)%stdname), ESMF_LOGMSG_INFO)
           end do
        enddo
-
-       ! Set glc_smb
-       ! true  => get surface mass balance from land model via coupler (in multiple elev classes)
-       ! false => use PDD scheme in GLIMMER
-       ! For now, we always use true
-
-       glc_smb = .true.
     end if
 
+    ! Set glc_smb
+    ! true  => get surface mass balance from land model via coupler (in multiple elev classes)
+    ! false => use PDD scheme in GLIMMER
+    ! For now, we always use true
+    glc_smb = .true.
   end subroutine advertise_fields
 
   !===============================================================================
