@@ -470,7 +470,6 @@ def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid,
                          icesheet=icesheet,
                          run_type=run_type,
                          cism_observed_ic=cism_observed_ic,
-                         cism_evolve_this_icesheet=config['cism_evolve_this_icesheet'],
                          inst_string=inst_string)
 
     #----------------------------------------------------
@@ -530,9 +529,19 @@ def _get_effective_run_type(case):
 
     comp_interface = case.get_value("COMP_INTERFACE")
     cism_evolve = case.get_value("CISM_EVOLVE")
-    # NOTE: with the nuopc interface, the CISM run phase is never called when running
-    # in noevolve mode, so a restart file will never be written for cism - only initial
-    # information will be sent back to CTSM.
+    # NOTE: with the nuopc interface, the CISM run phase is never called when running in
+    # noevolve mode, so a restart file will never be written for cism - only initial
+    # information will be sent back to CTSM. Since we don't have a restart file to start
+    # from, we need to tell CISM to start in startup mode in this situation.
+    #
+    # Note that this looks at the overall cism_evolve, which is only False if no ice
+    # sheets are evolving: In the situation where one ice sheet is evolving but another is
+    # not, the overall cism_evolve will be True and restart files will still be written
+    # for every ice sheet (even non-evolving ones), so we can safely restart from these
+    # restart files (so we do not need to force run_type to "startup"). (Also note that,
+    # because all ice sheets share a single time manager in the CISM-wrapper layer, it
+    # might currently be awkward or impossible for one ice sheet to start in startup mode
+    # and another to start in branch mode, for example.)
     if (comp_interface == 'nuopc' and not cism_evolve):
         logger.debug("Interface is nuopc, cism is not evolving: CISM run_type is always startup")
         run_type = "startup"
@@ -541,7 +550,7 @@ def _get_effective_run_type(case):
 
 ###############################################################################
 def _set_restart_options(nmlgen, case, icesheet, run_type, cism_observed_ic,
-                         cism_evolve_this_icesheet, inst_string):
+                         inst_string):
 ###############################################################################
     """
     Sets defaults for variables related to restart in cism_in
@@ -552,7 +561,6 @@ def _set_restart_options(nmlgen, case, icesheet, run_type, cism_observed_ic,
     - icesheet: name of this ice sheet
     - run_type: string - 'startup', 'hybrid' or 'branch'
     - cism_observed_ic: logical
-    - cism_evolve_this_icesheet: string - '.true.' or '.false.'
     - inst_string: string
     """
     if run_type == 'startup':
@@ -562,7 +570,7 @@ def _set_restart_options(nmlgen, case, icesheet, run_type, cism_observed_ic,
             expect(False,"CISM_OBSERVED_IC=TRUE not allowed for branch runs - only for hybrid runs")
         else:
             restart = 0
-    elif run_type == 'hybrid' and _value_is_false(cism_evolve_this_icesheet):
+    elif run_type == 'hybrid' and not case.get_value('CISM_EVOLVE'):
         # We could use the hybrid refcase's CISM restart file in this case. However, we
         # often run into problems where a change in CISM makes it incompatible with old
         # restart files, and this breaks configurations that are set up as hybrid runs
@@ -580,9 +588,12 @@ def _set_restart_options(nmlgen, case, icesheet, run_type, cism_observed_ic,
         # observed initial conditions. Thus, the user would need to explicitly set
         # 'cisminputfile' and 'restart' in this case.
         #
-        # Note that this logic is currently based on the ice sheet-specific CISM_EVOLVE
-        # value; this may or may not be the right thing to do (see
-        # https://github.com/ESCOMP/CISM-wrapper/issues/54).
+        # Note that this logic is based on the overall CISM_EVOLVE, so it is not triggered
+        # if one ice sheet is evolving but another is not. Also note that this logic is
+        # currently redundant with the NUOPC-specific logic that sets run_type to
+        # "startup" if CISM_EVOLVE is FALSE (in _get_effective_run_type). But we're
+        # keeping this redundancy for the sake of MCT runs and in case the NUOPC-specific
+        # logic is ever changed.
         restart = 0
     elif run_type == 'branch' or run_type == 'hybrid':
         run_refcase = case.get_value('RUN_REFCASE')
