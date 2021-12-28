@@ -129,9 +129,8 @@
      <default_value>FALSE</default_value>
      <values>
        <!-- If ANY ice sheet is evolving, then set the overall
-            CISM_EVOLVE to TRUE. This is needed for some logic in CMEPS,
-            but note that combining an evolving and non-evolving ice
-            sheet has not been tested yet and may not work correctly. -->
+            CISM_EVOLVE to TRUE. This is needed for some logic in CMEPS.
+       -->
        <value compset="_CISM[^_]*-EVOLVE">TRUE</value>
        
        <!-- BACKWARDS_COMPATIBILITY(wjs, 2021-02-25) Backwards

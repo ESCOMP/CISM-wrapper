@@ -13,7 +13,7 @@
 ! !USES:
 
    use glc_time_management, only: iyear, imonth, iday, ihour, iminute, isecond, &
-                                  runtype, cesm_date_stamp, elapsed_days, elapsed_days0
+                                  cesm_date_stamp, elapsed_days, elapsed_days0
    use glc_communicate,     only: my_task, master_task
    use glimmer_ncdf,        only: add_output, delete_output, nc_errorhandle, glimmer_nc_output
    use glc_broadcast,       only: broadcast_scalar

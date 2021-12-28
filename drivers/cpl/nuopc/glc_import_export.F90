@@ -13,9 +13,9 @@ module glc_import_export
   use NUOPC_Model         , only : NUOPC_ModelGet
   use shr_kind_mod        , only : r8 => shr_kind_r8, cl=>shr_kind_cl, cs=>shr_kind_cs
   use shr_sys_mod         , only : shr_sys_abort
-  use glc_constants       , only : verbose, stdout, stderr, tkfrz, zero_gcm_fluxes, radius, enable_frac_overrides
+  use glc_constants       , only : verbose, stdout, stderr, tkfrz, radius, enable_frac_overrides
   use glc_communicate     , only : my_task, master_task
-  use glc_time_management , only : iyear,imonth,iday,ihour,iminute,isecond,runtype
+  use glc_time_management , only : iyear,imonth,iday,ihour,iminute,isecond
   use glc_indexing        , only : get_nx_tot, get_ny_tot, get_nx, get_ny, spatial_to_vector, vector_to_spatial
   use glc_fields          , only : ice_sheet
   use glad_main           , only : glad_get_areas
@@ -219,15 +219,13 @@ contains
              call ESMF_LogWrite(subname//'Import field'//': '//trim(fldsToGlc(nf)%stdname), ESMF_LOGMSG_INFO)
           end do
        enddo
-
-       ! Set glc_smb
-       ! true  => get surface mass balance from land model via coupler (in multiple elev classes)
-       ! false => use PDD scheme in GLIMMER
-       ! For now, we always use true
-
-       glc_smb = .true.
     end if
 
+    ! Set glc_smb
+    ! true  => get surface mass balance from land model via coupler (in multiple elev classes)
+    ! false => use PDD scheme in GLIMMER
+    ! For now, we always use true
+    glc_smb = .true.
   end subroutine advertise_fields
 
   !===============================================================================
@@ -424,7 +422,7 @@ contains
        allocate(rofi_to_ocn(nx, ny))
        allocate(rofi_to_ice(nx, ny))
 
-       if (zero_gcm_fluxes) then
+       if (ice_sheet%instances(ns)%zero_gcm_fluxes) then
           icemask_coupled_fluxes = 0._r8
           hflx_to_cpl = 0._r8
           rofl_to_cpl = 0._r8

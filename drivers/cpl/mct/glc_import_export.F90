@@ -3,7 +3,7 @@ module glc_import_export
   use shr_sys_mod
   use shr_kind_mod,        only: IN=>SHR_KIND_IN, R8=>SHR_KIND_R8
   use shr_kind_mod,        only: CS=>SHR_KIND_CS, CL=>SHR_KIND_CL
-  use glc_constants,       only: verbose, stdout, stderr, tkfrz, zero_gcm_fluxes, enable_frac_overrides
+  use glc_constants,       only: verbose, stdout, stderr, tkfrz, enable_frac_overrides
   use glc_communicate,     only: my_task, master_task
   use glc_cpl_indices
 
@@ -58,7 +58,7 @@ contains
 
     !-------------------------------------------------------------------
     use glc_indexing, only : get_nx, get_ny, spatial_to_vector
-    use glc_fields, only : cpl_bundles
+    use glc_fields, only : cpl_bundles, ice_sheet
     use glc_route_ice_runoff, only: route_ice_runoff
     use glc_override_frac   , only: do_frac_overrides
     
@@ -127,7 +127,7 @@ contains
     allocate(rofi_to_ocn(nx, ny))
     allocate(rofi_to_ice(nx, ny))
 
-    if (zero_gcm_fluxes) then
+    if (ice_sheet%instances(1)%zero_gcm_fluxes) then
        icemask_coupled_fluxes = 0._r8
        hflx_to_cpl = 0._r8
        rofl_to_cpl = 0._r8

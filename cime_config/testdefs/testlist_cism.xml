@@ -840,6 +840,19 @@
     </machines>
   </test>
 
+  <test name="ERI_Ly9" grid="f09_g17_ais8gris4" compset="T1850Gag" testmods="cism-noevolve_ais">
+    <machines>
+
+      <machine name="cheyenne" compiler="gnu" category="aux_glc">
+        <options>
+          <option name="wallclock">0:50:00</option>
+          <option name="comment">ERI test with one ice sheet evolving and the other not, to make sure restart, branch and hybrid runs all work when one ice sheet is evolving and another is not.</option>
+        </options>
+      </machine>
+
+    </machines>
+  </test>
+
   <test name="IRT_Ly5_P24x1" grid="f09_g17_ais8gris4" compset="T1850Gag">
     <machines>
 
