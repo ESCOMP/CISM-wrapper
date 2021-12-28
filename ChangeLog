@@ -4,6 +4,41 @@ This file describes what tags were created on master and why
 
 ================================================================================
 Originator: sacks
+Date: December 27, 2021
+Version: cismwrap_2_1_94
+One-line summary: Update externals to versions in CESM2_3_beta07
+
+Purpose of changes:
+
+   Update externals to versions in CESM2_3_beta07
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: YES
+
+   Changes answers for I compsets due to externals update
+
+   Also, FIELDLIST diffs for T compsets (change in cpl hist file), and
+   NLCOMP diffs for all tests.
+
+Bugs fixed (include github issue number): none
+
+Summary of testing:
+
+   Full aux_glc test suite on cheyenne and izumi.
+
+   All tests passed, with answer changes as noted above.
+
+================================================================================
+Originator: sacks
 Date: October 22, 2021
 Version: cismwrap_2_1_93
 One-line summary: Support multiple ice sheets
