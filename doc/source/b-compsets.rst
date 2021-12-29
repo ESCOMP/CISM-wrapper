@@ -1,8 +1,8 @@
 .. _b-compsets:
 
-**************************************************************
+*****************************************************************
 Running the fully-coupled ice sheet model within CESM: B compsets
-**************************************************************
+*****************************************************************
 
 CISM is available to run as part of a fully coupled climate system 
 simulation in CESM 2.0. Runs with all active components are known 
@@ -12,8 +12,8 @@ compsets run with CISM in no-evolve mode, and compsets that end
 with G (e.g., "B1850G") have an active, or evolving, CISM 
 Greenland ice sheet. 
 
-Any compset, including B compsets, can turn on an actively evolving 
-CISM ice sheet model using the xml variable CISM_EVOLVE to TRUE.
+Any compset that includes CISM in no-evolve mode, including B compsets, can turn on an actively evolving 
+CISM ice sheet model by setting the xml variables ``CISM_EVOLVE_ICESHEET`` (for each included icesheet --- e.g., ``CISM_EVOLVE_GREENLAND``) as well as the overall ``CISM_EVOLVE`` to ``TRUE``.
 
 The sections below give links to information about CISM's coupling, 
 and how to start and run a CESM case in general. After the links 
@@ -29,18 +29,18 @@ method of updating the atmosphere topography to reflect the current
 shape of the ice sheet has been developed. That method is outlined 
 below. 
 
-===========
+======================================
 Helpful links for coupling information
-===========
+======================================
 
 - `Details of CISM, CLM and POP coupling <https://escomp.github.io/cism-docs/cism-in-cesm/versions/release-cesm2.0/html/clm-cism-coupling.html#>`_
 - `Generating Forcing Data to use in a CISM T compset <https://escomp.github.io/cism-docs/cism-in-cesm/versions/release-cesm2.0/html/t-compsets.html#performing-a-run-to-create-forcing-data>`_
 - `CESM Case Control System (how to setup, build, and run an experiment with CESM 2) <https://esmci.github.io/cime/versions/master/html/users_guide/index.html>`_
 - `User questions and answers in the DiscussCESM Forums <https://bb.cgd.ucar.edu/cesm/>`_
 
-===========
+===============
 CISM Time Steps
-===========
+===============
 
 There are a few different kinds of timesteps in CISM:
 
@@ -118,7 +118,7 @@ currently namelist and source modifications needed. Contact a LIWG scientist
 for more information about these.
 
 The time options below (apart from the forcing timestep) are set in
-*cism.config*. This file contains (or may contain) the following
+*cism.ICESHEET.config* for each ice sheet. This file contains (or may contain) the following
 timestep information:
 
 1. The ice sheet timestep *dt* (in years) is set in the section
@@ -134,47 +134,47 @@ timestep information:
 Note that the total length of the simulation is not determined by
 CISM, but is set in the file *env\_run.xml* in the case directory.
 
-===========
+=================================
 CISM Topography Updating Workflow
-===========
+=================================
 
 ** These instructions require CESM 2.1.1 or greater. **
 
 1. Edit your ``config_workflow.xml`` file. This is found in ``cime/config/cesm/machines`` . You will need to add the following code to this file anywhere after a ``</workflow_jobs>`` tag. ::
 
-  <workflow_jobs id="topo_regen_10yr_cycle">
-    <!-- order matters, jobs will be run in the order listed here -->
-    <job name="case.run">
-      <template>template.case.run</template>
-      <prereq>$BUILD_COMPLETE and not $TEST</prereq>
-    </job>
-    <job name="case.test">
-      <template>template.case.test</template>
-      <prereq>$BUILD_COMPLETE and $TEST</prereq>
-    </job>
-    <job name="case.topo_regen">
-      <template>$EXEROOT/../run/dynamic_atm_topo/template.topo_regen</template>
-      <!-- If case.run (or case.test) exits successfully then run topo_regen-->
-      <dependency>case.run or case.test</dependency>
-      <prereq>1</prereq>
-      <runtime_parameters>
-        <task_count>1</task_count>
-        <tasks_per_node>1</tasks_per_node>
-        <walltime>0:45:00</walltime>
-      </runtime_parameters>
-    </job>
-    <job name="case.st_archive">
-      <template>template.st_archive</template>
-      <!-- If case.topo_regen exits successfully then run st_archive-->
-      <dependency>case.topo_regen</dependency>
-      <prereq>$DOUT_S</prereq>
-      <runtime_parameters>
-        <task_count>1</task_count>
-        <tasks_per_node>1</tasks_per_node>
-        <walltime>0:20:00</walltime>
-      </runtime_parameters>
-    </job>
-  </workflow_jobs>
+    <workflow_jobs id="topo_regen_10yr_cycle">
+      <!-- order matters, jobs will be run in the order listed here -->
+      <job name="case.run">
+        <template>template.case.run</template>
+        <prereq>$BUILD_COMPLETE and not $TEST</prereq>
+      </job>
+      <job name="case.test">
+        <template>template.case.test</template>
+        <prereq>$BUILD_COMPLETE and $TEST</prereq>
+      </job>
+      <job name="case.topo_regen">
+        <template>$EXEROOT/../run/dynamic_atm_topo/template.topo_regen</template>
+        <!-- If case.run (or case.test) exits successfully then run topo_regen-->
+        <dependency>case.run or case.test</dependency>
+        <prereq>1</prereq>
+        <runtime_parameters>
+          <task_count>1</task_count>
+          <tasks_per_node>1</tasks_per_node>
+          <walltime>0:45:00</walltime>
+        </runtime_parameters>
+      </job>
+      <job name="case.st_archive">
+        <template>template.st_archive</template>
+        <!-- If case.topo_regen exits successfully then run st_archive-->
+        <dependency>case.topo_regen</dependency>
+        <prereq>$DOUT_S</prereq>
+        <runtime_parameters>
+          <task_count>1</task_count>
+          <tasks_per_node>1</tasks_per_node>
+          <walltime>0:20:00</walltime>
+        </runtime_parameters>
+      </job>
+    </workflow_jobs>
 
 
 2. Create your case. When you create your case you will need to add the flag ``--workflow topo_regen_10yr_cycle`` . For example: ::

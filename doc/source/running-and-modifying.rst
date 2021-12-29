@@ -18,7 +18,7 @@ Model; the land component is CLM, the Community Land Model (which is now part of
 Community Terrestrial Systems Model). CLM is responsible for computing the surface mass
 balance and surface temperature of ice sheets, along with snow pack evolution for all land
 cover types. CISM is responsible for ice sheet dynamics and other ice sheet internal
-processes.
+processes. CISM can include one or more independent ice sheets within a given simulation, each with their own grid.
 
 =================================================
  Choosing a CESM configuration for land ice work
@@ -34,25 +34,10 @@ described in more detail in the `CIME documentation
 of available compsets <http://www.cesm.ucar.edu/models/cesm2.0/cesm/compsets.html>`_). At
 the compset level, there are three main modes for configuring CESM's ice sheet component:
 
-1. Using CISM with ice evolution turned off.
+1. Using CISM with ice evolution turned on.
 
-   This is the standard configuration used by most CESM compsets. These compsets have
-   ``CISM2%NOEVOLVE`` in their compset long name. CISM is built into the system and is
-   called periodically by the CESM coupler, but it does very little. CISM serves two roles
-   in the system in this configuration:
-
-   - Over the CISM domain (typically Greenland in CESM2), CISM dictates glacier areas and
-     topographic elevations, overriding the values on CLM's surface dataset. CISM also
-     dictates the elevation of non-glacier land units in its domain, and only in this
-     domain does CLM downscale atmospheric fields to non-glacier land units.
-
-   - CISM provides the grid onto which SMB is downscaled.
-
-   |
-2. Using CISM with ice evolution turned on.
-
-   These compsets have ``CISM2%EVOLVE`` in their compset long name, and typically have the
-   letter ``G`` somewhere near the end of their alias. CISM is fully active, receiving SMB
+   These compsets have ``CISM2%AIS-EVOLVE`` and/or ``CISM2%GRIS-EVOLVE`` in their compset long name. They typically have the
+   letter ``G`` somewhere near the end of their alias, with ``Ga`` for a compset with Antarctica, ``Gg`` for a compset with Greenland, and ``Gag`` for a compset with both Antarctica and Greenland. CISM is fully active, receiving SMB
    from CLM and evolving dynamically. In addition, by default, CISM feeds information back
    to other climate system components --- i.e., it is two-way coupled. Specifically, it
    sends:
@@ -61,15 +46,34 @@ the compset level, there are three main modes for configuring CESM's ice sheet c
 
    - Ice and liquid runoff to the ocean
 
+   |
+
    Part or all of this two-way coupling can be turned off if desired.
    Note that the liquid runoff sent to the ocean consists of meltwater computed in the interior
    or at the base of the ice; surface liquid runoff is handled separately by CLM.
 
    |
+
+2. Using CISM with one or more ice sheets, with ice evolution turned off.
+
+   These compsets have ``CISM2%AIS-NOEVOLVE`` and/or ``CISM2%GRIS-NOEVOLVE`` in their compset long name. CISM is built into the system but it does very little. CISM serves two roles in the system in this configuration:
+
+   - Over the CISM domain(s) (typically Greenland and/or Antarctica), CISM dictates glacier areas and
+     topographic elevations, overriding the values on CLM's surface dataset. CISM also
+     dictates the elevation of non-glacier land units in its domain, and only in this
+     domain does CLM downscale atmospheric fields to non-glacier land units.
+
+   - CISM provides the grid onto which SMB is downscaled.
+
+   |
+     
+   It is also possible for a compset to have one or more ice sheets evolving and one or more ice sheets non-evolving.
+     
+   |
+
 3. Using a stub glacier component (SGLC), completely avoiding the use of CISM.
 
-   These configurations have ``SGLC`` in the compset long name, and typically have ``Gs``
-   somewhere near the end of their alias. This is similar to (1), and CLM still computes
+   These configurations have ``SGLC`` in the compset long name. This is similar to (2), and CLM still computes
    ice sheet surface mass balance. However:
 
    - Glacier areas and elevations are taken entirely from CLM's surface dataset, and CLM
@@ -93,8 +97,11 @@ the compset level, there are three main modes for configuring CESM's ice sheet c
 
    |
 
-After creating a case, you can switch between (1) and (2) by setting the xml variable,
-``CISM_EVOLVE``.
+A case can include any number of ice sheets. The ice sheet(s) included in the case should be chosen at ``create_newcase`` time, via choice of an appropriate compset. For example, a compset with both Antarctica and Greenland evolving will have ``CISM2%AIS-EVOLVE%GRIS-EVOLVE`` in the compset long name, and will typically have ``Gag`` in the compset alias.
+
+The choice of evolution or non-evolution for each ice sheet can be chosen via the compset, but this can also be safely changed after creating a case by setting the xml variables, ``CISM_EVOLVE_ANTARCTICA``, ``CISM_EVOLVE_GREENLAND``, etc. You also need to set the overall ``CISM_EVOLVE`` to be consistent with the ice sheet-specific variables: ``CISM_EVOLVE`` must be set to ``TRUE`` if *any* ice sheet is set to evolve, and must be set to ``FALSE`` if no ice sheet is set to evolve. (The scripts will check this for you and won't let you run your case if you have failed to set these variables consistently.)
+
+.. _choosing-a-cism-grid:
 
 Choosing a CISM grid
 --------------------
@@ -120,8 +127,10 @@ default grid (4 km). For some common grids, you can also specify the grid explic
 the alias, using a ``_gris`` element following the ocean grid. For example, for a compset
 with CISM2, ``f09_g17_gris4`` is equivalent to ``f09_g17``.
 
-For the T1850Gg compset (described in :numref:`t-compsets`), you should use grid
-``f09_g17_gris4``. For information on introducing new ice sheet grids, see :ref:`new-grids`.
+For the ``T1850Gg`` compset (described in :numref:`t-compsets`), you should use grid
+``f09_g17_gris4``. For ``T1850Ga``, you should use grid ``f09_g17_ais8``. For information on introducing new ice sheet grids, see :ref:`new-grids`.
+
+If multiple ice sheets are included in the compset, then you must choose a CESM grid that specifies an ice sheet grid for each active ice sheet (regardless of whether each ice sheet is evolving or non-evolving). For example, for the ``T1850Gag`` compset (which includes both Antarctica and Greenland), you can use grid ``f09_g17_ais8gris4``, denoting an 8-km Antarctica grid and a 4-km Greenland grid.
 
 Special considerations for hybrid cases
 ---------------------------------------
@@ -160,28 +169,28 @@ physics options.)
 =============================
 
 Once the code is running, you may want to change namelist or configuration
-variables. Variables related to land ice are set in the files ``cism_in``, ``cism.config``
+variables. Variables related to land ice are set in the files ``cism_in``, ``cism.ICESHEET.config`` (for each ice sheet --- e.g., ``cism.ais.config``, ``cism.gris.config``)
 and ``lnd_in``. These files appear in the run directory, and also in the ``CaseDocs``
 subdirectory of the case directory. User modifications can be made to these files by
-adding lines to ``user_nl_cism`` (for variables in ``cism_in`` or ``cism.config``) or
-``user_nl_clm`` (for variables in ``lnd_in``); this is described in more detail below. The
+adding lines to ``user_nl_cism``, ``user_nl_cism_ICESHEET`` (for each ice sheet --- e.g., ``user_nl_cism_ais``, ``user_nl_cism_gris``) or
+``user_nl_clm``; this is described in more detail below. The
 various ``user_nl_xxx`` files are created when you first run ``case.setup`` for your
 case. They can be modified any time between running ``case.setup`` and the start of the
 run: the model does NOT need to be rebuilt after making namelist changes in these files.
 
-Most parameters directly relevant to ice sheet modeling are set in ``cism.config``. This
+Most parameters directly relevant to ice sheet modeling are set in ``cism.ICESHEET.config`` for each ice sheet. This
 config file contains settings used by CISM --- for example, grid information (which is set
 automatically based on the resolution set at ``create_newcase`` time) and physics
 parameter settings. The ``cism_in`` file contains some additional parameters controlling
 the CISM run. All of the available settings are given in `this table
 <http://www.cesm.ucar.edu/models/cesm2.0/component_settings/cism_nml.html>`__ (variables in
-namelist groups with ``config`` in their name will go into the ``cism.config`` file;
+namelist groups with ``config`` in their name will go into the ``cism.ICESHEET.config`` files;
 others will go into the ``cism_in`` file).
 
 The file ``lnd_in`` provides settings for CLM. CLM's available settings are given in `this
-table <http://www.cesm.ucar.edu/models/cesm2.0/component_settings/clm4_5_nml.html>`__.
+table <https://www.cesm.ucar.edu/models/cesm2/settings/current/clm5_0_nml.html>`__.
 
-Changes to both ``cism.config`` and ``cism_in`` can be made by adding lines with the
+``user_nl_cism`` is used for two purposes: (1) settings that appear in ``cism_in``, which apply to all ice sheets; and (2) settings that appear in the ice sheet-specific ``cism.ICESHEET.config`` files, for which you want to make the same change for all ice sheets. Changes to either of those types of settings can be made by adding lines with the
 following format to the ``user_nl_cism`` file in your case directory:
 
 .. code-block:: console
@@ -189,9 +198,9 @@ following format to the ``user_nl_cism`` file in your case directory:
     namelist_variable = value
 
 Note that there is no distinction in ``user_nl_cism`` between variables that will appear
-in ``cism_in`` vs. those that will appear in ``cism.config``: CISM's build-namelist
+in ``cism_in`` vs. those that will appear in the ``cism.ICESHEET.config`` files: CISM's build-namelist
 utility knows where each variable belongs. For example, to set the value of ``cism_debug``
-to ``.true.`` and ``dt`` to ``0.05``, include the following in ``user_nl_cism``:
+to ``.true.`` and ``dt`` to ``0.05`` for all ice sheets, include the following in ``user_nl_cism``:
 
 .. code-block:: console
 
@@ -208,7 +217,7 @@ After running ``preview_namelists``, the following will appear in ``cism_in``:
    ...
    /
 
-and the following will appear in ``cism.config``:
+and the following will appear in ``cism.ICESHEET.config`` for all ice sheets:
 
 .. code-block:: console
 
@@ -217,6 +226,8 @@ and the following will appear in ``cism.config``:
    dt = 0.05
    ...
 
+``user_nl_cism_ICESHEET`` (e.g., ``user_nl_cism_ais``, ``user_nl_cism_gris``) is used for settings that appear in the ice sheet-specific ``cism.ICESHEET.config`` files, for which you want to make a change for just one ice sheet. The syntax for making changes is the same as for ``user_nl_cism``, but now this will only impact the single corresponding ``cism.ICESHEET.config`` file.
+   
 Changes to ``lnd_in`` can be made by adding similar lines to ``user_nl_clm``.  For
 example, to change the ice albedo (values give albedo in the visible and near-infrared),
 add the following line to ``user_nl_clm``:
@@ -231,7 +242,7 @@ will then appear in the CaseDocs subdirectory of your case as well as in the run
 directory.
 
 Note: There appears to be a bug in the parsing of strings in ``user_nl_cism`` that are
-bound for ``cism.config``: These appear to be handled correctly if they are single-quoted,
+bound for ``cism.ICESHEET.config``: These appear to be handled correctly if they are single-quoted,
 but double-quoted strings lead to buggy behavior.
 
 =======================
@@ -257,8 +268,8 @@ Other subdirectories of the top-level CISM-wrapper code are:
 
 - ``source_glc``, which contains much of the logic for driving CISM via CESM
 
-- ``drivers``, which contains the code for coupling with CESM via the MCT coupling
-  framework
+- ``drivers``, which contains the code for coupling with CESM via both the NUOPC and MCT coupling
+  frameworks
 
 - ``bld``, which mainly consists of code and xml files needed to create the namelist and
   configuration files. Note that the actual build of the model is handled by files in

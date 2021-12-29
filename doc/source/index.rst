@@ -34,6 +34,7 @@ Appendices
    :maxdepth: 2
 
    new-grids.rst
+   new-icesheet.rst
 
 ----
 
