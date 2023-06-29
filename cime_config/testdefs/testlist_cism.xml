@@ -1,18 +1,6 @@
 <?xml version="1.0"?>
 <testlist version="2.0">
 
-  <test name="ERI_Vmct_Ly44" grid="f09_g17_gris20" compset="T1850Gg" testmods="cism/isostasy_period4">
-    <machines>
-
-      <machine name="cheyenne" compiler="intel" category="aux_glc">
-        <options>
-          <option name="wallclock">0:40</option>
-          <option name="comment">include a longer ERI test to catch problems that may just show up after longer runs, using a coarse resolution to get faster turnaround and lower cost; include isostasy because there are extra subtleties with getting isostasy to restart exactly</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
   <test name="ERI_Ly44" grid="f09_g17_gris20" compset="T1850Gg" testmods="cism/isostasy_period4">
     <machines>
 
@@ -26,24 +14,6 @@
     </machines>
   </test>
 
-  <test name="ERI_Vmct_Ly15" grid="f09_g17_gris4" compset="T1850Gg" testmods="cism/isostasy_period4">
-    <machines>
-
-      <machine name="cheyenne" compiler="intel" category="prebeta">
-        <options>
-          <option name="wallclock">0:40</option>
-        </options>
-      </machine>
-
-      <machine name="cheyenne" compiler="intel" category="aux_glc">
-        <options>
-          <option name="wallclock">0:40</option>
-          <option name="comment">include an ERI test at the production resolution, to exercise all options used at that resolution; include isostasy because there are extra subtleties with getting isostasy to restart exactly</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
   <test name="ERI_Ly15" grid="f09_g17_gris4" compset="T1850Gg" testmods="cism/isostasy_period4">
     <machines>
 
@@ -63,18 +33,6 @@
     </machines>
   </test>
 
-  <test name="ERS_Vmct_D_Ld9" grid="f10_f10_mg37" compset="I1850Clm50SpG" testmods="cism/override_glc_frac">
-    <machines>
-
-      <machine name="cheyenne" compiler="gnu" category="aux_glc">
-        <options>
-          <option name="wallclock">0:30</option>
-          <option name="comment">Make sure glc override options work correctly, and restart properly. Note that we do not generate cism history files in this test, but that is okay: this test is about what is sent to the coupler, not what is output by CISM. (And currently CISM history files do not restart properly in this test.)</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
   <test name="ERS_D_Ld9" grid="f10_f10_mg37" compset="I1850Clm50SpG" testmods="cism/override_glc_frac">
     <machines>
 
@@ -88,17 +46,6 @@
     </machines>
   </test>
 
-  <test name="ERS_Vmct_Ly11" grid="f09_g17_gris20" compset="T1850Gg">
-    <machines>
-
-      <machine name="cheyenne" compiler="gnu" category="aux_glc">
-        <options>
-          <option name="wallclock">0:20</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
   <test name="ERS_Ly11" grid="f09_g17_gris20" compset="T1850Gg">
     <machines>
 
@@ -111,18 +58,6 @@
     </machines>
   </test>
 
-  <test name="ERS_Vmct_Ly11" grid="f09_g17_gris20" compset="T1850Gg" testmods="cism/oneway">
-    <machines>
-
-      <machine name="cheyenne" compiler="gnu" category="aux_glc">
-        <options>
-          <option name="wallclock">0:20</option>
-          <option name="comment">(3-3-16) identical to an existing non-oneway test, which generates some non-zero runoff fluxes</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
   <test name="ERS_Ly11" grid="f09_g17_gris20" compset="T1850Gg" testmods="cism/oneway">
     <machines>
 
@@ -169,20 +104,8 @@
   </test>
   -->
 
-  <test name="ERI_Vmct_N2_Ly9" grid="f09_g17_gris20" compset="T1850Gg">
-    <machines>
 
-      <machine name="cheyenne" compiler="gnu" category="aux_glc">
-        <options>
-          <option name="wallclock">0:45</option>
-          <option name="comment">Include a multi-instance ERI test to catch problems with multi-instance branch/hybrid runs</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
-
-  <test name="ERS_Vmct_Ly3_N2_D" grid="f09_g17_gris20" compset="T1850Gg">
+  <test name="ERS_Ly3_N2_D" grid="f09_g17_gris20" compset="T1850Gg">
     <machines>
 
       <machine name="cheyenne" compiler="intel" category="aux_glc">
@@ -219,24 +142,6 @@
     </machines>
   </test>
 
-  <test name="ERS_Vmct_Ly7" grid="f09_g17_gris4" compset="T1850Gg">
-    <machines>
-
-      <machine name="cheyenne" compiler="intel" category="aux_glc">
-        <options>
-          <option name="wallclock">0:20</option>
-          <option name="comment">include one ERS test of the typical production resolution for CISM2</option>
-        </options>
-      </machine>
-
-      <machine name="cheyenne" compiler="intel" category="prealpha">
-        <options>
-          <option name="wallclock">0:20</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
   <test name="ERS_Ly7" grid="f09_g17_gris4" compset="T1850Gg">
     <machines>
 
@@ -269,18 +174,6 @@
     </machines>
   </test>
 
-  <test name="ERS_Vmct_D_Ly3" grid="f09_g17_gris4" compset="T1850Gg" testmods="cism/cmip6_evolving_icesheet">
-    <machines>
-
-      <machine name="cheyenne" compiler="intel" category="aux_glc">
-        <options>
-          <option name="wallclock">1:00</option>
-          <option name="comment">Want both an ERS test and a _D test that include the cmip6_evolving_icesheet usermods</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
   <test name="ERS_D_Ly3" grid="f09_g17_gris4" compset="T1850Gg" testmods="cism/cmip6_evolving_icesheet">
     <machines>
 
@@ -294,24 +187,6 @@
     </machines>
   </test>
 
-  <test name="ERS_Vmct_Ly3" grid="f10_f10_mg37" compset="I1850Clm50SpG">
-    <machines>
-
-      <machine name="cheyenne" compiler="intel" category="aux_glc">
-        <options>
-          <option name="wallclock">1:59</option>
-          <!-- 2016-10-25: There is a big jump in memory at the start of year
-               2. In the 5-year run, things then stay roughly constant after
-               that. Note that the start of year 2 is when CISM does its first
-               prognostic solve, so I think this is expected behavior. Thus, I
-               believe this is not actually a problem. -->
-          <option name="memleak_tolerance">0.34</option>
-          <option name="comment">Need IG ERS test to catch problems with fields sent before the end of the first year after restart. Also note that this is the only multi-year non-TG test in the test list, so this is the one test that a production-like configuration can run for a few years.</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
   <test name="ERS_Ly3" grid="f10_f10_mg37" compset="I1850Clm50SpG">
     <machines>
 
@@ -351,18 +226,6 @@
     </machines>
   </test>
 
-  <test name="SMS_Vmct_Lm13" grid="f10_f10_mg37" compset="I1850Clm50SpG">
-    <machines>
-
-      <machine name="cheyenne" compiler="intel" category="prealpha">
-        <options>
-          <option name="wallclock">2:00</option>
-          <option name="comment">Include one test in the prealpha test list that exercises CISM without resorting to the test_coupling testmod, in order to exercise CISM in a production-like configuration. 13-months rather than 1-year in order to allow time for CISM to affect CLM (and CLM to produce the next month's history file).</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
   <test name="SMS_Lm13" grid="f10_f10_mg37" compset="I1850Clm50SpG">
     <machines>
 
@@ -376,25 +239,6 @@
     </machines>
   </test>
 
-  <test name="ERS_Vmct_Lm24" grid="f10_f10_mg37" compset="I1850Clm50SpG">
-    <machines>
-
-      <machine name="cheyenne" compiler="intel" category="aux_glc">
-        <options>
-          <option name="wallclock">1:59</option>
-          <!-- 2016-10-25: At least in the ERS_Ly5 test: There is a big jump in
-               memory at the start of year 2. In the 5-year run, things then
-               stay roughly constant after that. Note that the start of year 2
-               is when CISM does its first prognostic solve, so I think this is
-               expected behavior. Thus, I believe this is not actually a
-               problem. -->
-          <option name="memleak_tolerance">0.34</option>
-          <option name="comment">Mid-year exact restart test</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
   <test name="ERS_Lm24" grid="f10_f10_ais8gris4_mg37" compset="I1850Clm50SpGag">
     <machines>
 
@@ -415,25 +259,6 @@
     </machines>
   </test>
 
-  <test name="ERI_Vmct_Lm24" grid="f10_f10_mg37" compset="I1850Clm50SpG" testmods="cism/isostasy_period4">
-    <machines>
-
-      <machine name="cheyenne" compiler="intel" category="aux_glc">
-        <options>
-          <option name="wallclock">1:59</option>
-          <!-- 2016-10-25: At least in the ERS_Ly5 test: There is a big jump in
-               memory at the start of year 2. In the 5-year run, things then
-               stay roughly constant after that. Note that the start of year 2
-               is when CISM does its first prognostic solve, so I think this is
-               expected behavior. Thus, I believe this is not actually a
-               problem. -->
-          <option name="memleak_tolerance">0.34</option>
-          <option name="comment">Test branching mid-year; include isostasy because there are extra subtleties with getting isostasy to restart exactly</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
   <test name="ERI_Lm24" grid="f10_f10_mg37" compset="I1850Clm50SpG" testmods="cism/isostasy_period4">
     <machines>
 
@@ -454,18 +279,6 @@
     </machines>
   </test>
 
-  <test name="ERI_Vmct" grid="f10_f10_mg37" compset="I1850Clm50SpG" testmods="cism/test_coupling">
-    <machines>
-
-      <machine name="cheyenne" compiler="gnu" category="aux_glc">
-        <options>
-          <option name="wallclock">1:45</option>
-          <option name="comment">Changes often break the test_coupling testmod, so include an ERI test with this testmod to help catch these problems</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
   <test name="ERI" grid="f10_f10_mg37" compset="I1850Clm50SpG" testmods="cism/test_coupling">
     <machines>
 
@@ -479,7 +292,7 @@
     </machines>
   </test>
 
-  <test name="NCK_Vmct_Ly3" grid="f09_g17_gris20" compset="T1850Gg">
+  <test name="NCK_Ly3" grid="f09_g17_gris20" compset="T1850Gg">
     <machines>
 
       <machine name="izumi" compiler="pgi" category="prebeta">
@@ -546,18 +359,6 @@
     </machines>
   </test>
 
-  <test name="SMS_Vmct_D_Ly1" grid="f09_g17_gris4" compset="T1850Gg" testmods="cism/isostasy_period1">
-    <machines>
-
-      <machine name="cheyenne" compiler="intel" category="aux_glc">
-        <options>
-          <option name="wallclock">0:20</option>
-          <option name="comment">Include a debug test with isostasy turned on</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
   <test name="SMS_D_Ly1" grid="f09_g17_gris4" compset="T1850Gg" testmods="cism/isostasy_period1">
     <machines>
 
@@ -571,17 +372,6 @@
     </machines>
   </test>
 
-  <test name="SMS_Vmct_D_Ly1" grid="f09_g17_gris4" compset="T1850Gg">
-    <machines>
-
-      <machine name="cheyenne" compiler="gnu" category="aux_glc">
-        <options>
-          <option name="wallclock">0:20</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
   <test name="SMS_D_Ly1" grid="f09_g17_gris4" compset="T1850Gg">
     <machines>
 
@@ -594,23 +384,6 @@
     </machines>
   </test>
 
-  <test name="SMS_Vmct_D_Ly1" grid="f09_g17_gris4" compset="T1850Gg">
-    <machines>
-
-      <machine name="cheyenne" compiler="intel" category="aux_glc">
-        <options>
-          <option name="wallclock">0:20</option>
-        </options>
-      </machine>
-
-      <machine name="cheyenne" compiler="intel" category="prebeta">
-        <options>
-          <option name="wallclock">0:20</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
   <test name="SMS_D_Ly1" grid="f09_g17_gris4" compset="T1850Gg">
     <machines>
 
@@ -661,26 +434,6 @@
     </machines>
   </test>
 
-  <test name="SMS_Vmct_D_Ly1_P24x1" grid="f09_g17_gris4" compset="T1850Gg">
-    <machines>
-
-      <machine name="izumi" compiler="nag" category="aux_glc">
-        <options>
-          <option name="wallclock">1:59</option>
-          <option name="comment">short nag debug test of CISM2 at production resolution, to test options specific to the production resolution (currently, which_ho_babc differs at the production resolution)</option>
-        </options>
-      </machine>
-
-      <machine name="izumi" compiler="pgi" category="aux_glc">
-        <options>
-          <option name="wallclock">1:59</option>
-          <option name="comment">include a pgi test of CISM2</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
-
   <test name="SMS_D_Ly1_P24x1" grid="f09_g17_gris4" compset="T1850Gg">
     <machines>
 
@@ -713,19 +466,6 @@
     </machines>
   </test>
   
-  <test name="SMS_Vmct_D_Ly3_P24x1" grid="f09_g17_gris20" compset="T1850Gg">
-    <machines>
-
-      <machine name="izumi" compiler="nag" category="aux_glc">
-        <options>
-          <option name="wallclock">1:59</option>
-          <option name="comment">multi-year nag debug test of CISM2 at coarse resolution</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
-
   <test name="SMS_D_Ly3_P24x1" grid="f09_g17_gris20" compset="T1850Gg">
     <machines>
 
@@ -739,18 +479,6 @@
     </machines>
   </test>
   
-  <test name="ERS_Vmct_Ly5" grid="f09_g17_gris4" compset="T1850Gg" testmods="cism/isostasy_period4">
-    <machines>
-
-      <machine name="cheyenne" compiler="gnu" category="aux_glc">
-        <options>
-          <option name="wallclock">1:30</option>
-          <option name="comment">Include an exact restart test with isostasy, where we restart in the middle of the isostasy update period</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
   <test name="ERS_Ly5" grid="f09_g17_gris4" compset="T1850Gg" testmods="cism/isostasy_period4">
     <machines>
 
@@ -764,18 +492,6 @@
     </machines>
   </test>
 
-  <test name="ERS_Vmct_Ly3" grid="f09_g17_gris4" compset="T1850Gg" testmods="cism/isostasy_period1">
-    <machines>
-
-      <machine name="cheyenne" compiler="gnu" category="aux_glc">
-        <options>
-          <option name="wallclock">0:50</option>
-          <option name="comment">Include an exact restart test with isostasy, where restart aligns with the isostasy update period</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
   <test name="ERS_Ly3" grid="f09_g17_gris4" compset="T1850Gg" testmods="cism/isostasy_period1">
     <machines>
 
@@ -789,18 +505,6 @@
     </machines>
   </test>
 
-  <test name="SMS_Vmct_Lm13" grid="f10_f10_mg37" compset="I1850Clm50SpG" testmods="cism/noevolve">
-    <machines>
-
-      <machine name="cheyenne" compiler="intel" category="aux_glc">
-        <options>
-          <option name="wallclock">2:00</option>
-          <option name="comment">Include an I compset test with CISM in NOEVOLVE mode. The purpose of this test is: Often there are answer changes in CISM, but we expect that these should not affect NOEVOLVE runs (which is the typical CESM configuration). This test allows us to do a baseline comparison to confirm that expectation. 13-months rather than 1-year in order to allow time for CISM to affect CLM (and CLM to produce the next month's history file).</option>
-        </options>
-      </machine>
-
-    </machines>
-  </test>
   <test name="SMS_Lm13" grid="f10_f10_mg37" compset="I1850Clm50SpG" testmods="cism/noevolve">
     <machines>
 
