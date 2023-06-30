@@ -3,6 +3,42 @@ This file describes what tags were created on master and why
 ================================================================================
 
 ================================================================================
+Originator: katetc
+Date: June 30, 2023
+Version: cismwrap_2_1_96
+One-line summary: Include new CISM source tag, update externals, update test list
+
+Purpose of changes:
+
+   Update the cism source tag to cism_main_2.01.012 to include PR #55 in
+   ESCOMP/CISM from jedwards: Change required for Derecho. In cism-wrapper,
+   all Externals updated to current versions (reflecting CTSM currently),
+   and test list updated to remove mct and pgi tests.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: YES
+
+Bugs fixed (include github issue number):
+
+   No documented issues addressed here.
+
+Summary of testing:
+
+   Full aux_glc test suite on cheyenne and izumi.
+
+   All tests passed but namelist comparison fails in all cases due to changes
+   in data components. Baseline differences in all I cases due to CTSM updates.
+
+================================================================================
 Originator: sacks
 Date: December 28, 2021
 Version: cismwrap_2_1_95
