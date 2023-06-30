@@ -295,12 +295,6 @@
   <test name="NCK_Ly3" grid="f09_g17_gris20" compset="T1850Gg">
     <machines>
 
-      <machine name="izumi" compiler="pgi" category="prebeta">
-        <options>
-          <option name="wallclock">1:59</option>
-        </options>
-      </machine>
-
       <machine name="cheyenne" compiler="gnu" category="aux_glc">
         <options>
           <option name="wallclock">0:20</option>
@@ -444,10 +438,6 @@
         </options>
       </machine>
 
-      <!-- BUG(wjs, 2021-09-29, ESCOMP/CISM-wrapper#60) Add a pgi
-           version of this test once nuopc is working with pgi
-           (similarly to how we have both nag and pgi versions of the
-           equivalent mct test above). -->
     </machines>
   </test>
 
@@ -461,8 +451,6 @@
         </options>
       </machine>
 
-      <!-- BUG(wjs, 2021-09-29, ESCOMP/CISM-wrapper#60) Add a pgi
-           version of this test once nuopc is working with pgi -->
     </machines>
   </test>
   
