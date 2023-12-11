@@ -104,7 +104,7 @@
   </test>
 
 
-  <test name="ERS_Ly3_N2_D" grid="f09_g17_gris20" compset="T1850Gg">
+  <test name="ERS_Ly3_C2_D" grid="f09_g17_gris20" compset="T1850Gg">
     <machines>
 
       <machine name="derecho" compiler="intel" category="aux_glc">
