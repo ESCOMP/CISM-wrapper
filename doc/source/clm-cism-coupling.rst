@@ -14,11 +14,10 @@ Non-evolving ice sheet
 In typical CESM runs, CISM is not evolving; CLM computes the ice sheet surface mass
 balance and sends it to CISM, but CISM's ice sheet geometry remains fixed over the course
 of the run, and CISM does not send any fluxes to other CESM components. These
-configurations use compsets with ``CISM2%NOEVOLVE`` in their long name (or this can be set
-after setting up a case via the xml variable, ``CISM_EVOLVE``). In these runs, CISM serves
+configurations use compsets with ``CISM2%XXX-NOEVOLVE`` in their long name (for some ice sheet ``XXX``). In these runs, CISM serves
 two roles in the system:
 
-#. Over the CISM domain (typically Greenland in CESM2), CISM dictates
+#. Over the CISM domain(s) (typically Greenland in CESM2), CISM dictates
    glacier areas and topographic elevations, overriding the values on
    CLM's surface dataset. CISM also dictates the elevation of
    non-glacier land units in its domain, and only in this domain are
@@ -30,8 +29,8 @@ two roles in the system:
 Evolving ice sheet with two-way (interactive) coupling
 ------------------------------------------------------
 
-Dynamic ice sheet evolution can be turned on by using a compset with ``CISM2%EVOLVE`` in
-its long name, or by setting the xml variable ``CISM_EVOLVE`` after setting up a case. In
+Dynamic ice sheet evolution can be turned on by using a compset with ``CISM2%XXX-EVOLVE`` in
+its long name (for some ice sheet ``XXX``), or by setting the xml variables ``CISM_EVOLVE_ICESHEET`` (for one or more instances of ``ICESHEET``) and the overall ``CISM_EVOLVE`` after setting up a case. In
 this configuration, CISM sends updated glacier areas and topographic elevations to CLM at
 the end of each year. In addition, CISM sends fluxes of ice and liquid water to the
 ocean. CLM responds to these changes by adjusting the areas of the glacier land unit and
@@ -57,8 +56,7 @@ Evolving ice sheet with one-way (diagnostic) coupling
 -----------------------------------------------------
 
 A hybrid mode is also possible, in which CISM evolves dynamically but does not feed back
-to the rest of the system. This configuration is enabled by turning on CISM evolution (via
-using a ``CISM2%EVOLVE`` compset or changing the ``CISM_EVOLVE`` xml variable to
+to the rest of the system. This configuration is enabled by turning on CISM evolution (by using a ``CISM2%XXX-EVOLVE`` compset or changing the relevant ``CISM_EVOLVE_ICESHEET`` and overall ``CISM_EVOLVE`` xml variables to
 ``TRUE``), but then changing the xml variable ``GLC_TWO_WAY_COUPLING`` to ``FALSE``. This
 change results in changes to CLM and CISM:
 
@@ -79,7 +77,7 @@ Stub GLC model (CISM absent)
 ----------------------------
 
 It is also possible to run CESM with a stub glacier model rather than CISM by using
-compsets with ``SGLC`` in place of ``CISM2%NOEVOLVE``. These configurations are similar to
+compsets with ``SGLC`` in place of ``CISM2%XXX-NOEVOLVE``. These configurations are similar to
 those with a non-evolving ice sheet, with the following differences:
 
 #. CLM's glacier areas and elevations will be taken entirely from CLM's initial conditions
@@ -445,10 +443,8 @@ This mask is currently a subset of the ice sheet grid mask. Currently, it is ide
 the ice sheet grid mask if we are running with an evolving, two-way-coupled ice sheet, and
 otherwise is zero everywhere (and, as described in :numref:`ice_sheet_grid_mask`, this
 relationship should remain true, because the ice sheet grid mask is used in the coupler in
-a way that closely matches the use of this second mask). In the future, when we allow
-multiple ice sheets in CESM (e.g., Greenland and Antarctica), it is possible that one ice
-sheet will operate two-way-coupled while another is one-way-coupled. In this case, this
-mask would match the ice sheet grid mask for the two-way-coupled ice sheet and would be
+a way that closely matches the use of this second mask). One reason this is sent as a separate field is to handle the scenario where there are multiple ice sheets (e.g., Greenland and Antarctica), with one ice sheet operating two-way-coupled while another is one-way-coupled. In this case, this
+mask matches the ice sheet grid mask for the two-way-coupled ice sheet and is
 zero for the other.
 
 Note that, like the ice sheet grid mask, this mask excludes CISM's open ocean grid
@@ -604,6 +600,8 @@ by up to 10%.  If we used conservative rather than bilinear remapping, differenc
 because of area distortions on CISM's polar stereographic grid.
 Thus the local errors for bilinear remapping and renormalization are similar to the local errors for conservative remapping.
 Bilinear remapping, however, is far smoother; smoothness is obtained at the cost of local conservation.
+
+When running with multiple ice sheets, the conservation correction is applied independently for each ice sheet. This means that the SMB over one ice sheet does *not* impact the renormalized SMB over another ice sheet.
 
 Remapping surface temperature from CLM to CISM
 ----------------------------------------------

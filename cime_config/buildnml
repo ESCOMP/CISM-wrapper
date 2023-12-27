@@ -48,23 +48,16 @@ _CISM_CONFIG_GROUPS = ["grid", "glad_climate", "esm_output", "options", "sigma",
 # we use an OrderedDict to get reliable ordering (this is unnecessary in python3.6 and
 # later because standard dicts maintain order, but necessary for 3.5 and earlier)
 #
-# It is important that this ordering be consistent with the ordering of grids in CIME's config_grids xml file.
+# It is important that this ordering be consistent with the ordering of grids in the
+# config_grids xml file (e.g., if the Antarctica grid is listed before the Greenland grid
+# in grids defined in that file, then Antarctica must appear before Greenland in this
+# variable).
 #
 # Problems may arise if one ice sheet's name is a prefix of another (e.g., "gris" and "grisa").
 #
-# If you add a new ice sheet here, you should also add entries in the following:
-#
-# Required:
-# - cime_config/config_component.xml (xml variables for each ice sheet and their
-#   relationship to compset names; follow the examples of other ice sheets there)
-# - cime_config/namelist_definition_cism.xml (defaults for this ice sheet for ice
-#   sheet-specific variables)
-# - cime_config/config_archive.xml (add a new rpointer section for the new ice sheet, as
-#   well as rpointer test file entries for this new ice sheet)
-#
-# Optional:
-# - cime_config/config_compsets.xml (compset aliases using your new ice sheet)
-# - cime_config/config_pes.xml (default processor layouts for your new ice sheet)
+# If you add a new ice sheet here, you should also add references to the new ice sheet in
+# a number of other places, as described in the documentation here:
+#   https://escomp.github.io/cism-docs/cism-in-cesm/versions/master/html/new-icesheet.html
 _ICESHEET_OPTIONS = OrderedDict([('ais', 'ANTARCTICA'),
                                  ('gris', 'GREENLAND')])
 
