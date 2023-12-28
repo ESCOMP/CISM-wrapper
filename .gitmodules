@@ -1,0 +1,3 @@
+[submodule "source_cism"]
+	path = source_cism
+	url = https://github.com/ESCOMP/cism
