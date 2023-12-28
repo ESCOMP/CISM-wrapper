@@ -1,0 +1,35 @@
+#!/bin/bash
+# Script to fetch submodules for CTSM
+# if argument -internal-only is supplied then only checkout CTSM internal submodules, otherwise checkout everything needed for
+# CTSM as a top level repository
+#
+
+submodules=('source_cism')
+
+for mod in "${submodules[@]}"
+do
+    echo "Initializing $mod"
+    git submodule update --init $mod
+done
+
+if [ $# -gt 0 ]
+  then
+    exit 0
+fi
+
+
+extra_submodules=('cime' 'components/cmeps' 'components/cdeps' \
+                  'ccs_config' 'components/cpl7' 'share' \
+                  'libraries/mct' 'libraries/parallelio' 'components/mosart' )
+
+for mod in "${extra_submodules[@]}"
+do
+    echo "Initializing $mod"
+    git submodule update --init --recursive $mod
+done                        
+
+# CTSM needs special handling
+git submodule update --init components/clm
+pushd components/clm
+./install -internal-only
+popd
