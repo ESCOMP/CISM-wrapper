@@ -9,7 +9,7 @@ Introducing a new ice sheet grid
 ********************************
 
 This section describes what is needed when introducing a new ice sheet grid into the
-system. Much of the information in :ref:`Generating mapping files` is also relevant when
+system. This assumes you are adding a grid for an existing ice sheet: If you are adding a completely new ice sheet (i.e., an ice sheet other than Greenland or Antarctica), see :ref:`new-icesheet`. Much of the information in :ref:`Generating mapping files` is also relevant when
 introducing a new land grid (in which case new lnd-glc mapping files are needed) or a new
 ocean grid (in which case new ocn-glc mapping files are needed).
 
@@ -319,6 +319,8 @@ Generating the necessary inter-component mapping files
 Generating lnd <-> glc mapping files for a new CISM grid
 --------------------------------------------------------
 
+**Note: this step is no longer necessary with the NUOPC/CMEPS interface, where lnd <-> glc mappings are now generated at runtime. (The glc -> ocn mapping files described in the next section ARE still needed.)**
+
 #. Build the check_maps tool
 
    This isn't entirely necessary, but allows the maps you generate to be checked
@@ -606,6 +608,8 @@ scripts, you need to add entries in config_grids.xml
 
 #. Point to new mapping files: lnd <-> glc
 
+   **Note: this step is no longer necessary with the NUOPC/CMEPS interface, where lnd <-> glc mappings are now generated at runtime. (The glc -> ocn mapping files described in the next step ARE still needed.)**
+   
    You'll need to add a section like this for each land grid, in the section
    "lnd to glc and glc to lnd mapping":
 

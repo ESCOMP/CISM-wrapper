@@ -3,7 +3,7 @@
 	url = https://github.com/ESCOMP/cism
 [submodule "cime"]
 	path = cime
-	url = https://github.com/ESMCI/cime
+	url = https://github.com/jedwards4b/cime
 [submodule "ccs_config"]
 	path = ccs_config
 	url = https://github.com/ESMCI/ccs_config_cesm.git
