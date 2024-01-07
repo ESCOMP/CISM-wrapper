@@ -16,19 +16,19 @@
         fxrequired = 'T:T'
         fxtag = ccs_config_cesm0.0.88
 
-[submodule "components/cmeps"]
+[submodule "cmeps"]
 	path = components/cmeps
 	url = https://github.com/ESCOMP/CMEPS.git
         fxrequired = 'T:T'
         fxtag = cmeps0.14.49
 
-[submodule "components/cdeps"]
+[submodule "cdeps"]
 	path = components/cdeps
 	url = https://github.com/jedwards4b/CDEPS.git
         fxrequired = 'T:T'
         fxtag = cdeps1.0.24_rme1
 
-[submodule "components/cpl7"]
+[submodule "cpl7"]
 	path = components/cpl7
 	url = https://github.com/ESCOMP/CESM_CPL7andDataComps
         fxrequired = 'T:T'
@@ -40,25 +40,25 @@
         fxrequired = 'T:T'
         fxtag = share1.0.17
 
-[submodule "libraries/mct"]
+[submodule "mct"]
 	path = libraries/mct
 	url = https://github.com/MCSclimate/MCT
         fxrequired = 'T:T'
         fxtag = MCT_2.11.0
 
-[submodule "libraries/parallelio"]
+[submodule "parallelio"]
 	path = libraries/parallelio
 	url = https://github.com/NCAR/ParallelIO
         fxrequired = 'T:T'
         fxtag = pio2_6_2
 
-[submodule "components/clm"]
+[submodule "clm"]
 	path = components/clm
 	url = https://github.com/jedwards4b/ctsm
         fxrequired = 'T:T'
         fxtag = ctsm5.1.dev130-rme01    
 
-[submodule "components/mosart"]
+[submodule "mosart"]
 	path = components/mosart
 	url = https://github.com/ESCOMP/MOSART.git
         fxrequired = 'T:T'
