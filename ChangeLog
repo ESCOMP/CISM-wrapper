@@ -4,6 +4,47 @@ This file describes what tags were created on master and why
 
 ================================================================================
 Originator: katetc
+Date: December 11, 2023
+Version: cismwrap_2_1_97
+One-line summary: Updates for Derecho
+
+Purpose of changes:
+
+	CISM updates to support Dercho, the new CISM tag fixes SLAP
+	and Intel build times in CISM. Update externals for Derecho, update test
+	list and PE layouts for Derecho and NUOPC-only supported going forward.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: NO
+
+Bugs fixed (include github issue number):
+
+	No documented issues addressed here.
+
+Summary of testing:
+
+	Full aux_glc test suite on Derecho only. Generated new suite of baselines.
+
+	ERS_D_Ly3.f09_g17_gris4.T1850Gg.derecho_intel.cism-noevolve FAIL
+	FAIL ERS_D_Ly3.f09_g17_gris4.T1850Gg.derecho_intel.cism-noevolve COMPARE_base_rest
+	- Test fails because restart runs for 3 years instead of just one year, and then
+	tries to compare year 0004 to 0006. I have no idea why this is happening. Added as
+	a CISM-Wrapper issue: #83
+
+	All tests but the one above ran and passed, but failed baseline compares due to the
+	new machine name.
+
+================================================================================
+Originator: katetc
 Date: June 30, 2023
 Version: cismwrap_2_1_96
 One-line summary: Include new CISM source tag, update externals, update test list
