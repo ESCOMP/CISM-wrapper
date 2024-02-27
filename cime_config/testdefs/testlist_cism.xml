@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <testlist version="2.0">
 
-  <test name="ERI_Ly44" grid="f09_tn14_gris20" compset="T1850Gg" testmods="cism/isostasy_period4">
+  <test name="ERI_Ly44" grid="f09_g17_gris20" compset="T1850Gg" testmods="cism/isostasy_period4">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm">
         <options>
@@ -12,7 +12,7 @@
     </machines>
   </test>
 
-  <test name="ERI_Ly15" grid="f09_tn14_gris4" compset="T1850Gg" testmods="cism/isostasy_period4">
+  <test name="ERI_Ly15" grid="f09_g17_gris4" compset="T1850Gg" testmods="cism/isostasy_period4">
     <machines>
       <machine name="betzy" compiler="intel" category="prebeta_noresm">
         <options>
@@ -39,7 +39,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Ly11" grid="f09_tn14_gris20" compset="T1850Gg">
+  <test name="ERS_Ly11" grid="f09_g17_gris20" compset="T1850Gg">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm">
         <options>
@@ -49,7 +49,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Ly11" grid="f09_tn14_gris20" compset="T1850Gg" testmods="cism/oneway">
+  <test name="ERS_Ly11" grid="f09_g17_gris20" compset="T1850Gg" testmods="cism/oneway">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm">
         <options>
@@ -65,7 +65,7 @@
        that lnd_cpl_time equal glc_cpl_time". If I remember correctly,
        Mariana Vertenstein has fixed this issue on a branch of CMEPS.
        Once it is working, we should restore this test. -->
-  <test name="ERS_D_Ly3" grid="f09_tn14_gris4" compset="T1850Gg" testmods="cism/noevolve">
+  <test name="ERS_D_Ly3" grid="f09_g17_gris4" compset="T1850Gg" testmods="cism/noevolve">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm">
         <options>
@@ -76,7 +76,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Ly7" grid="f09_tn14_gris4" compset="T1850Gg">
+  <test name="ERS_Ly7" grid="f09_g17_gris4" compset="T1850Gg">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm">
         <options>
@@ -92,7 +92,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Ly5" grid="f09_tn14_ais8" compset="T1850Ga">
+  <test name="ERS_Ly5" grid="f09_g17_ais8" compset="T1850Ga">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm">
         <options>
@@ -103,7 +103,7 @@
     </machines>
   </test>
 
-  <test name="ERS_D_Ly3" grid="f09_tn14_gris4" compset="T1850Gg" testmods="cism/cmip6_evolving_icesheet">
+  <test name="ERS_D_Ly3" grid="f09_g17_gris4" compset="T1850Gg" testmods="cism/cmip6_evolving_icesheet">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm">
         <options>
@@ -221,7 +221,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D_Ly1" grid="f09_tn14_gris4" compset="T1850Gg" testmods="cism/isostasy_period1">
+  <test name="SMS_D_Ly1" grid="f09_g17_gris4" compset="T1850Gg" testmods="cism/isostasy_period1">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm">
         <options>
@@ -232,7 +232,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D_Ly1" grid="f09_tn14_gris4" compset="T1850Gg">
+  <test name="SMS_D_Ly1" grid="f09_g17_gris4" compset="T1850Gg">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm">
         <options>
@@ -247,7 +247,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D_Ly1" grid="f09_tn14_ais8" compset="T1850Ga">
+  <test name="SMS_D_Ly1" grid="f09_g17_ais8" compset="T1850Ga">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm">
         <options>
@@ -264,7 +264,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Ly5" grid="f09_tn14_gris4" compset="T1850Gg" testmods="cism/isostasy_period4">
+  <test name="ERS_Ly5" grid="f09_g17_gris4" compset="T1850Gg" testmods="cism/isostasy_period4">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm">
         <options>
@@ -275,7 +275,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Ly3" grid="f09_tn14_gris4" compset="T1850Gg" testmods="cism/isostasy_period1">
+  <test name="ERS_Ly3" grid="f09_g17_gris4" compset="T1850Gg" testmods="cism/isostasy_period1">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm">
         <options>
@@ -297,7 +297,7 @@
     </machines>
   </test>
 
-  <test name="ERS_D_Ly3" grid="f09_tn14_ais8gris4" compset="T1850Gag">
+  <test name="ERS_D_Ly3" grid="f09_g17_ais8gris4" compset="T1850Gag">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm">
         <options>
@@ -308,7 +308,7 @@
     </machines>
   </test>
 
-  <test name="ERI_Ly9" grid="f09_tn14_ais8gris4" compset="T1850Gag" testmods="cism-noevolve_ais">
+  <test name="ERI_Ly9" grid="f09_g17_ais8gris4" compset="T1850Gag" testmods="cism-noevolve_ais">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm">
         <options>
@@ -370,7 +370,7 @@
        ice sheets.
   -->
 
-  <test name="SMS_Ly2" grid="f09_tn14_gris20" compset="T1850Gg">
+  <test name="SMS_Ly2" grid="f09_g17_gris20" compset="T1850Gg">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cime_baselines">
         <options>
