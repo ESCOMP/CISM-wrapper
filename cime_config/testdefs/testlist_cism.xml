@@ -28,7 +28,7 @@
     </machines>
   </test>
 
-  <test name="ERS_D_Ld9" grid="f10_f10_mg37" compset="I1850Clm50SpG" testmods="cism/override_glc_frac">
+  <test name="ERS_D_Ld9" grid="f19_f19_mtn14" compset="I1850Clm50SpG" testmods="cism/override_glc_frac">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm">
         <options>
@@ -114,7 +114,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Ly3" grid="f10_f10_mg37" compset="I1850Clm50SpG">
+  <test name="ERS_Ly3" grid="f19_f19_mtn14" compset="I1850Clm50SpG">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm">
         <options>
@@ -131,7 +131,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Ly3" grid="f10_f10_ais8_mg37" compset="I1850Clm50SpGa">
+  <test name="ERS_Ly3" grid="f19_f19_ais8_mtn14" compset="I1850Clm50SpGa">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm">
         <options>
@@ -149,7 +149,7 @@
     </machines>
   </test>
 
-  <test name="SMS_Lm13" grid="f10_f10_mg37" compset="I1850Clm50SpG">
+  <test name="SMS_Lm13" grid="f19_f19_mtn14" compset="I1850Clm50SpG">
     <machines>
       <machine name="betzy" compiler="intel" category="prealpha_noresm">
         <options>
@@ -160,7 +160,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Lm24" grid="f10_f10_ais8gris4_mg37" compset="I1850Clm50SpGag">
+  <test name="ERS_Lm24" grid="f19_f19_ais8gris4_mtn14" compset="I1850Clm50SpGag">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm">
         <options>
@@ -179,7 +179,7 @@
     </machines>
   </test>
 
-  <test name="ERI_Lm24" grid="f10_f10_mg37" compset="I1850Clm50SpG" testmods="cism/isostasy_period4">
+  <test name="ERI_Lm24" grid="f19_f19_mtn14" compset="I1850Clm50SpG" testmods="cism/isostasy_period4">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm">
         <options>
@@ -197,7 +197,7 @@
     </machines>
   </test>
 
-  <test name="ERI" grid="f10_f10_mg37" compset="I1850Clm50SpG" testmods="cism/test_coupling">
+  <test name="ERI" grid="f19_f19_mtn14" compset="I1850Clm50SpG" testmods="cism/test_coupling">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm">
         <options>
@@ -208,7 +208,7 @@
     </machines>
   </test>
 
-  <test name="SMS_D_Ld5" grid="f10_f10_ais8gris4_mg37" compset="I1850Clm50SpGag" testmods="cism/test_coupling">
+  <test name="SMS_D_Ld5" grid="f19_f19_ais8gris4_mtn14" compset="I1850Clm50SpGag" testmods="cism/test_coupling">
     <machines>
 
       <machine name="betzy" compiler="intel" category="aux_cism_noresm">
@@ -286,7 +286,7 @@
     </machines>
   </test>
 
-  <test name="SMS_Lm13" grid="f10_f10_mg37" compset="I1850Clm50SpG" testmods="cism/noevolve">
+  <test name="SMS_Lm13" grid="f19_f19_mtn14" compset="I1850Clm50SpG" testmods="cism/noevolve">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm">
         <options>
@@ -333,7 +333,7 @@
        much code at that point. See the comments at the top of
        multivssingle.py for more thoughts on this.
   -->
-  <test name="MULTINOAIS_Ly2" grid="f10_f10_ais8gris4_mg37" compset="I1850Clm50SpRsGag" testmods="cism/change_params">
+  <test name="MULTINOAIS_Ly2" grid="f19_f19_ais8gris4_mtn14" compset="I1850Clm50SpRsGag" testmods="cism/change_params">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm">
         <options>
@@ -350,7 +350,7 @@
 
     </machines>
   </test>
-  <test name="MULTINOGRIS_Ly2" grid="f10_f10_ais8gris4_mg37" compset="I1850Clm50SpRsGag" testmods="cism/change_params">
+  <test name="MULTINOGRIS_Ly2" grid="f19_f19_ais8gris4_mtn14" compset="I1850Clm50SpRsGag" testmods="cism/change_params">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm">
         <options>
@@ -380,7 +380,7 @@
     </machines>
   </test>
 
-  <test name="SMS_Ld5" grid="f10_f10_ais8gris4_mg37" compset="I1850Clm50SpGag" testmods="cism/test_coupling">
+  <test name="SMS_Ld5" grid="f19_f19_ais8gris4_mtn14" compset="I1850Clm50SpGag" testmods="cism/test_coupling">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cime_baselines">
         <options>
