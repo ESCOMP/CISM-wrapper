@@ -92,7 +92,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="num_icesheets" skip_default_entry="true" modify_via_xml="CISM_USE_ANTARCTICA, CISM_USE_GREENLAND, etc.">
+  <entry id="num_icesheets" skip_default_entry="true" modify_via_xml="GLC_USE_ANTARCTICA, GLC_USE_GREENLAND, etc.">
     <type>integer</type>
     <category>cism</category>
     <group>cism_params</group>
@@ -102,7 +102,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="icesheet_names" skip_default_entry="true" modify_via_xml="CISM_USE_ANTARCTICA, CISM_USE_GREENLAND, etc.">
+  <entry id="icesheet_names" skip_default_entry="true" modify_via_xml="GLC_USE_ANTARCTICA, GLC_USE_GREENLAND, etc.">
     <type>char(10)</type>
     <category>cism</category>
     <group>cism_params</group>
