@@ -209,10 +209,10 @@ def _is_icesheet_present(case, icesheet_name):
 ####################################################################################
     """Returns True if the given ice sheet is present in this run, False otherwise
 
-    (This is based on the appropriate CISM_USE_* variable)
+    (This is based on the appropriate GLC_USE_* variable)
     """
     xmlname = _ICESHEET_OPTIONS[icesheet_name]
-    xmlvar = "CISM_USE_" + xmlname
+    xmlvar = "GLC_USE_" + xmlname
     return case.get_value(xmlvar)
 
 ####################################################################################

@@ -80,7 +80,7 @@
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm">
         <options>
-          <option name="wallclock">0:20</option>
+          <option name="wallclock">00:20:00</option>
           <option name="comment">include one ERS test of the typical production resolution for CISM2</option>
         </options>
       </machine>
@@ -153,7 +153,7 @@
     <machines>
       <machine name="betzy" compiler="intel" category="prealpha_noresm">
         <options>
-          <option name="wallclock">2:00</option>
+          <option name="wallclock">00:45:00</option>
           <option name="comment">Include one test in the prealpha test list that exercises CISM without resorting to the test_coupling testmod, in order to exercise CISM in a production-like configuration. 13-months rather than 1-year in order to allow time for CISM to affect CLM (and CLM to produce the next month's history file).</option>
         </options>
       </machine>
