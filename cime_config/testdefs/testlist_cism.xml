@@ -118,7 +118,7 @@
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm">
         <options>
-          <option name="wallclock">1:59</option>
+          <option name="wallclock">00:59</option>
           <!-- 2016-10-25: There is a big jump in memory at the start of year
                2. In the 5-year run, things then stay roughly constant after
                that. Note that the start of year 2 is when CISM does its first
@@ -135,7 +135,7 @@
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm">
         <options>
-          <option name="wallclock">1:59</option>
+          <option name="wallclock">00:59</option>
           <!-- 2016-10-25: Notes from similar Greenland, non-NUOPC test:
                There is a big jump in memory at the start of year
                2. In the 5-year run, things then stay roughly constant after
@@ -290,7 +290,7 @@
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm">
         <options>
-          <option name="wallclock">2:00</option>
+          <option name="wallclock">00:45:00</option>
           <option name="comment">Include an I compset test with CISM in NOEVOLVE mode. The purpose of this test is: Often there are answer changes in CISM, but we expect that these should not affect NOEVOLVE runs (which is the typical CESM configuration). This test allows us to do a baseline comparison to confirm that expectation. 13-months rather than 1-year in order to allow time for CISM to affect CLM (and CLM to produce the next month's history file).</option>
         </options>
       </machine>
