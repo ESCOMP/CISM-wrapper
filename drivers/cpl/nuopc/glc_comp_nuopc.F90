@@ -194,7 +194,7 @@ contains
     ! Set filenames which depend on instance information
     call set_filenames()
 
-    ! Determine if cism will evolve - if not will not import any fields from the mediator
+    ! Determine if cism will evolve
     call NUOPC_CompAttributeGet(gcomp, name="cism_evolve", value=cvalue, isPresent=isPresent, isSet=isSet, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
     if (isPresent .and. isSet) then
@@ -214,7 +214,7 @@ contains
     end if
 
     ! Advertise fields
-    call advertise_fields(gcomp, cism_evolve, num_icesheets_from_mediator, rc)
+    call advertise_fields(gcomp, num_icesheets_from_mediator, rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     if (dbug > 5) then
