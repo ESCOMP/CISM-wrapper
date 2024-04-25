@@ -37,7 +37,7 @@ class MULTIVSSINGLE(SystemTestsCompareTwo):
         """Initialize this test instance
 
         The following specify the ice sheet to turn off:
-        - remove_icesheet_xml_name is the name of the icesheet in xml variables like CISM_USE_* (e.g., GREENLAND)
+        - remove_icesheet_xml_name is the name of the icesheet in xml variables like GLC_USE_* (e.g., GREENLAND)
         - remove_icesheet_grid_name is the name of the icesheet in the grid name (e.g., gris)
         """
         self._remove_icesheet_xml_name = remove_icesheet_xml_name
@@ -67,6 +67,10 @@ class MULTIVSSINGLE(SystemTestsCompareTwo):
 
     def _case_two_setup(self):
         # Turn off the given ice sheet
+        self._case.set_value("GLC_USE_{}".format(self._remove_icesheet_xml_name), "FALSE")
+        # BACKWARDS_COMPATIBILITY(wjs,2024-04-01) Backwards compatibility with old CTSM
+        # versions that expect CISM_USE_ANTARCTICA (can be removed after
+        # https://github.com/ESCOMP/CTSM/pull/2449 is merged).
         self._case.set_value("CISM_USE_{}".format(self._remove_icesheet_xml_name), "FALSE")
         self._case.set_value("CISM_EVOLVE_{}".format(self._remove_icesheet_xml_name), "FALSE")
 

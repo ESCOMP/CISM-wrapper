@@ -32,18 +32,11 @@ forcing data (see :numref:`t-with-your-own-data`).
  Running with existing forcing data
 ====================================
 
-There is currently just a single set of forcing data available for running T
-compsets. These forcing data were created with software testing rather than scientific
-validity in mind. They were created from 30 years of an ``I1850Clm50Sp`` compset (CLM
-forced by a data atmosphere with GSWP3 forcing, starting from an already-near-spun-up
-state, with nominally year-1850 forcings and satellite phenology). The resolution was
-``f09_g17``. The code base was close to the final CESM2.0 release. For more details, see
-`<https://svn-ccsm-inputdata.cgd.ucar.edu/trunk/inputdata/lnd/dlnd7/CPLHIST_SNO/i.e20.I1850Clm50Sp.f09_g17.001_c180502/README>`__.
+There is currently just a single set of out-of-the-box forcing data available for running T
+compsets. These forcing data were created from the B1850 CMIP6 PI-control run, at resolution ``f09_g17``.
 
-There is one out-of-the-box T compset that uses these forcing data: T1850Gg. **You should
-run this compset at f09_g17 resolution --- i.e., with the same land resolution and ocean
-mask used to create the forcing data.** You can use any CISM resolution, although the
-current forcing data only have complete forcings for Greenland, not Antarctica.
+There are three out-of-the-box T compsets that use these forcing data: ``T1850Gg`` (Greenland only), ``T1850Ga`` (Antarctica only), and ``T1850Gag`` (both Antarctica and Greenland). There is no scientific advantage to running both Antarctica and Greenland in the same T compset case, since the two ice sheets won't interact in this situation (in contrast to a coupled simulation, where it can be scientifically useful to run multiple ice sheets in the same simulation). Thus, the main reasons for using ``T1850Gag`` are for convenience or testing. With any of these compsets, **you should use f09_g17 resolution --- i.e., with the same land resolution and ocean
+mask used to create the forcing data.** You can use any CISM grid(s), although note that you must choose a resolution that specifies a grid for each active ice sheet (see :numref:`choosing-a-cism-grid`).
 
 So a typical ``create_newcase`` command when running with the standard 4-km Greenland
 grid, would look like:
@@ -72,7 +65,7 @@ To create the necessary forcing data (surface mass balance and surface temperatu
 glacier elevation class, along with surface elevation for the coupler's vertical
 downscaling), you need to perform a CESM run using a compset that includes an active land
 model (CLM). It does not matter whether the glc component is fully-active
-(``CISM2%EVOLVE``), active but non-evolving (``CISM2%NOEVOLVE``) or a stub model
+(e.g., ``CISM2%GRIS-EVOLVE``), active but non-evolving (e.g., ``CISM2%GRIS-NOEVOLVE``) or a stub model
 (``SGLC``). If running with CISM, CISM's domain and resolution also do not matter (because
 forcing data are saved prior to downscaling to the CISM grid).
 
@@ -134,7 +127,7 @@ resolutions of the T compset run (as specified by the ``--res`` flag to
 data. You *can* run with a different glc resolution than the one used to create the
 forcing data. So, for example, if you created the forcing data from an I or B compset with
 resolution ``f09_g17_gris4``, the T compset run should use resolution ``f09_g17_xxx``, where
-any value of ``xxx`` is acceptable.
+any value of ``xxx`` is acceptable. You can even run the T compset with a different ice sheet than the one(s) used to create the forcing data, as long as CLM's glacier regions and their behaviors were set up appropriately, as described above.
 
 The following variables in ``env_run.xml`` should be modified appropriately for your
 forcing data:

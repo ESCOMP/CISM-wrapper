@@ -3,6 +3,87 @@ This file describes what tags were created on master and why
 ================================================================================
 
 ================================================================================
+Originator: sacks
+Date: April 3, 2024
+Version: cismwrap_2_1_99
+One-line summary: Change CISM_USE_ICESHEET to GLC_USE_ICESHEET
+
+Purpose of changes:
+
+Now DGLC defines similar variables. To keep the logic simple in CTSM
+(which uses these variables), we'll use GLC_USE_ICESHEET in both.
+
+For now also keeps CISM_USE_ICESHEET for backwards compatibility.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: NO
+
+Bugs fixed (include github issue number):
+
+	No documented issues addressed here.
+
+Summary of testing:
+
+   Full aux_glc test suite on Derecho only (intel + gnu). Generated new suite of baselines.
+
+   Failures are as expected:
+   - FAIL ERS_D_Ly3.f09_g17_gris4.T1850Gg.derecho_intel.cism-noevolve COMPARE_base_rest
+     - See notes under cismwrap_2_1_98
+   - FAIL NCK_Ly3.f09_g17_gris20.T1850Gg.derecho_gnu COMPARE_base_multiinst
+     - Fails on master, too (not noted for earlier tags because derecho_gnu testing hasn't been run)
+
+================================================================================
+Originator: katetc
+Date: February 27, 2024
+Version: cismwrap_2_1_98
+One-line summary: Fix externals link and documentation updates
+
+Purpose of changes:
+
+	Point to cism main tag for Derecho support instead of branch (bug fix).
+	Includes updates to documentation related to multiple ice sheets as
+	well.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using manage_externals, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: NO
+
+Bugs fixed (include github issue number):
+
+	No documented issues addressed here.
+
+Summary of testing:
+
+	Full aux_glc test suite on Derecho only. Generated new suite of baselines.
+
+	ERS_D_Ly3.f09_g17_gris4.T1850Gg.derecho_intel.cism-noevolve FAIL
+	FAIL ERS_D_Ly3.f09_g17_gris4.T1850Gg.derecho_intel.cism-noevolve COMPARE_base_rest
+	- Test fails due to a specific code mod in the CMEPS driver that treated
+	T compsets differently from others. This was fixed in CMEPS pr #425 and included
+	in all CMEPS tags after cmeps0.14.50. However, I will leave updating the
+	externals to support this to another tag as there are issues with CIME and
+	manage_externals currently that need to be sorted.
+
+	All tests but the one above ran and passed, including B4B baseline compares.
+
+================================================================================
 Originator: katetc
 Date: December 11, 2023
 Version: cismwrap_2_1_97

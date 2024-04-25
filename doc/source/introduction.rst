@@ -297,3 +297,9 @@ in CESM for land-ice modeling:
 - See the other sections of this document for more detailed descriptions of new land-ice
   capabilities.
 
+===================================
+ Significant changes since CESM2.0
+===================================
+
+CESM2.0 only allowed running a single ice sheet at a time. Since then, CISM and the CESM infrastructure have
+been extended to allow running multiple ice sheets in a single simulation. There is out-of-the-box support for running Greenland and Antarctica, but other ice sheets can be added as well.
