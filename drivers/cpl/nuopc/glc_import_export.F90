@@ -48,6 +48,9 @@ module glc_import_export
   ! Field names
   character(len=*), parameter :: field_in_tsrf = 'Sl_tsrf'
   character(len=*), parameter :: field_in_qice = 'Flgl_qice'
+  character(len=*), parameter :: field_in_so_t_depth = 'So_t_depth'
+  character(len=*), parameter :: field_in_so_s_depth = 'So_s_depth'
+
   character(len=*), parameter :: field_out_area = 'Sg_area'
   character(len=*), parameter :: field_out_ice_covered = 'Sg_ice_covered'
   character(len=*), parameter :: field_out_topo = 'Sg_topo'
@@ -57,6 +60,14 @@ module glc_import_export
   character(len=*), parameter :: field_out_rofi_to_ice = 'Figg_rofi'
   character(len=*), parameter :: field_out_rofi_to_ocn = 'Fogg_rofi'
   character(len=*), parameter :: field_out_rofl_to_ocn = 'Fogg_rofl'
+
+  integer, parameter :: nlev_import = 30
+  real(r8) :: vertical_levels(nlev_import) = (/  &
+       60.  , 120. , 180. , 240. , 300. , 360. , &
+       420. , 480. , 540. , 600. , 660. , 720. , &
+       780. , 840. , 900. , 960. , 1020., 1080., &
+       1140., 1200., 1260., 1320., 1380., 1440., &
+       1500., 1560., 1620., 1680., 1740., 1800. /)
 
   integer, parameter     :: fldsMax = 100
   integer                :: fldsToGlc_num = 0
@@ -205,6 +216,8 @@ contains
        call fldlist_add(fldsToGlc_num, fldsToGlc, trim(flds_scalar_name))
        call fldlist_add(fldsToGlc_num, fldsToGlc, field_in_tsrf)
        call fldlist_add(fldsToGlc_num, fldsToGlc, field_in_qice)
+       call fldlist_add(fldsToGlc_num, fldsToGlc, field_in_so_t_depth, ungridded_lbound=1, ungridded_ubound=nlev_import)
+       call fldlist_add(fldsToGlc_num, fldsToGlc, field_in_so_s_depth, ungridded_lbound=1, ungridded_ubound=nlev_import)
 
        ! Now advertise import fields
        do ns = 1,num_icesheets
