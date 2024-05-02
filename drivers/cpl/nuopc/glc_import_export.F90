@@ -43,6 +43,8 @@ module glc_import_export
 
   type fld_list_type
      character(len=128) :: stdname
+     integer :: ungridded_lbound = 0
+     integer :: ungridded_ubound = 0
   end type fld_list_type
 
   ! Field names
@@ -63,11 +65,9 @@ module glc_import_export
 
   integer, parameter :: nlev_import = 30
   real(r8) :: vertical_levels(nlev_import) = (/  &
-       60.  , 120. , 180. , 240. , 300. , 360. , &
-       420. , 480. , 540. , 600. , 660. , 720. , &
-       780. , 840. , 900. , 960. , 1020., 1080., &
-       1140., 1200., 1260., 1320., 1380., 1440., &
-       1500., 1560., 1620., 1680., 1740., 1800. /)
+       30., 90., 150., 210., 270., 330., 390., 450., 510., 570., &
+       630., 690., 750., 810., 870., 930., 990., 1050., 1110., 1170., &
+       1230., 1290., 1350., 1410., 1470., 1530., 1590., 1650., 1710., 1770. /)
 
   integer, parameter     :: fldsMax = 100
   integer                :: fldsToGlc_num = 0
@@ -523,12 +523,14 @@ contains
 
   !===============================================================================
 
-  subroutine fldlist_add(num, fldlist, stdname)
+  subroutine fldlist_add(num, fldlist, stdname, ungridded_lbound, ungridded_ubound)
 
     ! intput/output variables
-    integer,                    intent(inout) :: num
-    type(fld_list_type),        intent(inout) :: fldlist(:)
-    character(len=*),           intent(in)    :: stdname
+    integer             ,             intent(inout) :: num
+    type(fld_list_type) ,             intent(inout) :: fldlist(:)
+    character(len=*)    ,             intent(in)    :: stdname
+    integer             , optional  , intent(in)    :: ungridded_lbound
+    integer             , optional  , intent(in)    :: ungridded_ubound
 
     ! local variables
     integer :: rc
@@ -544,6 +546,11 @@ contains
        return
     endif
     fldlist(num)%stdname = trim(stdname)
+
+    if (present(ungridded_lbound) .and. present(ungridded_ubound)) then
+       fldlist(num)%ungridded_lbound = ungridded_lbound
+       fldlist(num)%ungridded_ubound = ungridded_ubound
+    end if
 
   end subroutine fldlist_add
 
@@ -571,6 +578,7 @@ contains
     integer                :: n
     type(ESMF_Field)       :: field
     character(len=80)      :: stdname
+    character(CL)          :: msg
     character(len=*),parameter  :: subname='(glc_import_export:fldlist_realize)'
     ! ----------------------------------------------
 
@@ -591,13 +599,24 @@ contains
                 write(stdout,'(a)') trim(subname)//trim(tag)//" Field = "//trim(stdname)//" is connected on root pe only"
              end if
           else
-             call ESMF_LogWrite(trim(subname)//trim(tag)//" Field = "//trim(stdname)//" is connected using mesh", &
-                  ESMF_LOGMSG_INFO)
              ! Create the field
-             field = ESMF_FieldCreate(mesh, ESMF_TYPEKIND_R8, name=stdname, meshloc=ESMF_MESHLOC_ELEMENT, rc=rc)
-             if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=u_FILE_u)) return
-             if (my_task == master_task) then
-                write(stdout,'(a)') trim(subname)//trim(tag)//" Field = "//trim(stdname)//" is connected using mesh"
+             if (fldlist(n)%ungridded_lbound > 0 .and. fldlist(n)%ungridded_ubound > 0) then
+                field = ESMF_FieldCreate(mesh, ESMF_TYPEKIND_R8, name=stdname, meshloc=ESMF_MESHLOC_ELEMENT, &
+                     ungriddedLbound=(/fldlist(n)%ungridded_lbound/), &
+                     ungriddedUbound=(/fldlist(n)%ungridded_ubound/), &
+                     gridToFieldMap=(/2/), rc=rc)
+                if (ChkErr(rc,__LINE__,u_FILE_u)) return
+                if (my_task == master_task) then
+                   write(stdout,'(a,i8,a,i8)') trim(subname)// trim(tag)//" Field = "//trim(stdname)// &
+                        " is connected using mesh with lbound ", fldlist(n)%ungridded_lbound,&
+                        " and with ubound ",fldlist(n)%ungridded_ubound
+                end if
+             else
+                field = ESMF_FieldCreate(mesh, ESMF_TYPEKIND_R8, name=stdname, meshloc=ESMF_MESHLOC_ELEMENT, rc=rc)
+                if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=u_FILE_u)) return
+                if (my_task == master_task) then
+                   write(stdout,'(a)') trim(subname)//trim(tag)//" Field = "//trim(stdname)//" is connected using mesh"
+                end if
              end if
           endif
 
