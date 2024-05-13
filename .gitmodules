@@ -42,3 +42,32 @@ url = https://github.com/ESCOMP/CESM_share
 fxtag = share1.0.19
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/ESCOMP/CESM_share
+
+[submodule "ctsm"]
+path = components/clm
+url = https://github.com/ESCOMP/CTSM.git
+fxtag = ctsm5.1.dev176
+fxrequired = ToplevelRequired
+fxDONOTUSEurl = https://github.com/ESCOMP/CTSM.git
+
+[submodule "mosart"]
+path = components/mosart
+url = https://github.com/ESCOMP/MOSART.git
+fxtag = mosart1_0_49
+fxrequired = ToplevelRequired
+fxDONOTUSEurl = https://github.com/ESCOMP/MOSART.git
+
+[submodule "mct"]
+path = libraries/mct
+url = https://github.com/MCSclimate/MCT
+fxtag = MCT_2.11.0
+fxrequired = ToplevelRequired
+fxDONOTUSEurl = https://github.com/MCSclimate/MCT
+
+
+[submodule "parallelio"]
+path = libraries/parallelio
+url = https://github.com/NCAR/ParallelIO
+fxtag = pio2_6_2
+fxrequired = ToplevelRequired
+fxDONOTUSEurl = https://github.com/NCAR/ParallelIO
