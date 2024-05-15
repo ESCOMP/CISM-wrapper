@@ -11,7 +11,7 @@ fxDONOTUSEurl = https://github.com/ESCOMP/cism
 [submodule "cime"]
 path = cime
 url = https://github.com/ESMCI/cime.git
-fxtag = cime6.0.242
+fxtag = cime6.0.245
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/ESMCI/cime.git
 
