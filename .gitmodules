@@ -1,7 +1,7 @@
 # This is a git-fleximod adapted .gitmodules file.  Any field with a name starting in fx is a git-fleximod
 # specific field.  See https://github.com/ESMCI/git-fleximod for details.
 
-[submodule "cism"]
+[submodule "source_cism"]
 path = source_cism
 url = https://github.com/ESCOMP/cism
 fxtag = cism_main_2.01.013
