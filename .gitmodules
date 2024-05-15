@@ -1,0 +1,73 @@
+# This is a git-fleximod adapted .gitmodules file.  Any field with a name starting in fx is a git-fleximod
+# specific field.  See https://github.com/ESMCI/git-fleximod for details.
+
+[submodule "source_cism"]
+path = source_cism
+url = https://github.com/ESCOMP/cism
+fxtag = cism_main_2.01.013
+fxrequired = AlwaysRequired
+fxDONOTUSEurl = https://github.com/ESCOMP/cism
+
+[submodule "cime"]
+path = cime
+url = https://github.com/ESMCI/cime.git
+fxtag = cime6.0.245
+fxrequired = ToplevelRequired
+fxDONOTUSEurl = https://github.com/ESMCI/cime.git
+
+[submodule "ccs_config"]
+path = ccs_config
+url = https://github.com/ESMCI/ccs_config_cesm.git
+fxtag = ccs_config_cesm0.0.106
+fxrequired = ToplevelRequired
+fxDONOTUSEurl = https://github.com/ESMCI/ccs_config_cesm.git
+
+[submodule "cmeps"]
+path = components/cmeps
+url = https://github.com/ESCOMP/CMEPS.git
+fxtag = cmeps0.14.60
+fxrequired = ToplevelRequired
+fxDONOTUSEurl = https://github.com/ESCOMP/CMEPS.git
+
+[submodule "cdeps"]
+path = components/cdeps
+url = https://github.com/ESCOMP/CDEPS
+fxtag = cdeps1.0.34
+fxrequired = ToplevelRequired
+fxDONOTUSEurl = https://github.com/ESCOMP/CDEPS
+
+[submodule "share"]
+path = share
+url = https://github.com/ESCOMP/CESM_share
+fxtag = share1.0.19
+fxrequired = ToplevelRequired
+fxDONOTUSEurl = https://github.com/ESCOMP/CESM_share
+
+[submodule "ctsm"]
+path = components/clm
+url = https://github.com/ESCOMP/CTSM.git
+fxtag = ctsm5.1.dev176
+fxrequired = ToplevelRequired
+fxDONOTUSEurl = https://github.com/ESCOMP/CTSM.git
+
+[submodule "mosart"]
+path = components/mosart
+url = https://github.com/ESCOMP/MOSART.git
+fxtag = mosart1_0_49
+fxrequired = ToplevelRequired
+fxDONOTUSEurl = https://github.com/ESCOMP/MOSART.git
+
+[submodule "mct"]
+path = libraries/mct
+url = https://github.com/MCSclimate/MCT
+fxtag = MCT_2.11.0
+fxrequired = ToplevelRequired
+fxDONOTUSEurl = https://github.com/MCSclimate/MCT
+
+
+[submodule "parallelio"]
+path = libraries/parallelio
+url = https://github.com/NCAR/ParallelIO
+fxtag = pio2_6_2
+fxrequired = ToplevelRequired
+fxDONOTUSEurl = https://github.com/NCAR/ParallelIO
