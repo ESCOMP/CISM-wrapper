@@ -60,8 +60,8 @@ module glc_import_export
   character(len=*), parameter :: field_out_icemask_coupled_fluxes = 'Sg_icemask_coupled_fluxes'
   character(len=*), parameter :: field_out_hflx_to_lnd = 'Flgg_hflx'
   character(len=*), parameter :: field_out_rofi_to_ice = 'Figg_rofi'
-  character(len=*), parameter :: field_out_rofi_to_ocn = 'Frgg_rofi'
-  character(len=*), parameter :: field_out_rofl_to_ocn = 'Frgg_rofl'
+  character(len=*), parameter :: field_out_rofi_to_ocn = 'Fgrg_rofi'
+  character(len=*), parameter :: field_out_rofl_to_ocn = 'Fgrg_rofl'
 
   integer, parameter :: nlev_import = 30
   real(r8) :: vertical_levels(nlev_import) = (/  &
