@@ -446,12 +446,6 @@ contains
           hflx_to_cpl = hflx
           rofl_to_cpl = rofl
           call route_ice_runoff(rofi, rofi_to_ocn, rofi_to_ice)
-          ! DEBUG
-          where (icemask_coupled_fluxes > 0)
-             rofl_to_cpl = 4.e-4
-             rofi_to_ocn = 8.e-4
-          endwhere
-          ! DEBUG
        end if
 
        ! Fill export state for ice sheet
