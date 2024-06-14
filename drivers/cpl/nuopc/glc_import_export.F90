@@ -87,13 +87,12 @@ module glc_import_export
 contains
 !===============================================================================
 
-  subroutine advertise_fields(gcomp, cism_evolve, num_icesheets_in, rc)
+  subroutine advertise_fields(gcomp, num_icesheets_in, rc)
 
     use glc_constants, only : glc_smb
 
     ! input/output variables
     type(ESMF_GridComp)            :: gcomp
-    logical          , intent(in)  :: cism_evolve
     integer          , intent(in)  :: num_icesheets_in
     integer          , intent(out) :: rc
 
@@ -221,18 +220,18 @@ contains
 
        ! Now advertise import fields
        do ns = 1,num_icesheets
-          do nf = 1,fldsToGlc_num
-             call NUOPC_Advertise(NStateImp(ns), standardName=fldsToGlc(nf)%stdname, &
-                  TransferOfferGeomObject='will provide', rc=rc)
-             if (chkErr(rc,__LINE__,u_FILE_u)) return
-             if (my_task == master_task) then
-                write(cnum,'(i0)') ns
-                write(stdout,'(a)') 'Advertised import field: '//trim(fldsToGlc(nf)%stdname)//' for ice sheet '//trim(cnum)
-             end if
-             call ESMF_LogWrite(subname//'Import field'//': '//trim(fldsToGlc(nf)%stdname), ESMF_LOGMSG_INFO)
-          end do
+         do nf = 1,fldsToGlc_num
+           call NUOPC_Advertise(NStateImp(ns), standardName=fldsToGlc(nf)%stdname, &
+                TransferOfferGeomObject='will provide', rc=rc)
+           if (chkErr(rc,__LINE__,u_FILE_u)) return
+           if (my_task == master_task) then
+             write(cnum,'(i0)') ns
+             write(stdout,'(a)') 'Advertised import field: '//trim(fldsToGlc(nf)%stdname)//' for ice sheet '//trim(cnum)
+           end if
+           call ESMF_LogWrite(subname//'Import field'//': '//trim(fldsToGlc(nf)%stdname), ESMF_LOGMSG_INFO)
+         end do
        enddo
-    end if
+     end if
 
     ! Set glc_smb
     ! true  => get surface mass balance from land model via coupler (in multiple elev classes)
