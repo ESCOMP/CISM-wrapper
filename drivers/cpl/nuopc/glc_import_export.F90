@@ -87,12 +87,13 @@ module glc_import_export
 contains
 !===============================================================================
 
-  subroutine advertise_fields(gcomp, num_icesheets_in, rc)
+  subroutine advertise_fields(gcomp, cism_evolve, num_icesheets_in, rc)
 
     use glc_constants, only : glc_smb
 
     ! input/output variables
     type(ESMF_GridComp)            :: gcomp
+    logical          , intent(in)  :: cism_evolve
     integer          , intent(in)  :: num_icesheets_in
     integer          , intent(out) :: rc
 
