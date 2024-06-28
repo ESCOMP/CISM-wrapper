@@ -11,21 +11,21 @@ fxDONOTUSEurl = https://github.com/ESCOMP/cism
 [submodule "cime"]
 path = cime
 url = https://github.com/ESMCI/cime.git
-fxtag = cime6.0.245
+fxtag = cime6.0.246
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/ESMCI/cime.git
 
 [submodule "ccs_config"]
 path = ccs_config
 url = https://github.com/ESMCI/ccs_config_cesm.git
-fxtag = ccs_config_cesm0.0.106
+fxtag = ccs_config_cesm0.0.111
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/ESMCI/ccs_config_cesm.git
 
 [submodule "cmeps"]
 path = components/cmeps
 url = https://github.com/ESCOMP/CMEPS.git
-fxtag = cmeps0.14.60
+fxtag = cmeps0.14.68
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/ESCOMP/CMEPS.git
 
@@ -46,14 +46,14 @@ fxDONOTUSEurl = https://github.com/ESCOMP/CESM_share
 [submodule "ctsm"]
 path = components/clm
 url = https://github.com/ESCOMP/CTSM.git
-fxtag = ctsm5.1.dev176
+fxtag = branch_tags/cismtorof.n01_ctsm5.2.007
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/ESCOMP/CTSM.git
 
 [submodule "mosart"]
 path = components/mosart
 url = https://github.com/ESCOMP/MOSART.git
-fxtag = mosart1_0_49
+fxtag = mosart1.1.02
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/ESCOMP/MOSART.git
 
