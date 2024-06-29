@@ -43,11 +43,16 @@ module glc_import_export
 
   type fld_list_type
      character(len=128) :: stdname
+     integer :: ungridded_lbound = 0
+     integer :: ungridded_ubound = 0
   end type fld_list_type
 
   ! Field names
   character(len=*), parameter :: field_in_tsrf = 'Sl_tsrf'
   character(len=*), parameter :: field_in_qice = 'Flgl_qice'
+  character(len=*), parameter :: field_in_so_t_depth = 'So_t_depth'
+  character(len=*), parameter :: field_in_so_s_depth = 'So_s_depth'
+
   character(len=*), parameter :: field_out_area = 'Sg_area'
   character(len=*), parameter :: field_out_ice_covered = 'Sg_ice_covered'
   character(len=*), parameter :: field_out_topo = 'Sg_topo'
@@ -55,8 +60,14 @@ module glc_import_export
   character(len=*), parameter :: field_out_icemask_coupled_fluxes = 'Sg_icemask_coupled_fluxes'
   character(len=*), parameter :: field_out_hflx_to_lnd = 'Flgg_hflx'
   character(len=*), parameter :: field_out_rofi_to_ice = 'Figg_rofi'
-  character(len=*), parameter :: field_out_rofi_to_ocn = 'Fogg_rofi'
-  character(len=*), parameter :: field_out_rofl_to_ocn = 'Fogg_rofl'
+  character(len=*), parameter :: field_out_rofi_to_ocn = 'Fgrg_rofi'
+  character(len=*), parameter :: field_out_rofl_to_ocn = 'Fgrg_rofl'
+
+  integer, parameter :: nlev_import = 30
+  real(r8) :: vertical_levels(nlev_import) = (/  &
+       30., 90., 150., 210., 270., 330., 390., 450., 510., 570., &
+       630., 690., 750., 810., 870., 930., 990., 1050., 1110., 1170., &
+       1230., 1290., 1350., 1410., 1470., 1530., 1590., 1650., 1710., 1770. /)
 
   integer, parameter     :: fldsMax = 100
   integer                :: fldsToGlc_num = 0
@@ -76,12 +87,13 @@ module glc_import_export
 contains
 !===============================================================================
 
-  subroutine advertise_fields(gcomp, num_icesheets_in, rc)
+  subroutine advertise_fields(gcomp, cism_evolve, num_icesheets_in, rc)
 
     use glc_constants, only : glc_smb
 
     ! input/output variables
     type(ESMF_GridComp)            :: gcomp
+    logical          , intent(in)  :: cism_evolve
     integer          , intent(in)  :: num_icesheets_in
     integer          , intent(out) :: rc
 
@@ -200,26 +212,27 @@ contains
     ! Advertise import fields
     !--------------------------------
 
-    ! Note that we advertise the import fields even if running with a non-evolving ice
-    ! sheet; this is needed for the MED -> GLC mapping to work (which we do even for a
-    ! non-evolving ice sheet).
     call fldlist_add(fldsToGlc_num, fldsToGlc, trim(flds_scalar_name))
     call fldlist_add(fldsToGlc_num, fldsToGlc, field_in_tsrf)
     call fldlist_add(fldsToGlc_num, fldsToGlc, field_in_qice)
+    if (cism_evolve) then
+       call fldlist_add(fldsToGlc_num, fldsToGlc, field_in_so_t_depth, ungridded_lbound=1, ungridded_ubound=nlev_import)
+       call fldlist_add(fldsToGlc_num, fldsToGlc, field_in_so_s_depth, ungridded_lbound=1, ungridded_ubound=nlev_import)
+     end if
 
-    ! Now advertise import fields
-    do ns = 1,num_icesheets
+     ! Now advertise import fields
+     do ns = 1,num_icesheets
        do nf = 1,fldsToGlc_num
-          call NUOPC_Advertise(NStateImp(ns), standardName=fldsToGlc(nf)%stdname, &
-               TransferOfferGeomObject='will provide', rc=rc)
-          if (chkErr(rc,__LINE__,u_FILE_u)) return
-          if (my_task == master_task) then
-             write(cnum,'(i0)') ns
-             write(stdout,'(a)') 'Advertised import field: '//trim(fldsToGlc(nf)%stdname)//' for ice sheet '//trim(cnum)
-          end if
-          call ESMF_LogWrite(subname//'Import field'//': '//trim(fldsToGlc(nf)%stdname), ESMF_LOGMSG_INFO)
+         call NUOPC_Advertise(NStateImp(ns), standardName=fldsToGlc(nf)%stdname, &
+              TransferOfferGeomObject='will provide', rc=rc)
+         if (chkErr(rc,__LINE__,u_FILE_u)) return
+         if (my_task == master_task) then
+           write(cnum,'(i0)') ns
+           write(stdout,'(a)') 'Advertised import field: '//trim(fldsToGlc(nf)%stdname)//' for ice sheet '//trim(cnum)
+         end if
+         call ESMF_LogWrite(subname//'Import field'//': '//trim(fldsToGlc(nf)%stdname), ESMF_LOGMSG_INFO)
        end do
-    enddo
+     enddo
 
     ! Set glc_smb
     ! true  => get surface mass balance from land model via coupler (in multiple elev classes)
@@ -510,12 +523,14 @@ contains
 
   !===============================================================================
 
-  subroutine fldlist_add(num, fldlist, stdname)
+  subroutine fldlist_add(num, fldlist, stdname, ungridded_lbound, ungridded_ubound)
 
     ! intput/output variables
-    integer,                    intent(inout) :: num
-    type(fld_list_type),        intent(inout) :: fldlist(:)
-    character(len=*),           intent(in)    :: stdname
+    integer             ,             intent(inout) :: num
+    type(fld_list_type) ,             intent(inout) :: fldlist(:)
+    character(len=*)    ,             intent(in)    :: stdname
+    integer             , optional  , intent(in)    :: ungridded_lbound
+    integer             , optional  , intent(in)    :: ungridded_ubound
 
     ! local variables
     integer :: rc
@@ -531,6 +546,11 @@ contains
        return
     endif
     fldlist(num)%stdname = trim(stdname)
+
+    if (present(ungridded_lbound) .and. present(ungridded_ubound)) then
+       fldlist(num)%ungridded_lbound = ungridded_lbound
+       fldlist(num)%ungridded_ubound = ungridded_ubound
+    end if
 
   end subroutine fldlist_add
 
@@ -558,6 +578,7 @@ contains
     integer                :: n
     type(ESMF_Field)       :: field
     character(len=80)      :: stdname
+    character(CL)          :: msg
     character(len=*),parameter  :: subname='(glc_import_export:fldlist_realize)'
     ! ----------------------------------------------
 
@@ -578,13 +599,24 @@ contains
                 write(stdout,'(a)') trim(subname)//trim(tag)//" Field = "//trim(stdname)//" is connected on root pe only"
              end if
           else
-             call ESMF_LogWrite(trim(subname)//trim(tag)//" Field = "//trim(stdname)//" is connected using mesh", &
-                  ESMF_LOGMSG_INFO)
              ! Create the field
-             field = ESMF_FieldCreate(mesh, ESMF_TYPEKIND_R8, name=stdname, meshloc=ESMF_MESHLOC_ELEMENT, rc=rc)
-             if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=u_FILE_u)) return
-             if (my_task == master_task) then
-                write(stdout,'(a)') trim(subname)//trim(tag)//" Field = "//trim(stdname)//" is connected using mesh"
+             if (fldlist(n)%ungridded_lbound > 0 .and. fldlist(n)%ungridded_ubound > 0) then
+                field = ESMF_FieldCreate(mesh, ESMF_TYPEKIND_R8, name=stdname, meshloc=ESMF_MESHLOC_ELEMENT, &
+                     ungriddedLbound=(/fldlist(n)%ungridded_lbound/), &
+                     ungriddedUbound=(/fldlist(n)%ungridded_ubound/), &
+                     gridToFieldMap=(/2/), rc=rc)
+                if (ChkErr(rc,__LINE__,u_FILE_u)) return
+                if (my_task == master_task) then
+                   write(stdout,'(a,i8,a,i8)') trim(subname)// trim(tag)//" Field = "//trim(stdname)// &
+                        " is connected using mesh with lbound ", fldlist(n)%ungridded_lbound,&
+                        " and with ubound ",fldlist(n)%ungridded_ubound
+                end if
+             else
+                field = ESMF_FieldCreate(mesh, ESMF_TYPEKIND_R8, name=stdname, meshloc=ESMF_MESHLOC_ELEMENT, rc=rc)
+                if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=u_FILE_u)) return
+                if (my_task == master_task) then
+                   write(stdout,'(a)') trim(subname)//trim(tag)//" Field = "//trim(stdname)//" is connected using mesh"
+                end if
              end if
           endif
 

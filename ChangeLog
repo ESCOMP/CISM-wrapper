@@ -2,6 +2,43 @@
 This file describes what tags were created on master and why
 ================================================================================
 
+Originator: mvertens, katetc
+Date: June 28, 2024
+Version: cismwrap_2_2_002
+One-line summary: Reroute runoff from glc->ocn to glc->rtm
+
+Purpose of changes:
+	This PR does the following:
+	- Changed glc->ocn to be glc->rof fields
+	- Fogg_rofi -> Fgrg_rofi
+	- Fogg_rofl -> Fgrg_rofl
+	- This PR also depends on Implementation of glc->ocn coupling via going through mosart  CMEPS#463
+	- Incorporate capability of receiving multi level ocean data from mediator
+	- removed MCT
+	- Update external submodules
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using git-fleximod, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+   If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: All change answers due to externals updates
+	Generated new baselines
+
+Bugs fixed (include github issue number):
+
+	No documented issues addressed here.
+
+Summary of testing:
+
+   Full aux_glc test suite on Derecho only (intel and gnu). Generated new suite of baselines.
+
+================================================================================
 Originator: jedwards
 Date: May 14, 2024
 Version: cismwrap_2_2_001
