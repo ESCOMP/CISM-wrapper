@@ -63,12 +63,16 @@
 ! !IROUTINE: glc_io_read_restart_time
 ! !INTERFACE:
 
-   subroutine glc_io_read_restart_time(icesheet_name, nhour_glad, av_start_time_restart, filename)
+   subroutine glc_io_read_restart_time(icesheet_name, nhour_glad, av_start_time_restart, yr, mon, day, tod, filename)
 
     use glc_files, only : get_rpointer_filename
 
     implicit none
     character(len=*),        intent(in)  :: icesheet_name
+    integer(IN),             intent(in)  :: yr
+    integer(IN),             intent(in)  :: mon
+    integer(IN),             intent(in)  :: day
+    integer(IN),             intent(in)  :: tod
     integer(IN),             intent(out) :: nhour_glad
     integer(IN),             intent(out) :: av_start_time_restart
     character(fname_length), intent(out) :: filename
@@ -79,14 +83,14 @@
     integer(IN)             :: ptr_unit          ! unit for pointer file
     integer(IN)             :: rst_unit          ! unit for restart file
     integer(IN)             :: status            !
-
+    integer(IN)             :: modelymd, fileymd, filetod
 !-----------------------------------------------------------------------
 
     if (my_task == master_task) then
-
+       modelymd = yr*10000+mon*100+day
        ! get restart filename from rpointer file
        ptr_unit = shr_file_getUnit()
-       open(ptr_unit,file=get_rpointer_filename(icesheet_name))
+       open(ptr_unit,file=get_rpointer_filename(icesheet_name, yr, mon, day, tod))
        read(ptr_unit,'(a)') filename0
        filename = trim(filename0)
        close(ptr_unit)
@@ -103,8 +107,15 @@
        call nc_errorhandle(__FILE__,__LINE__,status)
        status = nf90_get_att(rst_unit, NF90_GLOBAL, 'av_start_time_restart', av_start_time_restart)
        call nc_errorhandle(__FILE__,__LINE__,status)
+       status = nf90_get_att(rst_unit, NF90_GLOBAL, 'cesmYMD', fileymd)
+       call nc_errorhandle(__FILE__,__LINE__,status)
+       status = nf90_get_att(rst_unit, NF90_GLOBAL, 'cesmTOD', filetod)
+       call nc_errorhandle(__FILE__,__LINE__,status)
        status = nf90_close(rst_unit)
        call nc_errorhandle(__FILE__,__LINE__,status)
+       if(fileymd .ne. modelymd .or. filetod .ne. tod) then
+          call shr_sys_abort('glc_io_read_restart_time: ERROR time mismatch in file: '//trim(filename))
+       endif
     end if
 
     call broadcast_scalar (filename        , master_task)
@@ -498,7 +509,7 @@
     ! write pointer to restart file
     if (my_task == master_task) then
        ptr_unit = shr_file_getUnit()
-       open(ptr_unit,file=get_rpointer_filename(icesheet_name))
+       open(ptr_unit,file=get_rpointer_filename(icesheet_name, cesmYR, cesmMON, cesmDAY, cesmTOD))
        write(ptr_unit,'(a)') filename
        close(ptr_unit)
        call shr_file_freeunit(ptr_unit)
