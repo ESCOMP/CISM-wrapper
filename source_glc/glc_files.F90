@@ -99,7 +99,7 @@
 !-----------------------------------------------------------------------
 
      call get_inst_suffix(inst_suffix)
-     write(timestamp,'(i4.4,a,i2.2,a,i2.2,a,i5.5)') '.',yr,'-',mon,'-',day,'-',tod
+     write(timestamp,'(a,i4.4,a,i2.2,a,i2.2,a,i5.5)') '.',yr,'-',mon,'-',day,'-',tod
      ! NOTE(wjs, 2021-09-20) In other places, we put the ice sheet name *after* the instance
      ! number. However, I feel like there may be some code that assumes that, for rpointer
      ! files, the instance number comes last. In case my recollection is right about that
