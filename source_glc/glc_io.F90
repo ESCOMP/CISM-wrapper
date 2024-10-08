@@ -90,7 +90,7 @@
        modelymd = yr*10000+mon*100+day
        ! get restart filename from rpointer file
        ptr_unit = shr_file_getUnit()
-       open(ptr_unit,file=get_rpointer_filename(icesheet_name, yr, mon, day, tod))
+       open(ptr_unit,file=get_rpointer_filename(icesheet_name, yr, mon, day, tod, .true.))
        read(ptr_unit,'(a)') filename0
        filename = trim(filename0)
        close(ptr_unit)
@@ -509,7 +509,7 @@
     ! write pointer to restart file
     if (my_task == master_task) then
        ptr_unit = shr_file_getUnit()
-       open(ptr_unit,file=get_rpointer_filename(icesheet_name, cesmYR, cesmMON, cesmDAY, cesmTOD))
+       open(ptr_unit,file=get_rpointer_filename(icesheet_name, cesmYR, cesmMON, cesmDAY, cesmTOD, .false.))
        write(ptr_unit,'(a)') filename
        close(ptr_unit)
        call shr_file_freeunit(ptr_unit)
