@@ -88,7 +88,7 @@
    use glc_history, only : allocate_history, glc_history_init, glc_history_write
    use glc_indexing, only : allocate_indices, init_indices_one_icesheet, get_nx, get_ny, get_nzocn
    use shr_file_mod, only : shr_file_getunit, shr_file_freeunit
-   use esmf, only : ESMF_Clock
+   use esmf, only : ESMF_Clock, ESMF_ClockGet, ESMF_TimeGet, ESMF_Time
 
 ! !INPUT/OUTPUT PARAMETERS:
 
@@ -101,7 +101,7 @@
 !  local variables
 !
 !-----------------------------------------------------------------------
-
+  type(ESMF_Time) :: currtime
   character(fname_length) ::  &
       paramfile_base        ! Base name of the top-level configuration file (actual param
                             ! file names are this base name plus ".icesheet.config" for
@@ -157,6 +157,7 @@
 
   integer :: climate_tstep  ! climate time step (hours)
 
+  integer :: yr, mon, day, tod
   integer, parameter :: days_in_year = 365
 
   namelist /cism_params/  paramfile_base, num_icesheets, icesheet_names, &
@@ -275,15 +276,18 @@
   cesm_restart_files(:) = ' '
   if (runtype == 'continue') then
      cesm_restart = .true.
-
+     call ESMF_ClockGet(eclock, currtime=currtime)
+     call ESMF_TimeGet(currtime, yy=yr, mm=mon, dd=day, s=tod)
+          
      ! Read info for the first ice sheet
-     call glc_io_read_restart_time(icesheet_names(1), nhour_glad, av_start_time_restart, cesm_restart_files(1))
+     call glc_io_read_restart_time(icesheet_names(1), nhour_glad, av_start_time_restart, &
+          yr, mon, day, tod, cesm_restart_files(1))
 
      ! For other ice sheets, read cesm_restart_file; for nhour_glad and
      ! av_start_time_restart, just compare with the first to ensure consistency
      do ns = 2, num_icesheets
         call glc_io_read_restart_time(icesheet_names(ns), nhour_glad_this_icesheet, &
-             av_start_time_restart_this_icesheet, cesm_restart_files(ns))
+             av_start_time_restart_this_icesheet, yr, mon, day, tod, cesm_restart_files(ns))
         if (nhour_glad_this_icesheet /= nhour_glad .or. &
              av_start_time_restart_this_icesheet /= av_start_time_restart) then
            write(stdout,*) 'Inconsistency between ice sheets in nhour_glad and/or av_start_time_restart:'
@@ -295,7 +299,7 @@
            write(stdout,*) 'av_start_time_restart = ', av_start_time_restart_this_icesheet
            call exit_glc(sigAbort, 'ERROR: Inconsistency between ice sheets in nhour_glad and/or av_start_time_restart')
         end if
-     end do
+     enddo
 
      call ymd2eday (iyear0, imonth0, iday0, elapsed_days0)
      elapsed_days = elapsed_days0 + nhour_glad/24
