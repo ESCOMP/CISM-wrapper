@@ -746,28 +746,6 @@ contains
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
        !----------------
-       ! Restart alarm
-       !----------------
-       call ESMF_LogWrite(subname//'setting restart alarm for cism' , ESMF_LOGMSG_INFO)
-       call NUOPC_CompAttributeGet(gcomp, name="restart_option", value=restart_option, rc=rc)
-       if (ChkErr(rc,__LINE__,u_FILE_u)) return
-
-       call NUOPC_CompAttributeGet(gcomp, name="restart_n", value=cvalue, rc=rc)
-       if (ChkErr(rc,__LINE__,u_FILE_u)) return
-       read(cvalue,*) restart_n
-
-       call NUOPC_CompAttributeGet(gcomp, name="restart_ymd", value=cvalue, rc=rc)
-       if (ChkErr(rc,__LINE__,u_FILE_u)) return
-       read(cvalue,*) restart_ymd
-
-       call alarmInit(mclock, alarm, restart_option, opt_n=restart_n,  opt_ymd=restart_ymd, &
-            RefTime=mcurrTime, alarmname='alarm_restart', rc=rc)
-       if (ChkErr(rc,__LINE__,u_FILE_u)) return
-
-       call ESMF_AlarmSet(alarm, clock=mclock, rc=rc)
-       if (ChkErr(rc,__LINE__,u_FILE_u)) return
-
-       !----------------
        ! Stop alarm
        !----------------
        call ESMF_LogWrite(subname//'setting stop alarm for cism' , ESMF_LOGMSG_INFO)
@@ -784,6 +762,28 @@ contains
 
        call alarmInit(mclock, alarm, stop_option, opt_n=stop_n, opt_ymd=stop_ymd, &
             RefTime = mcurrTime, alarmname = 'alarm_stop', rc=rc)
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
+
+       call ESMF_AlarmSet(alarm, clock=mclock, rc=rc)
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
+
+       !----------------
+       ! Restart alarm
+       !----------------
+       call ESMF_LogWrite(subname//'setting restart alarm for cism' , ESMF_LOGMSG_INFO)
+       call NUOPC_CompAttributeGet(gcomp, name="restart_option", value=restart_option, rc=rc)
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
+
+       call NUOPC_CompAttributeGet(gcomp, name="restart_n", value=cvalue, rc=rc)
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
+       read(cvalue,*) restart_n
+
+       call NUOPC_CompAttributeGet(gcomp, name="restart_ymd", value=cvalue, rc=rc)
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
+       read(cvalue,*) restart_ymd
+
+       call alarmInit(mclock, alarm, restart_option, opt_n=restart_n,  opt_ymd=restart_ymd, &
+            RefTime=mcurrTime, alarmname='alarm_restart', rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
        call ESMF_AlarmSet(alarm, clock=mclock, rc=rc)
