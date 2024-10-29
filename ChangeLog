@@ -3,6 +3,47 @@ This file describes what tags were created on master and why
 ================================================================================
 
 Originator: jedwards & katetc
+Date: Oct 29, 2024
+Version: cismwrap_2_2_005
+One-line summary: Reverse initialization of stop and restart alarms
+
+Purpose of changes:
+	Allows the stop alarm to be used in the initialization of the restart
+	alarm by initializing the stop alarm first.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using git-fleximod, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: No - b4b
+
+Bugs fixed (include github issue number):
+
+	No documented issues addressed here.
+
+Summary of testing:
+
+	aux_glc test suite on Derecho for both Intel and Gnu run. Baseline
+	compared to cismwrap_2_2_004, all tests pass B4B except expected
+	failure. Generated new baselines.
+
+	aux_glc/derecho/intel:
+	- All pass
+
+	aux_glc/derecho/gnu:
+	- All pass except:
+
+	NCK_Ly3.f09_g17_gris20.T1850Gg.derecho_gnu (Overall: FAIL) details:
+	FAIL NCK_Ly3.f09_g17_gris20.T1850Gg.derecho_gnu COMPARE_base_multiinst
+	** Expected failure ** See https://github.com/ESCOMP/CISM-wrapper/issues/110
+
+Originator: jedwards & katetc
 Date: Oct 9, 2024
 Version: cismwrap_2_2_004
 One-line summary: Add timestamps to rpointer file names
