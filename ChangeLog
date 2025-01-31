@@ -2,6 +2,15 @@
 This file describes what tags were created on master and why
 ================================================================================
 
+Originator: katetc
+Date: Jan 31, 2025
+Version: cismwrap_2_2_006
+One-line summary: Remove Code of Conduct
+
+Purpose of changes: Remove the CODE_OF_CONDUCT.md file
+
+No bugs fixed, issues addressed, or testing performed. Use 2_2_005 as a baseline.
+
 Originator: jedwards & katetc
 Date: Oct 29, 2024
 Version: cismwrap_2_2_005
