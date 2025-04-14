@@ -29,7 +29,7 @@
          file will be created in a run that just includes Antarctica, not Greenland),
          but this doesn't seem to cause problems in practice. -->
     <rpointer>
-      <rpointer_file>rpointer.glc.ais$NINST_STRING</rpointer_file>
+      <rpointer_file>rpointer.glc.ais$NINST_STRING.$DATETIME</rpointer_file>
       <rpointer_content>./$CASE.cism$NINST_STRING.ais.r.$DATENAME.nc</rpointer_content>
     </rpointer>
     <rpointer>
@@ -39,10 +39,11 @@
 
     <test_file_names>
       <!-- Should copy rpointer file(s) -->
-      <tfile disposition="copy">rpointer.glc.ais</tfile>
-      <tfile disposition="copy">rpointer.glc.gris</tfile>
-      <tfile disposition="copy">rpointer.glc.ais_9999</tfile>
-      <tfile disposition="copy">rpointer.glc.gris_9999</tfile>
+      <tfile disposition="copy">rpointer.glc.ais.1975-01-01-00000</tfile>
+      <tfile disposition="copy">rpointer.glc.gris.1975-01-01-00000</tfile>
+      <tfile disposition="copy">rpointer.glc.ais_9999.1975-01-01-00000</tfile>
+      <tfile disposition="copy">rpointer.glc.gris_9999.1975-01-01-00000</tfile>
+      <tfile disposition="ignore">rpointer.glc.gris_9999.1999-01-01-00000</tfile>
       <!-- Should only copy last restart file -->
       <tfile disposition="ignore">casename.cism.gris.r.1975-01-01-00000.nc</tfile>
       <!-- Should copy restart files for all ice sheets -->
