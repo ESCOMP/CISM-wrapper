@@ -1202,7 +1202,7 @@ Sub-elements of each entry include:
 
       <!-- Gunter used nsteps_per_year = 6. Can we use that instead of
            dt here? -->
-      <value icesheet="ais"  glc_grid="ais8"  >0.2</value>
+      <value icesheet="ais"  glc_grid="ais8"  >0.1</value>
     </values>
     <desc>
       Ice sheet timestep (years)
@@ -2110,7 +2110,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="powerlaw_c">
+  <entry id="powerlaw_c_const">
     <type>real</type>
     <category>cism_config_parameters</category>
     <group>parameters</group>
@@ -2216,7 +2216,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="coulomb_c">
+  <entry id="coulomb_c_const">
     <type>real</type>
     <category>cism_config_parameters</category>
     <group>parameters</group>

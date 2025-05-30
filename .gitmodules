@@ -4,7 +4,7 @@
 [submodule "source_cism"]
 path = source_cism
 url = https://github.com/ESCOMP/cism
-fxtag = cism_main_2.01.013
+fxtag = cism_main_2.02.002
 fxrequired = AlwaysRequired
 fxDONOTUSEurl = https://github.com/ESCOMP/cism
 
