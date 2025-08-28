@@ -29,11 +29,11 @@
          file will be created in a run that just includes Antarctica, not Greenland),
          but this doesn't seem to cause problems in practice. -->
     <rpointer>
-      <rpointer_file>rpointer.glc.ais$NINST_STRING</rpointer_file>
+      <rpointer_file>rpointer.glc.ais$NINST_STRING.$DATENAME</rpointer_file>
       <rpointer_content>./$CASE.cism$NINST_STRING.ais.r.$DATENAME.nc</rpointer_content>
     </rpointer>
     <rpointer>
-      <rpointer_file>rpointer.glc.gris$NINST_STRING</rpointer_file>
+      <rpointer_file>rpointer.glc.gris$NINST_STRING.$DATENAME</rpointer_file>
       <rpointer_content>./$CASE.cism$NINST_STRING.gris.r.$DATENAME.nc</rpointer_content>
     </rpointer>
 
