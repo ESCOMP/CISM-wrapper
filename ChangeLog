@@ -3,6 +3,51 @@ This file describes what tags were created on master and why
 ================================================================================
 
 Originator: katetc
+Date: Aug 28, 2025
+Version: cismwrap_2_2_008
+One-line summary: Minor update to config_archive.xml
+
+Purpose of changes:
+	See issue #118 in ESCOMP/CISM_wrapper, but just two lines updated in
+	config_archive.xml so the archiver can handle rpointer files with
+	dates in the name correctly.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using git-fleximod, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: No
+
+Bugs fixed (include github issue number):
+
+        Issue #118 in ESCOMP/CISM_wrapper - Urgent change needed in config_archive.xml
+
+Summary of testing:
+
+        aux_glc test suite on Derecho for both Intel and Gnu run. Baseline
+        compared to cismwrap_2_2_007, all tests pass with zero differences from
+	baselines.
+	Expected failure of NCK test still occurs.
+	No new baselines generated due to b4b results.
+
+        aux_glc/derecho/intel:
+        - All PASS
+
+        aux_glc/derecho/gnu:
+        - All PASS except
+
+	NCK_Ly3.f09_g17_gris20.T1850Gg.derecho_gnu (Overall: FAIL) details:
+	FAIL NCK_Ly3.f09_g17_gris20.T1850Gg.derecho_gnu COMPARE_base_multiinst
+        ** Expected failure ** See https://github.com/ESCOMP/CISM-wrapper/issues/110
+
+
+Originator: katetc
 Date: May 30, 2025
 Version: cismwrap_2_2_007
 One-line summary: Update to new CISM external
