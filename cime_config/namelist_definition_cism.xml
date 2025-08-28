@@ -2542,7 +2542,7 @@ Sub-elements of each entry include:
   </entry>
 
   <entry id="deltaT_ocn_extrapolate">
-    <type>integer</type>
+    <type>logical</type>
     <category>cism_config_ho_options</category>
     <group>ho_options</group>
     <values>
@@ -3185,7 +3185,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="enable_acab_dthck_dt_correction = .true.">
+  <entry id="enable_acab_dthck_dt_correction">
     <type>logical</type>
     <category>cism_config_options</category>
     <group>options</group>
