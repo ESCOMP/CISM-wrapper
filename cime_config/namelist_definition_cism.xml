@@ -2418,6 +2418,7 @@ Sub-elements of each entry include:
   <!-- =============================================================  -->
 
   <!---KTC WHL TODO: Might change the GrIS default to option 9 or 11, with inversion for C_p -->
+  <!-- KTC TODO: attempted ais->7 but test failures made me revert to previous of 9 -->
   <entry id="which_ho_babc">
     <type>integer</type>
     <category>cism_config_ho_options</category>
@@ -2425,7 +2426,7 @@ Sub-elements of each entry include:
     <valid_values>0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15</valid_values>
     <values>
       <value icesheet="gris">3</value>
-      <value icesheet="ais" >7</value>
+      <value icesheet="ais" >9</value>
     </values>
     <desc>
       Basal boundary condition for higher order dynamical core
@@ -2492,7 +2493,7 @@ Sub-elements of each entry include:
     <valid_values>0,1,2</valid_values>
     <values>
       <value icesheet="gris">0</value>
-      <value icesheet="ais" >1</value>
+      <value icesheet="ais" >0</value>
     </values>
     <desc>
       Flag for basal inversion options: invert for Cc = coulomb_c
@@ -2511,14 +2512,15 @@ Sub-elements of each entry include:
     <group>ho_options</group>
     <valid_values>0,1,2</valid_values>
     <values>
-      <value>0</value>
+      <value icesheet="gris">0</value>
+      <value icesheet="ais">1</value>
     </values>
     <desc>
       Method of choosing a relaxation target for coulomb_c
       0: no relaxation
       1: relax to constant coulomb_c
       2: relax to elevation-based coulomb_c
-      Default: 0
+      Default: 0 for Greenland, 1 for Antarctica
     </desc>
   </entry>
   
