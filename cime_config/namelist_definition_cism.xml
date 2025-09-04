@@ -944,6 +944,21 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="force_retreat">
+    <type>integer</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <values>
+      <value icesheet="gris">0</value>
+      <value icesheet="ais" >0</value>
+    </values>
+    <desc> Flag that indicates whether or not mask SMB outside present-day grid.
+      0=no force retreat, 1=force retreat where indicated by retreat_mask,
+      2=force retreat for floating ice where indicated by retreat mask
+      Default: 0 for Greenland, 0 for Antarctica
+    </desc>
+</entry>
+
   <entry id="limit_marine_cliffs">
     <type>logical</type>
     <category>cism_config_options</category>
