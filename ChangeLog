@@ -3,6 +3,53 @@ This file describes what tags were created on master and why
 ================================================================================
 
 Originator: katetc
+Date: Sept 4, 2025
+Version: cismwrap_2_2_009
+One-line summary: Namelist updates to support cism source tag cism_main_2.02.002
+
+Purpose of changes:
+	Updates to the namelist file to support the new external from
+	cismwrap_2_2_007. These include new options, removing options,
+	and some new defaults. Results in answer and namelist changes
+	across the board.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using git-fleximod, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: Yes
+
+Bugs fixed (include github issue number):
+
+        Issue #107 in ESCOMP/CISM_wrapper - Missing entry for 'force_retreat'
+	namelist option in namelist_definition_cism.xml
+
+	Some work done on Issue #113 - CISM wrapper namelist updates but
+	not enough to close it yet.
+
+Summary of testing:
+	aux_glc test suite on Derecho for both Intel and Gnu run. Baseline
+        compared to cismwrap_2_2_007, all tests pass with DIFF from baselines.
+	Expected failure of NCK test still occurs.
+	New baselines generated for this tag.
+
+        aux_glc/derecho/intel:
+        - All DIFF and NLCOMP DIFF
+
+        aux_glc/derecho/gnu:
+        - All DIFF and NLCOMP DIFF except
+
+	NCK_Ly3.f09_g17_gris20.T1850Gg.derecho_gnu (Overall: FAIL) details:
+	FAIL NCK_Ly3.f09_g17_gris20.T1850Gg.derecho_gnu COMPARE_base_multiinst
+        ** Expected failure ** See https://github.com/ESCOMP/CISM-wrapper/issues/110
+
+Originator: katetc
 Date: Aug 28, 2025
 Version: cismwrap_2_2_008
 One-line summary: Minor update to config_archive.xml
