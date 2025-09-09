@@ -11,49 +11,49 @@ fxDONOTUSEurl = https://github.com/ESCOMP/cism
 [submodule "cime"]
 path = cime
 url = https://github.com/ESMCI/cime.git
-fxtag = cime6.0.246
+fxtag = cime6.1.122
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/ESMCI/cime.git
 
 [submodule "ccs_config"]
 path = ccs_config
 url = https://github.com/ESMCI/ccs_config_cesm.git
-fxtag = ccs_config_cesm0.0.111
+fxtag = ccs_config_cesm1.0.58
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/ESMCI/ccs_config_cesm.git
 
 [submodule "cmeps"]
 path = components/cmeps
 url = https://github.com/ESCOMP/CMEPS.git
-fxtag = cmeps0.14.68
+fxtag = cmeps1.1.16
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/ESCOMP/CMEPS.git
 
 [submodule "cdeps"]
 path = components/cdeps
 url = https://github.com/ESCOMP/CDEPS
-fxtag = cdeps1.0.34
+fxtag = cdeps1.0.80
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/ESCOMP/CDEPS
 
 [submodule "share"]
 path = share
 url = https://github.com/ESCOMP/CESM_share
-fxtag = share1.0.19
+fxtag = share1.1.9
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/ESCOMP/CESM_share
 
 [submodule "ctsm"]
 path = components/clm
 url = https://github.com/ESCOMP/CTSM.git
-fxtag = branch_tags/cismtorof.n01_ctsm5.2.007
+fxtag = alpha-ctsm5.4.CMIP7.09.ctsm5.3.068
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/ESCOMP/CTSM.git
 
 [submodule "mosart"]
 path = components/mosart
 url = https://github.com/ESCOMP/MOSART.git
-fxtag = mosart1.1.02
+fxtag = mosart1.1.12
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/ESCOMP/MOSART.git
 
@@ -64,10 +64,16 @@ fxtag = MCT_2.11.0
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/MCSclimate/MCT
 
-
 [submodule "parallelio"]
 path = libraries/parallelio
 url = https://github.com/NCAR/ParallelIO
-fxtag = pio2_6_2
+fxtag = pio2_6_6
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/NCAR/ParallelIO
+
+[submodule "tools/CUPiD"]
+	path = tools/CUPiD
+	url = https://github.com/NCAR/CUPiD.git
+fxDONOTUSEurl = https://github.com/NCAR/CUPiD.git
+fxrequired = ToplevelRequired
+fxtag = v0.3.1
