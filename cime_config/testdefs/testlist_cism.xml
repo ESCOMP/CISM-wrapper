@@ -238,7 +238,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Ly2" grid="f10_f10_ais8gris4_mg37" compset="I1850Clm50SpGag">
+  <test name="ERS_Ly4" grid="f10_f10_ais8gris4_mg37" compset="I1850Clm50SpGag">
     <machines>
 
       <machine name="derecho" compiler="intel" category="aux_glc">
