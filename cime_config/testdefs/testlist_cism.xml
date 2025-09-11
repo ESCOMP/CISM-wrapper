@@ -238,7 +238,7 @@
     </machines>
   </test>
 
-  <test name="ERS_Lm24" grid="f10_f10_ais8gris4_mg37" compset="I1850Clm50SpGag">
+  <test name="ERS_Ly4" grid="f10_f10_ais8gris4_mg37" compset="I1850Clm50SpGag">
     <machines>
 
       <machine name="derecho" compiler="intel" category="aux_glc">
@@ -258,7 +258,7 @@
     </machines>
   </test>
 
-  <test name="ERI_Lm24" grid="f10_f10_mg37" compset="I1850Clm50SpG" testmods="cism/isostasy_period4">
+  <test name="ERI_Ly10" grid="f10_f10_mg37" compset="I1850Clm50SpG" testmods="cism/isostasy_period4">
     <machines>
 
       <machine name="derecho" compiler="intel" category="aux_glc">

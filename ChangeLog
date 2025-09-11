@@ -2,6 +2,62 @@
 This file describes what tags were created on master and why
 ================================================================================
 
+Originator: jedwards & katetc
+Date: Sept 11, 2025
+Version: cismwrap_2_2_010
+One-line summary: Second half of rpointer PR plus updated externals
+
+Purpose of changes:
+	Due to some confusion, this PR includes the second half of Jim's
+	PR#116 that was not included in cismwrap_2_2_008. To reproduce
+	a test failure in CESM and insure no new ones were created, all
+	of the externals in cism_wrapper were updated to match
+	cesm3_0_alpha07d. The externals update required a few updates to
+	the aux_glc tests as well.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using git-fleximod, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: Yes
+
+Bugs fixed (include github issue number):
+
+	Includes Jim's updates from PR#116
+
+Summary of testing:
+	aux_glc test suite on Derecho for both Intel and Gnu run. Baseline
+        compared to cismwrap_2_2_009, almost all tests pass with DIFF from baselines.
+	Unsure why all tests DIFF - but all externals were updated.
+	Expected failure of NCK test still occurs.
+
+	New baselines generated for this tag.
+
+        aux_glc/derecho/intel:
+        - All DIFF and NLCOMP DIFF except
+
+	Test Length update, no baseline compare:
+	FAIL ERI_Ly10.f10_f10_mg37.I1850Clm50SpG.derecho_intel.cism-isostasy_period4 BASELINE /glade/campaign/cesm/cesmdata/cseg/cesm_baselines/cismwrap_2_2_009: ERROR BFAIL baseline directory '/glade/campaign/cesm/cesmdata/cseg/cesm_baselines/cismwrap_2_2_009/ERI_Ly10.f10_f10_mg37.I1850Clm50SpG.derecho_intel.cism-isostasy_period4' does not exist
+
+	Test Length update, not long enough for aux_suite. Updated it to 4 years and verified it worked
+	outside of the suite. The machine is slammed and re-runing the entire suite will slow the
+	creation of this tag, slowing the creation of the alpha tag, and it's just not really necessary.
+	ERS_Ly2.f10_f10_ais8gris4_mg37.I1850Clm50SpGag.derecho_intel (Overall: FAIL) details:
+	FAIL ERS_Ly2.f10_f10_ais8gris4_mg37.I1850Clm50SpGag.derecho_intel RUN time=584
+
+        aux_glc/derecho/gnu:
+        - All DIFF and NLCOMP DIFF except
+
+	NCK_Ly3.f09_g17_gris20.T1850Gg.derecho_gnu (Overall: FAIL) details:
+	FAIL NCK_Ly3.f09_g17_gris20.T1850Gg.derecho_gnu COMPARE_base_multiinst
+        ** Expected failure ** See https://github.com/ESCOMP/CISM-wrapper/issues/110
+
 Originator: katetc
 Date: Sept 4, 2025
 Version: cismwrap_2_2_009
