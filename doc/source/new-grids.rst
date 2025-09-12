@@ -299,7 +299,8 @@ Modifications needed for CLM
 
 You need to ensure that the ``GLACIER_REGION`` field on CLM's surface dataset is set up
 consistently with the new CISM grid. You should have a glacier region (or multiple glacier
-regions) encompassing the full CISM grid, whose glacier region behaviors are:
+regions) encompassing the full CISM grid (or at least any portion of this grid where you
+want valid forcings), whose glacier region behaviors are:
 
 - ``glacier_region_behavior = virtual``: This is needed in order to provide downscaled
   forcings for all CISM grid cells.
