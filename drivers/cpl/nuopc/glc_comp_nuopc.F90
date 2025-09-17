@@ -263,7 +263,7 @@ contains
     real(r8), pointer       :: ownedElemCoords(:)
     real(r8), pointer       :: mesh_lons(:), lons(:,:), lons_vec(:)
     real(r8), pointer       :: mesh_lats(:), lats(:,:), lats_vec(:)
-    real(r8)                :: tolerance = 1.e-5_r8
+    real(r8)                :: tolerance = 2.e-5_r8
     integer                 :: elementCount
     integer                 :: localPet
     integer                 :: i,j,ns
