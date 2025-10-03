@@ -429,7 +429,7 @@ Sub-elements of each entry include:
       <!-- the following is just for the sake of software testing, and should not be used for science -->
       <value icesheet="gris" glc_grid="gris20">glc/cism/Greenland/gland20.input_c150415.nc</value>
       <!-- this is the resolution that should be used for science applications with cism2 -->
-      <value icesheet="gris" glc_grid="gris4">glc/cism/Greenland/greenland_4km_epsg3413_c171126.nc</value>
+      <value icesheet="gris" glc_grid="gris4">glc/cism/Greenland/greenland_4km_epsg3413_c251001.nc</value>
 
       <!-- the following is for software testing of Antarctica -->
       <value icesheet="ais" glc_grid="ais8">glc/cism/Antarctica/ISMIP6_Antarctica_8km.init.c210908.nc</value>
@@ -453,7 +453,7 @@ Sub-elements of each entry include:
     <group>grid</group>
     <values>
       <value icesheet="gris" glc_grid="gris20" >76</value>
-      <value icesheet="gris" glc_grid="gris4"  >416</value>
+      <value icesheet="gris" glc_grid="gris4"  >421</value>
       <value icesheet="ais"  glc_grid="ais8"   >704</value>
     </values>
     <desc>
@@ -468,7 +468,7 @@ Sub-elements of each entry include:
     <group>grid</group>
     <values>
       <value icesheet="gris" glc_grid="gris20" >141</value>
-      <value icesheet="gris" glc_grid="gris4"  >704</value>
+      <value icesheet="gris" glc_grid="gris4"  >721</value>
       <value icesheet="ais"  glc_grid="ais8"   >576</value>
     </values>
     <desc>
