@@ -612,6 +612,19 @@
     </machines>
   </test>
 
+    <test name="SMS_D_Ld5" grid="f10_f10_ais8gris4_mg37" compset="JK1850D">
+    <machines>
+
+      <machine name="derecho" compiler="intel" category="aux_glc">
+        <options>
+          <option name="wallclock">1:30:00</option>
+        </options>
+      </machine>
+
+    </machines>
+  </test>
+
+
   <!-- aux_cime_baselines category
 
        For the sake of making sure cime hasn't inadvertently changed
