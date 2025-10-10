@@ -2,6 +2,80 @@
 This file describes what tags were created on master and why
 ================================================================================
 
+Originator: gunterl & katetc
+Date: October 10, 2025
+Version: cismwrap_2_2_011
+One-line summary: Update gris4 grid and add support for DGLC in CISM_wrapper
+
+Purpose of changes:
+	Gunter brought in the new ISMIP6 4km GRIS grid and the CISM input file
+	to support it in PR#124.
+	Kate brought in changes to recognize DGLC in CISM-Wrapper and added a
+	testing compset and test for DGLC.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using git-fleximod, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: Yes
+
+Bugs fixed (include github issue number):
+	- Address CISM-wrapper Issue #125 - DGLC fix and tests
+
+Summary of testing:
+	aux_glc test suite on Derecho for both Intel and Gnu run. Baseline
+        compared to cismwrap_2_2_010, for Gunter's PR testing. All tests that
+	include the gris4 grid pass with DIFF against baselines. All other tests
+	PASS.
+
+	Expected failure of NCK test still occurs.
+
+	aux_glc test suite on Derecho for both Intel and Gnu run for the final tag
+	and compared to the previous PR baseline. All tests PASS with B4B EXCEPT
+	the new JK/DGLC test which fails. Possibly due to needed changes in CMEPS
+	for the new grid and input file.
+
+	New baselines generated for this tag.
+
+	aux_glc/derecho/intel:
+        - All PASS except
+	ERI_Ly10.f10_f10_mg37.I1850Clm50SpG.derecho_intel.cism-isostasy_period4 (Overall: DIFF)
+	ERI_Ly15.f09_g17_gris4.T1850Gg.derecho_intel.cism-isostasy_period4 (Overall: DIFF)
+	ERS_D_Ly3.f09_g17_ais8gris4.T1850Gag.derecho_intel (Overall: DIFF)
+	ERS_D_Ly3.f09_g17_gris4.T1850Gg.derecho_intel.cism-cmip6_evolving_icesheet (Overall: DIFF)
+	ERS_D_Ly3.f09_g17_gris4.T1850Gg.derecho_intel.cism-noevolve (Overall: DIFF)
+	ERS_Ly3.f10_f10_mg37.I1850Clm50SpG.derecho_intel (Overall: DIFF)
+	ERS_Ly4.f10_f10_ais8gris4_mg37.I1850Clm50SpGag.derecho_intel (Overall: DIFF)
+	ERS_Ly7.f09_g17_gris4.T1850Gg.derecho_intel (Overall: DIFF)
+	MULTINOAIS_Ly2.f10_f10_ais8gris4_mg37.I1850Clm50SpRsGag.derecho_intel.cism-change_params (Overall: DIFF)
+	MULTINOGRIS_Ly2.f10_f10_ais8gris4_mg37.I1850Clm50SpRsGag.derecho_intel.cism-change_params (Overall: DIFF)
+	SMS_D_Ly1.f09_g17_gris4.T1850Gg.derecho_intel.cism-isostasy_period1 (Overall: DIFF)
+	SMS_D_Ly1.f09_g17_gris4.T1850Gg.derecho_intel (Overall: DIFF)
+	SMS_Lm13.f10_f10_mg37.I1850Clm50SpG.derecho_intel.cism-noevolve (Overall: DIFF)
+
+	aux_glc/derecho/gnu:
+	- All PASS except
+	ERI_C2_Ly9.f09_g17_ais8gris4.T1850Gag.derecho_gnu (Overall: DIFF)
+	ERI.f10_f10_mg37.I1850Clm50SpG.derecho_gnu.cism-test_coupling (Overall: DIFF)
+	ERI_Ly9.f09_g17_ais8gris4.T1850Gag.derecho_gnu.cism-noevolve_ais (Overall: DIFF)
+	ERS_D_Ld9.f10_f10_mg37.I1850Clm50SpG.derecho_gnu.cism-override_glc_frac (Overall: DIFF)
+	ERS_Ly3.f09_g17_gris4.T1850Gg.derecho_gnu.cism-isostasy_period1 (Overall: DIFF)
+	ERS_Ly5.f09_g17_gris4.T1850Gg.derecho_gnu.cism-isostasy_period4 (Overall: DIFF)
+	SMS_D_Ld5.f10_f10_ais8gris4_mg37.I1850Clm50SpGag.derecho_gnu.cism-test_coupling (Overall: DIFF)
+	SMS_D_Ly1.f09_g17_gris4.T1850Gg.derecho_gnu (Overall: DIFF)
+
+	and
+	NCK_Ly3.f09_g17_gris20.T1850Gg.derecho_gnu (Overall: FAIL)
+	FAIL NCK_Ly3.f09_g17_gris20.T1850Gg.derecho_gnu COMPARE_base_multiinst
+        ** Expected failure ** See https://github.com/ESCOMP/CISM-wrapper/issues/110
+
+
 Originator: jedwards & katetc
 Date: Sept 11, 2025
 Version: cismwrap_2_2_010

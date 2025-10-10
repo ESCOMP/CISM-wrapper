@@ -18,7 +18,7 @@
     <default_value>unset</default_value>
     <values>
       <value component="cism"                        >$SRCROOT</value>
-      <value component="dglc"                        >$SRCROOT/components/cpl7/components/data_comps_$COMP_INTERFACE/dglc</value>
+      <value component="dglc"                        >$SRCROOT/components/cdeps/dglc</value>
       <value component="sglc" comp_interface="mct"   >$SRCROOT/components/cpl7/components/stub_comps_$COMP_INTERFACE/sglc</value>
       <value component="sglc" comp_interface="nuopc" >$CIMEROOT/CIME/non_py/src/components/stub_comps_$COMP_INTERFACE/sglc</value>
       <value component="xglc" comp_interface="mct"   >$SRCROOT/components/cpl7/components/xcpl_comps_$COMP_INTERFACE/xglc</value>
