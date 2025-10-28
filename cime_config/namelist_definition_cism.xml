@@ -1743,20 +1743,6 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="bwat_till_max">
-    <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
-    <values>
-      <value>2.</value>
-    </values>
-    <desc>
-      Parameter for local till model: Maximum water depth in till (m)
-      Relevant only for which_ho_bwat = 2
-      Default: 2.0
-    </desc>
-  </entry>
-
   <entry id="beta_grounded_min">
     <type>real</type>
     <category>cism_config_parameters</category>
@@ -2538,7 +2524,7 @@ Sub-elements of each entry include:
     <group>ho_options</group>
     <valid_values>0,1,2,3,4</valid_values>
     <values>
-      <value icesheet="gris">0</value>
+      <value icesheet="gris">4</value>
       <value icesheet="ais" >0</value>
     </values>
     <desc>
@@ -3489,19 +3475,6 @@ Sub-elements of each entry include:
     <desc>
       Ablation rate as a function of temperature above tmlt (mm/yr w.e./deg C)
       Default: 1000.0
-    </desc>
-  </entry>
-
-  <entry id="tmlt">
-    <type>real</type>
-    <category>cism_config_options</category>
-    <group>options</group>
-    <values>
-      <value>0.0</value>
-    </values>
-    <desc>
-      Spatially uniform temperature threshold for melting (deg C)
-      Default: 0.0
     </desc>
   </entry>
 
