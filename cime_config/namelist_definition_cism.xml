@@ -538,15 +538,15 @@ Sub-elements of each entry include:
 
   <entry id="ny_block" >
     <type>integer</type>
-    <category>cism_config_grid</category>                                                                  
+    <category>cism_config_grid</category>
     <group>grid</group>
-    <values>                                                                                               
+    <values>
       <value>0</value>
     </values>
-    <desc>                                                                                                 
+    <desc>
       User-specified block sizes, one task per block; optionally, tasks not assigned to inactive blocks
-      Would need to be nonzero if running with compute_blocks = 1    
-      Default: 0  
+      Would need to be nonzero if running with compute_blocks = 1
+      Default: 0
     </desc>
   </entry>
 
@@ -788,7 +788,7 @@ Sub-elements of each entry include:
       3: Depth-dependent basal melt rate for floating ice
       4: External basal melt rate field (from input file or coupler)
       5: [NOT SUPPORTED] Basal melt rate for floating ice from MISOMIP ocean forcing with plume model
-      6: Basal melt rate for floating ice derived from ocean thermal forcing 
+      6: Basal melt rate for floating ice derived from ocean thermal forcing
       Default: 0 for Greenland, 6 for Antarctica
     </desc>
   </entry>
@@ -807,7 +807,7 @@ Sub-elements of each entry include:
       2: highest forcing magnitude
     </desc>
   </entry>
-  
+
   <entry id="bmlt_float_thermal_forcing_param">
     <type>integer</type>
     <category>cism_config_options</category>
@@ -852,8 +852,8 @@ Sub-elements of each entry include:
       <value>0</value>
     </values>
     <desc>
-      0: ocean data not extrapolated to shelf cavities
-      1: ocean data extrapolated to shelf cavities
+      0: CISM will not extrapolate ocean data into cavities
+      1: CISM will extrapolate off-shelf ocean data into shelf cavities
       Default: 0
     </desc>
   </entry>
@@ -876,7 +876,7 @@ Sub-elements of each entry include:
       4: Set thickness to zero if present bedrock topography lies below a certain water depth (marine_limit)
       5: Set thickness to zero based on grid location (field 'calving_mask')
       6: Prescribed advance/retreat rate as in CalvingMIP
-      7: Calve ice whose thickness is below a given threshold 
+      7: Calve ice whose thickness is below a given threshold
       8: Calving rate based on stress threshold criterion
       9: Calving rate based on strain rate (eigencalving) [NOT SUPPORTED]
       10: Stochastic stress-based calving  [NOT SUPPORTED]
@@ -934,13 +934,13 @@ Sub-elements of each entry include:
     <group>options</group>
     <values>
       <value icesheet="gris">.false.</value>
-      <value icesheet="ais">.true.</value>
+      <value icesheet="ais">.false.</value>
     </values>
     <desc>
       If true, then identify and remove ice isthmuses after calving.
-      These are narrow bridges connecting two regions of floating ice.              
+      These are narrow bridges connecting two regions of floating ice.
       False by default, but may need to be true for the FORCE_RETREAT_FLOATING_ICE option.
-      Default: .false. for Greenland, .true. for Antarctica
+      Default: .false. for Greenland, .false. for Antarctica
     </desc>
   </entry>
 
@@ -957,18 +957,18 @@ Sub-elements of each entry include:
       2=force retreat for floating ice where indicated by retreat mask
       Default: 0 for Greenland, 0 for Antarctica
     </desc>
-</entry>
+  </entry>
 
   <entry id="limit_marine_cliffs">
     <type>logical</type>
     <category>cism_config_options</category>
     <group>options</group>
     <values>
-      <value>.true.</value>
+      <value>.false.</value>
     </values>
     <desc>
       If true, then thin marine-based cliffs based on a thickness threshold
-      Default: .true.
+      Default: .false.
     </desc>
   </entry>
 
@@ -1261,7 +1261,7 @@ Sub-elements of each entry include:
       <value>1</value>
     </values>
     <desc>
-      Set dt_option to specify whether the dynamic timestep (model%numerics%tinc) 
+      Set dt_option to specify whether the dynamic timestep (model%numerics%tinc)
       is based on dt (the timestep in years) or nsteps_per_year in the config file.
       The default (dt_option = 0) is to read dt directly,
       but the nsteps_per_year option allows more flexibility.
@@ -1276,7 +1276,7 @@ Sub-elements of each entry include:
     <category>cism_config_time</category>
     <group>time</group>
     <values>
-      <value icesheet="gris" glc_grid="gris20">2</value>  
+      <value icesheet="gris" glc_grid="gris20">2</value>
       <value icesheet="gris" glc_grid="gris4" >10</value>
       <value icesheet="ais"  glc_grid="ais8"  >10</value>
     </values>
@@ -1312,7 +1312,7 @@ Sub-elements of each entry include:
     <values>
       <!-- GrIS values chosen to be in the trunk of Jakobshavn -->
       <value icesheet="gris" glc_grid="gris20" >17</value>
-      <value icesheet="gris" glc_grid="gris4"  >134</value>
+      <value icesheet="gris" glc_grid="gris4"  >136</value>
       <!-- AIS 8-km idiag & jdiag: Thwaites shelf near GL -->
       <value icesheet="ais"  glc_grid="ais8"   >157</value>
     </values>
@@ -1329,7 +1329,7 @@ Sub-elements of each entry include:
     <values>
       <!-- See comments for idiag, above -->
       <value icesheet="gris" glc_grid="gris20" >57</value>
-      <value icesheet="gris" glc_grid="gris4"  >280</value>
+      <value icesheet="gris" glc_grid="gris4"  >294</value>
       <value icesheet="ais"  glc_grid="ais8"   >230</value>
     </values>
     <desc>
@@ -1392,7 +1392,7 @@ Sub-elements of each entry include:
       <value>1.0e-8</value>
     </values>
     <desc>
-      Min value of effective strain (yr^-1) for computation of effective viscosity                                                                                                                          
+      Min value of effective strain (yr^-1) for computation of effective viscosity
       Default: 1.0e-8
     </desc>
   </entry>
@@ -1412,17 +1412,18 @@ Sub-elements of each entry include:
   </entry>
 
   <!--KTC TODO: Test value of 0.2 for stability on new grids-->
+  <!--Previous default 0.1, trying 0.5 here-->
   <entry id="max_slope">
     <type>real</type>
     <category>cism_config_parameters</category>
     <group>parameters</group>
     <values>
-      <value>0.1</value>
+      <value>0.5</value>
     </values>
     <desc>
       Maximum surface slope used in the Glissade driving-stress calculation (unitless)
       Not valid for other dycores
-      Default: 0.1
+      Default: 0.5
     </desc>
   </entry>
 
@@ -1573,7 +1574,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="flow_factor">
+  <entry id="flow_factor_ground">
     <type>real</type>
     <category>cism_config_parameters</category>
     <group>parameters</group>
@@ -1742,57 +1743,6 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="effecpress_delta">
-    <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
-    <values>
-      <value>0.02</value>
-    </values>
-    <desc>
-      Parameter for reducing the effective pressure where the bed is warm, saturated or connected to the ocean:
-      Multiplier for effective pressure N where the bed is saturated and/or thawed (unitless)
-      Default: 0.02
-    </desc>
-  </entry>
-
-  <entry id="effecpress_bpmp_threshold" skip_default_entry="true">
-    <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
-    <desc>
-      Parameter for reducing the effective pressure where the bed is warm, saturated or connected to the ocean:
-      Temperature range over which N ramps from a small value to full overburden (deg C)
-      Only applies for which_ho_effecpress = 1.
-      Default: (use hard-coded default - currently 0.1)
-    </desc>
-  </entry>
-
-  <entry id="effecpress_bmlt_threshold" skip_default_entry="true">
-    <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
-    <desc>
-      Basal melting range over which N ramps from a small value to full overburden (m/yr)
-      Relevant only for which_ho_effecpress = 2
-      Default: (use hard-coded default - currently 1.0d-3)
-    </desc>
-  </entry>
-
-  <entry id="const_bwat">
-    <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
-    <values>
-      <value>10.</value>
-    </values>
-    <desc>
-      Uniform fixed basal water depth (m)
-      Relevant only for which_ho_bwat = 1
-      Default: 10.0
-    </desc>
-  </entry>
-
   <entry id="bwat_till_max">
     <type>real</type>
     <category>cism_config_parameters</category>
@@ -1804,20 +1754,6 @@ Sub-elements of each entry include:
       Parameter for local till model: Maximum water depth in till (m)
       Relevant only for which_ho_bwat = 2
       Default: 2.0
-    </desc>
-  </entry>
-
-  <entry id="c_drainage">
-    <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
-    <values>
-      <value>1.e-3</value>
-    </values>
-    <desc>
-      Parameter for local till model: Uniform drainage rate (m/yr)
-      Relevant only for which_ho_bwat = 2
-      Default: 1.e-3
     </desc>
   </entry>
 
@@ -1985,32 +1921,6 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="inversion_dbmlt_dtemp_scale">
-    <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
-    <values>
-      <value>10.0</value>
-    </values>
-    <desc>
-      Scale for rate of change of bmlt w/temperature, m/yr/degC 
-      Default: 10.0
-    </desc>
-  </entry>
-
-  <entry id="inversion_bmlt_basin_timescale">
-    <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
-    <values>
-      <value>100.0</value>
-    </values>
-    <desc>
-      Timescale (yr) for adjusting deltaT_basin
-      Default: 100.0
-    </desc>
-  </entry>
-
   <entry id="inversion_bmlt_basin_flotation_threshold">
     <type>real</type>
     <category>cism_config_parameters</category>
@@ -2075,7 +1985,7 @@ Sub-elements of each entry include:
     </values>
     <desc>
       Parameters for power law, taub_b = C * u_b^(1/m); used for babc options 9, 11 and 12
-      Friction coefficient in power law, units of Pa m^(-1/3) yr^(1/3) 
+      Friction coefficient in power law, units of Pa m^(-1/3) yr^(1/3)
       Default: 1e4 for Greenland, 2e4 for Antarctica
     </desc>
   </entry>
@@ -2103,8 +2013,8 @@ Sub-elements of each entry include:
     </values>
     <desc>
       Parameters for power law, taub_b = C * u_b^(1/m); used for HO_BABC_COULOMB_POWERLAW_TSAI/SCHOOF
-      Note: These values work well for MISMIP+, but may not be optimal for whole ice sheets. 
-      Max value of powerlaw_c, Pa (m/yr)^(-1/3) 
+      Note: These values work well for MISMIP+, but may not be optimal for whole ice sheets.
+      Max value of powerlaw_c, Pa (m/yr)^(-1/3)
       Default: 1.0e+5
     </desc>
   </entry>
@@ -2119,7 +2029,7 @@ Sub-elements of each entry include:
     </values>
     <desc>
       Parameters for power law, taub_b = C * u_b^(1/m); used for babc options 9, 11 and 12
-      Min value of powerlaw_c, Pa (m/yr)^(-1/3) 
+      Min value of powerlaw_c, Pa (m/yr)^(-1/3)
       Default: 100. for Greenland, 10. for Antarctica
     </desc>
   </entry>
@@ -2142,12 +2052,38 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="coulomb_c_const_hi">
+    <type>real</type>
+    <category>cism_config_parameters</category>
+    <group>parameters</group>
+    <values>
+      <value>0.5</value>
+    </values>
+    <desc>
+      Constant coulomb_c value at high bed elevation, topg &gt;= bed_hi
+      Default: 0.5
+    </desc>
+  </entry>
+
+  <entry id="coulomb_c_const_lo">
+    <type>real</type>
+    <category>cism_config_parameters</category>
+    <group>parameters</group>
+    <values>
+      <value>0.1</value>
+    </values>
+    <desc>
+      Constant coulomb_c value at low bed elevation, topg &lt;= bed_lo
+      Default: 0.1
+    </desc>
+  </entry>
+
   <entry id="coulomb_c_min">
     <type>real</type>
     <category>cism_config_parameters</category>
     <group>parameters</group>
     <values>
-      <value>0.001</value>      
+      <value>0.001</value>
     </values>
     <desc>
       Min allowed value for coulomb_c
@@ -2162,7 +2098,7 @@ Sub-elements of each entry include:
     <category>cism_config_parameters</category>
     <group>parameters</group>
     <values>
-      <value>1.0</value>      
+      <value>1.0</value>
     </values>
     <desc>
       Max allowed value for coulomb_c
@@ -2170,61 +2106,29 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="coulomb_c_relax_min">
+  <entry id="coulomb_c_bed_hi">
     <type>real</type>
     <category>cism_config_parameters</category>
     <group>parameters</group>
     <values>
-      <value>0.1</value>
+      <value>0.</value>
     </values>
     <desc>
-      Parameter for pseudo-plasting sliding law:
-      min(coulomb_c) in pseudo-plastic law, for topg &lt;= bedmin
-      0 &lt; phi &lt; 1.0
-      Default: 0.1 (units of slope)
+      Bed elevation (m) above which coulomb_c = coulomb_c_hi
+      Default: 0.
     </desc>
   </entry>
 
-   <entry id="coulomb_c_relax_max">
+  <entry id="coulomb_c_bed_lo">
     <type>real</type>
     <category>cism_config_parameters</category>
     <group>parameters</group>
     <values>
-      <value>0.4</value>
+      <value>-500.</value>
     </values>
     <desc>
-      Parameter for pseudo-plasting sliding law:
-      max(coulomb_c) in pseudo-plastic law, for topg &lt;= bedmax
-      0 &lt; phi &lt; 1.0
-      Default: 0.4 (units of slope)
-    </desc>
-  </entry>
-
-  <entry id="coulomb_c_bedmin">
-    <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
-    <values>
-      <value>-700.</value>
-    </values>
-    <desc>
-      Parameter for pseudo-plasting sliding law:
-      Bed elevation below which C_c = min value (m)
-      Default: -700.
-    </desc>
-  </entry>
-
-  <entry id="coulomb_c_bedmax">
-    <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
-    <values>
-      <value>700.</value>
-    </values>
-    <desc>
-      Parameter for pseudo-plasting sliding law:
-      Bed elevation above which C_c = max value (m)
-      Default: 700.
+      Bed elevation (m) below which coulomb_c = coulomb_c_lo
+      Default: -500.
     </desc>
   </entry>
 
@@ -2256,6 +2160,45 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="babc_length_scale">
+    <type>real</type>
+    <category>cism_config_parameters</category>
+    <group>parameters</group>
+    <values>
+      <value>0.0</value>
+    </values>
+    <desc>
+      Diffusive length scale (m) for inversion
+      Default: 0.0
+    </desc>
+  </entry>
+
+  <entry id="deltaT_ocn_length_scale">
+    <type>real</type>
+    <category>cism_config_parameters</category>
+    <group>parameters</group>
+    <values>
+      <value>0.0</value>
+    </values>
+    <desc>
+      Diffusive length scale (m) for inversion
+      Default: 0.0
+    </desc>
+  </entry>
+
+  <entry id="deltaT_basin_relax">
+    <type>real</type>
+    <category>cism_config_parameters</category>
+    <group>parameters</group>
+    <values>
+      <value>0.0</value>
+    </values>
+    <desc>
+      Relax the basin correction toward this value
+      Default: 0.0
+    </desc>
+  </entry>
+
    <entry id="p_ocean_penetration">
     <type>real</type>
     <category>cism_config_parameters</category>
@@ -2269,7 +2212,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="ocean_p_timescale">
+  <entry id="thermal_forcing_basin_min">
     <type>real</type>
     <category>cism_config_parameters</category>
     <group>parameters</group>
@@ -2277,8 +2220,8 @@ Sub-elements of each entry include:
       <value>0.0</value>
     </values>
     <desc>
-      Timescale (yr) for relaxing N/overburden to (1-Hf/H)^p
-      A longer timescale can promote stability for AIS spin-ups
+      Min value of thermal_forcing_basin (deg C) applied to nonlocal and 
+      nonlocal-slope schemes
       Default: 0.0
     </desc>
   </entry>
@@ -2408,7 +2351,7 @@ Sub-elements of each entry include:
       <value icesheet="ais" >60.</value>
     </values>
     <desc>
-      Thickness of ocean levels (ISMIP6-style ocean data input); 
+      Thickness of ocean levels (ISMIP6-style ocean data input);
       nonzero value set in config file
       Default: 0.0 for Greenland, 60. for Antarctica
     </desc>
@@ -2447,7 +2390,7 @@ Sub-elements of each entry include:
       Basal boundary condition for higher order dynamical core
       0: spatially uniform value (low value of 10 Pa yr-1 by default)
       1: large value for frozen bed, lower value for bed at pressure melting point
-      2: pseudo-plastic basal sliding law; new version with coulomb_c options   
+      2: pseudo-plastic basal sliding law; new version with coulomb_c options
       3: pseudo-plastic basal sliding law; old version with tan(phi)
       4: very large value for beta to enforce no slip everywhere
       5: beta field passed in from .nc input file as part of standard i/o
@@ -2476,7 +2419,7 @@ Sub-elements of each entry include:
     </values>
     <desc>
       Flag for setting minimum beta beneath grounded ice.
-      0: Absolute limit given by beta_grounded_min 
+      0: Absolute limit given by beta_grounded_min
       1: Limited using beta_grounded_min, then multiplied by f_ground
       Default: 0 for Greenland, 1 for Antarctica
     </desc>
@@ -2486,7 +2429,7 @@ Sub-elements of each entry include:
     <type>integer</type>
     <category>cism_config_ho_options</category>
     <group>ho_options</group>
-    <valid_values>0,1,2</valid_values>
+    <valid_values>0,1,2,3</valid_values>
     <values>
       <value icesheet="gris">0</value>
       <value icesheet="ais" >0</value>
@@ -2496,7 +2439,8 @@ Sub-elements of each entry include:
       Note: Cp inversion is currently supported for which_ho_babc = 9, 11 and 12 only
       0: powerlaw_c = spatially uniform constant
       1: invert for 2D powerlaw_c
-      2: read 2D powerlaw_c from external file   
+      2: read 2D powerlaw_c from external file
+      3: invert for basin-scale powerlaw_c
       Default: 0 for Greenland, 0 for Antarctica
     </desc>
   </entry>
@@ -2515,30 +2459,27 @@ Sub-elements of each entry include:
       Note: Cp inversion is currently supported for which_ho_babc = 7 only (ZI law)
       0: coulomb_c = spatially uniform constant
       1: invert for 2D coulomb_c
-      2: read 2D coulomb_c from external file   
-      3: coulomb_c = function of bed elevation                                                           
-      Default: 0 for Greenland, 1 for Antarctica
+      2: read 2D coulomb_c from external file
+      3: invert for basin-scale coulomb_c_lo
+      4: read basin-scale coulomb_c_lo from external file
+      Default: 0 for Greenland, 0 for Antarctica
     </desc>
   </entry>
 
-  <entry id="which_ho_coulomb_c_relax">
-    <type>integer</type>
+  <entry id="elevation_based_coulomb_c">
+    <type>logical</type>
     <category>cism_config_ho_options</category>
     <group>ho_options</group>
-    <valid_values>0,1,2</valid_values>
     <values>
-      <value icesheet="gris">0</value>
-      <value icesheet="ais">1</value>
+      <value>.false.</value>
     </values>
     <desc>
-      Method of choosing a relaxation target for coulomb_c
-      0: no relaxation
-      1: relax to constant coulomb_c
-      2: relax to elevation-based coulomb_c
-      Default: 0 for Greenland, 1 for Antarctica
+      Flag that indicates whether coulomb_c depends on elevation
+      (coulomb_c_hi for high bed, coulomb_c_lo for low bed, interpolated in between)
+      Default: .false.
     </desc>
   </entry>
-  
+
   <entry id="which_ho_deltaT_ocn">
     <type>integer</type>
     <category>cism_config_ho_options</category>
@@ -2550,24 +2491,25 @@ Sub-elements of each entry include:
     </values>
     <desc>
       Flag for ocean temperature corrections
-      0: deltaT_ocn = 0 (no corrections)                                                      
-      1: invert for deltaT_ocn to match thickness target
+      0: deltaT_ocn = 0 (no corrections)
+      1: invert for 2D deltaT_ocn to match thickness target
       2: read deltaT_ocn from external file
-      3: set deltaT_ocn to match dH/dt target
+      3: invert for basin-scale deltaT_ocn
+      4: set deltaT_ocn to match dH/dt target
       Default: 0 for Greenland, 1 for Antarctica
     </desc>
   </entry>
 
-  <entry id="deltaT_ocn_extrapolate">
+  <entry id="diva_slope_correction">
     <type>logical</type>
     <category>cism_config_ho_options</category>
     <group>ho_options</group>
     <values>
-      <value>.false.</value>
+      <value>.true.</value>
     </values>
     <desc>
-      If true, extrapolate basin-average deltaT_ocn to non-floating ice
-      Default: false
+      If true, the DIVA solver includes a correction for steep slopes
+      Default: true
     </desc>
   </entry>
 
@@ -2605,29 +2547,11 @@ Sub-elements of each entry include:
             Setting p > 0 reduces N near grounding line, even when which_ho_effecpress = 0
       0: N = overburden pressure, rhoi*grav*thck
       1: N is reduced where the bed is at or near the pressure melting point
-      2: N is reduced where basal water is present, with a ramp function
-      3: N is reduced where there is a nonzero water flux at the bed (with subglacial hydrology)
-      4: N is reduced where basal water is present, following Bueler/van Pelt, used in CESM2 when
-      using the old pseudoplastic sliding law
+      2: N is reduced based on basal water thickness
+      3: N depends on cavity opening and closing
+      4: N is reduced based on basal water thickness, following Bueler/van Pelt,
+      used in CESM2 when using the old pseudoplastic sliding law
       Default: 0 for Greenland, 0 for Antarctica
-    </desc>
-  </entry>
-
-  <entry id="ho_flux_routing_scheme">
-    <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
-    <valid_values>0,1,2</valid_values>
-    <values>
-      <value>0</value>
-      <value icesheet="ais" >0</value>
-    </values>
-    <desc>
-      Flux-routing scheme for basal water; applies only if which_ho_bwat = 3
-      0: D8; send flux to lowest-elevation neighbor
-      1: Dinf; divide flux between two lower-elevation neighbors
-      2: FD8; divide flux among all lower-elevation neighbors
-      Default: 0
     </desc>
   </entry>
 
@@ -2640,7 +2564,7 @@ Sub-elements of each entry include:
       <value>0</value>
     </values>
     <desc>
-      0: Compute on all blocks in the global domain; one task per block 
+      0: Compute on all blocks in the global domain; one task per block
       1: Compute on active blocks only; one task per active block, no task for some or all inactive blocks
       2: Inquire how many active blocks there are, in prep for resubmitting with option 1
       Option 1 can give big computational savings for long spin-ups
@@ -2748,7 +2672,7 @@ Sub-elements of each entry include:
     </values>
     <desc>
       Flag that indicates method for solving the nonlinear iteration when solving the first-
-      order momentum balance 
+      order momentum balance
       0: Use the standard Picard iteration
       1: Do Picard iteration with acceleration
       Default: 1
@@ -2894,10 +2818,10 @@ Sub-elements of each entry include:
     <values>
       <value>1</value>
     </values>
-    <desc>                                                                                                                
-      Flag that describes how lateral stress terms are assembled in the glissade finite-element calculation 
+    <desc>
+      Flag that describes how lateral stress terms are assembled in the glissade finite-element calculation
       0: Standard finite-element calculation of thck and usrf at quadrature points
-      1: Apply local cell-center value of thck and usrf on each face 
+      1: Apply local cell-center value of thck and usrf on each face
       Default: 1
     </desc>
   </entry>
@@ -2947,7 +2871,7 @@ Sub-elements of each entry include:
     </values>
     <desc>
       Flag that indicates how to compute bmlt_float in partly grounded cells
-      0: Apply bmlt_float in all floating cells, based on floating_mask 
+      0: Apply bmlt_float in all floating cells, based on floating_mask
       1: Do not apply bmlt_float in partly grounded cells
       2: Set bmlt_float = 0 in partly grounded cells (f_ground > 0)
       Default: 0
@@ -2969,7 +2893,7 @@ Sub-elements of each entry include:
       0: f_flotation = (-rhow*b/rhoi*H) = f_pattyn; &lt;=1 for grounded, &gt; 1 for floating
       1: f_flotation = (rhoi*H)/(-rhow*b) = 1/f_pattyn; &gt;=1 for grounded, &lt; 1 for floating
       2: f_flotation = -rhow*b - rhoi*H = ocean cavity thickness; &lt;=0 for grounded, &gt; 0 for floating
-      3: Modified version of (2), without extrapolation to ice-free ocean
+      3: Like (2), but with a correction for topg
       Default: 3
     </desc>
   </entry>
@@ -3024,6 +2948,144 @@ Sub-elements of each entry include:
     <desc>
       Flag that indicates whether peripheral ice caps are removed and added to an ice loss flux
       Default: true
+    </desc>
+  </entry>
+
+  <!-- =============================================================  -->
+  <!-- group: cism.icesheet.config: basal_hydro                       -->
+  <!-- =============================================================  -->
+
+  <entry id="ho_flux_routing_scheme">
+    <type>integer</type>
+    <category>cism_config_ho_options</category>
+    <group>basal_hydro</group>
+    <valid_values>0,1,2</valid_values>
+    <values>
+      <value>0</value>
+      <value icesheet="ais" >0</value>
+    </values>
+    <desc>
+      Flux-routing scheme for basal water; applies only if which_ho_bwat = 3
+      0: D8; send flux to lowest-elevation neighbor
+      1: Dinf; divide flux between two lower-elevation neighbors
+      2: FD8; divide flux among all lower-elevation neighbors
+      Default: 0
+    </desc>
+  </entry>
+
+  <entry id="cavity_open_slide">
+    <type>integer</type>
+    <category>cism_config_ho_options</category>
+    <group>basal_hydro</group>
+    <valid_values>0,1,2</valid_values>
+    <values>
+      <value>0</value>
+    </values>
+    <desc>
+      Treatment of opening by sliding in cavity-sheet equations
+      0: no opening by sliding
+      1: opening by sliding with fixed u_b
+      2: opening by sliding with dynamic u_b
+      Default: 0
+    </desc>
+  </entry>
+
+  <entry id="cavity_open_melt">
+    <type>integer</type>
+    <category>cism_config_ho_options</category>
+    <group>basal_hydro</group>
+    <valid_values>0,1,2,3</valid_values>
+    <values>
+      <value>0</value>
+    </values>
+    <desc>
+      Treatment of opening by melting in cavity-sheet equations
+      0: no opening by melting
+      1: opening by melting based on bmlt_ground
+      2: opening by melting based on dissipation in cavities
+      3: opening by melting based on bmlt_ground plus dissipation
+      Default: 0
+    </desc>
+  </entry>
+
+  <entry id="bwat_threshold">
+    <type>real</type>
+    <category>cism_config_ho_options</category>
+    <group>basal_hydro</group>
+    <values>
+      <value>1.0d-3</value>
+    </values>
+    <desc>
+      Scale over which N ramps down from overburden to a small value (m)
+      Default: 1.0d-3
+    </desc>
+  </entry>
+
+  <entry id="const_bwat">
+    <type>real</type>
+    <category>cism_config_ho_options</category>
+    <group>basal_hydro</group>
+    <values>
+      <value>10.</value>
+    </values>
+    <desc>
+      Uniform fixed basal water depth (m)
+      Relevant only for which_ho_bwat = 1
+      Default: 10.0
+    </desc>
+  </entry>
+
+  <entry id="effecpress_delta">
+    <type>real</type>
+    <category>cism_config_ho_options</category>
+    <group>basal_hydro</group>
+    <values>
+      <value>0.02</value>
+    </values>
+    <desc>
+      Parameter for reducing the effective pressure where the bed is warm, saturated or connected to the ocean:
+      Multiplier for effective pressure N where the bed is saturated and/or thawed (unitless)
+      Default: 0.02
+    </desc>
+  </entry>
+
+  <entry id="effecpress_bpmp_threshold" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_ho_options</category>
+    <group>basal_hydro</group>
+    <desc>
+      Parameter for reducing the effective pressure where the bed is warm, saturated or connected to the ocean:
+      Temperature range over which N ramps from a small value to full overburden (deg C)
+      Only applies for which_ho_effecpress = 1.
+      Default: (use hard-coded default - currently 0.1)
+    </desc>
+  </entry>
+
+  <entry id="bwat_till_max">
+    <type>real</type>
+    <category>cism_config_ho_options</category>
+    <group>basal_hydro</group>
+    <values>
+      <value>2.</value>
+    </values>
+    <desc>
+      Parameter for local till model: Maximum water depth in till (m)
+      Relevant only for which_ho_bwat = 2
+      Default: 2.0
+    </desc>
+  </entry>
+
+  <entry id="c_drainage">
+    <type>real</type>
+    <category>cism_config_ho_options</category>
+    <group>basal_hydro</group>
+    <values>
+      <value>1.e-3</value>
+    </values>
+    <desc>
+      Parameter for local till model: Uniform drainage rate (m/yr)
+      Relevant only for which_ho_bwat = 2
+      Default: 1.e-3
     </desc>
   </entry>
 
@@ -3215,7 +3277,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
- <entry id="enable_acab_anomaly">
+ <entry id="enable_smb_anomaly">
     <type>logical</type>
     <category>cism_config_options</category>
     <group>options</group>
@@ -3336,7 +3398,7 @@ Sub-elements of each entry include:
     </values>
     <desc>
       Input units for the surface mass balance
-      0: SMB input in units of m/yr ice (same as acab) 
+      0: SMB input in units of m/yr ice (same as acab)
       1: SMB input in units of mm/yr water equivalent
       Default: 1 (but current CISM default is 0)
     </desc>
@@ -3346,7 +3408,7 @@ Sub-elements of each entry include:
     <type>integer</type>
     <category>cism_config_options</category>
     <group>options</group>
-    <valid_values>0,1,2</valid_values>
+    <valid_values>0,1,2,3</valid_values>
     <values>
       <value>0</value>
     </values>
@@ -3355,6 +3417,7 @@ Sub-elements of each entry include:
       0: SMB(x,y); input as a function of horizontal location only
       1: SMB(x,y) + dSMB/dz(x,y) * dz; input SMB and its vertical gradient
       2: SMB(x,y,z); input SMB at multiple elevations
+      3: SMB computed with a positive-degree scheme
       Default: 0
     </desc>
   </entry>
@@ -3377,6 +3440,99 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="smb_factor">
+    <type>real</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <values>
+      <value>1.0</value>
+    </values>
+    <desc>
+      Multiplicative factor for external smb field (unitless)
+      Default: 1.0
+    </desc>
+  </entry>
+
+  <entry id="smb_anomaly_tstart">
+    <type>real</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <values>
+      <value>0.0</value>
+    </values>
+    <desc>
+      Start date for phasing in smb anomaly forcing
+      Default: 0.0
+    </desc>
+  </entry>
+
+  <entry id="smb_anomaly_timescale">
+    <type>real</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <values>
+      <value>0.0</value>
+    </values>
+    <desc>
+      Timescale (no. of years) for phasing in smb anomaly forcing
+      Default: 0.0
+    </desc>
+  </entry>
+
+  <entry id="degree_factor">
+    <type>real</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <values>
+      <value>1000.0</value>
+    </values>
+    <desc>
+      Ablation rate as a function of temperature above tmlt (mm/yr w.e./deg C)
+      Default: 1000.0
+    </desc>
+  </entry>
+
+  <entry id="tmlt">
+    <type>real</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <values>
+      <value>0.0</value>
+    </values>
+    <desc>
+      Spatially uniform temperature threshold for melting (deg C)
+      Default: 0.0
+    </desc>
+  </entry>
+
+  <entry id="snow_threshold_min">
+    <type>real</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <values>
+      <value>0.0</value>
+    </values>
+    <desc>
+      Air temperature (deg C) below which all precip falls as snow
+      Applied if snow_calc = 1
+      Default: 0.0
+    </desc>
+  </entry>
+
+  <entry id="snow_threshold_max">
+    <type>real</type>
+    <category>cism_config_glaciers</category>
+    <group>glaciers</group>
+    <values>
+      <value>0.0</value>
+    </values>
+    <desc>
+      Air temperature (deg C) above which all precip falls as rain
+      Applied if snow_calc = 1
+      Default: 0.0
+    </desc>
+  </entry>
+
   <!-- =============================================================  -->
   <!-- group: cism.icesheet.config: glaciers                          -->
   <!-- =============================================================  -->
@@ -3384,7 +3540,7 @@ Sub-elements of each entry include:
   <!-- This group is only relevant if enable_glaciers = .true. -->
   <!-- WHL: Some of the defaults specified below (e.g., for set_*) are appropriate for runs without glacier. -->
   <!--      Would be better to have logic that triggers the appropriate values for glacier runs -->
-  
+
   <entry id="enable_glaciers">
     <type>logical</type>
     <category>cism_config_options</category>
@@ -3443,7 +3599,7 @@ Sub-elements of each entry include:
     </values>
     <desc>
       0: apply spatially uniform powerlaw_c
-      1: invert for 2D powerlaw_c 
+      1: invert for 2D powerlaw_c
       2: read 2D powerlaw_c from external file
       Default: 0
       A value of 1 is appropriate for glacier spin-up, and a value of 2 for forward runs.
@@ -3459,37 +3615,9 @@ Sub-elements of each entry include:
       <value>1</value>
     </values>
     <desc>
-      0: read the snowfall rate directly                                                                                             
-      1: compute the snowfall rate from precip and downscaled artm   
+      0: read the snowfall rate directly
+      1: compute the snowfall rate from precip and downscaled artm
       Default: 1
-    </desc>
-  </entry>
-
-  <entry id="snow_threshold_min">
-    <type>real</type>
-    <category>cism_config_glaciers</category>
-    <group>glaciers</group>
-    <values>
-      <value>0.0</value>
-    </values>
-    <desc>
-      Air temperature (deg C) below which all precip falls as snow
-      Applied if snow_calc = 1
-      Default: 0.0
-    </desc>
-  </entry>
-
-  <entry id="snow_threshold_max">
-    <type>real</type>
-    <category>cism_config_glaciers</category>
-    <group>glaciers</group>
-    <values>
-      <value>0.0</value>
-    </values>
-    <desc>
-      Air temperature (deg C) above which all precip falls as rain
-      Applied if snow_calc = 1
-      Default: 0.0
     </desc>
   </entry>
 
@@ -3555,7 +3683,7 @@ Sub-elements of each entry include:
       <value>300.</value>
     </values>
     <desc>
-      Min allowed value of mu_star (mm/yr w.e/deg C) 
+      Min allowed value of mu_star (mm/yr w.e/deg C)
       Default: 300.
     </desc>
   </entry>
@@ -3568,7 +3696,7 @@ Sub-elements of each entry include:
       <value>1500.</value>
     </values>
     <desc>
-      Uniform initial value of mu_star (mm/yr w.e/deg C) 
+      Uniform initial value of mu_star (mm/yr w.e/deg C)
       Default: 1500.
     </desc>
   </entry>
@@ -3581,7 +3709,7 @@ Sub-elements of each entry include:
       <value>3000.</value>
     </values>
     <desc>
-      Max allowed value of mu_star (mm/yr w.e/deg C) 
+      Max allowed value of mu_star (mm/yr w.e/deg C)
       Default: 3000.
     </desc>
   </entry>
@@ -3620,7 +3748,7 @@ Sub-elements of each entry include:
       <value>3.0</value>
     </values>
     <desc>
-      Max allowed value of alpha_snow (mm/yr w.e/deg C) 
+      Max allowed value of alpha_snow (mm/yr w.e/deg C)
       Default: 3.0
     </desc>
   </entry>
@@ -3672,7 +3800,7 @@ Sub-elements of each entry include:
       <value>2003.</value>
     </values>
     <desc>
-      Date of Randolph Glacier Inventory (RGI) observations                                                                    
+      Date of Randolph Glacier Inventory (RGI) observations
       Default: 2003.
     </desc>
   </entry>
@@ -3698,7 +3826,7 @@ Sub-elements of each entry include:
       <value>.false.</value>
     </values>
     <desc>
-      If true, then redistribute advanced glacier ice in the accumulation zone. 
+      If true, then redistribute advanced glacier ice in the accumulation zone.
       Minallah et al (GMD 2025) used True for alps
       Default: false
     </desc>
@@ -3738,7 +3866,7 @@ Sub-elements of each entry include:
   <!--      For standalone test cases, different values may need to be set in the user_nml file -->
   <!--      The default values listed below are the CESM defaults, not necessarily the CISM standalone defaults -->
   <!-- TODO: Change CISM standalone defaults to the CESM defaults? -->
-  
+
   <entry id="rhoi">
     <type>real</type>
     <category>cism_config_parameters</category>
