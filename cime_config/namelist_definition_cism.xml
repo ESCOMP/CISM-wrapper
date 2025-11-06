@@ -2446,8 +2446,8 @@ Sub-elements of each entry include:
       0: coulomb_c = spatially uniform constant
       1: invert for 2D coulomb_c
       2: read 2D coulomb_c from external file
-      3: invert for basin-scale coulomb_c_lo
-      4: read basin-scale coulomb_c_lo from external file
+      3: invert for basin-scale coulomb_c_lo/hi
+      4: read basin-scale coulomb_c_lo/hi from external file
       Default: 0 for Greenland, 0 for Antarctica
     </desc>
   </entry>
@@ -2991,6 +2991,19 @@ Sub-elements of each entry include:
       2: opening by melting based on dissipation in cavities
       3: opening by melting based on bmlt_ground plus dissipation
       Default: 0
+    </desc>
+  </entry>
+
+    <entry id="btemp_scale">
+    <type>real</type>
+    <category>cism_config_ho_options</category>
+    <group>basal_hydro</group>
+    <values>
+      <value>0.0</value>
+    </values>
+    <desc>
+      Temperature scale (degC) for transition between thawed and frozen bed
+      Default: 0.0
     </desc>
   </entry>
 
