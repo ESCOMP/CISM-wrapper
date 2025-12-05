@@ -4,7 +4,7 @@
 [submodule "source_cism"]
 path = source_cism
 url = https://github.com/ESCOMP/cism
-fxtag = lipscomb/smb_cleanup.v2
+fxtag = cism_main_2.02.003
 fxrequired = AlwaysRequired
 fxDONOTUSEurl = https://github.com/ESCOMP/cism
 
