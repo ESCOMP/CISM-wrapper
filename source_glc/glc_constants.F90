@@ -28,10 +28,12 @@
 !           CISM does most of its standard output by calling the
 !            write_log subroutine, which has a private output index
 !            called glimmer_unit, but it is convenient sometimes to
-!            write diagnostics directly to stdout.  
-!           In CESM runs, glimmer_unit is set to stdout at initialization. 
+!            write diagnostics directly to stdout.
+!           Recently, we renamed stdout to iulog in CISM, but left
+!            stdout in cism_wrapper due to time constraints.
+!           In CESM runs, glimmer_unit is set to iulog at initialization. 
 
-  use glimmer_paramets, only: stdout
+  use glimmer_paramets, only: iulog
 !EOP
 !=======================================================================
 
@@ -81,7 +83,7 @@
    !-----------------------------------------------------------------
 
    integer (i4), public :: &
-!!    stdout,            &! reserved unit for standard output
+      stdout = 6,            &! reserved unit for standard output
                           ! see note above
       stderr              ! reserved unit for standard error
 

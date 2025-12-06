@@ -81,6 +81,7 @@
    use glc_fields, only: allocate_cpl_bundles, glc_allocate_fields, ice_sheet, cpl_bundles
    use glc_override_frac, only: init_glc_frac_overrides
    use glc_constants
+   use glimmer_paramets, only: iulog
    use glc_communicate, only: init_communicate
    use glc_time_management, only: init_time1, init_time2, dtt, ihour
    use glimmer_log
@@ -175,7 +176,13 @@
 !!      write(stdout,'(a)') ' GLC version xxx '
 !!      write(stdout,blank_fmt)
 !!      call shr_sys_flush(stdout)
-!!   endif
+  !!   endif
+
+!-------------
+!  Set output streams
+!-------------
+
+  stdout = iulog
 
 !-----------------------------------------------------------------------
 !
