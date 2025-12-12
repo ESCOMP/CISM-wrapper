@@ -3391,15 +3391,17 @@ Sub-elements of each entry include:
     <type>integer</type>
     <category>cism_config_options</category>
     <group>options</group>
-    <valid_values>0,1</valid_values>
+    <valid_values>0</valid_values>
     <values>
-      <value>1</value>
+      <value>0</value>
     </values>
     <desc>
       Input units for the surface mass balance
       0: SMB input in units of m/yr ice (same as acab)
-      1: SMB input in units of mm/yr water equivalent
-      Default: 1 (but current CISM default is 0)
+      [removed] 1: SMB input in units of mm/yr water equivalent
+      CISM standalone supports different units for smb_input, but this can
+      cause unintended side-effects in CESM. See cism_wrapper issue #130
+      Default: 0
     </desc>
   </entry>
 
