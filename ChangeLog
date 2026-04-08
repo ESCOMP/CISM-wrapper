@@ -3,6 +3,82 @@ This file describes what tags were created on master and why
 ================================================================================
 
 Originator: katetc
+Date: April 07, 2026
+Version: cismwrap_2_2_014
+One-line summary: Update externals to cesm3_0_beta08
+
+Purpose of changes:
+	Updated all of the external libraries to match cesm3_0_beta08 including
+	the new Derecho environments and intel compilers. Did not update tests
+	or coupler modes in this tag. That will come later.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using git-fleximod, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: Yes
+
+Bugs fixed (include github issue number):
+        - Addresses CISM-wrapper Issue #137
+	- Accidently fixed CISM-wrapper Issue #125
+
+Summary of testing:
+        aux_glc test suite on Derecho for both Intel and Gnu run. Baseline compared to cismwrap_2_2_013.
+	All tests DIFF with answer changes EXCEPT one of the I-compset tests due to i/o problems that
+	are covered in cism-wrapper issue #140.
+
+        Expected failure of NCK test still occurs.
+
+        New baselines generated for this tag.
+
+        aux_glc/derecho/intel:
+	ERI_Ly10.f10_f10_mg37.I1850Clm50SpG.derecho_intel.cism-isostasy_period4 (Overall: FAIL)
+	- See Issue #140
+
+	ERI_Ly15.f09_g17_gris4.T1850Gg.derecho_intel.cism-isostasy_period4 (Overall: DIFF) details:
+	ERI_Ly44.f09_g17_gris20.T1850Gg.derecho_intel.cism-isostasy_period4 (Overall: DIFF) details:
+	ERS_D_Ly3.f09_g17_ais8gris4.T1850Gag.derecho_intel (Overall: DIFF) details:
+	ERS_D_Ly3.f09_g17_gris4.T1850Gg.derecho_intel.cism-cmip6_evolving_icesheet (Overall: DIFF) details:
+	ERS_D_Ly3.f09_g17_gris4.T1850Gg.derecho_intel.cism-noevolve (Overall: DIFF) details:
+	ERS_Ly3_C2_D.f09_g17_gris20.T1850Gg.derecho_intel (Overall: DIFF) details:
+	ERS_Ly3.f10_f10_ais8_mg37.I1850Clm50SpGa.derecho_intel (Overall: DIFF) details:
+	ERS_Ly3.f10_f10_mg37.I1850Clm50SpG.derecho_intel (Overall: DIFF) details:
+	ERS_Ly4.f10_f10_ais8gris4_mg37.I1850Clm50SpGag.derecho_intel (Overall: DIFF) details:
+	ERS_Ly5.f09_g17_ais8.T1850Ga.derecho_intel (Overall: DIFF) details:
+	ERS_Ly7.f09_g17_gris4.T1850Gg.derecho_intel (Overall: DIFF) details:
+	MULTINOAIS_Ly2.f10_f10_ais8gris4_mg37.I1850Clm50SpRsGag.derecho_intel.cism-change_params (Overall: DIFF) details:
+	MULTINOGRIS_Ly2.f10_f10_ais8gris4_mg37.I1850Clm50SpRsGag.derecho_intel.cism-change_params (Overall: DIFF) details:
+	SMS_D_Ld5.f10_f10_ais8gris4_mg37.JK1850D.derecho_intel (Overall: DIFF) details:
+	SMS_D_Ly1.f09_g17_ais8.T1850Ga.derecho_intel (Overall: DIFF) details:
+	SMS_D_Ly1.f09_g17_gris4.T1850Gg.derecho_intel.cism-isostasy_period1 (Overall: DIFF) details:
+	SMS_D_Ly1.f09_g17_gris4.T1850Gg.derecho_intel (Overall: DIFF) details:
+	SMS_Lm13.f10_f10_mg37.I1850Clm50SpG.derecho_intel.cism-noevolve (Overall: DIFF) details:
+
+	aux_glc/derecho/gnu:
+	ERI_C2_Ly9.f09_g17_ais8gris4.T1850Gag.derecho_gnu (Overall: DIFF) details:
+	ERI.f10_f10_mg37.I1850Clm50SpG.derecho_gnu.cism-test_coupling (Overall: DIFF) details:
+	ERI_Ly9.f09_g17_ais8gris4.T1850Gag.derecho_gnu.cism-noevolve_ais (Overall: DIFF) details:
+	ERS_D_Ld9.f10_f10_mg37.I1850Clm50SpG.derecho_gnu.cism-override_glc_frac (Overall: DIFF) details:
+	ERS_Ly11.f09_g17_gris20.T1850Gg.derecho_gnu.cism-oneway (Overall: DIFF) details:
+	ERS_Ly11.f09_g17_gris20.T1850Gg.derecho_gnu (Overall: DIFF) details:
+	ERS_Ly3.f09_g17_gris4.T1850Gg.derecho_gnu.cism-isostasy_period1 (Overall: DIFF) details:
+	ERS_Ly5.f09_g17_gris4.T1850Gg.derecho_gnu.cism-isostasy_period4 (Overall: DIFF) details:
+	MCC_Ly3.f09_g17_gris20.T1850Gg.derecho_gnu (Overall: DIFF) details:
+	NCK_Ly3.f09_g17_gris20.T1850Gg.derecho_gnu (Overall: FAIL) details:
+	** Expected failure ** See https://github.com/ESCOMP/CISM-wrapper/issues/110
+
+	SMS_D_Ld5.f10_f10_ais8gris4_mg37.I1850Clm50SpGag.derecho_gnu.cism-test_coupling (Overall: DIFF) details:
+	SMS_D_Ly1.f09_g17_ais8.T1850Ga.derecho_gnu (Overall: DIFF) details:
+	SMS_D_Ly1.f09_g17_gris4.T1850Gg.derecho_gnu (Overall: DIFF) details:
+
+
+Originator: katetc
 Date: December 16, 2025
 Version: cismwrap_2_2_013
 One-line summary: Set default smb_input = 0
