@@ -11,42 +11,42 @@ fxDONOTUSEurl = https://github.com/NorESMhub/CISM
 [submodule "cime"]
 path = cime
 url = https://github.com/NorESMhub/cime.git
-fxtag = cime6.1.173_noresm_v0
+fxtag = cime6.5.12_noresm_v1
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/NorESMhub/cime.git
 
 [submodule "ccs_config"]
 path = ccs_config
 url = https://github.com/NorESMhub/ccs_config_noresm.git
-fxtag = ccs_config_noresm0.0.65
+fxtag = ccs_config_noresm0.0.75
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/NorESMhub/ccs_config_noresm.git
 
 [submodule "cmeps"]
 path = components/cmeps
 url = https://github.com/NorESMhub/CMEPS.git
-fxtag = cmeps1.1.41_noresm_v0
+fxtag = cmeps1.1.57_noresm_v5
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/NorESMhub/CMEPS.git
 
 [submodule "cdeps"]
 path = components/cdeps
 url = https://github.com/NorESMhub/CDEPS
-fxtag = cdeps1.0.88_noresm_v2
+fxtag = cdeps1.0.94_noresm_v1
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/NorESMhub/CDEPS
 
 [submodule "share"]
 path = share
 url = https://github.com/NorESMHub/NorESM_share.git
-fxtag = share1.1.18_noresm_v0
+fxtag = share1.1.21_noresm_v0
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/NorESMHub/NorESM_share.git
 
 [submodule "ctsm"]
 path = components/clm
 url = https://github.com/NorESMhub/CTSM.git
-fxtag = ctsm5.4.002_noresm_v7
+fxtag = ctsm5.4.042_noresm_v7
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/NorESMhub/CTSM.git
 
@@ -60,13 +60,13 @@ fxDONOTUSEurl = https://github.com/NorESMhub/MOSART.git
 [submodule "parallelio"]
 path = libraries/parallelio
 url = https://github.com/NCAR/ParallelIO
-fxtag = pio2_6_6
+fxtag = pio2_6_2
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/NCAR/ParallelIO
 
 [submodule "tools/CUPiD"]
-	path = tools/CUPiD
-	url = https://github.com/NCAR/CUPiD.git
+path = tools/CUPiD
+url = https://github.com/NCAR/CUPiD.git
 fxDONOTUSEurl = https://github.com/NCAR/CUPiD.git
 fxrequired = ToplevelRequired
 fxtag = v0.3.1
