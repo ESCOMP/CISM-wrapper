@@ -2429,12 +2429,12 @@ Sub-elements of each entry include:
     <category>cism_config_grid_ocn</category>
     <group>grid_ocn</group>
     <values>
-      <value icesheet="gris">0</value>
+      <value icesheet="gris">1</value>
       <value icesheet="ais" >16</value>
     </values>
     <desc>
       Number of basins (= 16 for IMBIE2) for ISMIP6-style ocean data input
-      Default: 0 for Greenland, 16 for Antarctica
+      Default: 1 for Greenland, 16 for Antarctica
     </desc>
   </entry>
 
