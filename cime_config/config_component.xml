@@ -3,7 +3,7 @@
 <entry_id version="3.0">
 
   <description modifier_mode="+">
-    <desc glc="CISM2[%EVOLVE][%NOEVOLVE][%GRIS-EVOLVE][%GRIS-NOEVOLVE][%AIS-EVOLVE][%AIS-NOEVOLVE]">cism2:</desc>
+    <desc glc="CISM2[%GRIS-EVOLVE][%GRIS-NOEVOLVE][%AIS-EVOLVE][%AIS-NOEVOLVE]">cism2:</desc>
     <!-- For any ice sheet present in this run, it should be specified
          exactly once, as either ICESHEET-EVOLVE or ICESHEET-NOEVOLVE
          for the appropriate ICESHEET (GRIS, AIS). Any ice sheet not
@@ -14,13 +14,6 @@
     <desc option="GRIS-NOEVOLVE">include non-evolving Greenland Ice Sheet:</desc>
     <desc option="AIS-EVOLVE">include evolving Antarctica Ice Sheet:</desc>
     <desc option="AIS-NOEVOLVE">include non-evolving Antarctica Ice Sheet:</desc>
-
-    <!-- BACKWARDS_COMPATIBILITY(wjs, 2021-02-25) Backwards
-         compatibility with old compsets that don't explicitly set
-         Greenland or Antarctica, but instead use the generic %EVOLVE or
-         %NOEVOLVE -->
-    <desc option="EVOLVE">cism ice evolution turned on:</desc>
-    <desc option="NOEVOLVE">cism ice evolution turned off (this is the standard configuration unless you're explicitly interested in ice evolution):</desc>
   </description>
 
   <entry id="COMP_GLC"> 
@@ -43,13 +36,6 @@
     <file>env_run.xml</file>
     <values>
       <value compset="_CISM[^_]*%GRIS">TRUE</value>
-
-      <!-- BACKWARDS_COMPATIBILITY(wjs, 2020-12-23) Backwards
-           compatibility with old compsets that don't explicitly set
-           Greenland or Antarctica: we assume these just use Greenland
-      -->
-      <value compset="_CISM2%EVOLVE_">TRUE</value>
-      <value compset="_CISM2%NOEVOLVE_">TRUE</value>
     </values>
     <desc>Whether to include the Greenland Ice Sheet in this CISM simulation
 
@@ -61,52 +47,6 @@
   </entry>
 
   <entry id="GLC_USE_ANTARCTICA">
-    <type>logical</type>
-    <valid_values>TRUE,FALSE</valid_values>
-    <default_value>FALSE</default_value>
-    <group>run_component_cism</group>
-    <file>env_run.xml</file>
-    <values>
-      <value compset="_CISM[^_]*%AIS">TRUE</value>
-    </values>
-    <desc>Whether to include the Antarctica Ice Sheet in this CISM simulation
-
-    This should generally be set at create_newcase time (via the compset). In principle it
-    can be changed later, but great care is needed to change a number of other variables
-    to be consistent (GLC_GRID, GLC_DOMAIN_MESH, CISM_EVOLVE_ANTARCTICA, and possibly
-    others).
-    </desc>
-  </entry>
-
-  <!-- BACKWARDS_COMPATIBILITY(wjs,2024-04-01) Backwards compatibility with old CTSM
-  versions that expect CISM_USE_ANTARCTICA (can be removed after
-  https://github.com/ESCOMP/CTSM/pull/2449 is merged). -->
-  <entry id="CISM_USE_GREENLAND">
-    <type>logical</type>
-    <valid_values>TRUE,FALSE</valid_values>
-    <default_value>FALSE</default_value>
-    <group>run_component_cism</group>
-    <file>env_run.xml</file>
-    <values>
-      <value compset="_CISM[^_]*%GRIS">TRUE</value>
-
-      <!-- BACKWARDS_COMPATIBILITY(wjs, 2020-12-23) Backwards
-           compatibility with old compsets that don't explicitly set
-           Greenland or Antarctica: we assume these just use Greenland
-      -->
-      <value compset="_CISM2%EVOLVE_">TRUE</value>
-      <value compset="_CISM2%NOEVOLVE_">TRUE</value>
-    </values>
-    <desc>Whether to include the Greenland Ice Sheet in this CISM simulation
-
-    This should generally be set at create_newcase time (via the compset). In principle it
-    can be changed later, but great care is needed to change a number of other variables
-    to be consistent (GLC_GRID, GLC_DOMAIN_MESH, CISM_EVOLVE_GREENLAND, and possibly
-    others).
-    </desc>
-  </entry>
-
-  <entry id="CISM_USE_ANTARCTICA">
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>
     <default_value>FALSE</default_value>
@@ -145,12 +85,6 @@
     <default_value>FALSE</default_value>
     <values>
       <value compset="_CISM[^_]*%GRIS-EVOLVE">TRUE</value>
-
-      <!-- BACKWARDS_COMPATIBILITY(wjs, 2021-02-25) Backwards
-           compatibility with old compsets that don't explicitly set
-           Greenland or Antarctica: we assume these just use Greenland
-      -->
-      <value compset="_CISM2%EVOLVE_">TRUE</value>
     </values>
     <group>run_component_cism</group>
     <file>env_run.xml</file>
@@ -174,30 +108,12 @@
   
   <entry id="CISM_EVOLVE">
      <type>logical</type>
-     <valid_values>TRUE,FALSE</valid_values>
-     <default_value>FALSE</default_value>
-     <values>
-       <!-- If ANY ice sheet is evolving, then set the overall
-            CISM_EVOLVE to TRUE. This is needed for some logic in CMEPS.
-       -->
-       <value compset="_CISM[^_]*-EVOLVE">TRUE</value>
-       
-       <!-- BACKWARDS_COMPATIBILITY(wjs, 2021-02-25) Backwards
-            compatibility with old compsets that don't explicitly set
-            Greenland or Antarctica, but instead use the generic %EVOLVE
-            or %NOEVOLVE -->
-       <value compset="_CISM[^_]*%EVOLVE">TRUE</value>
-     </values>
+     <valid_values>TRUE</valid_values>
      <group>run_component_cism</group>
+     <default_value>TRUE</default_value>
      <file>env_run.xml</file>
-     <desc>Whether CISM ice evolution is on or off for CISM as a whole.
-     This must be TRUE if CISM_EVOLVE_ICESHEET is TRUE for any ICESHEET,
-     and FALSE if CISM_EVOLVE_ICESHEET is FALSE for all ICESHEETs that
-     are present in this run.
-
-     Setting CISM_EVOLVE to FALSE in a hybrid case also forces the use
-     of observed initial conditions, as if you had also set
-     CISM_OBSERVED_IC=TRUE.
+     <desc>This is currently kept for backwards compatibility until
+     this xml variable can be removed from CTSM and CMEPS.
      </desc>
   </entry>
 
@@ -217,10 +133,6 @@
     implies that CISM should instead use the observed initial conditions
     that are generally used for startup runs. This variable is ignored
     for startup runs; for branch runs, it must be FALSE.
-
-    Note that setting CISM_EVOLVE to FALSE in a hybrid case also forces
-    the use of observed initial conditions, as if you had also set
-    CISM_OBSERVED_IC=TRUE.
     </desc>
   </entry>
 

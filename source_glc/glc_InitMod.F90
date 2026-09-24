@@ -27,7 +27,8 @@
                                   ihour,  iminute, isecond, nsteps_total, &
                                   ymd2eday, eday2ymd, runtype
    use glc_constants, only: stdout, zero_gcm_fluxes_for_all_icesheets, test_coupling, enable_frac_overrides, &
-                            max_icesheets, num_icesheets, icesheet_names
+                            max_icesheets, num_icesheets, icesheet_names, icesheet_names_total, icesheet_modes, &
+                            noevolve_global_nx, noevolve_global_ny, noevolve_internal_gridsize, noevolve_datafiles
    use glc_io,        only: glc_io_read_restart_time
    use glc_files,     only: nml_filename
    use glc_exit_mod, only : exit_glc, sigAbort
@@ -158,12 +159,17 @@
 
   integer :: climate_tstep  ! climate time step (hours)
 
+  ! Used to filter num_icesheets / icesheet_names by icesheet_modes
+  integer :: n_prog, k
+  character(icesheet_name_len) :: tmp_names(max_icesheets)
+
   integer :: yr, mon, day, tod
   integer, parameter :: days_in_year = 365
 
-  namelist /cism_params/  paramfile_base, num_icesheets, icesheet_names, &
+  namelist /cism_params/  paramfile_base, num_icesheets, icesheet_names, icesheet_modes, &
        cism_debug, ice_flux_routing, &
-       test_coupling, enable_frac_overrides
+       test_coupling, enable_frac_overrides, &
+       noevolve_global_nx, noevolve_global_ny, noevolve_internal_gridsize ,noevolve_datafiles 
 
 ! TODO - Write version info?
 !-----------------------------------------------------------------------
@@ -182,7 +188,7 @@
 !  Set output streams
 !-------------
 
-  stdout = iulog
+  iulog = stdout
 
 !-----------------------------------------------------------------------
 !
@@ -236,11 +242,41 @@
    call broadcast_scalar(paramfile_base,    master_task)
    call broadcast_scalar(num_icesheets,     master_task)
    call broadcast_array (icesheet_names,    master_task)
+   call broadcast_array (icesheet_modes,    master_task)
    call broadcast_scalar(cism_debug,        master_task)
    call broadcast_scalar(ice_flux_routing,  master_task)
    call broadcast_scalar(test_coupling,     master_task)
    call broadcast_scalar(enable_frac_overrides, master_task)
+   call broadcast_array (noevolve_global_nx,         master_task)
+   call broadcast_array (noevolve_global_ny,         master_task)
+   call broadcast_array (noevolve_internal_gridsize, master_task)
+   call broadcast_array (noevolve_datafiles,         master_task)
    call set_routing(ice_flux_routing)
+
+   ! Set icesheet names for prognostic plus noeolve icesheets
+   icesheet_names_total(:) = icesheet_names(:)
+
+   ! If icesheet_modes_in is provided, filter num_icesheets and icesheet_names
+   ! down to only the 'prognostic' subset.  CISM internals (this module and
+   ! everything that uses glc_constants:num_icesheets / icesheet_names) only
+   ! ever see the prognostic ice sheets; noevolve entries are handled by the
+   ! NUOPC cap via glc_noevolve_mod.
+   n_prog = 0
+   tmp_names(:) = 'UNSET'
+   do k = 1, num_icesheets
+      if (trim(icesheet_modes(k)) == 'prognostic') then
+         n_prog = n_prog + 1
+         tmp_names(n_prog) = trim(icesheet_names(k))
+      end if
+   end do
+
+   ! Reset num_icesheets to be only the number of prognostic icesheets
+   num_icesheets = n_prog
+   icesheet_names(:) = tmp_names(:)
+   if (my_task == master_task) then
+      write(stdout,*) 'After filtering by icesheet_modes: num_icesheets = ', num_icesheets
+      write(stdout,*) 'Prognostic icesheet_names: ', icesheet_names(1:num_icesheets)
+   end if
 
    if (my_task == master_task) then
       write(stdout,*) 'test_coupling:   ', test_coupling
@@ -400,8 +436,9 @@
      !
      ! TODO(wjs, 2021-06-25) change these to 0 or some other place-holder value once we have
      ! the coupling in place
-     salinity(:,:,:) = 35._r8
-     tocn(:,:,:) = 274._r8
+      !mp, 2024-06-19: coupling is now in place? Reading now these variables
+     salinity(:,:,:) = 0._r8
+     tocn(:,:,:) = 0._r8
 
      call glad_get_initial_outputs(ice_sheet, instance_index = ns, &
           ice_covered = ice_covered, &

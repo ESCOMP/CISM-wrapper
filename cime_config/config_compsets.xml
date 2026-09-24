@@ -36,8 +36,12 @@
     - grid  (optional regular expression match for grid to work with the compset)
   </help>
 
-  <!--- TG compsets
+  <!--- TXXXXG compsets
       The final G denotes that ice evolution is turned on
+      The suffix x after a or g (ax,gx) denotes a noevolve ice sheet (with
+      the new DGLC functionality)
+      It is assumed that at least one ice sheet is evolving when
+      running with another that is not evolveing
   -->
 
   <compset>
@@ -55,6 +59,16 @@
     <lname>1850_SATM_DLND%SCPL_SICE_SOCN_SROF_CISM2%AIS-EVOLVE%GRIS-EVOLVE_SWAV</lname>
   </compset>
 
+  <compset>
+    <alias>T1850Gaxg</alias>
+    <lname>1850_SATM_DLND%SCPL_SICE_SOCN_SROF_CISM2%AIS-NOEVOLVE%GRIS-EVOLVE_SWAV</lname>
+  </compset>
+
+  <compset>
+    <alias>T1850Gagx</alias>
+    <lname>1850_SATM_DLND%SCPL_SICE_SOCN_SROF_CISM2%AIS-EVOLVE%GRIS-NOEVOLVE_SWAV</lname>
+  </compset>
+
   <!--- JK compsets
       Temporary testing compsets for DGLC
   -->
@@ -62,6 +76,96 @@
   <compset>
     <alias>JK1850D</alias>
     <lname>1850_DATM%GSWP3v1_CLM60%BGC-CROP_SICE_SOCN_MOSART_DGLC%NOEVOLVE_SWAV_SESP</lname>
+  </compset>
+
+  <!--- TGXXXXG compsets
+      First G denotes that new DLND%GCPL coupling mode is on
+      The final G denotes that ice evolution is turned on
+  -->
+
+  <compset>
+    <alias>TG1850Gg</alias>
+    <lname>1850_SATM_DLND%GCPL_SICE_SOCN_SROF_CISM2%GRIS-EVOLVE_SWAV</lname>
+  </compset>
+
+  <compset>
+    <alias>TG1850Ga</alias>
+    <lname>1850_SATM_DLND%GCPL_SICE_SOCN_SROF_CISM2%AIS-EVOLVE_SWAV</lname>
+  </compset>
+
+  <compset>
+    <alias>TG1850Gag</alias>
+    <lname>1850_SATM_DLND%GCPL_SICE_SOCN_SROF_CISM2%AIS-EVOLVE%GRIS-EVOLVE_SWAV</lname>
+  </compset>
+
+  <compset>
+    <alias>TG1850Gaxg</alias>
+    <lname>1850_SATM_DLND%GCPL_SICE_SOCN_SROF_CISM2%AIS-NOEVOLVE%GRIS-EVOLVE_SWAV</lname>
+  </compset>
+
+  <compset>
+    <alias>TG1850Gagx</alias>
+    <lname>1850_SATM_DLND%GCPL_SICE_SOCN_SROF_CISM2%AIS-EVOLVE%GRIS-NOEVOLVE_SWAV</lname>
+  </compset>
+
+  <!--- TOCXXXXG compsets
+      First O denotes that DOCN%MULTILEV-DOM  is on
+      The final G denotes that ice evolution is turned on
+  -->
+
+  <compset>
+    <alias>TO1850Gg</alias>
+    <lname>1850_SATM_DLND%GCPL_SICE_DOCN%MULTILEV-DOM_SROF_CISM2%GRIS-EVOLVE_SWAV</lname>
+  </compset>
+
+  <compset>
+    <alias>TO1850Ga</alias>
+    <lname>1850_SATM_DLND%GCPL_SICE_DOCN%MULTILEV-DOM_SROF_CISM2%AIS-EVOLVE_SWAV</lname>
+  </compset>
+
+  <compset>
+    <alias>TO1850Gag</alias>
+    <lname>1850_SATM_DLND%GCPL_SICE_DOCN%MULTILEV-DOM_SROF_CISM2%AIS-EVOLVE%GRIS-EVOLVE_SWAV</lname>
+  </compset>
+
+  <compset>
+    <alias>TO1850Gaxg</alias>
+    <lname>1850_SATM_DLND%GCPL_SICE_DOCN%MULTILEV-DOM_SROF_CISM2%AIS-NOEVOLVE%GRIS-EVOLVE_SWAV</lname>
+  </compset>
+
+  <compset>
+    <alias>TO1850Gagx</alias>
+    <lname>1850_SATM_DLND%GCPL_SICE_DOCN%MULTIPLEV-DOM_SROF_CISM2%AIS-EVOLVE%GRIS-NOEVOLVE_SWAV</lname>
+  </compset>
+
+  <!--- TCXXXXG compsets
+      First C denotes that DOCN%MULTILEV-CPLHIST  is on
+      The final G denotes that ice evolution is turned on
+  -->
+
+  <compset>
+    <alias>TC1850Gg</alias>
+    <lname>1850_SATM_DLND%GCPL_SICE_DOCN%MULTILEV-CPLHIST_SROF_CISM2%GRIS-EVOLVE_SWAV</lname>
+  </compset>
+
+  <compset>
+    <alias>TC1850a</alias>
+    <lname>1850_SATM_DLND%GCPL_SICE_SOCN_DOCN%MULTILEV-CPLHIST_CISM2%AIS-EVOLVE_SWAV</lname>
+  </compset>
+
+  <compset>
+    <alias>TC1850Gag</alias>
+    <lname>1850_SATM_DLND%GCPL_SICE_SOCN_DOCN%MULTILEV-CPLHIST_CISM2%AIS-EVOLVE%GRIS-EVOLVE_SWAV</lname>
+  </compset>
+
+  <compset>
+    <alias>TC1850Gaxg</alias>
+    <lname>1850_SATM_DLND%GCPL_SICE_SOCN_DOCN%MULTILEV-CPLHIST_CISM2%AIS-NOEVOLVE%GRIS-EVOLVE_SWAV</lname>
+  </compset>
+
+  <compset>
+    <alias>TC1850Gagx</alias>
+    <lname>1850_SATM_DLND%GCPL_SICE_SOCN_DOCN%MULTILEV-CPLHIST_CISM2%AIS-EVOLVE%GRIS-NOEVOLVE_SWAV</lname>
   </compset>
 
   <entries>

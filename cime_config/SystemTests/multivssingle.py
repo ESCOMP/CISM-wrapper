@@ -68,10 +68,6 @@ class MULTIVSSINGLE(SystemTestsCompareTwo):
     def _case_two_setup(self):
         # Turn off the given ice sheet
         self._case.set_value("GLC_USE_{}".format(self._remove_icesheet_xml_name), "FALSE")
-        # BACKWARDS_COMPATIBILITY(wjs,2024-04-01) Backwards compatibility with old CTSM
-        # versions that expect CISM_USE_ANTARCTICA (can be removed after
-        # https://github.com/ESCOMP/CTSM/pull/2449 is merged).
-        self._case.set_value("CISM_USE_{}".format(self._remove_icesheet_xml_name), "FALSE")
         self._case.set_value("CISM_EVOLVE_{}".format(self._remove_icesheet_xml_name), "FALSE")
 
         # Remove the given ice sheet from GLC_GRID and related variables

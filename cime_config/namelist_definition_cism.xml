@@ -112,6 +112,28 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="icesheet_modes" skip_default_entry="true">
+    <type>char(10)</type>
+    <category>cism</category>
+    <group>cism_params</group>
+    <valid_values>prognostic,noevolve</valid_values>
+    <desc>
+      Per ice sheet, selects the operating mode:
+      'prognostic' = run the CISM dycore for this ice sheet
+      'noevolve'   = read static topography/thickness from a file and
+      diagnose ice runoff (Fgrg_rofi) from the imported
+      surface mass balance; all other CISM-specific
+      export fields (Flgg_hflx, Figg_rofi, Fgrg_rofl,
+      Flrr_flood, Flrr_volr, Flrr_volrmch) are zero-filled.
+      The array is sized to match icesheet_names and is
+      indexed in the same order. By default every entry is set to
+      'prognostic' by buildnml, which preserves CISM-only behavior.
+      To make an ice sheet noevolve, change its entry to 'noevolve'
+      via user_nl_cism (and provide noevolve_datafiles, noevolve_nx,
+      noevolve_ny for that entry).
+    </desc>
+  </entry>
+
   <entry id="cism_debug" >
     <type>logical</type>
     <category>cism</category>
@@ -171,6 +193,88 @@ Sub-elements of each entry include:
       various override settings apply to all ice sheets: there is no way
       to do overrides for one ice sheet but not the others.
       Default: .false.
+    </desc>
+  </entry>
+
+<!-- =============================================================  -->
+<!-- Hybrid configuration: per-ice-sheet mode selection.            -->
+<!-- Some ice sheets can be run prognostically (CISM dycore), and   -->
+<!-- others as 'noevolve' (static data read from a file, with ice   -->
+<!-- runoff diagnosed from the imported surface mass balance).      -->
+<!--                                                                -->
+<!-- All arrays are indexed by ice-sheet number 1..N, matching the  -->
+<!-- order of mesh files in the mediator's mesh_glc attribute.      -->
+<!-- cism_params:icesheet_names lists only the prognostic subset,   -->
+<!-- in the same relative order.                                    -->
+<!-- =============================================================  -->
+
+  <entry id="noevolve_global_nx">
+    <type>integer(10)</type>
+    <category>cism</category>
+    <group>cism_params</group>
+    <values>
+      <value glc_grid="ais8:gris4">761,421</value>
+      <value glc_grid="ais8">761</value>
+      <value glc_grid="gris4">421</value>
+    </values>
+    <desc>
+      Per ice sheet, global x (longitude-like) dimension of the noevolve
+      data file. Required for each ice sheet with
+      icesheet_mode='noevolve'; ignored otherwise.
+    </desc>
+  </entry>
+
+  <entry id="noevolve_global_ny">
+    <type>integer(10)</type>
+    <category>cism</category>
+    <group>cism_params</group>
+    <values>
+      <value glc_grid="ais8:gris4">761,721</value>
+      <value glc_grid="ais8">761</value>
+      <value glc_grid="gris4">721</value>
+    </values>
+    <desc>
+      Per ice sheet, global y (latitude-like) dimension of the noevolve
+      data file. Required for each ice sheet with
+      icesheet_mode='noevolve'; ignored otherwise.
+      Default: 0
+    </desc>
+  </entry>
+
+  <entry id="noevolve_internal_gridsize">
+    <type>real(10)</type>
+    <category>cism</category>
+    <group>cism_params</group>
+    <values>
+      <value glc_grid="ais8:gris4">8000.0,4000.0</value>
+      <value glc_grid="ais8">8000.0</value>
+      <value glc_grid="gris4">4000.0</value>
+    </values>
+    <desc>
+      Per ice sheet, the internal model grid spacing in meters (for example
+      4000.0 for a 4 km grid). Used to compute the cell area Sg_area in
+      radians^2 via (internal_gridsize / Rearth)**2. Matches the dglc
+      datamode_noevolve convention (variable model_internal_gridsize there).
+      Required for each ice sheet with icesheet_mode='noevolve';
+      ignored otherwise.
+    </desc>
+  </entry>
+
+  <entry id="noevolve_datafiles">
+    <type>char(10)</type>
+    <category>cism</category>
+    <group>cism_params</group>
+    <input_pathname>abs</input_pathname>
+    <values>
+      <value glc_grid="ais8:gris4">$DIN_LOC_ROOT/glc/cism/Antarctica/antarctica_8km_epsg3031_c20250403.nc,$DIN_LOC_ROOT/glc/cism/Greenland/greenland_4km_epsg3413_c20250227.nc</value>
+      <value glc_grid="gris4">$DIN_LOC_ROOT/glc/cism/Greenland/greenland_4km_epsg3413_c20250227.nc</value>
+      <value glc_grid="ais8" >$DIN_LOC_ROOT/glc/cism/Antarctica/antarctica_8km_epsg3031_c20250403.nc</value>
+    </values>
+    <desc>
+      Per ice sheet, full path to the static NetCDF file containing the
+      bedrock topography ('topg') and ice thickness ('thk') used for
+      noevolve mode. Required for each ice sheet with
+      icesheet_mode='noevolve'; ignored for 'prognostic' ice sheets.
     </desc>
   </entry>
 
