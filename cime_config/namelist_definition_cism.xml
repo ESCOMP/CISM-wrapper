@@ -213,8 +213,8 @@ Sub-elements of each entry include:
     <category>cism</category>
     <group>cism_params</group>
     <values>
-      <value glc_grid="ais8:gris4">761,421</value>
-      <value glc_grid="ais8">761</value>
+      <value glc_grid="ais8:gris4">704,421</value>
+      <value glc_grid="ais8">704</value>
       <value glc_grid="gris4">421</value>
     </values>
     <desc>
@@ -229,8 +229,8 @@ Sub-elements of each entry include:
     <category>cism</category>
     <group>cism_params</group>
     <values>
-      <value glc_grid="ais8:gris4">761,721</value>
-      <value glc_grid="ais8">761</value>
+      <value glc_grid="ais8:gris4">576,721</value>
+      <value glc_grid="ais8">576</value>
       <value glc_grid="gris4">721</value>
     </values>
     <desc>
@@ -266,9 +266,9 @@ Sub-elements of each entry include:
     <group>cism_params</group>
     <input_pathname>abs</input_pathname>
     <values>
-      <value glc_grid="ais8:gris4">$DIN_LOC_ROOT/glc/cism/Antarctica/antarctica_8km_epsg3031_c20250403.nc,$DIN_LOC_ROOT/glc/cism/Greenland/greenland_4km_epsg3413_c20250227.nc</value>
-      <value glc_grid="gris4">$DIN_LOC_ROOT/glc/cism/Greenland/greenland_4km_epsg3413_c20250227.nc</value>
-      <value glc_grid="ais8" >$DIN_LOC_ROOT/glc/cism/Antarctica/antarctica_8km_epsg3031_c20250403.nc</value>
+      <value glc_grid="ais8:gris4">$DIN_LOC_ROOT/glc/cism/Antarctica/ISMIP6_Antarctica_8km.init.c210908.nc:$DIN_LOC_ROOT/glc/cism/Greenland/greenland_4km_epsg3413_c251001.nc</value>
+      <value glc_grid="gris4" >$DIN_LOC_ROOT/glc/cism/Greenland/greenland_4km_epsg3413_c251001.nc</value>
+      <value glc_grid="ais8"  >$DIN_LOC_ROOT/glc/cism/Antarctica/ISMIP6_Antarctica_8km.init.c210908.nc</value>
     </values>
     <desc>
       Per ice sheet, full path to the static NetCDF file containing the
