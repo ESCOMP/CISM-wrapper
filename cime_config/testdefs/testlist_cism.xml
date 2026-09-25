@@ -1,17 +1,6 @@
 <?xml version="1.0"?>
 <testlist version="2.0">
 
-  <!-- <test name="ERI_Ly44" grid="f09_g17_gris20" compset="T1850Gg" testmods="cism/isostasy_period4"> -->
-  <!--   <machines> -->
-  <!--     <machine name="betzy" compiler="intel" category="aux_cism_noresm"> -->
-  <!--       <options> -->
-  <!--         <option name="wallclock">0:40</option> -->
-  <!--         <option name="comment">include a longer ERI test to catch problems that may just show up after longer runs, using a coarse resolution to get faster turnaround and lower cost; include isostasy because there are extra subtleties with getting isostasy to restart exactly</option> -->
-  <!--       </options> -->
-  <!--     </machine> -->
-  <!--   </machines> -->
-  <!-- </test> -->
-
   <test name="ERI_Ly15" grid="f09_g17_gris4" compset="T1850Gg" testmods="cism/isostasy_period4">
     <machines>
       <machine name="betzy" compiler="intel" category="prealpha_noresm"/>
@@ -36,31 +25,11 @@
     </options>
   </test>
 
-  <!-- <test name="ERS_Ly11" grid="f09_g17_gris20" compset="T1850Gg"> -->
-  <!--   <machines> -->
-  <!--     <machine name="betzy" compiler="intel" category="aux_cism_noresm"/> -->
-  <!--     <machine name="olivia" compiler="intel" category="aux_cism_noresm"/> -->
-  <!--   </machines> -->
-  <!--   <options> -->
-  <!--     <option name="wallclock">0:20</option> -->
-  <!--   </options> -->
-  <!-- </test> -->
-
-  <!-- <test name="ERS_Ly11" grid="f09_g17_gris20" compset="T1850Gg" testmods="cism/oneway"> -->
-  <!--   <machines> -->
-  <!--     <machine name="betzy" compiler="intel" category="aux_cism_noresm"/> -->
-  <!--   </machines> -->
-  <!--   <options> -->
-  <!--     <option name="wallclock">0:20</option> -->
-  <!--     <option name="comment">(3-3-16) identical to an existing non-oneway test, which generates some non-zero runoff fluxes</option> -->
-  <!--   </options> -->
-  <!-- </test> -->
-
-  
   <test name="ERS_D_Ly3" grid="f09_g17_ais8gris4" compset="T1850Gaxg">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm"/>
       <machine name="olivia" compiler="intel" category="aux_cism_noresm"/>
+      <machine name="derecho" compiler="intel" category="aux_cism"/>
     </machines>
     <options>
       <option name="wallclock">0:30</option>
@@ -72,6 +41,7 @@
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm"/>
       <machine name="olivia" compiler="intel" category="aux_cism_noresm"/>
+      <machine name="derecho" compiler="intel" category="aux_cism"/>
     </machines>
     <options>
       <option name="wallclock">0:30</option>
@@ -281,6 +251,16 @@
     </options>
   </test>
 
+  <test name="ERI_Ly9" grid="f09_g17_ais8gris4" compset="T1850Gaxg">
+    <machines>
+      <machine name="derecho" compiler="intel" category="aux_cism"/>
+    </machines>
+    <options>
+      <option name="wallclock">0:50:00</option>
+      <option name="comment">ERI test with one ice sheet evolving and the other not, to make sure restart, branch and hybrid runs all work when one ice sheet is evolving and another is not.</option>
+    </options>
+  </test>
+
   <test name="ERI_Ly9_P1024" grid="f09_g17_ais8gris4" compset="T1850Gaxg">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_cism_noresm"/>
@@ -290,6 +270,26 @@
       <option name="wallclock">0:50:00</option>
       <option name="comment">ERI test with one ice sheet evolving and the other not, to make sure restart, branch and hybrid runs all work when one ice sheet is evolving and another is not.</option>
     </options>
+  </test>
+
+  <test name="IRT_Ly5_P24x1" grid="f09_g17_ais8gris4" compset="T1850Gag">
+    <machines>
+      <!-- BUG(wjs, 2021-10-20, ESMCI/cime#3978) I wanted this test to
+           be on cheyenne_gnu. However, IRT tests are currently failing
+           in the GENERATE phase (and presumably would fail in the
+           COMPARE phase, too). So for now I'm putting this test on
+           izumi_nag, since we don't do baseline generation or
+           comparison on izumi. Once ESMCI/cime#3978 is resolved,
+           probably move this back to cheyenne_gnu (though it isn't
+           really critical for baseline generation and comparison to be
+           done with this test). -->
+      <machine name="izumi" compiler="nag" category="aux_glc">
+        <options>
+          <option name="wallclock">0:30:00</option>
+          <option name="comment">Include a multi-ice sheet IRT test to test saving and restoring interim restart files to/from the archive (partly because the specification of interim restart file patterns for multiple ice sheets in config_archive.xml is a bit tricky).</option>
+        </options>
+      </machine>
+    </machines>
   </test>
 
   <!-- The following two tests (MULTINOAIS and MULTINOGRIS) are similar
@@ -345,50 +345,21 @@
        coupling); note that the test_coupling test also tests multiple
        ice sheets.  -->
 
-  <!-- <test name="SMS_Ly2" grid="f09_g17_gris20" compset="T1850Gg"> -->
-  <!--   <machines> -->
-  <!--     <machine name="betzy" compiler="intel" category="aux_cime_baselines"/> -->
-  <!--     <machine name="olivia" compiler="intel" category="aux_cime_baselines"/> -->
-  <!--   </machines> -->
-  <!--   <options> -->
-  <!--     <option name="wallclock">0:30:00</option> -->
-  <!--   </options> -->
-  <!-- </test> -->
-
-  <!-- <test name="SMS_Ld5" grid="f19_f19_ais8gris4_mtn14" compset="I1850Clm50SpGag" testmods="cism/test_coupling"> -->
-  <!--   <machines> -->
-  <!--     <machine name="betzy" compiler="intel" category="aux_cime_baselines"/> -->
-  <!--     <machine name="olivia" compiler="intel" category="aux_cime_baselines"/> -->
-  <!--   </machines> -->
-  <!--   <options> -->
-  <!--     <option name="wallclock">0:30:00</option> -->
-  <!--   </options> -->
-  <!-- </test> -->
-
-
-<test name="ERP_Ly4" grid="f09_g17_gris4" compset="T1850Gg" testmods="cism/norenormal">
+  <test name="SMS_Ly2" grid="f09_g17_gris20" compset="T1850Gg">
     <machines>
-      <machine name="derecho" compiler="intel" category="aux_glc">
+      <machine name="derecho" compiler="intel" category="aux_cime_baselines">
         <options>
-          <option name="wallclock">0:20:00</option>
-          <!-- Adding ERP tests to check for exact restarts with changing processors. As of 05/2026, there
-	       are global sums in cmeps that prevent this from passing. This is why we turn off renormalization
-	  -->
-          <option name="comment">Test for exact b4b restart with changing processor counts</option>
+          <option name="wallclock">0:30:00</option>
         </options>
       </machine>
     </machines>
-</test>
+  </test>
 
-<test name="ERP_Ly5" grid="f09_g17_ais8" compset="T1850Ga" testmods="cism/norenormal">
+  <test name="SMS_Ld5" grid="f10_f10_ais8gris4_mg37" compset="I1850Clm50SpGag" testmods="cism/test_coupling">
     <machines>
-      <machine name="derecho" compiler="gnu" category="aux_glc">
+      <machine name="derecho" compiler="intel" category="aux_cime_baselines">
         <options>
-          <option name="wallclock">0:20:00</option>
-          <!-- Adding ERP tests to check for exact restarts with changing processors. As of 05/2026, there
-	       are global sums in cmeps that prevent this from passing. This is why we turn off renormalization
-	  -->
-          <option name="comment">Test for exact b4b restart with changing processor counts</option>
+          <option name="wallclock">0:30:00</option>
         </options>
       </machine>
     </machines>
