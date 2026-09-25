@@ -266,7 +266,7 @@ Sub-elements of each entry include:
     <group>cism_params</group>
     <input_pathname>abs</input_pathname>
     <values>
-      <value glc_grid="ais8:gris4">$DIN_LOC_ROOT/glc/cism/Antarctica/ISMIP6_Antarctica_8km.init.c210908.nc:$DIN_LOC_ROOT/glc/cism/Greenland/greenland_4km_epsg3413_c251001.nc</value>
+      <value glc_grid="ais8:gris4">$DIN_LOC_ROOT/glc/cism/Antarctica/ISMIP6_Antarctica_8km.init.c210908.nc,$DIN_LOC_ROOT/glc/cism/Greenland/greenland_4km_epsg3413_c251001.nc</value>
       <value glc_grid="gris4" >$DIN_LOC_ROOT/glc/cism/Greenland/greenland_4km_epsg3413_c251001.nc</value>
       <value glc_grid="ais8"  >$DIN_LOC_ROOT/glc/cism/Antarctica/ISMIP6_Antarctica_8km.init.c210908.nc</value>
     </values>
