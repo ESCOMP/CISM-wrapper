@@ -305,7 +305,7 @@
     </machines>
   </test>
 
-  
+
   <test name="NCK_Ly3" grid="f09_g17_gris20" compset="T1850Gg">
     <machines>
 
@@ -467,7 +467,7 @@
 
     </machines>
   </test>
-  
+
   <test name="SMS_D_Ly3_P24x1" grid="f09_g17_gris20" compset="T1850Gg">
     <machines>
 
@@ -480,7 +480,7 @@
 
     </machines>
   </test>
-  
+
   <test name="ERS_Ly5" grid="f09_g17_gris4" compset="T1850Gg" testmods="cism/isostasy_period4">
     <machines>
 
@@ -671,6 +671,28 @@
       </machine>
 
     </machines>
+  </test>
+
+  <!-- The following tests capability to have one ice sheet evolving and the other not -->
+
+  <test name="ERS_D_Ly3" grid="f09_g17_ais8gris4" compset="T1850Gagx">
+    <machines>
+      <machine name="derecho" compiler="intel" category="aux_glc"/>
+    </machines>
+    <options>
+      <option name="wallclock">0:30</option>
+      <option name="comment">noevolve Greenland and evolving Antarctica</option>
+    </options>
+  </test>
+
+  <test name="ERI_Ly9" grid="f09_g17_ais8gris4" compset="T1850Gaxg">
+    <machines>
+      <machine name="derecho" compiler="intel" category="aux_glc"/>
+    </machines>
+    <options>
+      <option name="wallclock">0:50:00</option>
+      <option name="comment">ERI test with one ice sheet evolving and the other not, to make sure restart, branch and hybrid runs all work when one ice sheet is evolving and another is not.</option>
+    </options>
   </test>
 
 </testlist>

@@ -266,17 +266,6 @@ def _icesheet_consistency_checks(case, icesheet_names, glc_grid_names):
             expect(_is_icesheet_present(case, icesheet),
                    "{} set to evolve but not present in compset".format(icesheet))
 
-            expect(case.get_value("CISM_EVOLVE"),
-                   "{} set to evolve but overall CISM_EVOLVE is FALSE".format(icesheet))
-
-    if case.get_value("CISM_EVOLVE"):
-        found_evolving_icesheet = False
-        for icesheet in icesheet_names:
-            if _is_icesheet_evolving(case, icesheet):
-                found_evolving_icesheet = True
-        expect(found_evolving_icesheet,
-               "CISM_EVOLVE is TRUE, but no ice sheets are set to evolve")
-
 ####################################################################################
 def _check_compset_grid_consistency(case, icesheet_names, glc_grid_names):
 ####################################################################################
@@ -305,19 +294,30 @@ def _check_compset_grid_consistency(case, icesheet_names, glc_grid_names):
         grid_startswith_icesheet = [g.startswith(icesheet) for g in glc_grid_names]
         num_matches = grid_startswith_icesheet.count(True)
         expect(num_matches == 1,
-               "Inconsistency between compset and grid: "
-               "{} included in compset, so expect one grid starting with that name, "
-               "but found {} grids with that name in GLC_GRID {}".format(
-                   icesheet, num_matches, glc_grid))
+               "Inconsistency between compset and grid: the compset includes the "
+               "'{}' ice sheet, so GLC_GRID must contain exactly one grid for it "
+               "(a grid name starting with '{}'), but found {}.\n"
+               "  Ice sheets in compset : {}\n"
+               "  Grids in GLC_GRID ({}) : {}\n"
+               "Fix: choose a --res whose GLC_GRID matches the ice sheets in the "
+               "compset (e.g. an '{}'-only grid), or change the compset so its ice "
+               "sheets match GLC_GRID.".format(
+                   icesheet, icesheet, num_matches,
+                   icesheet_names, glc_grid, glc_grid_names, icesheet))
 
     for grid in glc_grid_names:
         icesheet_is_prefix_of_grid = [grid.startswith(i) for i in icesheet_names]
         num_matches = icesheet_is_prefix_of_grid.count(True)
         expect(num_matches == 1,
-               "Inconsistency between compset and grid: "
-               "{} included in GLC_GRID, so expect it to be the grid for one ice sheet in this case, "
-               "but found {} ice sheets that are the prefix of this grid name".format(
-                   grid, num_matches))
+               "Inconsistency between compset and grid: GLC_GRID contains the grid "
+               "'{}', but no ice sheet in the compset corresponds to it ({} matches).\n"
+               "  Ice sheets in compset : {}\n"
+               "  Grids in GLC_GRID ({}) : {}\n"
+               "Fix: either choose a --res whose GLC_GRID only includes grids for "
+               "the ice sheets in the compset, or use a compset that includes the "
+               "ice sheet for grid '{}'.".format(
+                   grid, num_matches,
+                   icesheet_names, glc_grid, glc_grid_names, grid))
 
     # ------------------------------------------------------------------------
     # Now check for consistency in ordering. Errors here typically indicate an
@@ -364,10 +364,8 @@ def _create_cism_in(case, confdir, inst_string, icesheet_names, infile, nmlgen, 
     # Create config dictionary
     # ------------------------------------------------------------------------
     config = {}
-    # Note that the cism_evolve value used in cism_in is the overall CISM_EVOLVE, which is
-    # true if *any* ice sheet is evolving.
-    config['cism_evolve'] = '.true.' if case.get_value('CISM_EVOLVE') else '.false.'
     config['calendar'] = case.get_value("CALENDAR")
+    config['glc_grid'] = case.get_value("GLC_GRID")
 
     run_type = _get_effective_run_type(case)
 
@@ -378,9 +376,32 @@ def _create_cism_in(case, confdir, inst_string, icesheet_names, infile, nmlgen, 
     nmlgen.init_defaults([infile], config,
                          skip_default_for_groups=_CISM_CONFIG_GROUPS+["glc_override_nml"])
 
+    # IMPORTANT: nmlgen.add_default("icesheet_names", value=icesheet_names)
+    # mutates its input list IN PLACE, turning the bare names ('ais', 'gris')
+    # into namelist literals ('"ais"', '"gris"'). So snapshot the bare names
+    # FIRST and use that snapshot for all per-ice-sheet logic below; otherwise
+    # _ICESHEET_OPTIONS lookups would be done with quoted keys and fail.
+    clean_icesheet_names = list(icesheet_names)
+
     nmlgen.add_default("paramfile_base", value="cism"+inst_string, ignore_abs_path=True)
-    nmlgen.add_default("num_icesheets", value=len(icesheet_names))
+    nmlgen.add_default("num_icesheets", value=len(clean_icesheet_names))
     nmlgen.add_default("icesheet_names", value=icesheet_names)
+
+    # Per-ice-sheet mode, built in the canonical _ICESHEET_OPTIONS order (ais,
+    # gris, ...) by iterating clean_icesheet_names. An ice sheet that is evolving
+    # (CISM_EVOLVE_<ICESHEET>=TRUE, from the %<ICESHEET>-EVOLVE modifier) runs the
+    # CISM dycore ("prognostic"); one that is not evolving (%<ICESHEET>-NOEVOLVE)
+    # uses the data-glacier ("noevolve") path handled by glc_noevolve_mod.
+    #
+    # The noevolve_datafiles / noevolve_global_nx / noevolve_global_ny /
+    # noevolve_internal_gridsize arrays are populated automatically from their
+    # glc_grid-keyed defaults in namelist_definition_cism.xml (in the same
+    # canonical order, which _check_compset_grid_consistency enforces).
+    icesheet_modes = [
+        "prognostic" if _is_icesheet_evolving(case, icesheet) else "noevolve"
+        for icesheet in clean_icesheet_names
+    ]
+    nmlgen.add_default("icesheet_modes", value=icesheet_modes)
 
     _set_startdate(nmlgen, case,
                    run_type=run_type)
@@ -519,26 +540,6 @@ cover in CLM.)"""
 def _get_effective_run_type(case):
 ###############################################################################
     run_type = case.get_value("RUN_TYPE")
-
-    comp_interface = case.get_value("COMP_INTERFACE")
-    cism_evolve = case.get_value("CISM_EVOLVE")
-    # NOTE: with the nuopc interface, the CISM run phase is never called when running in
-    # noevolve mode, so a restart file will never be written for cism - only initial
-    # information will be sent back to CTSM. Since we don't have a restart file to start
-    # from, we need to tell CISM to start in startup mode in this situation.
-    #
-    # Note that this looks at the overall cism_evolve, which is only False if no ice
-    # sheets are evolving: In the situation where one ice sheet is evolving but another is
-    # not, the overall cism_evolve will be True and restart files will still be written
-    # for every ice sheet (even non-evolving ones), so we can safely restart from these
-    # restart files (so we do not need to force run_type to "startup"). (Also note that,
-    # because all ice sheets share a single time manager in the CISM-wrapper layer, it
-    # might currently be awkward or impossible for one ice sheet to start in startup mode
-    # and another to start in branch mode, for example.)
-    if (comp_interface == 'nuopc' and not cism_evolve):
-        logger.debug("Interface is nuopc, cism is not evolving: CISM run_type is always startup")
-        run_type = "startup"
-
     return run_type
 
 ###############################################################################
@@ -563,31 +564,6 @@ def _set_restart_options(nmlgen, case, icesheet, run_type, cism_observed_ic,
             expect(False,"CISM_OBSERVED_IC=TRUE not allowed for branch runs - only for hybrid runs")
         else:
             restart = 0
-    elif run_type == 'hybrid' and not case.get_value('CISM_EVOLVE'):
-        # We could use the hybrid refcase's CISM restart file in this case. However, we
-        # often run into problems where a change in CISM makes it incompatible with old
-        # restart files, and this breaks configurations that are set up as hybrid runs
-        # (typically B and F compsets). Those hybrid cases typically use NOEVOLVE (i.e.,
-        # CISM_EVOLVE=FALSE), where the restart file really doesn't matter. So, rather
-        # than requiring ourselves to recreate all of those refcases whenever we break
-        # compatibility with old restart files, an easier-to-maintain solution is to just
-        # use observed initial conditions rather than the restart file whenever we're
-        # running a hybrid case with CISM_EVOLVE=FALSE.
-        #
-        # One theoretical problem with this is: If someone did a run with
-        # CISM_EVOLVE=TRUE, then did a hybrid case off of that with CISM_EVOLVE=FALSE,
-        # hoping that this would keep the ice sheet fixed at the previously-spun-up state,
-        # they wouldn't get what they want: instead the ice sheet would be reset to
-        # observed initial conditions. Thus, the user would need to explicitly set
-        # 'cisminputfile' and 'restart' in this case.
-        #
-        # Note that this logic is based on the overall CISM_EVOLVE, so it is not triggered
-        # if one ice sheet is evolving but another is not. Also note that this logic is
-        # currently redundant with the NUOPC-specific logic that sets run_type to
-        # "startup" if CISM_EVOLVE is FALSE (in _get_effective_run_type). But we're
-        # keeping this redundancy for the sake of MCT runs and in case the NUOPC-specific
-        # logic is ever changed.
-        restart = 0
     elif run_type == 'branch' or run_type == 'hybrid':
         run_refcase = case.get_value('RUN_REFCASE')
         run_refdate = case.get_value('RUN_REFDATE')

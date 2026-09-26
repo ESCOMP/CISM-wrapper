@@ -6,14 +6,11 @@ module glc_import_export
   use ESMF                , only : ESMF_KIND_R8, ESMF_SUCCESS, ESMF_MAXSTR, ESMF_LOGMSG_INFO
   use ESMF                , only : ESMF_LogWrite, ESMF_LOGMSG_ERROR, ESMF_LogFoundError
   use ESMF                , only : ESMF_STATEITEM_NOTFOUND, ESMF_StateItem_Flag
-  use ESMF                , only : ESMF_LogFoundAllocError, ESMF_MeshIsCreated
   use ESMF                , only : operator(/=), operator(==)
   use NUOPC               , only : NUOPC_CompAttributeGet, NUOPC_Advertise, NUOPC_IsConnected
-  use NUOPC               , only : NUOPC_AddNamespace, NUOPC_AddNestedState
-  use NUOPC_Model         , only : NUOPC_ModelGet
   use shr_kind_mod        , only : r8 => shr_kind_r8, cl=>shr_kind_cl, cs=>shr_kind_cs
   use shr_sys_mod         , only : shr_sys_abort
-  use glc_constants       , only : verbose, stdout, stderr, tkfrz, radius, enable_frac_overrides
+  use glc_constants       , only : verbose, stdout, stderr, tkfrz, radius, enable_frac_overrides, max_icesheets
   use glc_communicate     , only : my_task, master_task
   use glc_time_management , only : iyear,imonth,iday,ihour,iminute,isecond
   use glc_indexing        , only : get_nx_tot, get_ny_tot, get_nx, get_ny, spatial_to_vector, vector_to_spatial
@@ -28,18 +25,19 @@ module glc_import_export
   public  :: realize_fields
   public  :: import_fields
   public  :: export_fields
-  public  :: get_num_icesheets
 
   private :: fldlist_add
   private :: fldlist_realize
-  private :: state_getimport
+  private :: state_getimport_2d
+  private :: state_getimport_3d
   private :: state_setexport
-  private :: state_getfldptr
+  private :: state_getfldptr_1d
+  private :: state_getfldptr_2d
 
-  character(len=CL) :: flds_scalar_name = ''
-  integer           :: flds_scalar_num = 0
-  integer           :: flds_scalar_index_nx = 0
-  integer           :: flds_scalar_index_ny = 0
+  character(len=CL) , public, protected :: flds_scalar_name = ''
+  integer           , public, protected :: flds_scalar_num = 0
+  integer           , public, protected :: flds_scalar_index_nx = 0
+  integer           , public, protected :: flds_scalar_index_ny = 0
 
   type fld_list_type
      character(len=128) :: stdname
@@ -75,10 +73,8 @@ module glc_import_export
   type (fld_list_type)   :: fldsToGlc(fldsMax)
   type (fld_list_type)   :: fldsFrGlc(fldsMax)
 
-  type(ESMF_State), allocatable :: NStateImp(:)
-  type(ESMF_State), allocatable :: NStateExp(:)
-  integer            :: num_icesheets
-  integer            :: dbug_flag = 0
+  integer :: num_icesheets ! total ice sheets (prognostic + noevolve)
+  integer :: dbug_flag = 0
 
   character(*), parameter :: u_FILE_u = &
        __FILE__
@@ -87,19 +83,18 @@ module glc_import_export
 contains
 !===============================================================================
 
-  subroutine advertise_fields(gcomp, cism_evolve, num_icesheets_in, rc)
+  subroutine advertise_fields(gcomp, num_icesheets_in, NStateImp, NStateExp, rc)
 
     use glc_constants, only : glc_smb
 
     ! input/output variables
-    type(ESMF_GridComp)            :: gcomp
-    logical          , intent(in)  :: cism_evolve
-    integer          , intent(in)  :: num_icesheets_in
-    integer          , intent(out) :: rc
+    type(ESMF_GridComp)              :: gcomp
+    integer          , intent(in)    :: num_icesheets_in
+    type(ESMF_State) , intent(inout) :: NStateImp(:)
+    type(ESMF_State) , intent(inout) :: NStateExp(:)
+    integer          , intent(out)   :: rc
 
     ! local variables
-    type(ESMF_State)    :: importState
-    type(ESMF_State)    :: exportState
     integer             :: nf,ns
     integer             :: stat
     character(len=CS)   :: cnum
@@ -112,9 +107,6 @@ contains
     rc = ESMF_SUCCESS
 
     num_icesheets = num_icesheets_in
-
-    call NUOPC_ModelGet(gcomp, importState=importState, exportState=exportState, rc=rc)
-    if (chkErr(rc,__LINE__,u_FILE_u)) return
 
     call NUOPC_CompAttributeGet(gcomp, name="ScalarFieldName", value=cvalue, isPresent=isPresent, isSet=isSet, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
@@ -160,21 +152,6 @@ contains
     endif
 
     !--------------------------------
-    ! Create nested state for active ice sheets only
-    !--------------------------------
-
-    allocate(NStateImp(num_icesheets))
-    allocate(NStateExp(num_icesheets))
-
-    do ns = 1,num_icesheets
-       write(cnum,'(i0)') ns
-       call NUOPC_AddNestedState(importState, CplSet="GLC"//trim(cnum), nestedState=NStateImp(ns), rc=rc)
-       if (ChkErr(rc,__LINE__,u_FILE_u)) return
-       call NUOPC_AddNestedState(exportState, CplSet="GLC"//trim(cnum), nestedState=NStateExp(ns), rc=rc)
-       if (ChkErr(rc,__LINE__,u_FILE_u)) return
-    end do
-
-    !--------------------------------
     ! Advertise export fields
     !--------------------------------
 
@@ -194,7 +171,7 @@ contains
     call fldlist_add(fldsFrGlc_num, fldsFrglc, field_out_rofi_to_ocn)
     call fldlist_add(fldsFrGlc_num, fldsFrglc, field_out_rofl_to_ocn)
 
-    ! Now advertise above export fields
+    ! Now advertise above export fields (all ice sheets, regardless of mode)
     do ns = 1,num_icesheets
        do nf = 1,fldsFrGlc_num
           call NUOPC_Advertise(NStateExp(ns), standardName=fldsFrGlc(nf)%stdname, &
@@ -215,13 +192,11 @@ contains
     call fldlist_add(fldsToGlc_num, fldsToGlc, trim(flds_scalar_name))
     call fldlist_add(fldsToGlc_num, fldsToGlc, field_in_tsrf)
     call fldlist_add(fldsToGlc_num, fldsToGlc, field_in_qice)
-    if (cism_evolve) then
-       call fldlist_add(fldsToGlc_num, fldsToGlc, field_in_so_t_depth, ungridded_lbound=1, ungridded_ubound=nlev_import)
-       call fldlist_add(fldsToGlc_num, fldsToGlc, field_in_so_s_depth, ungridded_lbound=1, ungridded_ubound=nlev_import)
-     end if
+    call fldlist_add(fldsToGlc_num, fldsToGlc, field_in_so_t_depth, ungridded_lbound=1, ungridded_ubound=nlev_import)
+    call fldlist_add(fldsToGlc_num, fldsToGlc, field_in_so_s_depth, ungridded_lbound=1, ungridded_ubound=nlev_import)
 
-     ! Now advertise import fields
-     do ns = 1,num_icesheets
+     ! Now advertise import fields (all ice sheets, regardless of mode)
+    do ns = 1,num_icesheets
        do nf = 1,fldsToGlc_num
          call NUOPC_Advertise(NStateImp(ns), standardName=fldsToGlc(nf)%stdname, &
               TransferOfferGeomObject='will provide', rc=rc)
@@ -232,7 +207,7 @@ contains
          end if
          call ESMF_LogWrite(subname//'Import field'//': '//trim(fldsToGlc(nf)%stdname), ESMF_LOGMSG_INFO)
        end do
-     enddo
+    enddo
 
     ! Set glc_smb
     ! true  => get surface mass balance from land model via coupler (in multiple elev classes)
@@ -243,11 +218,13 @@ contains
 
   !===============================================================================
 
-  subroutine realize_fields(gcomp, mesh, rc)
+  subroutine realize_fields(gcomp, mesh, NStateImp, NStateExp, rc)
 
     ! input/output variables
     type(ESMF_GridComp) , intent(inout) :: gcomp
     type(ESMF_Mesh)     , intent(in)    :: mesh(:)
+    type(ESMF_State)    , intent(inout) :: NStateImp(:)
+    type(ESMF_State)    , intent(inout) :: NStateExp(:)
     integer             , intent(out)   :: rc
 
     ! local variables
@@ -258,7 +235,7 @@ contains
 
     rc = ESMF_SUCCESS
 
-    ! Realize import and export states for each ice sheet
+    ! Realize import and export states for all ice sheets (prognostic + noevolve)
     do ns = 1,num_icesheets
        write(cns,'(i0)') ns
 
@@ -292,7 +269,7 @@ contains
 
   !===============================================================================
 
-  subroutine import_fields(rc)
+  subroutine import_fields(icesheet_mode, prognostic_index, NStateImp, rc)
 
     !---------------------------------------------------------------------------
     ! Convert the input data from the mediator to cism
@@ -301,7 +278,10 @@ contains
     use glc_fields, only : cpl_bundles
 
     ! input/output variabes
-    integer, intent(out) :: rc
+    character(len=*) , intent(in)    :: icesheet_mode(:)    ! evolve or prognostic
+    integer          , intent(in)    :: prognostic_index(:) ! index of prognostic ice sheet
+    type(ESMF_State) , intent(inout) :: NStateImp(:)
+    integer          , intent(out)   :: rc
 
     ! local variables
     integer :: ns
@@ -310,27 +290,38 @@ contains
 
     rc = ESMF_SUCCESS
 
-    ! Get cism import fields
+    ! Get cism import fields skip noevolve ice sheets (they handle their own imports)
     do ns = 1,num_icesheets
-       associate(&
-            tsfc => cpl_bundles(ns)%tsfc, &
-            qsmb => cpl_bundles(ns)%qsmb)
+       if (trim(icesheet_mode(ns)) == 'noevolve') cycle
 
-       call state_getimport(NStateImp(ns), field_in_tsrf, tsfc, &
-            instance_index=ns, rc=rc)
+       associate(&
+            tsfc     => cpl_bundles(prognostic_index(ns))%tsfc, &
+            qsmb     => cpl_bundles(prognostic_index(ns))%qsmb, &
+            tocn     => cpl_bundles(prognostic_index(ns))%tocn, &
+            salinity => cpl_bundles(prognostic_index(ns))%salinity)
+
+       call state_getimport_2d(NStateImp(ns), field_in_tsrf, tsfc, &
+            instance_index=prognostic_index(ns), rc=rc)
        if (chkErr(rc,__LINE__,u_FILE_u)) return
-       call state_getimport(NStateImp(ns), field_in_qice, qsmb, &
-            instance_index=ns, rc=rc)
+       call state_getimport_2d(NStateImp(ns), field_in_qice, qsmb, &
+            instance_index=prognostic_index(ns), rc=rc)
        if (chkErr(rc,__LINE__,u_FILE_u)) return
 
        tsfc = tsfc - tkfrz
 
-       !Jer hack fix:
        !For some land points where CLM sees ocean, and all ocean points, CLM doesn't provide a temperature,
        !and so the incoming temperature is 0.d0.  This gets dropped to -273.15, in the above code.  So,
        !manually reverse this, below, to set to 0C.
 
        where (tsfc < -250.d0) tsfc=0.d0
+
+       !mp; 2024-06-19; reading here ocean t and s
+       call state_getimport_3d(NStateImp(ns), field_in_so_t_depth, tocn, &
+            instance_index=prognostic_index(ns), rc=rc)
+       if (chkErr(rc,__LINE__,u_FILE_u)) return
+       call state_getimport_3d(NStateImp(ns), field_in_so_s_depth, &
+            salinity, instance_index=prognostic_index(ns), rc=rc)
+       if (chkErr(rc,__LINE__,u_FILE_u)) return
 
        if (dbug_flag > 0) then
           call State_diagnose(NStateImp(ns), subname//':ES',rc=rc)
@@ -344,7 +335,7 @@ contains
 
   !===============================================================================
 
-  subroutine export_fields(exportState, rc)
+  subroutine export_fields(icesheet_mode, prognostic_index, NStateExp, rc)
 
     !---------------------------------------------------------------------------
     ! Convert the cism data to export data to the mediator
@@ -355,8 +346,10 @@ contains
     use glc_override_frac    , only : do_frac_overrides
 
     ! input/output variabes
-    type(ESMF_State)     :: exportState
-    integer, intent(out) :: rc
+    character(len=*) , intent(in)    :: icesheet_mode(:)    ! evolve or prognostic
+    integer          , intent(in)    :: prognostic_index(:) ! index of prognostic ice sheet
+    type(ESMF_State) , intent(inout) :: NStateExp(:)        ! all ice sheets (including prognostic)
+    integer          , intent(out)   :: rc
 
     ! local variables
     integer :: nx, ny
@@ -380,7 +373,6 @@ contains
 
     ! mask of ice sheet grid coverage where we are potentially sending non-zero fluxes
     real(r8), allocatable :: icemask_coupled_fluxes(:,:)
-
     real(r8), allocatable :: glc_areas(:,:)
     real(r8), allocatable :: hflx_to_cpl(:,:)
     real(r8), allocatable :: rofl_to_cpl(:,:)
@@ -394,31 +386,33 @@ contains
     call ESMF_LogWrite(subname//' called', ESMF_LOGMSG_INFO)
 
     do ns = 1,num_icesheets
+
+       if (trim(icesheet_mode(ns)) == 'noevolve') then
+          ! Export state for noevolve ice sheets are set in call to glc_noevolve_advance 
+          ! in ModelAdvance subroutine in glc_comp_nuopc module
+          cycle
+       end if
+
        associate( &
-            ice_covered         => cpl_bundles(ns)%ice_covered, &
-            topo                => cpl_bundles(ns)%topo, &
-            rofi                => cpl_bundles(ns)%rofi, &
-            rofl                => cpl_bundles(ns)%rofl, &
-            hflx                => cpl_bundles(ns)%hflx, &
-            ice_sheet_grid_mask => cpl_bundles(ns)%ice_sheet_grid_mask)
+            ice_covered => cpl_bundles(prognostic_index(ns))%ice_covered, &
+            topo        => cpl_bundles(prognostic_index(ns))%topo, &
+            rofi        => cpl_bundles(prognostic_index(ns))%rofi, &
+            rofl        => cpl_bundles(prognostic_index(ns))%rofl, &
+            hflx        => cpl_bundles(prognostic_index(ns))%hflx, &
+            ice_sheet_grid_mask => cpl_bundles(prognostic_index(ns))%ice_sheet_grid_mask)
 
-       nx = get_nx(instance_index=ns)
-       ny = get_ny(instance_index=ns)
+       nx = get_nx(instance_index=prognostic_index(ns))
+       ny = get_ny(instance_index=prognostic_index(ns))
 
-       ! glc_areas are constant in time, so we could just set it once in initialization;
-       ! but for simplicity we just reset it each time
        allocate(glc_areas(nx,ny))
-       call glad_get_areas(ice_sheet, instance_index = ns, areas=glc_areas)
-       glc_areas(:,:) = glc_areas(:,:)/(radius*radius) ! convert from m^2 to radians^2
+       call glad_get_areas(ice_sheet, instance_index=prognostic_index(ns), areas=glc_areas)
+       glc_areas(:,:) = glc_areas(:,:)/(radius*radius)
 
-       ! If overrides of glc fraction are enabled (for testing purposes), then apply
-       ! these overrides, otherwise use the real version of ice_covered and topo
        if (enable_frac_overrides) then
           allocate(ice_covered_to_cpl(lbound(ice_covered,1):ubound(ice_covered,1), &
-               lbound(ice_covered,2):ubound(ice_covered,2)))
+                                      lbound(ice_covered,2):ubound(ice_covered,2)))
           allocate(topo_to_cpl(lbound(topo,1):ubound(topo,1), &
-               lbound(topo,2):ubound(topo,2)))
-
+                               lbound(topo,2):ubound(topo,2)))
           ice_covered_to_cpl = ice_covered
           topo_to_cpl = topo
           call do_frac_overrides(ice_covered_to_cpl, topo_to_cpl, ice_sheet_grid_mask)
@@ -435,7 +429,7 @@ contains
        allocate(rofi_to_ocn(nx, ny))
        allocate(rofi_to_ice(nx, ny))
 
-       if (ice_sheet%instances(ns)%zero_gcm_fluxes) then
+       if (ice_sheet%instances(prognostic_index(ns))%zero_gcm_fluxes) then
           icemask_coupled_fluxes = 0._r8
           hflx_to_cpl = 0._r8
           rofl_to_cpl = 0._r8
@@ -448,54 +442,49 @@ contains
           call route_ice_runoff(rofi, rofi_to_ocn, rofi_to_ice)
        end if
 
-       ! Fill export state for ice sheet
-
-       ! area is constant in time, so if it were easy to just send this during
-       ! initialization, we could do that - but currently, for ease of implementation, we
-       ! resend it every coupling interval
        call state_setexport(NStateExp(ns), field_out_area, glc_areas, &
-            instance_index=ns, rc=rc)
+            instance_index=prognostic_index(ns), rc=rc)
        if (chkErr(rc,__LINE__,u_FILE_u)) return
 
        call state_setexport(NStateExp(ns), field_out_rofi_to_ocn, rofi_to_ocn, &
-            instance_index=ns, rc=rc)
+            instance_index=prognostic_index(ns), rc=rc)
        if (chkErr(rc,__LINE__,u_FILE_u)) return
        call state_setexport(NStateExp(ns), field_out_rofi_to_ice, rofi_to_ice, &
-            instance_index=ns, rc=rc)
+            instance_index=prognostic_index(ns), rc=rc)
        if (chkErr(rc,__LINE__,u_FILE_u)) return
        call state_setexport(NStateExp(ns), field_out_rofl_to_ocn, rofl_to_cpl, &
-            instance_index=ns, rc=rc)
+            instance_index=prognostic_index(ns), rc=rc)
        if (chkErr(rc,__LINE__,u_FILE_u)) return
        call state_setexport(NStateExp(ns), field_out_ice_covered, ice_covered_to_cpl, &
-            instance_index=ns, rc=rc)
+            instance_index=prognostic_index(ns), rc=rc)
        if (chkErr(rc,__LINE__,u_FILE_u)) return
        call state_setexport(NStateExp(ns), field_out_topo, topo_to_cpl, &
-            instance_index=ns, rc=rc)
+            instance_index=prognostic_index(ns), rc=rc)
        if (chkErr(rc,__LINE__,u_FILE_u)) return
        call state_setexport(NStateExp(ns), field_out_hflx_to_lnd, hflx_to_cpl, &
-            instance_index=ns, rc=rc)
+            instance_index=prognostic_index(ns), rc=rc)
        if (chkErr(rc,__LINE__,u_FILE_u)) return
        call state_setexport(NStateExp(ns), field_out_icemask, ice_sheet_grid_mask, &
-            instance_index=ns, rc=rc)
+            instance_index=prognostic_index(ns), rc=rc)
        if (chkErr(rc,__LINE__,u_FILE_u)) return
        call state_setexport(NStateExp(ns), field_out_icemask_coupled_fluxes, icemask_coupled_fluxes, &
-            instance_index=ns, rc=rc)
+            instance_index=prognostic_index(ns), rc=rc)
        if (chkErr(rc,__LINE__,u_FILE_u)) return
 
        ! Set scalars in export state
-       call State_SetScalar(dble(get_nx_tot(instance_index=ns)), flds_scalar_index_nx, &
+       call State_SetScalar(dble(get_nx_tot(instance_index=prognostic_index(ns))), flds_scalar_index_nx, &
             NStateExp(ns), flds_scalar_name, flds_scalar_num, rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
-       call State_SetScalar(dble(get_ny_tot(instance_index=ns)), flds_scalar_index_ny, &
+       call State_SetScalar(dble(get_ny_tot(instance_index=prognostic_index(ns))), flds_scalar_index_ny, &
             NStateExp(ns), flds_scalar_name, flds_scalar_num, rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
-       ! Diagnose state data if appropriate
        if (dbug_flag > 1) then
           call State_diagnose(NStateExp(ns), trim(subname)//':ES',rc=rc)
           if (ChkErr(rc,__LINE__,u_FILE_u)) return
        end if
 
+       ! Diagnose state data if appropriate
        deallocate(glc_areas)
        deallocate(icemask_coupled_fluxes)
        deallocate(hflx_to_cpl)
@@ -511,15 +500,6 @@ contains
     end do
 
   end subroutine export_fields
-
-  !===============================================================================
-
-  integer function get_num_icesheets()
-    ! ----------------------------------------------
-    ! Return the num_icesheets value stored in this module
-    ! ----------------------------------------------
-    get_num_icesheets = num_icesheets
-  end function get_num_icesheets
 
   !===============================================================================
 
@@ -676,7 +656,7 @@ contains
 
   !===============================================================================
 
-  subroutine state_getimport(state, fldname, output, instance_index, rc)
+  subroutine state_getimport_2d(state, fldname, output, instance_index, rc)
 
     ! ----------------------------------------------
     ! Map import state field to output array
@@ -692,7 +672,7 @@ contains
     ! local variables
     real(R8), pointer         :: fldptr(:)
     type(ESMF_StateItem_Flag) :: itemFlag
-    character(len=*), parameter :: subname='(glc_import_export:state_getimport)'
+    character(len=*), parameter :: subname='(glc_import_export:state_getimport_2d)'
     ! ----------------------------------------------
 
     rc = ESMF_SUCCESS
@@ -704,14 +684,56 @@ contains
     ! If field exists then create output array - else do nothing
     if (itemflag /= ESMF_STATEITEM_NOTFOUND) then
        ! get field pointer
-       call state_getfldptr(state, trim(fldname), fldptr, rc)
+       call state_getfldptr_1d(state, trim(fldname), fldptr, rc)
        if (chkErr(rc,__LINE__,u_FILE_u)) return
 
        ! determine output array
        call vector_to_spatial(instance_index, fldptr, output)
     end if
 
-  end subroutine state_getimport
+  end subroutine state_getimport_2d
+
+  !===============================================================================
+
+  subroutine state_getimport_3d(state, fldname, output, instance_index, rc)
+
+    ! ----------------------------------------------
+    ! Map import state field to output array
+    ! ----------------------------------------------
+
+    ! input/output variables
+    type(ESMF_State)    , intent(in)    :: state
+    character(len=*)    , intent(in)    :: fldname
+    real(r8)            , intent(out)   :: output(:,:,:)
+    integer             , intent(in)    :: instance_index  ! index of current ice sheet
+    integer             , intent(out)   :: rc
+
+    ! local variables
+    real(R8), pointer         :: fldptr2d(:,:)
+    type(ESMF_StateItem_Flag) :: itemFlag
+    character(len=*), parameter :: subname='(glc_import_export:state_getimport_3d)'
+    integer :: n
+    ! ----------------------------------------------
+
+    rc = ESMF_SUCCESS
+
+    ! Determine if field with name fldname exists in state
+    call ESMF_StateGet(state, trim(fldname), itemFlag, rc=rc)
+    if (chkErr(rc,__LINE__,u_FILE_u)) return
+
+    ! If field exists then create output array - else do nothing
+    if (itemflag /= ESMF_STATEITEM_NOTFOUND) then
+       ! get field pointer
+       call state_getfldptr_2d(state, trim(fldname), fldptr2d, rc)
+       if (chkErr(rc,__LINE__,u_FILE_u)) return
+
+       ! determine output array
+       do n=1,nlev_import
+          call vector_to_spatial(instance_index, fldptr2d(n,:), output(n,:,:))
+       end do
+    end if
+
+  end subroutine state_getimport_3d
 
   !===============================================================================
 
@@ -725,7 +747,7 @@ contains
     type(ESMF_State)    , intent(inout) :: state
     character(len=*)    , intent(in)    :: fldname
     real(r8)            , intent(in)    :: input(:,:)
-    integer             , intent(in)    :: instance_index  ! index of current ice sheet
+    integer             , intent(in)    :: instance_index  ! index of current prognostic ice sheet
     integer             , intent(out)   :: rc
 
     ! local variables
@@ -743,7 +765,7 @@ contains
     ! if field exists then create output array - else do nothing
     if (itemflag /= ESMF_STATEITEM_NOTFOUND) then
        ! get field pointer
-       call state_getfldptr(state, trim(fldname), fldptr, rc)
+       call state_getfldptr_1d(state, trim(fldname), fldptr, rc)
        if (chkErr(rc,__LINE__,u_FILE_u)) return
 
        ! set fldptr values to input array
@@ -754,7 +776,7 @@ contains
 
   !===============================================================================
 
-  subroutine state_getfldptr(State, fldname, fldptr, rc)
+  subroutine state_getfldptr_1d(State, fldname, fldptr, rc)
 
     ! ----------------------------------------------
     ! Get pointer to a state field
@@ -775,7 +797,7 @@ contains
     type(ESMF_Field)            :: lfield
     type(ESMF_Mesh)             :: lmesh
     integer                     :: nnodes, nelements
-    character(len=*), parameter :: subname='(glc_import_export:state_getfldptr)'
+    character(len=*), parameter :: subname='(glc_import_export:state_getfldptr_1d)'
     ! ----------------------------------------------
 
     rc = ESMF_SUCCESS
@@ -806,10 +828,70 @@ contains
 
        call ESMF_FieldGet(lfield, farrayPtr=fldptr, rc=rc)
        if (chkErr(rc,__LINE__,u_FILE_u)) return
-    endif  ! status
+     endif  ! status
 
     call ESMF_LogWrite(trim(subname)//": done", ESMF_LOGMSG_INFO)
 
-  end subroutine state_getfldptr
+  end subroutine state_getfldptr_1d
+
+  !===============================================================================
+
+  subroutine state_getfldptr_2d(State, fldname, fldptr2d, rc)
+
+    ! ----------------------------------------------
+    ! Get pointer to a state field
+    ! ----------------------------------------------
+
+    use ESMF , only : ESMF_State, ESMF_Field, ESMF_Mesh, ESMF_FieldStatus_Flag
+    use ESMF , only : ESMF_StateGet, ESMF_FieldGet, ESMF_MeshGet
+    use ESMF , only : ESMF_FIELDSTATUS_COMPLETE, ESMF_FAILURE
+
+    ! input/output variables
+    type(ESMF_State),  intent(in)    :: State
+    character(len=*),  intent(in)    :: fldname
+    real(R8), pointer, intent(out)   :: fldptr2d(:,:)
+    integer,           intent(out)   :: rc
+
+    ! local variables
+    type(ESMF_FieldStatus_Flag) :: status
+    type(ESMF_Field)            :: lfield
+    type(ESMF_Mesh)             :: lmesh
+    integer                     :: nnodes, nelements
+    character(len=*), parameter :: subname='(glc_import_export:state_getfldptr_2d)'
+    ! ----------------------------------------------
+
+    rc = ESMF_SUCCESS
+    call ESMF_LogWrite(trim(subname)//": called", ESMF_LOGMSG_INFO)
+
+    call ESMF_StateGet(State, itemName=trim(fldname), field=lfield, rc=rc)
+    if (chkErr(rc,__LINE__,u_FILE_u)) return
+
+    call ESMF_FieldGet(lfield, status=status, rc=rc)
+    if (chkErr(rc,__LINE__,u_FILE_u)) return
+
+    if (status /= ESMF_FIELDSTATUS_COMPLETE) then
+       call ESMF_LogWrite(trim(subname)//": ERROR data not allocated ", ESMF_LOGMSG_INFO, rc=rc)
+       rc = ESMF_FAILURE
+       return
+    else
+       call ESMF_FieldGet(lfield, mesh=lmesh, rc=rc)
+       if (chkErr(rc,__LINE__,u_FILE_u)) return
+
+       call ESMF_MeshGet(lmesh, numOwnedNodes=nnodes, numOwnedElements=nelements, rc=rc)
+       if (chkErr(rc,__LINE__,u_FILE_u)) return
+
+       if (nnodes == 0 .and. nelements == 0) then
+          call ESMF_LogWrite(trim(subname)//": no local nodes or elements ", ESMF_LOGMSG_INFO)
+          rc = ESMF_FAILURE
+          return
+       end if
+
+       call ESMF_FieldGet(lfield, farrayPtr=fldptr2d, rc=rc)
+       if (chkErr(rc,__LINE__,u_FILE_u)) return
+     endif  ! status
+
+    call ESMF_LogWrite(trim(subname)//": done", ESMF_LOGMSG_INFO)
+
+  end subroutine state_getfldptr_2d
 
 end module glc_import_export

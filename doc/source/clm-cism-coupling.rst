@@ -30,7 +30,7 @@ Evolving ice sheet with two-way (interactive) coupling
 ------------------------------------------------------
 
 Dynamic ice sheet evolution can be turned on by using a compset with ``CISM2%XXX-EVOLVE`` in
-its long name (for some ice sheet ``XXX``), or by setting the xml variables ``CISM_EVOLVE_ICESHEET`` (for one or more instances of ``ICESHEET``) and the overall ``CISM_EVOLVE`` after setting up a case. In
+its long name (for some ice sheet ``XXX``), or by setting the xml variables ``CISM_EVOLVE_ICESHEET`` (for one or more instances of ``ICESHEET``) after setting up a case. In
 this configuration, CISM sends updated glacier areas and topographic elevations to CLM at
 the end of each year. In addition, CISM sends fluxes of ice and liquid water to the
 ocean. CLM responds to these changes by adjusting the areas of the glacier land unit and
@@ -56,7 +56,7 @@ Evolving ice sheet with one-way (diagnostic) coupling
 -----------------------------------------------------
 
 A hybrid mode is also possible, in which CISM evolves dynamically but does not feed back
-to the rest of the system. This configuration is enabled by turning on CISM evolution (by using a ``CISM2%XXX-EVOLVE`` compset or changing the relevant ``CISM_EVOLVE_ICESHEET`` and overall ``CISM_EVOLVE`` xml variables to
+to the rest of the system. This configuration is enabled by turning on CISM evolution (by using a ``CISM2%XXX-EVOLVE`` compset or changing the relevant ``CISM_EVOLVE_ICESHEET`` xml variables to
 ``TRUE``), but then changing the xml variable ``GLC_TWO_WAY_COUPLING`` to ``FALSE``. This
 change results in changes to CLM and CISM:
 
