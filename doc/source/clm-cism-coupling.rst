@@ -43,14 +43,10 @@ coupling becomes important. There are still some unhandled edge cases in this re
 significant case being when CLM dictates an amount of glacial melt that exceeds the
 available ice in a CISM grid cell), but we do take pains to achieve conservation in most
 cases. An important mechanism to achieve this conservation is via a global renormalization
-step done when mapping SMB from CLM to CISM, as described in :numref:`remapping_smb`. **By
-default, this renormalization is done when running with a two-way-coupled ice sheet that
-sends fluxes to other components (which is typically true in this case of an evolving ice
-sheet), but is turned off in other cases. This leads to small differences in the remapped
-SMB field in runs with an evolving vs. non-evolving ice sheet. This default can be
-overridden via the driver namelist variable,** ``glc_renormalize_smb``, **keeping in mind
-that setting this to** ``off`` **will break conservation for a configuration with an
-evolving, two-way-coupled ice sheet.**
+step done when mapping SMB from CLM to CISM, as described in :numref:`remapping_smb`.
+(This renormalization is done by default, but can be turned off by setting the driver
+namelist variable, ``glc_renormalize_smb`` to ``off``, keeping in mind that this will
+break conservation in a fully-coupled configuration.)
 
 Evolving ice sheet with one-way (diagnostic) coupling
 -----------------------------------------------------
