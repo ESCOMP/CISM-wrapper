@@ -23,7 +23,8 @@
    use glc_constants
    use glc_kinds_mod
    use esmf,                only: ESMF_Clock, ESMF_Time, ESMF_ClockGet, ESMF_TimeGet, &
-                                  ESMF_SUCCESS
+                                  ESMF_TimeSet, ESMF_TimeInterval, ESMF_TimeIntervalGet, &
+                                  ESMF_Calendar, ESMF_SUCCESS, operator(-)
    use shr_cal_mod,         only: shr_cal_ymd2date
    use shr_sys_mod
    use shr_kind_mod,        only: CL=>SHR_KIND_CL, CX=>SHR_KIND_CX, &
@@ -44,11 +45,12 @@
 
 ! !PRIVATE MEMBER DATA:
 
-   ! Baseline year to use for time units - i.e., the year to use in the string,
-   ! 'common_year since YYYY-01-01'. Note that the baseline year here is tied in with the
-   ! specification of external_time in the calls to glimmer_nc_checkwrite - so if we use
-   ! a baseline year other than 0, we'd need to change how we specify that external_time.
-   integer, parameter :: baseline_year = 0
+   ! Units of the 'time' variable in CISM history and restart files, following CESM conventions:
+   ! 'days since 0001-01-01 00:00:00'. The time values are computed from the CESM clock
+   ! (see glc_io_days_since_ref), so time_ref_year and time_units must be consistent with that function.
+   ! Note: CISM's own time variable, internal_time, keeps CISM's units (common_years since 0000-01-01).
+   integer,          parameter :: time_ref_year = 1
+   character(len=*), parameter :: time_units = 'days'
 
 !EOP
 !BOC
@@ -229,7 +231,8 @@
 !jw    oc%metadata%comment =
 
     ! create the output unit
-    call glimmer_nc_createfile(oc, instance%model, external_baseline_year=baseline_year)
+    call glimmer_nc_createfile(oc, instance%model, external_baseline_year=time_ref_year, &
+         external_time_units=time_units)
     call glide_io_create(oc, instance%model, instance%model)
     call glad_io_create(oc, instance%model, instance)
 
@@ -266,7 +269,7 @@
 
     call glimmer_nc_checkwrite(oc, instance%model, forcewrite=.true., &
          time=instance%glide_time, &
-         external_time = real(cesmYR, r8))
+         external_time = glc_io_days_since_ref(CurrentTime))
 
     ! Copy oc%total_time from oc_tavg_helper, which has been accumulating the total time.
     ! We need this total_time in glide_io_write to do time averaging correctly.
@@ -365,7 +368,8 @@
 
        ! create the output unit
        ! Note: With tavg files present, oc_tavg_helper%do_averages is set to .true. in glide_io_create and/or glad_io_create
-       call glimmer_nc_createfile(oc_tavg_helper, instance%model, external_baseline_year=baseline_year)
+       call glimmer_nc_createfile(oc_tavg_helper, instance%model, external_baseline_year=time_ref_year, &
+            external_time_units=time_units)
        call glide_io_create(oc_tavg_helper, instance%model, instance%model)
        call glad_io_create(oc_tavg_helper, instance%model, instance)  !WHL - not sure this is needed
        call glide_nc_filldvars(oc_tavg_helper, instance%model)
@@ -466,7 +470,8 @@
 !jw    oc%metadata%comment =
 
     ! create the output unit
-    call glimmer_nc_createfile(oc, instance%model, external_baseline_year=baseline_year)
+    call glimmer_nc_createfile(oc, instance%model, external_baseline_year=time_ref_year, &
+         external_time_units=time_units)
     call glide_io_create(oc, instance%model, instance%model)
     call glad_io_create(oc, instance%model, instance)
 
@@ -493,7 +498,7 @@
     call glide_nc_filldvars(oc, instance%model)
     call glimmer_nc_checkwrite(oc, instance%model, forcewrite=.true., &
          time=instance%glide_time, &
-         external_time = real(cesmYR, r8))
+         external_time = glc_io_days_since_ref(CurrentTime))
     call glide_io_write(oc, instance%model)
     call glad_io_write(oc, instance)
 
@@ -516,6 +521,42 @@
     endif
 
   end subroutine glc_io_write_restart
+
+!***********************************************************************
+!BOP
+! !IROUTINE: glc_io_days_since_ref
+! !INTERFACE:
+  function glc_io_days_since_ref(CurrentTime) result(days)
+
+    ! Return the number of days from time_ref_year-01-01 00:00:00 to CurrentTime,
+    ! in the calendar of CurrentTime (e.g., noleap). This is the value of the 'time' variable
+    ! in CISM history and restart files, with units 'days since 0001-01-01 00:00:00'.
+    ! The value is computed from the CESM clock, so it does not accumulate roundoff error,
+    ! and any time of day is included as a fraction of a day.
+
+    implicit none
+
+    type(ESMF_Time), intent(in) :: CurrentTime
+    real(r8) :: days
+
+    ! local variables
+    type(ESMF_Time)         :: RefTime
+    type(ESMF_TimeInterval) :: elapsed
+    type(ESMF_Calendar)     :: calendar
+    integer                 :: rc
+
+    call ESMF_TimeGet(CurrentTime, calendar=calendar, rc=rc)
+    if ( rc /= ESMF_SUCCESS ) call shr_sys_abort("ERROR: glc_io_days_since_ref: ESMF_TimeGet")
+
+    call ESMF_TimeSet(RefTime, yy=time_ref_year, mm=1, dd=1, s=0, calendar=calendar, rc=rc)
+    if ( rc /= ESMF_SUCCESS ) call shr_sys_abort("ERROR: glc_io_days_since_ref: ESMF_TimeSet")
+
+    elapsed = CurrentTime - RefTime
+
+    call ESMF_TimeIntervalGet(elapsed, d_r8=days, rc=rc)
+    if ( rc /= ESMF_SUCCESS ) call shr_sys_abort("ERROR: glc_io_days_since_ref: ESMF_TimeIntervalGet")
+
+  end function glc_io_days_since_ref
 
 !***********************************************************************
 ! BOP
