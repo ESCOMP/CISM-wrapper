@@ -495,6 +495,8 @@ def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid,
     with open(output_file, "a") as file_obj:
         file_obj.write("{}\n".format(final_text))
 
+    _add_history_sections_to_cism_config(nmlgen, output_file, icesheet)
+
     # ------------------------------------------------------------------------
     # Final consistency checks
     # ------------------------------------------------------------------------
@@ -656,6 +658,58 @@ def _set_glc_dt(nmlgen, ncpl_base_period, glc_ncpl):
 
     nmlgen.add_default("dt_option", value=dt_option)
     nmlgen.add_default("dt_count", value=dt_count)
+
+###############################################################################
+def _add_history_sections_to_cism_config(nmlgen, output_file, icesheet):
+###############################################################################
+    """Add [CF output] sections for the CESM history streams to the cism.icesheet.config file
+
+    The history variables (esm_history_vars) are split into instantaneous fields, which go
+    to the h0i history stream, and time-average fields (names ending in '_tavg'), which go to
+    the h0a stream. Each stream is a [CF output] section whose 'name' is the stream label
+    (h0i or h0a): the wrapper finds CISM's output object for the stream by this name, so it
+    is not a file name. With external_control and one_file_per_write, CISM does not write these
+    files on its own; the wrapper decides when to write them, and each write creates a new file
+    with a CESM file name.
+    """
+    # With history_option = 'never', write no history sections; then the wrapper finds no
+    # history output objects in CISM and writes no history files.
+    if nmlgen.get_value("history_option").strip().strip('"').strip("'") == "never":
+        return
+
+    history_vars = nmlgen.get_value("esm_history_vars").strip().strip('"').strip("'").split()
+    inst_vars = [var for var in history_vars if not var.endswith("_tavg")]
+    tavg_vars = [var for var in history_vars if var.endswith("_tavg")]
+
+    if tavg_vars:
+        # TODO: Add an h0a section, once the wrapper writes time-average history files.
+        logger.warning("WARNING for ice sheet {}: time-average history fields are not yet "
+                       "supported in CESM history files, and will not be written: {}".format(
+                           icesheet, " ".join(tavg_vars)))
+
+    if inst_vars:
+        _write_history_section(output_file, icesheet, stream="h0i", variables=inst_vars)
+
+###############################################################################
+def _write_history_section(output_file, icesheet, stream, variables):
+###############################################################################
+    """Append a [CF output] section for one history stream to the cism.icesheet.config file"""
+    # CISM's config file reader truncates values longer than 400 characters
+    # (valuelen in glimmer_config.F90), so check the length of the variable list here.
+    max_value_len = 400
+    variables_value = " ".join(variables)
+    expect(len(variables_value) <= max_value_len,
+           "ERROR for ice sheet {}: the list of {} history variables is too long ({} characters; "
+           "the maximum is {}): {}".format(icesheet, stream, len(variables_value), max_value_len,
+                                           variables_value))
+
+    with open(output_file, "a") as file_obj:
+        file_obj.write("\n[CF output]\n")
+        file_obj.write("name: {}\n".format(stream))
+        file_obj.write("variables: {}\n".format(variables_value))
+        file_obj.write("xtype: double\n")
+        file_obj.write("external_control: .true.\n")
+        file_obj.write("one_file_per_write: .true.\n")
 
 ###############################################################################
 def _update_cism_config(nmlgen, output_file, mode, header, group):

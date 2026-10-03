@@ -5,10 +5,19 @@ module history_tape_coupler
   ! tied to the coupler history frequency
 
   use history_tape_base , only : history_tape_base_type
+  use glimmer_ncdf      , only : glimmer_nc_output
+  use ESMF              , only : ESMF_Time
 
   implicit none
   private
   save
+
+  ! The coupler's history alarm is shared by all coupler history tapes (e.g., one per ice sheet).
+  ! The first tape that finds the alarm ringing turns it off, and records the clock time here.
+  ! Any other tape that checks at the same clock time (i.e., in the same coupling step) then
+  ! also writes. Without this, only the first ice sheet would write history files.
+  type(ESMF_Time) :: last_ring_time        ! clock time at which the alarm last rang
+  logical :: have_ring_time = .false.      ! true once last_ring_time has been set
 
   public :: history_tape_coupler_type
   type, extends(history_tape_base_type) :: history_tape_coupler_type
@@ -28,7 +37,7 @@ module history_tape_coupler
 contains
 
   !-----------------------------------------------------------------------
-  function constructor(icesheet_name, history_vars)
+  function constructor(icesheet_name, tag, oc)
     !
     ! !DESCRIPTION:
     ! Creates a history_tape_coupler_type object
@@ -41,13 +50,16 @@ contains
     ! Name of this ice sheet
     character(len=*), intent(in) :: icesheet_name
 
-    ! List of variables to write to file
-    character(len=*), intent(in) :: history_vars
+    ! History stream (e.g., 'h0i')
+    character(len=*), intent(in) :: tag
+
+    ! CISM output object for this history stream
+    type(glimmer_nc_output), pointer :: oc
 
     !-----------------------------------------------------------------------
   
     call constructor%set_icesheet_name(icesheet_name)
-    call constructor%set_history_vars(history_vars)
+    call constructor%set_output(tag, oc)
   end function constructor
 
   !-----------------------------------------------------------------------
@@ -57,8 +69,8 @@ contains
     ! Returns true if it is time to write the history tape associated with this controller.
     !
     ! !USES:
-    use ESMF, only : ESMF_Clock, ESMF_Alarm, ESMF_ClockGetAlarm
-    use ESMF, only : ESMF_AlarmIsRinging, ESMF_AlarmRingerOff 
+    use ESMF, only : ESMF_Clock, ESMF_Alarm, ESMF_ClockGetAlarm, ESMF_ClockGet
+    use ESMF, only : ESMF_AlarmIsRinging, ESMF_AlarmRingerOff, operator(==)
     use ESMF, only : ESMF_LOGERR_PASSTHRU, ESMF_END_ABORT, ESMF_Finalize
     use ESMF, only : ESMF_LogFoundERror
     !
@@ -68,8 +80,14 @@ contains
     !
     ! local variables
     type(ESMF_Alarm) :: alarm
+    type(ESMF_Time)  :: currTime
     integer :: rc
     !-----------------------------------------------------------------------
+
+    call ESMF_ClockGet(EClock, currTime=currTime, rc=rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__,file=__FILE__)) then
+       call ESMF_Finalize(endflag=ESMF_END_ABORT)
+    end if
 
     call ESMF_ClockGetAlarm(Eclock, alarmname='alarm_history', alarm=alarm, rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__,file=__FILE__)) then
@@ -81,7 +99,13 @@ contains
        if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__,file=__FILE__)) then
           call ESMF_Finalize(endflag=ESMF_END_ABORT)
        end if
+       last_ring_time = currTime
+       have_ring_time = .true.
        is_time_to_write_hist = .true.
+    else if (have_ring_time) then
+       ! Another tape (e.g., for another ice sheet) already turned off the alarm in this
+       ! coupling step; write if this is the same time at which the alarm rang
+       is_time_to_write_hist = (currTime == last_ring_time)
     else
        is_time_to_write_hist = .false.
     end if

@@ -661,7 +661,7 @@ Sub-elements of each entry include:
     <type>char</type>
     <category>cism_config_history</category>
     <group>esm_output</group>
-    <valid_values>nyears,coupler</valid_values>
+    <valid_values>nyears,coupler,never</valid_values>
     <values>
       <value>nyears</value>
     </values>
@@ -670,6 +670,7 @@ Sub-elements of each entry include:
       nyears: Write history every N years
       coupler: Get history frequency from coupler (HIST_OPTION/HIST_N xml variables)
                WARNING: SHOULD NOT BE USED IN PRODUCTION RUNS - frequency metadata not set properly
+      never: Do not write any CISM history files (including the initial history file)
       Default: nyears
     </desc>
   </entry>

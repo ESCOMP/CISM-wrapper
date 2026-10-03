@@ -1,2 +1,6 @@
 This testmod tests turning off ice evolution. This is important to test because
 this is the typical operation of cism within cesm.
+
+This testmod also sets history_option = 'never' (see user_nl_cism), because with no evolving
+ice sheet, the initial CISM history file is written at the start of every run, which would
+cause restart comparisons to fail.

@@ -7,3 +7,8 @@ rearrange_override_delay = 1
 decrease_frac = 0.05
 increase_frac = 0.05
 rearrange_freq = 3
+
+! Write no CISM history files: this test is about what is sent to the coupler, not what is
+! output by CISM. (With the default history settings, the initial h0i file would be written
+! in the initial run but not in the restart run, so the restart comparison would fail.)
+history_option = 'never'

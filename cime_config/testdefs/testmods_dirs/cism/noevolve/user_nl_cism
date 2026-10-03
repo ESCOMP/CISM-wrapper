@@ -1,0 +1,6 @@
+! Write no CISM history files.
+! When no ice sheet is evolving, CISM treats every run as a startup run, so the initial h0i
+! history file is written at the start of every run (including the restart run of an ERS test),
+! and no other CISM history files are written. The initial file of the restart run then has
+! no counterpart in the initial run, and the restart comparison would fail.
+history_option = 'never'

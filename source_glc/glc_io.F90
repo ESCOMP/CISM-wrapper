@@ -39,8 +39,7 @@
 ! !PUBLIC MEMBER FUNCTIONS:
 
    public :: glc_io_read_restart_time,         &
-             glc_io_write_history,             &
-             glc_io_write_history_tavg_helper, &
+             glc_io_write_hfile,               &
              glc_io_write_restart
 
 ! !PRIVATE MEMBER DATA:
@@ -131,44 +130,44 @@
 
 !***********************************************************************
 !BOP
-! !IROUTINE: glc_io_write_history
+! !IROUTINE: glc_io_write_hfile
 ! !INTERFACE:
 
-  subroutine glc_io_write_history(instance, icesheet_name, EClock, history_vars, &
-       oc_tavg_helper, initial_history, history_frequency_metadata)
+  subroutine glc_io_write_hfile(instance, oc, tag, icesheet_name, EClock, history_frequency_metadata)
 
-    ! Write a CISM history file
+    ! Write one CESM history file (e.g., h0i) for the CISM output object oc.
     !
-    ! If initial_history is present and true, that means that we're writing a history file
-    ! in initialization. This uses a different extension than standard history files.
+    ! The object oc comes from a [CF output] section in the CISM config file (written by
+    ! buildnml) with external_control = .true. and one_file_per_write = .true. Thus CISM
+    ! never writes this object on its own: the wrapper decides when to write it, and each
+    ! write creates a new file with one time slice, using a CESM file name and CESM metadata.
+    ! The object persists between writes, so time-average sums and time bounds carry over
+    ! from one file to the next.
     !
-    ! history_frequency_metadata gives the text to use for the time_period_freq global
-    ! attribute. It must be present if initial_history is .false.
+    ! The sequence of calls follows the one documented in CISM (see NAME_io_writeall in
+    ! ncdf_template.F90.in): glimmer_nc_newfile, glimmer_nc_createfile, *_io_create,
+    ! (CESM global attributes), glide_nc_filldvars, glimmer_nc_write_timeslice, *_io_write,
+    ! *_avg_reset, glimmer_nc_closefile.
     !
+    ! history_frequency_metadata gives the text for the time_period_freq global attribute.
+    ! If it is absent (e.g., for the initial h0i file), there is no time_period_freq attribute.
+
     use glad_type
-    use glide_io, only : glide_io_create, glide_io_write
+    use glide_io, only : glide_io_create, glide_io_write, glide_avg_reset
     use glad_io, only : glad_io_create, glad_io_write
-
     use glide_nc_custom, only: glide_nc_filldvars
+    use glimmer_ncio, only: glimmer_nc_newfile, glimmer_nc_write_timeslice, glimmer_nc_closefile
 
     implicit none
 
-    type(glad_instance)     , intent(inout)       :: instance
-    character(len=*)        , intent(in)          :: icesheet_name
-    type(ESMF_Clock)        , intent(in)          :: EClock
-    character(len=*)        , intent(in)          :: history_vars
-    type(glimmer_nc_output) , pointer, intent(in) :: oc_tavg_helper
-    logical                 , intent(in)          :: initial_history
-
-    ! If present, history_frequency_metadata gives the text to use for the
-    ! time_period_freq global attribute. If absent, there will be no time_period_freq
-    ! global attribute.
-    character(len=*)    , intent(in), optional :: history_frequency_metadata
+    type(glad_instance)     , intent(inout)        :: instance
+    type(glimmer_nc_output) , pointer              :: oc             ! CISM output object for this history stream
+    character(len=*)        , intent(in)           :: tag            ! history stream, e.g. 'h0i'
+    character(len=*)        , intent(in)           :: icesheet_name
+    type(ESMF_Clock)        , intent(in)           :: EClock
+    character(len=*)        , intent(in), optional :: history_frequency_metadata
 
     ! local variables
-    type(glimmer_nc_output),  pointer :: oc => null()
-
-    character(len=32) :: file_type
     character(CL) :: filename
     integer(IN)   :: cesmYMD           ! cesm model date
     integer(IN)   :: cesmTOD           ! cesm model sec
@@ -177,60 +176,30 @@
     integer(IN)   :: cesmDAY           ! cesm model day
     integer(IN)   :: glcYMD            ! cism model date
     integer(IN)   :: glcTOD            ! cism model sec
-    integer(IN)   :: rst_elapsed_days  ! 
-    integer(IN)   :: ptr_unit          ! unit for pointer file
+    integer(IN)   :: rst_elapsed_days  !
     integer(IN)   :: status            !
     type(ESMF_TIME) :: CurrentTime
     integer       :: rc
 !-----------------------------------------------------------------------
 
-    ! Error checking on arguments
-    if (.not. initial_history) then
-       if (.not. present(history_frequency_metadata)) then
-          call shr_sys_abort('glc_io_write_history: history_frequency_metadata must be present if initial_history is .false.')
-       end if
-    end if
-
     ! figure out history filename
     call ESMF_ClockGet(EClock, currTime=CurrentTime, rc=rc)
-    if ( rc /= ESMF_SUCCESS ) call shr_sys_abort("ERROR: glc_io_write_history")
+    if ( rc /= ESMF_SUCCESS ) call shr_sys_abort("ERROR: glc_io_write_hfile")
 
     call ESMF_TimeGet( CurrentTime, yy=cesmYR, mm=cesmMON, dd=cesmDAY, s=cesmTOD, rc=rc )
-    if ( rc /= ESMF_SUCCESS ) call shr_sys_abort("ERROR: glc_io_write_history")
+    if ( rc /= ESMF_SUCCESS ) call shr_sys_abort("ERROR: glc_io_write_hfile")
 
     call shr_cal_ymd2date(cesmYR, cesmMON, cesmDAY, cesmYMD)
 
-    if (initial_history) then
-       file_type = 'initial_history'
-    else
-       file_type = 'history'
-    end if
-    filename = glc_filename(icesheet_name, cesmYR, cesmMON, cesmDAY, cesmTOD, file_type)
+    filename = glc_filename(icesheet_name, cesmYR, cesmMON, cesmDAY, cesmTOD, tag)
 
     if (my_task == master_task) then
-       write(stdout,*) &
-            'glc_io_write_history: calling dumpfile for history filename= ', filename
+       write(stdout,*) 'glc_io_write_hfile: writing history filename= ', trim(filename)
        call shr_sys_flush(stdout)
     endif
 
-    allocate(oc)
-    oc%freq          = 1
-    oc%append        = .false.
-    oc%default_xtype = NF90_DOUBLE
-    oc%nc%filename   = ''
-    oc%nc%filename   = trim(filename)
-    oc%nc%vars       = trim(history_vars)
-    oc%nc%vars_copy  = oc%nc%vars
-
-!jw TO DO: fill out the rest of the metadata
-!jw    oc%metadata%title =
-!jw    oc%metadata%institution =
-!jw    oc%metadata%source =
-!jw    oc%metadata%history =
-!jw    oc%metadata%references =
-!jw    oc%metadata%comment =
-
-    ! create the output unit
+    ! Set up the output object for a new file, and create the file and its variables
+    call glimmer_nc_newfile(oc, filename)
     call glimmer_nc_createfile(oc, instance%model, external_baseline_year=time_ref_year, &
          external_time_units=time_units)
     call glide_io_create(oc, instance%model, instance%model)
@@ -265,122 +234,25 @@
        call nc_errorhandle(__FILE__,__LINE__,status)
     end if
 
+    ! Fill the dimension variables (this also leaves define mode)
     call glide_nc_filldvars(oc, instance%model)
 
-    call glimmer_nc_checkwrite(oc, instance%model, forcewrite=.true., &
-         time=instance%glide_time, &
-         external_time = glc_io_days_since_ref(CurrentTime))
-
-    ! Copy oc%total_time from oc_tavg_helper, which has been accumulating the total time.
-    ! We need this total_time in glide_io_write to do time averaging correctly.
-    if (associated(oc_tavg_helper)) then
-       oc%total_time = oc_tavg_helper%total_time
-    else
-       oc%total_time = 0.0d0
-    end if
-
+    ! Write the time variables (and time bounds, for time-average files), then the fields
+    call glimmer_nc_write_timeslice(oc, instance%model, instance%glide_time, &
+         glc_io_days_since_ref(CurrentTime))
     call glide_io_write(oc, instance%model)
     call glad_io_write(oc, instance)
 
-    if (my_task == master_task) then
-       status = nf90_close(oc%nc%id)
-       call nc_errorhandle(__FILE__,__LINE__,status)
+    ! Start a new averaging period for any time-average fields
+    ! Note: Glad currently has no tavg fields, so there is no glad_avg_reset.
+    if (oc%do_averages) then
+       call glide_avg_reset(oc, instance%model)
     end if
 
-    oc => null()
+    ! Close the file; the output object persists for the next write
+    call glimmer_nc_closefile(oc)
 
-!jw TO DO: figure out why deallocate statement crashes the code
-!jw    deallocate(oc)
-
-  end subroutine glc_io_write_history
-
-!***********************************************************************
-!BOP
-! !IROUTINE: glc_io_write_history_tavg_helper
-! !INTERFACE:
-
-  subroutine glc_io_write_history_tavg_helper(instance, oc_tavg_helper, icesheet_name, history_vars)
-
-    ! Manage an auxiliary output structure that is used to handle time-average ("tavg") fields
-    ! in history files.
-    !
-    ! The tavg fields are accumulated after every ice dynamic timestep. Accumulation works as follows:
-    !    * At initialization, we create an auxiliary glimmer_nc_output structure ("oc_tavg_helper") and
-    !      let model%funits%out_first point to it.
-    !    * Within glad_i_step_gcm, there is a call to glide_io_writeall, which calls glide_avg_accumulate
-    !      provided that model%funits%out_first is associated, and has do_averages = .true.
-    !      Thus, all tavg fields contained in the model derived type are accumulated,
-    !      and oc_tavg_helper%total_time is incremented.
-    !    * When it is time to write a CESM history file (in subroutine glc_io_write_history),
-    !      we set oc%total_time = oc_tavg_helper%total_time, so the time average is computed correctly.
-    !    * Then we pass oc_tavg_helper to glide_avg_reset, zeroing out oc_tavg_helper%total_time and the tavg variables.
-    !
-    ! Note: Restart files do not contain tavg fields, so this extra structure is not needed for restarts.
-
-    use glad_type
-    use glide_io, only : glide_io_create, glide_avg_reset
-    use glad_io, only : glad_io_create
-    use glide_nc_custom, only: glide_nc_filldvars
-
-    !WHL - debug
-    use glimmer_log
-
-    implicit none
-
-    type(glad_instance)     , intent(inout)          :: instance
-    type(glimmer_nc_output) , pointer, intent(inout) :: oc_tavg_helper
-    character(len=*)        , intent(in)             :: icesheet_name
-    character(len=*)        , intent(in)             :: history_vars
-
-    character(CL) :: filename
-
-!-----------------------------------------------------------------------
-
-    if (associated(oc_tavg_helper)) then
-
-       call write_log('WHL, oc_tavg_helper is already associated; reset the tavg fields')
-
-       ! If tavg fields are present, then reset them now.
-       if (oc_tavg_helper%do_averages) then
-          call glide_avg_reset(oc_tavg_helper, instance%model)
-          ! Note: Currently Glad has no tavg files, and subroutine glad_avg_reset is not generated.
-          !       If this changes, then uncomment the following line and add 'use glad_io' above.
-!!       call glad_avg_reset(oc_tavg_helper, instance%model)
-       end if
-
-    else
-
-       call write_log('WHL: oc_tavg_helper is not associated; associate now')
-       allocate(oc_tavg_helper)
-
-       ! assign a generic filename
-       filename = glc_filename(icesheet_name, 0, 0, 0, 0, 'tavg_helper')
-
-       ! set up a structure that includes all the history vars but will not be written out
-       oc_tavg_helper%freq           = 9999999      ! large number such that output will not be written
-       oc_tavg_helper%append         = .false.
-       oc_tavg_helper%write_init     = .false.
-       oc_tavg_helper%default_xtype  = NF90_DOUBLE  ! WHL - same as oc above.  Wondering why this is not NF90_FLOAT
-       oc_tavg_helper%nc%filename    = ''
-       oc_tavg_helper%nc%filename    = trim(filename)
-       oc_tavg_helper%nc%vars        = trim(history_vars)
-       oc_tavg_helper%nc%vars_copy   = oc_tavg_helper%nc%vars
-
-       ! create the output unit
-       ! Note: With tavg files present, oc_tavg_helper%do_averages is set to .true. in glide_io_create and/or glad_io_create
-       call glimmer_nc_createfile(oc_tavg_helper, instance%model, external_baseline_year=time_ref_year, &
-            external_time_units=time_units)
-       call glide_io_create(oc_tavg_helper, instance%model, instance%model)
-       call glad_io_create(oc_tavg_helper, instance%model, instance)  !WHL - not sure this is needed
-       call glide_nc_filldvars(oc_tavg_helper, instance%model)
-
-       ! Let model%funits%out_first point to this structure.
-       ! Then it can be accessed from within subroutine glide_io_writeall during calls from glad_i_tstep_gcm.
-       instance%model%funits%out_first => oc_tavg_helper
-
-    end if
-
-  end subroutine glc_io_write_history_tavg_helper
+  end subroutine glc_io_write_hfile
 
 
 !***********************************************************************
@@ -589,7 +461,7 @@
   integer          ,      intent(in) :: mon_spec  ! Simulation month
   integer          ,      intent(in) :: day_spec  ! Simulation day
   integer          ,      intent(in) :: sec_spec  ! Seconds into current simulation day
-  character(len=*) ,      intent(in) :: file_type ! file type: 'history', 'initial_history' or 'restart'
+  character(len=*) ,      intent(in) :: file_type ! file type: 'h0i' or 'restart'
 !
 ! EOP
 !
@@ -608,17 +480,13 @@
   !---------------------------------------------------------------------------
 
   filename_spec = ' '
-  if (file_type.eq.'history') then
-     filename_spec = '%c.cism%i.%r.h.%y-%m-%d-%s'
-  else if (file_type.eq.'tavg_helper') then
-     filename_spec = '%c.cism%i.%r.tavg_helper.%y-%m-%d-%s'
-  else if (file_type.eq.'initial_history') then
-     ! Give the initial history file (i.e., the file generated based on the diagnostic
-     ! solve in initialization) a different extension so that it isn't picked up by the
-     ! CESM test system. (If the test system picks it up, there will sometimes be
-     ! failures - e.g., in ERI tests - because this file can be present in one run but
-     ! not in another.)
-     filename_spec = '%c.cism%i.%r.initial_hist.%y-%m-%d-%s'
+  if (file_type.eq.'h0i') then
+     ! Instantaneous history file. The date in the file name is the time of the snapshot,
+     ! without hours or seconds (as in CTSM). For example, a file named h0i.1862-01-01
+     ! holds the state at 1862-01-01 00:00, i.e., at the end of year 1861.
+     ! The initial history file (written in initialization) is also an h0i file, named
+     ! with the start date of the run.
+     filename_spec = '%c.cism%i.%r.h0i.%y-%m-%d'
   else if (file_type.eq.'restart') then
      filename_spec = '%c.cism%i.%r.r.%y-%m-%d-%s'
   else
