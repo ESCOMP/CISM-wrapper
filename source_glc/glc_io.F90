@@ -229,7 +229,7 @@
 !jw    oc%metadata%comment =
 
     ! create the output unit
-    call glimmer_nc_createfile(oc, instance%model, baseline_year=baseline_year)
+    call glimmer_nc_createfile(oc, instance%model, external_baseline_year=baseline_year)
     call glide_io_create(oc, instance%model, instance%model)
     call glad_io_create(oc, instance%model, instance)
 
@@ -365,7 +365,7 @@
 
        ! create the output unit
        ! Note: With tavg files present, oc_tavg_helper%do_averages is set to .true. in glide_io_create and/or glad_io_create
-       call glimmer_nc_createfile(oc_tavg_helper, instance%model, baseline_year=baseline_year)
+       call glimmer_nc_createfile(oc_tavg_helper, instance%model, external_baseline_year=baseline_year)
        call glide_io_create(oc_tavg_helper, instance%model, instance%model)
        call glad_io_create(oc_tavg_helper, instance%model, instance)  !WHL - not sure this is needed
        call glide_nc_filldvars(oc_tavg_helper, instance%model)
@@ -466,7 +466,7 @@
 !jw    oc%metadata%comment =
 
     ! create the output unit
-    call glimmer_nc_createfile(oc, instance%model, baseline_year=baseline_year)
+    call glimmer_nc_createfile(oc, instance%model, external_baseline_year=baseline_year)
     call glide_io_create(oc, instance%model, instance%model)
     call glad_io_create(oc, instance%model, instance)
 
