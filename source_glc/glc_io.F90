@@ -40,6 +40,8 @@
 
    public :: glc_io_read_restart_time,         &
              glc_io_write_hfile,               &
+             glc_io_init_tavg_interval,        &
+             glc_io_reset_tavg_interval,       &
              glc_io_write_restart
 
 ! !PRIVATE MEMBER DATA:
@@ -191,7 +193,13 @@
 
     call shr_cal_ymd2date(cesmYR, cesmMON, cesmDAY, cesmYMD)
 
-    filename = glc_filename(icesheet_name, cesmYR, cesmMON, cesmDAY, cesmTOD, tag)
+    if (tag == 'h0a') then
+       ! Time-average file: name it with the year of the average (the previous year),
+       ! since the file is written at the start of the next year (e.g., h0a.1861 at 1862-01-01).
+       filename = glc_filename(icesheet_name, cesmYR-1, cesmMON, cesmDAY, cesmTOD, tag)
+    else
+       filename = glc_filename(icesheet_name, cesmYR, cesmMON, cesmDAY, cesmTOD, tag)
+    end if
 
     if (my_task == master_task) then
        write(stdout,*) 'glc_io_write_hfile: writing history filename= ', trim(filename)
@@ -257,6 +265,104 @@
 
 !***********************************************************************
 !BOP
+! !IROUTINE: glc_io_init_tavg_interval
+! !INTERFACE:
+
+  subroutine glc_io_init_tavg_interval(instance, oc, EClock, cesm_restart, skip_first_write)
+
+    ! Set the start of the first averaging interval for a time-average history stream (h0a),
+    ! in CESM time units (days since 0001-01-01), and determine whether the first file should be
+    ! skipped because it would cover only part of a year.
+    !
+    ! CISM sets the start of the interval in its own time units (internal_time) when the output
+    ! object is created. Here we set the start in external time units (time):
+    ! * For a continue run, the interval started at the beginning of the current year.
+    !   (Partial time-average sums are not saved in restart files, so glc_io_write_restart
+    !   aborts if a restart file is written in the middle of an averaging interval with nonzero
+    !   sums. In default configurations, CISM takes its timesteps at year boundaries, so the
+    !   sums are zero at any time during the year.)
+    ! * Otherwise (startup, hybrid or branch run), the interval starts now. If the run does not
+    !   start at the beginning of a year, the first averaging interval would cover only part of
+    !   a year, so the first h0a file is skipped (skip_first_write = .true.).
+
+    use glad_type
+    use glimmer_ncio, only: glimmer_nc_checkwrite_init
+
+    implicit none
+
+    type(glad_instance)     , intent(in)  :: instance
+    type(glimmer_nc_output) , pointer     :: oc                ! CISM output object for the h0a stream
+    type(ESMF_Clock)        , intent(in)  :: EClock
+    logical                 , intent(in)  :: cesm_restart      ! true for a continue run
+    logical                 , intent(out) :: skip_first_write  ! true if the first h0a file should be skipped
+
+    ! local variables
+    type(ESMF_Time)     :: CurrentTime, StartOfYear
+    type(ESMF_Calendar) :: calendar
+    integer             :: yr, mon, day, tod
+    integer             :: rc
+    real(r8)            :: external_start_time
+!-----------------------------------------------------------------------
+
+    call ESMF_ClockGet(EClock, currTime=CurrentTime, rc=rc)
+    if ( rc /= ESMF_SUCCESS ) call shr_sys_abort("ERROR: glc_io_init_tavg_interval: ESMF_ClockGet")
+    call ESMF_TimeGet(CurrentTime, yy=yr, mm=mon, dd=day, s=tod, calendar=calendar, rc=rc)
+    if ( rc /= ESMF_SUCCESS ) call shr_sys_abort("ERROR: glc_io_init_tavg_interval: ESMF_TimeGet")
+
+    if (cesm_restart) then
+       call ESMF_TimeSet(StartOfYear, yy=yr, mm=1, dd=1, s=0, calendar=calendar, rc=rc)
+       if ( rc /= ESMF_SUCCESS ) call shr_sys_abort("ERROR: glc_io_init_tavg_interval: ESMF_TimeSet")
+       external_start_time = glc_io_days_since_ref(StartOfYear)
+       skip_first_write = .false.
+    else
+       external_start_time = glc_io_days_since_ref(CurrentTime)
+       skip_first_write = .not. (mon == 1 .and. day == 1 .and. tod == 0)
+    end if
+
+    ! Keep CISM's internal start time; set the external start time
+    call glimmer_nc_checkwrite_init(oc, oc%nc%processed_time, external_time=external_start_time)
+
+  end subroutine glc_io_init_tavg_interval
+
+!***********************************************************************
+!BOP
+! !IROUTINE: glc_io_reset_tavg_interval
+! !INTERFACE:
+
+  subroutine glc_io_reset_tavg_interval(instance, oc, EClock)
+
+    ! Start a new averaging interval now, without writing a file: reset the time-average sums,
+    ! and set the start of the interval to the current time. This is used to skip the first,
+    ! partial-year h0a file of a run that does not start at the beginning of a year.
+
+    use glad_type
+    use glide_io, only : glide_avg_reset
+    use glimmer_ncio, only: glimmer_nc_checkwrite_init
+
+    implicit none
+
+    type(glad_instance)     , intent(inout) :: instance
+    type(glimmer_nc_output) , pointer       :: oc     ! CISM output object for the h0a stream
+    type(ESMF_Clock)        , intent(in)    :: EClock
+
+    ! local variables
+    type(ESMF_Time) :: CurrentTime
+    integer         :: rc
+!-----------------------------------------------------------------------
+
+    call ESMF_ClockGet(EClock, currTime=CurrentTime, rc=rc)
+    if ( rc /= ESMF_SUCCESS ) call shr_sys_abort("ERROR: glc_io_reset_tavg_interval: ESMF_ClockGet")
+
+    if (oc%do_averages) then
+       call glide_avg_reset(oc, instance%model)
+    end if
+    call glimmer_nc_checkwrite_init(oc, instance%glide_time, &
+         external_time=glc_io_days_since_ref(CurrentTime))
+
+  end subroutine glc_io_reset_tavg_interval
+
+!***********************************************************************
+!BOP
 ! !IROUTINE: glc_io_write_restart
 ! !INTERFACE:
 
@@ -290,7 +396,26 @@
     integer(IN)   :: status            !
     type(ESMF_TIME) :: CurrentTime
     integer         :: rc
+    type(glimmer_nc_output), pointer :: p
 !-----------------------------------------------------------------------
+
+    ! Partial time-average sums for history output (e.g., the h0a stream) are not yet saved in
+    ! restart files. So abort if a restart file is written in the middle of an averaging interval
+    ! with nonzero sums. In default configurations, CISM takes its timesteps at year boundaries,
+    ! right before the h0a file is written and the sums are reset, so this does not happen.
+    p => instance%model%funits%out_first
+    do while (associated(p))
+       if (p%external_control .and. p%do_averages .and. p%total_time > 0.0_r8) then
+          if (my_task == master_task) then
+             write(stdout,*) 'ERROR: Attempt to write a restart file in the middle of a time-averaging'
+             write(stdout,*) 'interval for history output, ', trim(p%base_filename), ', for ice sheet ', &
+                  trim(icesheet_name), ', total_time =', p%total_time
+             write(stdout,*) 'Partial time-average sums are not yet saved in restart files.'
+          end if
+          call shr_sys_abort('glc_io_write_restart: restart file in the middle of a time-averaging interval')
+       end if
+       p => p%next
+    end do
 
     if (.not. glad_okay_to_restart(instance)) then
        if (my_task == master_task) then
@@ -461,7 +586,7 @@
   integer          ,      intent(in) :: mon_spec  ! Simulation month
   integer          ,      intent(in) :: day_spec  ! Simulation day
   integer          ,      intent(in) :: sec_spec  ! Seconds into current simulation day
-  character(len=*) ,      intent(in) :: file_type ! file type: 'h0i' or 'restart'
+  character(len=*) ,      intent(in) :: file_type ! file type: 'h0i', 'h0a' or 'restart'
 !
 ! EOP
 !
@@ -487,6 +612,10 @@
      ! The initial history file (written in initialization) is also an h0i file, named
      ! with the start date of the run.
      filename_spec = '%c.cism%i.%r.h0i.%y-%m-%d'
+  else if (file_type.eq.'h0a') then
+     ! Annual-average history file, named with the year of the average (e.g., h0a.1861).
+     ! The caller passes the year of the average, not the current year.
+     filename_spec = '%c.cism%i.%r.h0a.%y'
   else if (file_type.eq.'restart') then
      filename_spec = '%c.cism%i.%r.r.%y-%m-%d-%s'
   else

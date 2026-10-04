@@ -454,7 +454,9 @@
    do ns = 1, num_icesheets
       call glc_history_init(instance_index = ns, &
            instance_name = icesheet_names(ns), &
-           instance = ice_sheet%instances(ns))
+           instance = ice_sheet%instances(ns), &
+           EClock = EClock, &
+           cesm_restart = cesm_restart)
    end do
 
 !-----------------------------------------------------------------------

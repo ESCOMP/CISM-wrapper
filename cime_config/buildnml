@@ -681,22 +681,25 @@ def _add_history_sections_to_cism_config(nmlgen, output_file, icesheet):
     inst_vars = [var for var in history_vars if not var.endswith("_tavg")]
     tavg_vars = [var for var in history_vars if var.endswith("_tavg")]
 
-    if tavg_vars:
-        # TODO: Add an h0a section, once the wrapper writes time-average history files.
-        logger.warning("WARNING for ice sheet {}: time-average history fields are not yet "
-                       "supported in CESM history files, and will not be written: {}".format(
-                           icesheet, " ".join(tavg_vars)))
-
     if inst_vars:
         _write_history_section(output_file, icesheet, stream="h0i", variables=inst_vars)
 
+    if tavg_vars:
+        # CISM requires write_init = .false. for time-average output: there is nothing to
+        # average at initialization.
+        _write_history_section(output_file, icesheet, stream="h0a", variables=tavg_vars,
+                               extra_settings={"write_init": ".false."})
+
 ###############################################################################
-def _write_history_section(output_file, icesheet, stream, variables):
+def _write_history_section(output_file, icesheet, stream, variables, extra_settings=None):
 ###############################################################################
-    """Append a [CF output] section for one history stream to the cism.icesheet.config file"""
-    # CISM's config file reader truncates values longer than 400 characters
-    # (valuelen in glimmer_config.F90), so check the length of the variable list here.
-    max_value_len = 400
+    """Append a [CF output] section for one history stream to the cism.icesheet.config file
+
+    extra_settings is an optional dictionary of additional settings for this section.
+    """
+    # CISM's output variable lists can hold at most 1024 characters (glimmer_nc_vars_len in
+    # glimmer_ncdf.F90), so check the length of the variable list here.
+    max_value_len = 1024
     variables_value = " ".join(variables)
     expect(len(variables_value) <= max_value_len,
            "ERROR for ice sheet {}: the list of {} history variables is too long ({} characters; "
@@ -710,6 +713,9 @@ def _write_history_section(output_file, icesheet, stream, variables):
         file_obj.write("xtype: double\n")
         file_obj.write("external_control: .true.\n")
         file_obj.write("one_file_per_write: .true.\n")
+        if extra_settings:
+            for key, value in extra_settings.items():
+                file_obj.write("{}: {}\n".format(key, value))
 
 ###############################################################################
 def _update_cism_config(nmlgen, output_file, mode, header, group):

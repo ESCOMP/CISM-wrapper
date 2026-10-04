@@ -24,6 +24,15 @@ module history_tape_base
      ! sums and time bounds carry over from one history file to the next.
      type(glimmer_nc_output), pointer :: oc => null()
 
+     ! True if this stream holds time-average fields (e.g., h0a). Time-average streams write no
+     ! initial file, since there is nothing to average at initialization.
+     logical :: time_average = .false.
+
+     ! If true, the next time it is time to write, skip the file and start a new averaging
+     ! interval instead. Used for the first h0a file of a run that does not start at the
+     ! beginning of a year, which would cover only part of a year.
+     logical :: skip_next_write = .false.
+
    contains
      ! ------------------------------------------------------------------------
      ! Public methods
@@ -32,6 +41,7 @@ module history_tape_base
      procedure :: set_icesheet_name ! set the icesheet name for this history tape
      procedure :: get_icesheet_name ! get the icesheet name for this history tape
      procedure :: set_output        ! set the history stream tag and CISM output object
+     procedure :: set_skip_next_write ! skip the next write (for a partial first averaging interval)
 
      ! ------------------------------------------------------------------------
      ! The following are public simply because they need to be overridden by derived
@@ -79,7 +89,9 @@ contains
     ! do so. It is a regular file of this history stream (e.g., h0i), named with the start date.
     !
     ! !USES:
-    use glc_io, only : glc_io_write_hfile
+    use glc_io, only : glc_io_write_hfile, glc_io_reset_tavg_interval
+    use glc_constants, only : stdout
+    use glc_communicate, only : my_task, master_task
     use glad_type, only : glad_instance
     use esmf, only: ESMF_Clock
     !
@@ -101,11 +113,26 @@ contains
     end if
 
     if (l_initial_history) then
-       ! The initial file has no time_period_freq attribute
-       call glc_io_write_hfile(instance, this%oc, trim(this%tag), this%icesheet_name, EClock)
+       ! The initial file has no time_period_freq attribute.
+       ! Time-average streams have no initial file.
+       if (.not. this%time_average) then
+          call glc_io_write_hfile(instance, this%oc, trim(this%tag), this%icesheet_name, EClock)
+       end if
     else if (this%is_time_to_write_hist(EClock)) then
-       call glc_io_write_hfile(instance, this%oc, trim(this%tag), this%icesheet_name, EClock, &
-            history_frequency_metadata = this%history_frequency_string())
+       if (this%skip_next_write) then
+          ! Skip this file, which would cover only part of an averaging interval,
+          ! and start a new averaging interval now
+          if (my_task == master_task) then
+             write(stdout,*) subname//': skipping the first ', trim(this%tag), ' file for ice sheet ', &
+                  trim(this%icesheet_name), ', since it would cover only part of a year', &
+                  ' (the run did not start at the beginning of a year)'
+          end if
+          call glc_io_reset_tavg_interval(instance, this%oc, EClock)
+          this%skip_next_write = .false.
+       else
+          call glc_io_write_hfile(instance, this%oc, trim(this%tag), this%icesheet_name, EClock, &
+               history_frequency_metadata = this%history_frequency_string())
+       end if
     end if
 
   end subroutine write_history
@@ -165,7 +192,23 @@ contains
 
     this%tag = tag
     this%oc => oc
+    this%time_average = oc%do_averages
 
   end subroutine set_output
+
+  !-----------------------------------------------------------------------
+  subroutine set_skip_next_write(this, skip)
+    !
+    ! !DESCRIPTION:
+    ! Set whether to skip the next history file (see skip_next_write)
+    !
+    ! !ARGUMENTS:
+    class(history_tape_base_type), intent(inout) :: this
+    logical, intent(in) :: skip
+    !-----------------------------------------------------------------------
+
+    this%skip_next_write = skip
+
+  end subroutine set_skip_next_write
 
 end module history_tape_base

@@ -1,0 +1,2 @@
+This testmod adds time-average ('_tavg') fields to the CISM history variables, so that
+CISM writes annual time-average (h0a) history files in addition to instantaneous (h0i) files.

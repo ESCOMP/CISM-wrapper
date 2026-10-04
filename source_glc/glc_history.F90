@@ -44,7 +44,12 @@ module glc_history
 
   ! This needs to have the target attribute so we can point to it in glc_history_write;
   ! that is needed to work around a pgi compiler bug.
-  type(history_tape_container), allocatable, target :: history_tapes(:)
+  type(history_tape_container), allocatable, target :: history_tapes(:,:)
+
+  ! Each ice sheet can have two history streams (tapes): instantaneous (h0i) and time-average (h0a)
+  integer, parameter :: max_tapes = 2
+  integer, parameter :: itape_h0i = 1
+  integer, parameter :: itape_h0a = 2
 
 contains
 
@@ -66,12 +71,12 @@ contains
     character(len=*), parameter :: subname = 'allocate_history'
     !-----------------------------------------------------------------------
 
-    allocate(history_tapes(num_icesheets))
+    allocate(history_tapes(num_icesheets, max_tapes))
 
   end subroutine allocate_history
 
   !-----------------------------------------------------------------------
-  subroutine glc_history_init(instance_index, instance_name, instance)
+  subroutine glc_history_init(instance_index, instance_name, instance, EClock, cesm_restart)
     !
     ! !DESCRIPTION:
     ! Initialize the history_tape instance for one ice sheet instance
@@ -81,6 +86,8 @@ contains
     ! !USES:
     use glad_type, only : glad_instance
     use glimmer_ncdf, only : glimmer_nc_output
+    use esmf, only : ESMF_Clock
+    use glc_io, only : glc_io_init_tavg_interval
     use glc_time_management, only : freq_opt_nyear
     use history_tape_standard, only : history_tape_standard_type
     use history_tape_coupler, only : history_tape_coupler_type
@@ -89,26 +96,28 @@ contains
     integer(i4), intent(in) :: instance_index     ! index of current ice sheet
     character(len=*), intent(in) :: instance_name ! name of current ice sheet
     type(glad_instance), intent(in) :: instance
+    type(ESMF_Clock), intent(in) :: EClock
+    logical, intent(in) :: cesm_restart          ! true for a continue run
     !
     ! !LOCAL VARIABLES:
 
-    type(glimmer_nc_output), pointer :: oc   ! CISM output object for the h0i history stream
+    type(glimmer_nc_output), pointer :: oc   ! CISM output object for a history stream
+    logical :: skip_first_write              ! true if the first h0a file should be skipped
 
     character(len=*), parameter :: subname = 'glc_history_init'
     !-----------------------------------------------------------------------
 
     ! Find the CISM output object for the instantaneous (h0i) history stream.
-    ! If there is none (e.g., the history variable list is empty), no h0i files are written.
+    ! If there is none (e.g., no instantaneous history variables), no h0i files are written.
     oc => find_history_output(instance, 'h0i', time_average = .false.)
     if (.not. associated(oc)) then
        write(stdout,*) subname//': no h0i history output for ice sheet ', trim(instance_name)
-       return
-    end if
+    else
 
     ! Note: history_option and history_frequency apply to the h0i stream.
     select case (instance%history_option)
     case ('nyears')
-       allocate(history_tapes(instance_index)%history_tape, &
+       allocate(history_tapes(instance_index, itape_h0i)%history_tape, &
             source = history_tape_standard_type( &
             icesheet_name = instance_name, &
             tag = 'h0i', &
@@ -116,7 +125,7 @@ contains
             freq_opt = freq_opt_nyear, &
             freq = instance%history_frequency))
     case ('coupler')
-       allocate(history_tapes(instance_index)%history_tape, &
+       allocate(history_tapes(instance_index, itape_h0i)%history_tape, &
             source = history_tape_coupler_type( &
             icesheet_name = instance_name, &
             tag = 'h0i', &
@@ -125,6 +134,27 @@ contains
        write(stdout,*) subname//' ERROR: Unhandled history_option: ', trim(instance%history_option)
        call exit_glc(sigAbort, subname//' ERROR: Unhandled history_option')
     end select
+
+    end if   ! h0i stream exists
+
+    ! Find the CISM output object for the time-average (h0a) history stream.
+    ! If there is none (e.g., no time-average history variables), no h0a files are written.
+    ! The h0a stream is always written annually (history_option and history_frequency apply
+    ! only to the h0i stream), with each file holding the average over one year.
+    oc => find_history_output(instance, 'h0a', time_average = .true.)
+    if (associated(oc)) then
+       allocate(history_tapes(instance_index, itape_h0a)%history_tape, &
+            source = history_tape_standard_type( &
+            icesheet_name = instance_name, &
+            tag = 'h0a', &
+            oc = oc, &
+            freq_opt = freq_opt_nyear, &
+            freq = 1))
+       ! Set the start of the first averaging interval in CESM time units, and skip the first
+       ! file if the run does not start at the beginning of a year
+       call glc_io_init_tavg_interval(instance, oc, EClock, cesm_restart, skip_first_write)
+       call history_tapes(instance_index, itape_h0a)%history_tape%set_skip_next_write(skip_first_write)
+    end if
        
   end subroutine glc_history_init
 
@@ -152,10 +182,8 @@ contains
     logical, intent(in), optional :: initial_history
 
     class(history_tape_base_type), pointer :: htape_ptr
+    integer :: itape
     !-----------------------------------------------------------------------
-
-    ! If this ice sheet has no history stream, there is nothing to write
-    if (.not. allocated(history_tapes(instance_index)%history_tape)) return
 
     ! COMPILER_BUG(wjs, 2021-10-18, pgi20.1) With a straightforward call like this:
     !     call history_tapes(instance_index)%history_tape%write_history(instance, EClock, initial_history)
@@ -163,8 +191,12 @@ contains
     !     /tmp/pgf90PFtg7F9Be42q.ll:1034:16: error: use of undefined type named 'struct.BSS4'
     !         %20 = bitcast %struct.BSS4* @.BSS4 to i8*, !dbg !14930
     ! Adding this pointer indirection prevents this compiler error
-    htape_ptr => history_tapes(instance_index)%history_tape
-    call htape_ptr%write_history(instance, EClock, initial_history)
+    do itape = 1, max_tapes
+       ! Skip history streams that do not exist for this ice sheet
+       if (.not. allocated(history_tapes(instance_index, itape)%history_tape)) cycle
+       htape_ptr => history_tapes(instance_index, itape)%history_tape
+       call htape_ptr%write_history(instance, EClock, initial_history)
+    end do
     
   end subroutine glc_history_write
 
