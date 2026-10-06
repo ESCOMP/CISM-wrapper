@@ -59,11 +59,10 @@ class MULTIVSSINGLE(SystemTestsCompareTwo):
     def _case_one_setup(self):
         # Turn off history output for the given ice sheet in the multi-ice sheet case:
         # otherwise, the comparison between the cases will fail due to a history file
-        # being present in one case but not the other.
+        # (including the initial history file) being present in one case but not the other.
         append_to_user_nl_files(caseroot = self._get_caseroot(),
                                 component = "cism_{}".format(self._remove_icesheet_grid_name),
-                                # setting history_frequency to 10000 years should be effectively the same as 'never'
-                                contents = "history_frequency = 10000")
+                                contents = "history_option = 'never'")
 
     def _case_two_setup(self):
         # Turn off the given ice sheet
