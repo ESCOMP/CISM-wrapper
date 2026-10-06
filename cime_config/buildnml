@@ -44,6 +44,11 @@ _CISM_IN_GROUPS = ["cism_params", "time_manager_nml", "glc_override_nml"]
 _CISM_CONFIG_GROUPS = ["grid", "glad_climate", "esm_output", "options", "sigma", "time", "parameters",
                        "grid_ocn", "ho_options", "gthf", "isostasy", "derived"]
 
+# namelist groups that are not written to any file, but are used to write the
+# cism.icesheet.config file (e.g., esm_history_vars, which buildnml splits into the h0i and
+# h0a [CF output] sections)
+_CISM_CONFIG_HELPER_GROUPS = ["cism_history"]
+
 # dictionary mapping all possible ice sheet names to the names used in xml variables
 # we use an OrderedDict to get reliable ordering (this is unnecessary in python3.6 and
 # later because standard dicts maintain order, but necessary for 3.5 and earlier)
@@ -376,7 +381,8 @@ def _create_cism_in(case, confdir, inst_string, icesheet_names, infile, nmlgen, 
     # cism_in file, we can avoid doing the work of adding the defaults for the
     # cism.icesheet.config groups.
     nmlgen.init_defaults([infile], config,
-                         skip_default_for_groups=_CISM_CONFIG_GROUPS+["glc_override_nml"])
+                         skip_default_for_groups=_CISM_CONFIG_GROUPS+_CISM_CONFIG_HELPER_GROUPS+
+                         ["glc_override_nml"])
 
     nmlgen.add_default("paramfile_base", value="cism"+inst_string, ignore_abs_path=True)
     nmlgen.add_default("num_icesheets", value=len(icesheet_names))
