@@ -95,7 +95,7 @@ contains
     ! !ARGUMENTS:
     integer(i4), intent(in) :: instance_index     ! index of current ice sheet
     character(len=*), intent(in) :: instance_name ! name of current ice sheet
-    type(glad_instance), intent(in) :: instance
+    type(glad_instance), intent(inout) :: instance
     type(ESMF_Clock), intent(in) :: EClock
     logical, intent(in) :: cesm_restart          ! true for a continue run
     !

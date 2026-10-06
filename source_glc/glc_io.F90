@@ -270,27 +270,29 @@
 
   subroutine glc_io_init_tavg_interval(instance, oc, EClock, cesm_restart, skip_first_write)
 
-    ! Set the start of the first averaging interval for a time-average history stream (h0a),
-    ! in CESM time units (days since 0001-01-01), and determine whether the first file should be
-    ! skipped because it would cover only part of a year.
+    ! Set up the first averaging interval for a time-average history stream (h0a), and determine
+    ! whether the first file should be skipped because it would cover only part of a year.
     !
-    ! CISM sets the start of the interval in its own time units (internal_time) when the output
-    ! object is created. Here we set the start in external time units (time):
-    ! * For a continue run, the interval started at the beginning of the current year.
-    !   (Partial time-average sums are not saved in restart files, so glc_io_write_restart
-    !   aborts if a restart file is written in the middle of an averaging interval with nonzero
-    !   sums. In default configurations, CISM takes its timesteps at year boundaries, so the
-    !   sums are zero at any time during the year.)
-    ! * Otherwise (startup, hybrid or branch run), the interval starts now. If the run does not
-    !   start at the beginning of a year, the first averaging interval would cover only part of
-    !   a year, so the first h0a file is skipped (skip_first_write = .true.).
+    ! * Continue run: CISM restores the averaging state (running sums, total time, and the start
+    !   of the interval in internal and external time units) from the restart file, so the
+    !   average continues exactly (oc%tavg_restored = .true.); nothing more is needed here.
+    !   If the restart file has no averaging state (it was written by an older version of CISM),
+    !   CISM starts a new interval with zero sums, and here we set the start of the interval to
+    !   the beginning of the current year. (Older versions did not allow restart files to be
+    !   written in the middle of an averaging interval with nonzero sums.)
+    ! * Startup, hybrid or branch run: a new averaging interval starts now, with zero sums.
+    !   Note: Evolving hybrid and branch runs start CISM from the refcase restart file as a
+    !   standard restart (restart = 1), so CISM may have restored the refcase's averaging state;
+    !   it is discarded here. If the run does not start at the beginning of a year, the first
+    !   averaging interval would cover only part of a year, so the first h0a file is skipped
+    !   (skip_first_write = .true.).
 
     use glad_type
     use glimmer_ncio, only: glimmer_nc_checkwrite_init
 
     implicit none
 
-    type(glad_instance)     , intent(in)  :: instance
+    type(glad_instance)     , intent(inout) :: instance
     type(glimmer_nc_output) , pointer     :: oc                ! CISM output object for the h0a stream
     type(ESMF_Clock)        , intent(in)  :: EClock
     logical                 , intent(in)  :: cesm_restart      ! true for a continue run
@@ -309,18 +311,22 @@
     call ESMF_TimeGet(CurrentTime, yy=yr, mm=mon, dd=day, s=tod, calendar=calendar, rc=rc)
     if ( rc /= ESMF_SUCCESS ) call shr_sys_abort("ERROR: glc_io_init_tavg_interval: ESMF_TimeGet")
 
-    if (cesm_restart) then
+    if (cesm_restart .and. oc%tavg_restored) then
+       ! Keep the averaging state restored by CISM
+       skip_first_write = .false.
+    elseif (cesm_restart) then
+       ! Restart file without averaging state: keep CISM's internal start time,
+       ! and set the external start time to the beginning of the current year
        call ESMF_TimeSet(StartOfYear, yy=yr, mm=1, dd=1, s=0, calendar=calendar, rc=rc)
        if ( rc /= ESMF_SUCCESS ) call shr_sys_abort("ERROR: glc_io_init_tavg_interval: ESMF_TimeSet")
        external_start_time = glc_io_days_since_ref(StartOfYear)
+       call glimmer_nc_checkwrite_init(oc, oc%nc%processed_time, external_time=external_start_time)
        skip_first_write = .false.
     else
-       external_start_time = glc_io_days_since_ref(CurrentTime)
+       ! Start a new averaging interval now, with zero sums
+       call glc_io_reset_tavg_interval(instance, oc, EClock)
        skip_first_write = .not. (mon == 1 .and. day == 1 .and. tod == 0)
     end if
-
-    ! Keep CISM's internal start time; set the external start time
-    call glimmer_nc_checkwrite_init(oc, oc%nc%processed_time, external_time=external_start_time)
 
   end subroutine glc_io_init_tavg_interval
 
@@ -332,8 +338,9 @@
   subroutine glc_io_reset_tavg_interval(instance, oc, EClock)
 
     ! Start a new averaging interval now, without writing a file: reset the time-average sums,
-    ! and set the start of the interval to the current time. This is used to skip the first,
-    ! partial-year h0a file of a run that does not start at the beginning of a year.
+    ! and set the start of the interval to the current time. This is used at initialization
+    ! (except in continue runs), and to skip the first, partial-year h0a file of a run that
+    ! does not start at the beginning of a year.
 
     use glad_type
     use glide_io, only : glide_avg_reset
@@ -396,26 +403,12 @@
     integer(IN)   :: status            !
     type(ESMF_TIME) :: CurrentTime
     integer         :: rc
-    type(glimmer_nc_output), pointer :: p
 !-----------------------------------------------------------------------
 
-    ! Partial time-average sums for history output (e.g., the h0a stream) are not yet saved in
-    ! restart files. So abort if a restart file is written in the middle of an averaging interval
-    ! with nonzero sums. In default configurations, CISM takes its timesteps at year boundaries,
-    ! right before the h0a file is written and the sums are reset, so this does not happen.
-    p => instance%model%funits%out_first
-    do while (associated(p))
-       if (p%external_control .and. p%do_averages .and. p%total_time > 0.0_r8) then
-          if (my_task == master_task) then
-             write(stdout,*) 'ERROR: Attempt to write a restart file in the middle of a time-averaging'
-             write(stdout,*) 'interval for history output, ', trim(p%base_filename), ', for ice sheet ', &
-                  trim(icesheet_name), ', total_time =', p%total_time
-             write(stdout,*) 'Partial time-average sums are not yet saved in restart files.'
-          end if
-          call shr_sys_abort('glc_io_write_restart: restart file in the middle of a time-averaging interval')
-       end if
-       p => p%next
-    end do
+    ! Note: The restart file includes the averaging state of each time-average history stream
+    !       (e.g., h0a), so a restart can occur in the middle of an averaging interval.
+    !       History files are written (in glc_run) before the restart file, so the saved state
+    !       is the state after any h0a file written at this time, and after the sums were reset.
 
     if (.not. glad_okay_to_restart(instance)) then
        if (my_task == master_task) then
