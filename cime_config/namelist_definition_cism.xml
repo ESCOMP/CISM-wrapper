@@ -1373,11 +1373,14 @@ Sub-elements of each entry include:
     <group>parameters</group>
     <valid_values>0,1,2,3,4,5,6</valid_values>
     <values>
-      <value>6</value>
+      <value>1</value>
     </values>
     <desc>
-      Set to a value between 0 (no messages) and 6 (all messages)
-      Default: 6
+      Which CISM log messages are also written to standard output (the cesm log):
+      between 0 (none except fatal errors) and 6 (all messages).
+      All messages are written to the glc log file, and fatal errors are always
+      written to standard output as well.
+      Default: 1 (fatal errors only)
     </desc>
   </entry>
 
