@@ -3,6 +3,93 @@ This file describes what tags were created on master and why
 ================================================================================
 
 Originator: katetc
+Date: Oct 9, 2026
+Version: cismwrap_3_0_002
+One-line summary: Add support for ESCOMP/CISM PR#92 - CESM-compliant CISM history
+	files (h0i/h0a) through CISM's [CF output] machinery
+
+Purpose of changes:
+	Updates to history to make it compliant with CESM standards, including
+	seperating instantaneous and average output into different files and
+	adding time_bounds attributes that conform to CESM standards. See issues
+	https://github.com/ESCOMP/CISM-wrapper/issues/75    and
+	https://github.com/ESCOMP/CISM-wrapper/issues/76
+	for more details.
+
+Standalone checkout supported in this tag (Yes/No): Yes
+   (If yes, this implies that we expect to be able to build and run a
+   case from a standalone checkout using git-fleximod, and for this
+   to continue to work long-term. The answer may be "No" if the set of
+   externals pointed to by manage_externals is broken, or if at least
+   one external points to a temporary branch that is may be deleted in
+   the near future.)
+
+If No: Notes on externals used for testing:
+
+Changes answers relative to previous tag: No answers changed, but all baselines
+	DIFF due to changes in history file metadata
+
+Bugs fixed (include github issue number):
+	https://github.com/ESCOMP/CISM-wrapper/issues/75
+	https://github.com/ESCOMP/CISM-wrapper/issues/76
+
+Summary of testing:
+        aux_glc test suite on Derecho for both Intel and Gnu run. Baseline compared to cismwrap_3_0_001
+
+	Test FAIL documented in CISM-Wrapper issue 148
+	https://github.com/ESCOMP/CISM-wrapper/issues/148
+	ERI_Ly10.f10_f10_mg37.I1850Clm50SpG.derecho_intel.cism-isostasy_period4 (Overall: FAIL)
+
+	NCK_Ly3.f09_g17_gris20.T1850Gg.derecho_gnu (Overall: FAIL) details:
+	** Expected failure ** See https://github.com/ESCOMP/CISM-wrapper/issues/110
+
+	Other tests DIFF with answer changes EXCEPT those without active CISM running.
+
+	ERI_Ly15.f09_g17_gris4.T1850Gg.derecho_intel.cism-isostasy_period4 (Overall: DIFF) details:
+	ERI_Ly44.f09_g17_gris20.T1850Gg.derecho_intel.cism-isostasy_period4 (Overall: DIFF) details:
+	ERP_Ly4.f09_g17_gris4.T1850Gg.derecho_intel.cism-norenormal (Overall: DIFF) details:
+	ERS_D_Ly3.f09_g17_ais8gris4.T1850Gag.derecho_intel (Overall: DIFF) details:
+	ERS_D_Ly3.f09_g17_gris4.T1850Gg.derecho_intel.cism-cmip6_evolving_icesheet (Overall: DIFF) details:
+	ERS_Ly23.f09_g17_gris4.T1850Gg.derecho_intel.cism-tavg_history (Overall: DIFF) details:
+	ERS_Ly3_C2_D.f09_g17_gris20.T1850Gg.derecho_intel (Overall: DIFF) details:
+	ERS_Ly3.f10_f10_ais8_mg37.I1850Clm50SpGa.derecho_intel (Overall: DIFF) details:
+	ERS_Ly3.f10_f10_mg37.I1850Clm50SpG.derecho_intel (Overall: DIFF) details:
+	ERS_Ly4.f10_f10_ais8gris4_mg37.I1850Clm50SpGag.derecho_intel (Overall: DIFF) details:
+	ERS_Ly5.f09_g17_ais8.T1850Ga.derecho_intel (Overall: DIFF) details:
+	ERS_Ly7.f09_g17_gris4.T1850Gg.derecho_intel (Overall: DIFF) details:
+	MULTINOAIS_Ly2.f10_f10_ais8gris4_mg37.I1850Clm50SpRsGag.derecho_intel.cism-change_params (Overall: DIFF) details:
+	MULTINOGRIS_Ly2.f10_f10_ais8gris4_mg37.I1850Clm50SpRsGag.derecho_intel.cism-change_params (Overall: DIFF) details:
+	SMS_D_Ly1.f09_g17_ais8.T1850Ga.derecho_intel (Overall: DIFF) details:
+	SMS_D_Ly1.f09_g17_gris4.T1850Gg.derecho_intel.cism-isostasy_period1 (Overall: DIFF) details:
+	SMS_D_Ly1.f09_g17_gris4.T1850Gg.derecho_intel (Overall: DIFF) details:
+
+	No active CISM:
+	ERS_D_Ly3.f09_g17_gris4.T1850Gg.derecho_intel.cism-noevolve (Overall: NLFAIL) details:
+	SMS_D_Ld5.f10_f10_ais8gris4_mg37.JK1850D.derecho_intel (Overall: PASS) details:
+	SMS_Lm13.f10_f10_mg37.I1850Clm50SpG.derecho_intel.cism-noevolve (Overall: NLFAIL) details:
+
+	Short test where CISM history is turned off:
+	ERS_D_Ld9.f10_f10_mg37.I1850Clm50SpG.derecho_gnu.cism-override_glc_frac (Overall: NLFAIL) details:
+
+	ERI_C2_Ly9.f09_g17_ais8gris4.T1850Gag.derecho_gnu (Overall: DIFF) details:
+	ERI.f10_f10_mg37.I1850Clm50SpG.derecho_gnu.cism-test_coupling (Overall: DIFF) details:
+	ERI_Ly9.f09_g17_ais8gris4.T1850Gag.derecho_gnu.cism-noevolve_ais (Overall: DIFF) details:
+	ERP_Ly5.f09_g17_ais8.T1850Ga.derecho_gnu.cism-norenormal (Overall: DIFF) details:
+	ERS_Ly11.f09_g17_gris20.T1850Gg.derecho_gnu.cism-oneway (Overall: DIFF) details:
+	ERS_Ly11.f09_g17_gris20.T1850Gg.derecho_gnu (Overall: DIFF) details:
+	ERS_Ly23.f09_g17_ais8.T1850Ga.derecho_gnu.cism-tavg_history (Overall: DIFF) details:
+	ERS_Ly3.f09_g17_gris4.T1850Gg.derecho_gnu.cism-isostasy_period1 (Overall: DIFF) details:
+	ERS_Ly5.f09_g17_gris4.T1850Gg.derecho_gnu.cism-isostasy_period4 (Overall: DIFF) details:
+	MCC_Ly3.f09_g17_gris20.T1850Gg.derecho_gnu (Overall: DIFF) details:
+	SMS_D_Ld5.f10_f10_ais8gris4_mg37.I1850Clm50SpGag.derecho_gnu.cism-test_coupling (Overall: DIFF) details:
+	SMS_D_Ly1.f09_g17_ais8.T1850Ga.derecho_gnu (Overall: DIFF) details:
+	SMS_D_Ly1.f09_g17_gris4.T1850Gg.derecho_gnu (Overall: DIFF) details:
+
+Note: Baselines are now stored in /glade/campaign/cesm/development/liwg/cesm_baselines
+
+================================================================================
+
+Originator: katetc
 Date: Sept 25, 2026
 Version: cismwrap_3_0_001
 One-line summary: Add support for ESCOMP/CISM PR#91 - ISMIP7 physics updates
@@ -76,6 +163,8 @@ Summary of testing:
 
 	NCK_Ly3.f09_g17_gris20.T1850Gg.derecho_gnu (Overall: FAIL) details:
 	** Expected failure ** See https://github.com/ESCOMP/CISM-wrapper/issues/110
+
+Note: Baselines are now stored in /glade/campaign/cesm/development/liwg/cesm_baselines
 
 ================================================================================
 
