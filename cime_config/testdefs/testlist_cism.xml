@@ -14,6 +14,33 @@
     </machines>
   </test>
 
+    <test name="ERS_Ly23" grid="f09_g17_gris4" compset="T1850Gg" testmods="cism/tavg_history">
+    <machines>
+
+      <machine name="derecho" compiler="intel" category="aux_glc">
+        <options>
+          <option name="wallclock">0:45</option>
+          <option name="comment">include a longer ERS test to catch problems that may just show up after longer runs; test for initial and average history file output.</option>
+        </options>
+      </machine>
+
+    </machines>
+  </test>
+
+    <test name="ERS_Ly23" grid="f09_g17_ais8" compset="T1850Ga" testmods="cism/tavg_history">
+    <machines>
+
+      <machine name="derecho" compiler="gnu" category="aux_glc">
+        <options>
+          <option name="wallclock">0:45</option>
+          <option name="comment">include a longer ERS test to catch problems that may just show up after longer runs; test for initial and average history file output.</option>
+        </options>
+      </machine>
+
+    </machines>
+  </test>
+
+  
   <test name="ERI_Ly15" grid="f09_g17_gris4" compset="T1850Gg" testmods="cism/isostasy_period4">
     <machines>
 
