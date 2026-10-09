@@ -640,28 +640,36 @@ Sub-elements of each entry include:
   </entry>
 
   <!-- =============================================================  -->
-  <!-- group: cism.icesheet.config: esm_output                        -->
+  <!-- group: cism_history                                            -->
+  <!-- Not written to any file: buildnml uses these settings to write -->
+  <!-- the [CF output] sections (h0i and h0a) of cism.icesheet.config -->
   <!-- =============================================================  -->
 
   <entry id="esm_history_vars" >
     <type>char</type>
     <category>cism_config_history</category>
-    <group>esm_output</group>
+    <group>cism_history</group>
     <values>
       <value cism_evolve_this_icesheet=".true." >smb artm thk usurf topg uvel vvel temp bmlt bwat beta_internal floating_mask grounded_mask bpmp acab_applied bmlt_applied calving_rate iareaf iareag imass imass_above_flotation total_smb_flux total_bmb_flux total_calving_flux total_gl_flux ice_sheet_mask ice_cap_mask</value>
       <value cism_evolve_this_icesheet=".false.">smb artm thk usurf topg</value>
     </values>
     <desc>
-      Space-delimited list of variables output to history file
+      Space-delimited list of variables output to CISM history files.
+      Fields whose names end in '_tavg' are written to annual time-average (h0a) files;
+      the other fields are written to instantaneous (h0i) files.
       Default: Depends on physics and ice evolution options
     </desc>
   </entry>
+
+  <!-- =============================================================  -->
+  <!-- group: cism.icesheet.config: esm_output                        -->
+  <!-- =============================================================  -->
 
   <entry id="history_option">
     <type>char</type>
     <category>cism_config_history</category>
     <group>esm_output</group>
-    <valid_values>nyears,coupler</valid_values>
+    <valid_values>nyears,coupler,never</valid_values>
     <values>
       <value>nyears</value>
     </values>
@@ -670,6 +678,7 @@ Sub-elements of each entry include:
       nyears: Write history every N years
       coupler: Get history frequency from coupler (HIST_OPTION/HIST_N xml variables)
                WARNING: SHOULD NOT BE USED IN PRODUCTION RUNS - frequency metadata not set properly
+      never: Do not write any CISM history files (including the initial history file)
       Default: nyears
     </desc>
   </entry>
@@ -1364,11 +1373,14 @@ Sub-elements of each entry include:
     <group>parameters</group>
     <valid_values>0,1,2,3,4,5,6</valid_values>
     <values>
-      <value>6</value>
+      <value>1</value>
     </values>
     <desc>
-      Set to a value between 0 (no messages) and 6 (all messages)
-      Default: 6
+      Which CISM log messages are also written to standard output (the cesm log):
+      between 0 (none except fatal errors) and 6 (all messages).
+      All messages are written to the glc log file, and fatal errors are always
+      written to standard output as well.
+      Default: 1 (fatal errors only)
     </desc>
   </entry>
 

@@ -7,3 +7,11 @@ rearrange_override_delay = 1
 decrease_frac = 0.05
 increase_frac = 0.05
 rearrange_freq = 3
+
+! Write no CISM history files: this test is about what is sent to the coupler, not what is
+! output by CISM. With the default history settings, this short test writes only the initial
+! h0i file, in the initial run. The restart comparison would still pass, but only because
+! CIME compares the most recent file in each history stream and copies (does not move) the
+! base run's files, so the same h0i.0001-01-01 file would be compared with itself. Writing
+! no history files keeps the test from depending on this.
+history_option = 'never'

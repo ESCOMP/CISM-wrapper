@@ -1,0 +1,4 @@
+! Add time-average fields to the default CISM history variables, to exercise the
+! time-average (h0a) history stream. Fields ending in '_tavg' are written to annual h0a files;
+! the other fields are written to h0i files.
+esm_history_vars = 'smb artm thk usurf topg uvel vvel temp bmlt bwat beta_internal floating_mask grounded_mask bpmp acab_applied bmlt_applied calving_rate iareaf iareag imass imass_above_flotation total_smb_flux total_bmb_flux total_calving_flux total_gl_flux ice_sheet_mask ice_cap_mask acab_applied_tavg bmlt_applied_tavg calving_rate_tavg total_smb_flux_tavg total_bmb_flux_tavg total_calving_flux_tavg total_gl_flux_tavg'

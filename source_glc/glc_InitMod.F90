@@ -182,7 +182,9 @@
 !  Set output streams
 !-------------
 
-  stdout = iulog
+  ! stdout is the unit of the glc log file, set in the cap (set_component_logging).
+  ! Send CISM's output (iulog, and write_log via set_glimmer_unit below) to the same file.
+  iulog = stdout
 
 !-----------------------------------------------------------------------
 !
@@ -430,10 +432,9 @@
   ! Assume that ihour0 = iminute0 = isecond0 = 0
   ! Note that glad does not handle leap years
 
-  ! Set the message level (1 is the default - only fatal errors)
-  ! N.B. Must do this after initialization
-
-  call glimmer_set_msg_level(6)
+  ! Note: The message level for CISM's write_log is set from log_level in the config file
+  !       (glide_setup). It controls which messages are also written to standard output (the
+  !       cesm log); all messages are written to the glc log (glimmer_unit).
 
 !-----------------------------------------------------------------------
 !
@@ -454,7 +455,9 @@
    do ns = 1, num_icesheets
       call glc_history_init(instance_index = ns, &
            instance_name = icesheet_names(ns), &
-           instance = ice_sheet%instances(ns))
+           instance = ice_sheet%instances(ns), &
+           EClock = EClock, &
+           cesm_restart = cesm_restart)
    end do
 
 !-----------------------------------------------------------------------

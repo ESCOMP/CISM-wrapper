@@ -2,7 +2,6 @@ module history_tape_base
 
   ! This module defines an abstract base class to implement a single history tape.
 
-  use glad_type, only : len_history_vars
   use glimmer_ncdf, only : glimmer_nc_output
   use glc_constants, only : icesheet_name_len
 
@@ -16,23 +15,23 @@ module history_tape_base
 
      character(len=icesheet_name_len) :: icesheet_name
 
-     ! Names of CISM variables to be output in cesm history files
-     !
-     ! COMPILER_BUG(wjs, 2015-02-19, pgi 14.7) Ideally, this would be an allocatable
-     ! character variable. But when written that way, it gets filled with garbage by pgi
-     ! 14.7. So for now, I'm using a declared maximum length together with a check that
-     ! it's not being set to greater than its length.
-     character(len=len_history_vars) :: history_vars
+     ! History stream (e.g., 'h0i'), used in file names and time flag names
+     character(len=8) :: tag
 
-     ! This output structure is accessible to CISM throughout the run, and is
-     ! used to accumulate and average the time-average ("tavg") output fields.
-     !
-     ! NOTE(wjs, 2021-09-24) By storing this in the history_tape object, we ensure that we
-     ! have a separate oc_tavg_helper for each ice sheet (since there is a separate
-     ! history_tape object for each ice sheet). If we ever had multiple history tapes per
-     ! ice sheet, I'm not sure off-hand if we'd want to have a single oc_tavg_helper for
-     ! the ice sheet or a separate one for each history tape.
-     type(glimmer_nc_output), pointer :: oc_tavg_helper => null()
+     ! CISM output object for this history stream. This object comes from a [CF output] section
+     ! in the CISM config file (written by buildnml) with name = tag, external_control = .true.
+     ! and one_file_per_write = .true. It persists for the whole run, so any time-average
+     ! sums and time bounds carry over from one history file to the next.
+     type(glimmer_nc_output), pointer :: oc => null()
+
+     ! True if this stream holds time-average fields (e.g., h0a). Time-average streams write no
+     ! initial file, since there is nothing to average at initialization.
+     logical :: time_average = .false.
+
+     ! If true, the next time it is time to write, skip the file and start a new averaging
+     ! interval instead. Used for the first h0a file of a run that does not start at the
+     ! beginning of a year, which would cover only part of a year.
+     logical :: skip_next_write = .false.
 
    contains
      ! ------------------------------------------------------------------------
@@ -41,7 +40,8 @@ module history_tape_base
      procedure :: write_history     ! write history, if it's time to do so
      procedure :: set_icesheet_name ! set the icesheet name for this history tape
      procedure :: get_icesheet_name ! get the icesheet name for this history tape
-     procedure :: set_history_vars  ! set the list of history variables
+     procedure :: set_output        ! set the history stream tag and CISM output object
+     procedure :: set_skip_next_write ! skip the next write (for a partial first averaging interval)
 
      ! ------------------------------------------------------------------------
      ! The following are public simply because they need to be overridden by derived
@@ -86,14 +86,14 @@ contains
     !
     ! If initial_history is present and true, that means that we're writing a history file
     ! in initialization. This is written regardless of the check for whether it's time to
-    ! do so, with a different extension than standard history files.
+    ! do so. It is a regular file of this history stream (e.g., h0i), named with the start date.
     !
-
     ! !USES:
-    use glc_io, only : glc_io_write_history, glc_io_write_history_tavg_helper
+    use glc_io, only : glc_io_write_hfile, glc_io_reset_tavg_interval
+    use glc_constants, only : stdout
+    use glc_communicate, only : my_task, master_task
     use glad_type, only : glad_instance
     use esmf, only: ESMF_Clock
-
     !
     ! !ARGUMENTS:
     class(history_tape_base_type), intent(inout) :: this
@@ -105,7 +105,6 @@ contains
     logical :: l_initial_history   ! local version of initial_history
 
     character(len=*), parameter :: subname = 'write_history'
-
     !-----------------------------------------------------------------------
 
     l_initial_history = .false.
@@ -114,22 +113,27 @@ contains
     end if
 
     if (l_initial_history) then
-
-       call glc_io_write_history(instance, this%icesheet_name, EClock, &
-            this%history_vars, this%oc_tavg_helper, initial_history = .true.)
-
+       ! The initial file has no time_period_freq attribute.
+       ! Time-average streams have no initial file.
+       if (.not. this%time_average) then
+          call glc_io_write_hfile(instance, this%oc, trim(this%tag), this%icesheet_name, EClock)
+       end if
     else if (this%is_time_to_write_hist(EClock)) then
-
-       call glc_io_write_history(instance, this%icesheet_name, EClock, &
-            this%history_vars, this%oc_tavg_helper, initial_history = .false., &
-            history_frequency_metadata = this%history_frequency_string())
-
+       if (this%skip_next_write) then
+          ! Skip this file, which would cover only part of an averaging interval,
+          ! and start a new averaging interval now
+          if (my_task == master_task) then
+             write(stdout,*) subname//': skipping the first ', trim(this%tag), ' file for ice sheet ', &
+                  trim(this%icesheet_name), ', since it would cover only part of a year', &
+                  ' (the run did not start at the beginning of a year)'
+          end if
+          call glc_io_reset_tavg_interval(instance, this%oc, EClock)
+          this%skip_next_write = .false.
+       else
+          call glc_io_write_hfile(instance, this%oc, trim(this%tag), this%icesheet_name, EClock, &
+               history_frequency_metadata = this%history_frequency_string())
+       end if
     end if
-
-    ! This subroutine manages an auxiliary output structure that is used to accumulate
-    ! time-average fields in history files.
-    call glc_io_write_history_tavg_helper(instance, this%oc_tavg_helper, &
-         this%icesheet_name, this%history_vars)
 
   end subroutine write_history
 
@@ -172,31 +176,39 @@ contains
   end function get_icesheet_name
   
   !-----------------------------------------------------------------------
-  subroutine set_history_vars(this, history_vars)
+  subroutine set_output(this, tag, oc)
     !
     ! !DESCRIPTION:
-    ! Set the list of history variables
-    !
-    ! !USES:
-    use glc_exit_mod, only : exit_glc, sigAbort
-    use glc_constants, only : stdout
+    ! Set the history stream tag (e.g., 'h0i') and the CISM output object for this history tape
     !
     ! !ARGUMENTS:
     class(history_tape_base_type), intent(inout) :: this
-    character(len=*), intent(in) :: history_vars
+    character(len=*), intent(in) :: tag
+    type(glimmer_nc_output), pointer :: oc
     !
     ! !LOCAL VARIABLES:
-
-    character(len=*), parameter :: subname = 'set_history_vars'
+    character(len=*), parameter :: subname = 'set_output'
     !-----------------------------------------------------------------------
 
-    if (len_trim(history_vars) > len(this%history_vars)) then
-       write(stdout,*) subname//' ERROR: too-long history vars: <', trim(history_vars), '>'
-       call exit_glc(sigAbort, subname//' ERROR: too-long history vars')
-    end if
-       
-    this%history_vars = trim(history_vars)
-    
-  end subroutine set_history_vars
+    this%tag = tag
+    this%oc => oc
+    this%time_average = oc%do_averages
+
+  end subroutine set_output
+
+  !-----------------------------------------------------------------------
+  subroutine set_skip_next_write(this, skip)
+    !
+    ! !DESCRIPTION:
+    ! Set whether to skip the next history file (see skip_next_write)
+    !
+    ! !ARGUMENTS:
+    class(history_tape_base_type), intent(inout) :: this
+    logical, intent(in) :: skip
+    !-----------------------------------------------------------------------
+
+    this%skip_next_write = skip
+
+  end subroutine set_skip_next_write
 
 end module history_tape_base

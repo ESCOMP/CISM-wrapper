@@ -4,6 +4,7 @@ module history_tape_standard
   ! specified frequency (e.g., every N years).
 
   use history_tape_base, only : history_tape_base_type
+  use glimmer_ncdf, only : glimmer_nc_output
   use glc_kinds_mod
   use glc_time_management, only : init_time_flag, check_time_flag
   
@@ -32,7 +33,7 @@ module history_tape_standard
 contains
 
   !-----------------------------------------------------------------------
-  function constructor(icesheet_name, history_vars, freq_opt, freq)
+  function constructor(icesheet_name, tag, oc, freq_opt, freq)
     !
     ! !DESCRIPTION:
     ! Creates a history_tape_standard_type object
@@ -45,8 +46,11 @@ contains
     ! Name of this ice sheet
     character(len=*), intent(in) :: icesheet_name
 
-    ! List of variables to write to file
-    character(len=*), intent(in) :: history_vars
+    ! History stream (e.g., 'h0i')
+    character(len=*), intent(in) :: tag
+
+    ! CISM output object for this history stream
+    type(glimmer_nc_output), pointer :: oc
     
     ! Frequency option; should be one of the options defined in glc_time_management
     ! (e.g., freq_opt_nyear)
@@ -59,11 +63,12 @@ contains
     !-----------------------------------------------------------------------
 
     call constructor%set_icesheet_name(icesheet_name)
-    call constructor%set_history_vars(history_vars)
+    call constructor%set_output(tag, oc)
     constructor%freq_opt = freq_opt
     constructor%freq = freq
 
-    constructor%time_flag = init_time_flag('do_hist_'//icesheet_name, &
+    ! Note: The tag is included in the name, so that each history stream has its own time flag
+    constructor%time_flag = init_time_flag('do_hist_'//trim(icesheet_name)//'_'//trim(tag), &
          freq_opt = freq_opt, freq = freq)
     
   end function constructor
