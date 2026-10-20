@@ -2759,7 +2759,6 @@ Sub-elements of each entry include:
       1: SLAP (serial) GMRES, incomplete LU preconditioner
       2: Native PCG, parallel-enabled, standard solver
       3: Native PCG, parallel-enabled, Chronopoulos-Gear solver
-      (4: UNSUPPORTED: standalone interface to Trilinos)
       Default: 3
     </desc>
   </entry>
