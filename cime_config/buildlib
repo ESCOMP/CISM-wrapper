@@ -90,7 +90,6 @@ def buildlib(bldroot, libroot, case):
 
     # Note: CISM is always built with MPI. This works within CESM because we
     # always have an mpi library (possibly mpi-serial).
-    cmake_opts = cmake_opts + " -D CISM_USE_TRILINOS=OFF"
 
     # ----------------------------------------------------------------------
     # Set mkDepends to append libglimmercismfortran.a to the end of each
