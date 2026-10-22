@@ -612,6 +612,13 @@ def _set_restart_options(nmlgen, case, icesheet, run_type, cism_observed_ic,
                 icesheet=icesheet, refdate=run_refdate)
 
         nmlgen.add_default('cisminputfile', filename, ignore_abs_path=True)
+
+        # Don't allow the user to overwrite cisminputfile in a branch: that defeats the
+        # purpose of using a branch, and can cause problems.
+        if run_type == 'branch':
+            expect(nmlgen.get_value('cisminputfile') == filename,
+                   "cisminputfile cannot be set by the user for branch runs")
+
         restart = 1
     else:
         expect(False, "Unknown RUN_TYPE: {} ".format(run_type))
