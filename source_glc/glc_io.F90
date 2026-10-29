@@ -208,8 +208,8 @@
 
     ! Set up the output object for a new file, and create the file and its variables
     call glimmer_nc_newfile(oc, filename)
-    call glimmer_nc_createfile(oc, instance%model, external_baseline_year=time_ref_year, &
-         external_time_units=time_units)
+    call glimmer_nc_createfile(oc, instance%model%funits, instance%model%projection, &
+         external_baseline_year=time_ref_year, external_time_units=time_units)
     call glide_io_create(oc, instance%model, instance%model)
     call glad_io_create(oc, instance%model, instance)
 
@@ -246,8 +246,8 @@
     call glide_nc_filldvars(oc, instance%model)
 
     ! Write the time variables (and time bounds, for time-average files), then the fields
-    call glimmer_nc_write_timeslice(oc, instance%model, instance%glide_time, &
-         glc_io_days_since_ref(CurrentTime))
+    call glimmer_nc_write_timeslice(oc, instance%model%funits, instance%glide_time, &
+         glc_io_days_since_ref(CurrentTime), instance%model%numerics%tstep_count)
     call glide_io_write(oc, instance%model)
     call glad_io_write(oc, instance)
 
@@ -460,8 +460,8 @@
 !jw    oc%metadata%comment =
 
     ! create the output unit
-    call glimmer_nc_createfile(oc, instance%model, external_baseline_year=time_ref_year, &
-         external_time_units=time_units)
+    call glimmer_nc_createfile(oc, instance%model%funits, instance%model%projection, &
+         external_baseline_year=time_ref_year, external_time_units=time_units)
     call glide_io_create(oc, instance%model, instance%model)
     call glad_io_create(oc, instance%model, instance)
 
@@ -486,8 +486,9 @@
     end if
 
     call glide_nc_filldvars(oc, instance%model)
-    call glimmer_nc_checkwrite(oc, instance%model, forcewrite=.true., &
-         time=instance%glide_time, &
+    call glimmer_nc_checkwrite(oc, instance%model%funits, forcewrite=.true., &
+         time=instance%glide_time, tinc=instance%model%numerics%tinc, &
+         tstep_count=instance%model%numerics%tstep_count, &
          external_time = glc_io_days_since_ref(CurrentTime))
     call glide_io_write(oc, instance%model)
     call glad_io_write(oc, instance)
