@@ -155,7 +155,7 @@
     ! If it is absent (e.g., for the initial h0i file), there is no time_period_freq attribute.
 
     use glad_type
-    use glide_io, only : glide_io_create, glide_io_write, glide_avg_reset
+    use glissade_io, only : glissade_io_create, glissade_io_write, glissade_avg_reset
     use glad_io, only : glad_io_create, glad_io_write
     use glide_nc_custom, only: glide_nc_filldvars
     use glimmer_ncio, only: glimmer_nc_newfile, glimmer_nc_write_timeslice, glimmer_nc_closefile
@@ -210,7 +210,7 @@
     call glimmer_nc_newfile(oc, filename)
     call glimmer_nc_createfile(oc, instance%model%funits, instance%model%projection, &
          external_baseline_year=time_ref_year, external_time_units=time_units)
-    call glide_io_create(oc, instance%model, instance%model)
+    call glissade_io_create(oc, instance%model, instance%model)
     call glad_io_create(oc, instance%model, instance)
 
     if (my_task == master_task) then
@@ -248,13 +248,13 @@
     ! Write the time variables (and time bounds, for time-average files), then the fields
     call glimmer_nc_write_timeslice(oc, instance%model%funits, instance%glide_time, &
          glc_io_days_since_ref(CurrentTime), instance%model%numerics%tstep_count)
-    call glide_io_write(oc, instance%model)
+    call glissade_io_write(oc, instance%model)
     call glad_io_write(oc, instance)
 
     ! Start a new averaging period for any time-average fields
     ! Note: Glad currently has no tavg fields, so there is no glad_avg_reset.
     if (oc%do_averages) then
-       call glide_avg_reset(oc, instance%model)
+       call glissade_avg_reset(oc, instance%model)
     end if
 
     ! Close the file; the output object persists for the next write
@@ -343,7 +343,7 @@
     ! does not start at the beginning of a year.
 
     use glad_type
-    use glide_io, only : glide_avg_reset
+    use glissade_io, only : glissade_avg_reset
     use glimmer_ncio, only: glimmer_nc_checkwrite_init
 
     implicit none
@@ -361,7 +361,7 @@
     if ( rc /= ESMF_SUCCESS ) call shr_sys_abort("ERROR: glc_io_reset_tavg_interval: ESMF_ClockGet")
 
     if (oc%do_averages) then
-       call glide_avg_reset(oc, instance%model)
+       call glissade_avg_reset(oc, instance%model)
     end if
     call glimmer_nc_checkwrite_init(oc, instance%glide_time, &
          external_time=glc_io_days_since_ref(CurrentTime))
@@ -377,7 +377,7 @@
 
     use glc_files           , only : get_rpointer_filename
     use glad_type
-    use glide_io            , only : glide_io_create, glide_io_write
+    use glissade_io         , only : glissade_io_create, glissade_io_write
     use glad_io             , only : glad_io_create, glad_io_write
     use glide_nc_custom     , only : glide_nc_filldvars
     use glad_main           , only : glad_okay_to_restart
@@ -462,7 +462,7 @@
     ! create the output unit
     call glimmer_nc_createfile(oc, instance%model%funits, instance%model%projection, &
          external_baseline_year=time_ref_year, external_time_units=time_units)
-    call glide_io_create(oc, instance%model, instance%model)
+    call glissade_io_create(oc, instance%model, instance%model)
     call glad_io_create(oc, instance%model, instance)
 
     if (my_task == master_task) then
@@ -490,7 +490,7 @@
          time=instance%glide_time, tinc=instance%model%numerics%tinc, &
          tstep_count=instance%model%numerics%tstep_count, &
          external_time = glc_io_days_since_ref(CurrentTime))
-    call glide_io_write(oc, instance%model)
+    call glissade_io_write(oc, instance%model)
     call glad_io_write(oc, instance)
 
     if (my_task == master_task) then
