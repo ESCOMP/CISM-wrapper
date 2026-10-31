@@ -246,7 +246,7 @@
     call glissade_nc_filldvars(oc, instance%model)
 
     ! Write the time variables (and time bounds, for time-average files), then the fields
-    call glimmer_nc_write_timeslice(oc, instance%model%funits, instance%glide_time, &
+    call glimmer_nc_write_timeslice(oc, instance%model%funits, instance%glissade_time, &
          glc_io_days_since_ref(CurrentTime), instance%model%numerics%tstep_count)
     call glissade_io_write(oc, instance%model)
     call glad_io_write(oc, instance)
@@ -363,7 +363,7 @@
     if (oc%do_averages) then
        call glissade_avg_reset(oc, instance%model)
     end if
-    call glimmer_nc_checkwrite_init(oc, instance%glide_time, &
+    call glimmer_nc_checkwrite_init(oc, instance%glissade_time, &
          external_time=glc_io_days_since_ref(CurrentTime))
 
   end subroutine glc_io_reset_tavg_interval
@@ -487,7 +487,7 @@
 
     call glissade_nc_filldvars(oc, instance%model)
     call glimmer_nc_checkwrite(oc, instance%model%funits, forcewrite=.true., &
-         time=instance%glide_time, tinc=instance%model%numerics%tinc, &
+         time=instance%glissade_time, tinc=instance%model%numerics%tinc, &
          tstep_count=instance%model%numerics%tstep_count, &
          external_time = glc_io_days_since_ref(CurrentTime))
     call glissade_io_write(oc, instance%model)
