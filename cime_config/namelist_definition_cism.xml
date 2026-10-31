@@ -1057,21 +1057,6 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="vertical_integration">
-    <type>integer</type>
-    <category>cism_config_options</category>
-    <group>options</group>
-    <valid_values>0,1</valid_values>
-    <values>
-      <value>0</value>
-    </values>
-    <desc>
-      Method of integration used to obtain vertical velocity
-      0: standard vertical integration
-      1: vertical integration constrained to obey an upper kinematic boundary condition
-      Default: 0
-    </desc>
-  </entry>
 
   <entry id="basal_mass_balance">
     <type>integer</type>
@@ -1139,19 +1124,6 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="periodic_ew" skip_default_entry="true">
-    <type>integer</type>
-    <category>cism_config_options</category>
-    <group>options</group>
-    <valid_values>0,1</valid_values>
-    <desc>
-      0: no periodic EW boundary conditions
-      1: periodic EW boundary conditions
-      (This is a Glimmer serial option. The parallel code enforces periodic
-      EW and NS boundary conditions by default.)
-      Default: (use hard-coded default - currently 0)
-    </desc>
-  </entry>
 
   <entry id="diag_minthck" skip_default_entry="true">
     <type>integer</type>
@@ -1656,38 +1628,8 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="basal_tract_max" skip_default_entry="true">
-    <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
-    <desc>
-      (m yr-1 Pa-1)
-      (Only used for slip_coeff = BTRC_LINEAR_BMLT)
-      Default: (use hard-coded default - currently 0.)
-    </desc>
-  </entry>
 
-  <entry id="basal_tract_slope" skip_default_entry="true">
-    <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
-    <desc>
-      (Pa-1)
-      (Only used for slip_coeff = BTRC_LINEAR_BMLT)
-      Default: (use hard-coded default - currently 0.)
-    </desc>
-  </entry>
 
-  <entry id="basal_tract_tanh" skip_default_entry="true">
-    <type>real(5)</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
-    <desc>
-      5-element list of values
-      (Only used for slip_coeff = BTRC_TANH_BWAT)
-      Default: (use hard-coded default - currently 0.2d0, 0.5d0, 0.0d0 ,1.0d-2, 1.0d0)
-    </desc>
-  </entry>
 
   <entry id="periodic_offset_ew" skip_default_entry="true">
     <type>real</type>
