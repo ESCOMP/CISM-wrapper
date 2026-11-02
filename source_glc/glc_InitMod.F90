@@ -423,7 +423,7 @@
    call shr_file_freeunit(unit)
 
 ! Do the following:
-! For each instance, convert ice_sheet%instances(i)%glide_time to hours and compare to nhour_glad.
+! For each instance, convert ice_sheet%instances(i)%glissade_time to hours and compare to nhour_glad.
 ! If different: Reset params%instances(i)%next_time, params%start_time, params%next_av_start
 ! Do this here or in initialise_glad?
 

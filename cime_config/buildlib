@@ -77,7 +77,6 @@ def buildlib(bldroot, libroot, case):
     # Note that some other generic CMAKE options are set in the Makefile
     cmake_opts = ""
     cmake_opts = cmake_opts + " -D CISM_COUPLED=ON"
-    cmake_opts = cmake_opts + " -D CISM_USE_MPI_WITH_SLAP=ON"
 
     # CISM_USE_GPTL_INSTRUMENTATION is unnecessary (and possibly harmful)
     # when built inside CESM;  for CESM we instead use -DCCSMCOUPLED, which
@@ -89,14 +88,8 @@ def buildlib(bldroot, libroot, case):
     cmake_opts = cmake_opts + " -D CISM_MPI_INC_DIR=\\$(INC_MPI)"
     cmake_opts = cmake_opts + " -D CISM_SOURCEMOD_DIR={}/source_cism".format(sourcemod_dir)
 
-    # Turn on MPI_MODE always. This works within CESM because we always
-    # have an mpi library (possibly mpi-serial). And always turning on
-    # MPI_MODE means that we can defer more decisions to
-    # runtime. (Although this comes with a small performance cost when we
-    # don't actually need mpi.)
-    cmake_opts = cmake_opts + " -D CISM_MPI_MODE=ON"
-    cmake_opts = cmake_opts + " -D CISM_SERIAL_MODE=OFF"
-    cmake_opts = cmake_opts + " -D CISM_USE_TRILINOS=OFF"
+    # Note: CISM is always built with MPI. This works within CESM because we
+    # always have an mpi library (possibly mpi-serial).
 
     # ----------------------------------------------------------------------
     # Set mkDepends to append libglimmercismfortran.a to the end of each
