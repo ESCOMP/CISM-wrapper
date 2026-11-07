@@ -1,0 +1,5 @@
+This testmod sets ice_covered_thck_scale = 4.0, so that CISM sends the coupler a
+fractional ice_covered field, min(1, thck/4 m), instead of a binary (0 or 1) field.
+This tests the coupling of fractional ice cover (lnd -> glc downscaling in CMEPS,
+and the land-model glacier fractions), including exact restart.
+It requires a CMEPS version that supports fractional ice_covered values.
