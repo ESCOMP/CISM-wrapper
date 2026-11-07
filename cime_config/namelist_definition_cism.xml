@@ -668,7 +668,7 @@ Sub-elements of each entry include:
     <category>cism_config_history</category>
     <group>cism_history</group>
     <values>
-      <value cism_evolve_this_icesheet=".true." >smb artm thk usurf topg uvel vvel temp bmlt bwat beta_internal floating_mask grounded_mask bpmp acab_applied bmlt_applied calving_rate iareaf iareag imass imass_above_flotation total_smb_flux total_bmb_flux total_calving_flux total_gl_flux ice_sheet_mask ice_cap_mask</value>
+      <value cism_evolve_this_icesheet=".true." >smb artm thk usurf topg uvel vvel temp bmlt bwat beta_internal floating_mask grounded_mask bpmp acab_applied bmlt_applied calving_rate iareaf iareag imass imass_above_flotation total_smb_flux total_bmb_flux total_calving_flux total_gl_flux ice_sheet_mask ice_cap_mask acab_cpl_tavg acab_applied_tavg acab_unapplied_glad_tavg acab_unapplied_tavg total_smb_flux_tavg total_smb_cpl_flux_tavg total_smb_unapplied_glad_flux_tavg total_smb_unapplied_flux_tavg</value>
       <value cism_evolve_this_icesheet=".false.">smb artm thk usurf topg</value>
     </values>
     <desc>
