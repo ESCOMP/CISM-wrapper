@@ -612,6 +612,24 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="ice_covered_thck_scale">
+    <type>real</type>
+    <category>cism_config_climate</category>
+    <group>glad_climate</group>
+    <values>
+      <value>0.0</value>
+    </values>
+    <desc>
+      Thickness scale (m) for the ice-covered fraction sent to the coupler.
+      If greater than 0, ice_covered = min(1, thck/ice_covered_thck_scale), so that
+      cells with thin ice are treated as partly ice-covered. This reduces water
+      conservation errors from cells holding only a trace of ice.
+      If 0, ice_covered = 1 where thck &gt; 0, else 0.
+      Fractional values require a coupler (CMEPS) that supports them.
+      Default: 0.0
+    </desc>
+  </entry>
+
   <entry id="zero_gcm_fluxes">
     <type>logical</type>
     <category>cism_config_climate</category>
