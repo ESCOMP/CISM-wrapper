@@ -1,0 +1,3 @@
+! Send a fractional ice_covered field to the coupler: ice_covered = min(1, thck/4 m)
+! Requires a CMEPS version that supports fractional ice_covered values.
+ice_covered_thck_scale = 4.0

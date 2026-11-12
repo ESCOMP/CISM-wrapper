@@ -1,0 +1,8 @@
+This testmod uses the Greenland ice sheet settings of the CESM3 alpha11d coupled runs
+(e.g., b.e30_alpha11d.B1850_MTso.ne30_t233_wgx3.419): power-law basal sliding
+(which_ho_babc = 9) with a spatially varying friction coefficient (which_ho_powerlaw_c = 2)
+obtained by inversion in a standalone spin-up. The coefficient and the initial ice sheet
+state are read from a CISM restart file of a coupled run (in inputdata, cesm2_init).
+
+Intended for Greenland ice sheet tests at 4 km (gris4), e.g.
+ERS_Ly3.f09_g17_gris4.T1850Gg.derecho_intel.cism-gris_powerlaw

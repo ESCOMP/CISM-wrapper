@@ -612,6 +612,24 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="ice_covered_thck_scale">
+    <type>real</type>
+    <category>cism_config_climate</category>
+    <group>glad_climate</group>
+    <values>
+      <value>0.0</value>
+    </values>
+    <desc>
+      Thickness scale (m) for the ice-covered fraction sent to the coupler.
+      If greater than 0, ice_covered = min(1, thck/ice_covered_thck_scale), so that
+      cells with thin ice are treated as partly ice-covered. This reduces water
+      conservation errors from cells holding only a trace of ice.
+      If 0, ice_covered = 1 where thck &gt; 0, else 0.
+      Fractional values require a coupler (CMEPS) that supports them.
+      Default: 0.0
+    </desc>
+  </entry>
+
   <entry id="zero_gcm_fluxes">
     <type>logical</type>
     <category>cism_config_climate</category>
@@ -650,7 +668,7 @@ Sub-elements of each entry include:
     <category>cism_config_history</category>
     <group>cism_history</group>
     <values>
-      <value cism_evolve_this_icesheet=".true." >smb artm thk usurf topg uvel vvel temp bmlt bwat beta_internal floating_mask grounded_mask bpmp acab_applied bmlt_applied calving_rate iareaf iareag imass imass_above_flotation total_smb_flux total_bmb_flux total_calving_flux total_gl_flux ice_sheet_mask ice_cap_mask</value>
+      <value cism_evolve_this_icesheet=".true." >smb artm thk usurf topg uvel vvel temp bmlt bwat beta_internal floating_mask grounded_mask bpmp acab_applied bmlt_applied calving_rate iareaf iareag imass imass_above_flotation total_smb_flux total_bmb_flux total_calving_flux total_gl_flux ice_sheet_mask ice_cap_mask acab_cpl_tavg acab_applied_tavg acab_unapplied_glad_tavg acab_unapplied_tavg total_smb_flux_tavg total_smb_cpl_flux_tavg total_smb_unapplied_glad_flux_tavg total_smb_unapplied_flux_tavg</value>
       <value cism_evolve_this_icesheet=".false.">smb artm thk usurf topg</value>
     </values>
     <desc>

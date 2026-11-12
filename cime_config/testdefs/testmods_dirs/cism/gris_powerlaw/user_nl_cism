@@ -1,0 +1,16 @@
+! Greenland settings of the CESM3 alpha11d coupled runs (b.e30_alpha11d.B1850_MTso.ne30_t233_wgx3.419-422):
+! power-law sliding with the basal friction coefficient powerlaw_c from an inversion,
+! read from the CISM restart file of run b.e30_alpha11b.B1850C_MTso.ne30_t233_wgx3.416 (year 21).
+cisminputfile = '$DIN_LOC_ROOT/cesm2_init/b.e30_alpha11b.B1850C_MTso.ne30_t233_wgx3.416/0021-01-01/b.e30_alpha11b.B1850C_MTso.ne30_t233_wgx3.416.cism.gris.r.0021-01-01-00000.nc'
+which_ho_babc = 9
+which_ho_powerlaw_c = 2
+which_ho_bwat = 0
+which_ho_effecpress = 0
+glissade_maxiter = 100
+block_inception = .false.
+remove_ice_caps = .false.
+thck_gradient_ramp = 100.
+pmp_offset = 10.
+beta_powerlaw_umax = 5000.
+pseudo_plastic_q = 0.25
+p_ocean_penetration = 0.5
