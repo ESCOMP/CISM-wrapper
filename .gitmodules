@@ -4,49 +4,49 @@
 [submodule "source_cism"]
 path = source_cism
 url = https://github.com/ESCOMP/cism
-fxtag = cism_main_3.00.002
+fxtag = cism_main_3.00.003
 fxrequired = AlwaysRequired
 fxDONOTUSEurl = https://github.com/ESCOMP/cism
 
 [submodule "cime"]
 path = cime
 url = https://github.com/ESMCI/cime.git
-fxtag = cime6.1.169
+fxtag = cime6.8.4
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/ESMCI/cime.git
 
 [submodule "ccs_config"]
 path = ccs_config
 url = https://github.com/ESMCI/ccs_config_cesm.git
-fxtag = ccs_config_cesm1.0.79
+fxtag = ccs_config_cesm1.0.98
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/ESMCI/ccs_config_cesm.git
 
 [submodule "cmeps"]
 path = components/cmeps
 url = https://github.com/ESCOMP/CMEPS.git
-fxtag = cmeps1.1.42
+fxtag = cmeps1.1.76
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/ESCOMP/CMEPS.git
 
 [submodule "cdeps"]
 path = components/cdeps
 url = https://github.com/ESCOMP/CDEPS
-fxtag = cdeps1.0.93
+fxtag = cdeps1.0.113
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/ESCOMP/CDEPS
 
 [submodule "share"]
 path = share
 url = https://github.com/ESCOMP/CESM_share
-fxtag = share1.1.19
+fxtag = share1.1.22
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/ESCOMP/CESM_share
 
 [submodule "ctsm"]
 path = components/clm
 url = https://github.com/ESCOMP/CTSM.git
-fxtag = ctsm5.4.027
+fxtag = ctsm5.4.063
 fxrequired = ToplevelRequired
 fxDONOTUSEurl = https://github.com/ESCOMP/CTSM.git
 
@@ -74,7 +74,7 @@ fxDONOTUSEurl = https://github.com/ESCOMP/FTorch_interface
 [submodule "fms"]
 	path = libraries/FMS
 	url = https://github.com/ESCOMP/FMS_interface
-fxtag = fi_250428
+fxtag = fi_260310
 fxDONOTUSEurl = https://github.com/ESCOMP/FMS_interface
 fxrequired = ToplevelRequired
 
@@ -83,4 +83,4 @@ fxrequired = ToplevelRequired
 	url = https://github.com/NCAR/CUPiD.git
 fxDONOTUSEurl = https://github.com/NCAR/CUPiD.git
 fxrequired = ToplevelRequired
-fxtag = v0.5.1
+fxtag = v0.7.0

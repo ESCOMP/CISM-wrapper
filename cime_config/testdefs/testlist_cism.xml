@@ -573,7 +573,18 @@
     </machines>
   </test>
 
-  <test name="ERS_Ly3" grid="f09_g17_gris4" compset="T1850Gg" testmods="cism-gris_powerlaw">
+  <test name="ERS_Ly5" grid="f09_g17_gris4" compset="I1850Clm50SpG" testmods="cism-fractional_ice_covered">
+    <machines>
+      <machine name="derecho" compiler="gnu" category="aux_glc">
+        <options>
+          <option name="wallclock">0:50:00</option>
+          <option name="comment">Exact restart test with a fractional ice coverage applied to the ice sheet margins in order to improve conservation in a coupled simulation.</option>
+        </options>
+      </machine>
+    </machines>
+  </test>
+
+    <test name="ERS_Ly3" grid="f09_g17_gris4" compset="T1850Gg" testmods="cism-gris_powerlaw">
     <machines>
       <machine name="derecho" compiler="intel" category="aux_glc">
         <options>
@@ -582,7 +593,7 @@
         </options>
       </machine>
     </machines>
-  </test>
+  </test> 
 
   <test name="ERI_Ly9" grid="f09_g17_ais8gris4" compset="T1850Gag" testmods="cism-noevolve_ais">
     <machines>
