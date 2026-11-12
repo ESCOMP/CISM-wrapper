@@ -148,7 +148,7 @@
     !
     ! The sequence of calls follows the one documented in CISM (see NAME_io_writeall in
     ! ncdf_template.F90.in): glimmer_nc_newfile, glimmer_nc_createfile, *_io_create,
-    ! (CESM global attributes), glide_nc_filldvars, glimmer_nc_write_timeslice, *_io_write,
+    ! (CESM global attributes), glissade_nc_filldvars, glimmer_nc_write_timeslice, *_io_write,
     ! *_avg_reset, glimmer_nc_closefile.
     !
     ! history_frequency_metadata gives the text for the time_period_freq global attribute.
@@ -157,7 +157,7 @@
     use glad_type
     use glissade_io, only : glissade_io_create, glissade_io_write, glissade_avg_reset
     use glad_io, only : glad_io_create, glad_io_write
-    use glide_nc_custom, only: glide_nc_filldvars
+    use glissade_nc_custom, only: glissade_nc_filldvars
     use glimmer_ncio, only: glimmer_nc_newfile, glimmer_nc_write_timeslice, glimmer_nc_closefile
 
     implicit none
@@ -243,10 +243,10 @@
     end if
 
     ! Fill the dimension variables (this also leaves define mode)
-    call glide_nc_filldvars(oc, instance%model)
+    call glissade_nc_filldvars(oc, instance%model)
 
     ! Write the time variables (and time bounds, for time-average files), then the fields
-    call glimmer_nc_write_timeslice(oc, instance%model%funits, instance%glide_time, &
+    call glimmer_nc_write_timeslice(oc, instance%model%funits, instance%glissade_time, &
          glc_io_days_since_ref(CurrentTime), instance%model%numerics%tstep_count)
     call glissade_io_write(oc, instance%model)
     call glad_io_write(oc, instance)
@@ -363,7 +363,7 @@
     if (oc%do_averages) then
        call glissade_avg_reset(oc, instance%model)
     end if
-    call glimmer_nc_checkwrite_init(oc, instance%glide_time, &
+    call glimmer_nc_checkwrite_init(oc, instance%glissade_time, &
          external_time=glc_io_days_since_ref(CurrentTime))
 
   end subroutine glc_io_reset_tavg_interval
@@ -379,7 +379,7 @@
     use glad_type
     use glissade_io         , only : glissade_io_create, glissade_io_write
     use glad_io             , only : glad_io_create, glad_io_write
-    use glide_nc_custom     , only : glide_nc_filldvars
+    use glissade_nc_custom  , only : glissade_nc_filldvars
     use glad_main           , only : glad_okay_to_restart
     use glad_input_averages , only : get_av_start_time
 
@@ -485,9 +485,9 @@
        call nc_errorhandle(__FILE__,__LINE__,status)
     end if
 
-    call glide_nc_filldvars(oc, instance%model)
+    call glissade_nc_filldvars(oc, instance%model)
     call glimmer_nc_checkwrite(oc, instance%model%funits, forcewrite=.true., &
-         time=instance%glide_time, tinc=instance%model%numerics%tinc, &
+         time=instance%glissade_time, tinc=instance%model%numerics%tinc, &
          tstep_count=instance%model%numerics%tstep_count, &
          external_time = glc_io_days_since_ref(CurrentTime))
     call glissade_io_write(oc, instance%model)
