@@ -901,10 +901,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="marine_margin">
+  <entry id="calving_law">
     <type>integer</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_calving</category>
+    <group>calving</group>
     <valid_values>0,1,2,3,4,5,6,7,8,9</valid_values>
     <values>
       <value icesheet="gris">1</value>
@@ -929,8 +929,8 @@ Sub-elements of each entry include:
 
   <entry id="calving_domain">
     <type>integer</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_calving</category>
+    <group>calving</group>
     <valid_values>0,1</valid_values>
     <values>
       <value>1</value>
@@ -944,8 +944,8 @@ Sub-elements of each entry include:
 
   <entry id="apply_calving_mask">
     <type>logical</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_calving</category>
+    <group>calving</group>
     <values>
       <value>.false.</value>
     </values>
@@ -957,8 +957,8 @@ Sub-elements of each entry include:
 
   <entry id="remove_icebergs">
     <type>logical</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_calving</category>
+    <group>calving</group>
     <values>
       <value>.true.</value>
     </values>
@@ -973,8 +973,8 @@ Sub-elements of each entry include:
 
   <entry id="remove_isthmuses">
     <type>logical</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_calving</category>
+    <group>calving</group>
     <values>
       <value icesheet="gris">.false.</value>
       <value icesheet="ais">.false.</value>
@@ -1004,8 +1004,8 @@ Sub-elements of each entry include:
 
   <entry id="limit_marine_cliffs">
     <type>logical</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_calving</category>
+    <group>calving</group>
     <values>
       <value>.false.</value>
     </values>
@@ -1046,8 +1046,8 @@ Sub-elements of each entry include:
 
   <entry id="calving_init">
     <type>integer</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_calving</category>
+    <group>calving</group>
     <valid_values>0,1</valid_values>
     <values>
       <value>1</value>
@@ -1447,8 +1447,8 @@ Sub-elements of each entry include:
 
   <entry id="marine_limit" skip_default_entry="true">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_calving</category>
+    <group>calving</group>
     <desc>
       All ice is assumed lost once water depths reach this value (for marine_margin=3 or 4) (m)
       Note that water depth is negative
@@ -1458,8 +1458,8 @@ Sub-elements of each entry include:
 
   <entry id="calving_fraction" skip_default_entry="true">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_calving</category>
+    <group>calving</group>
     <desc>
       Fraction of ice lost to calving (marine_margin = 2 only)
       Default: (use hard-coded default - currently 0.2)
@@ -1468,8 +1468,8 @@ Sub-elements of each entry include:
 
   <entry id="calving_minthck">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_calving</category>
+    <group>calving</group>
     <values>
       <value>100.</value>
     </values>
@@ -1481,8 +1481,8 @@ Sub-elements of each entry include:
 
   <entry id="taumax_cliff">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_calving</category>
+    <group>calving</group>
     <values>
       <value icesheet="gris">1.e6</value>
       <value icesheet="ais" >1.e6</value>
@@ -1495,8 +1495,8 @@ Sub-elements of each entry include:
 
   <entry id="cliff_timescale">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_calving</category>
+    <group>calving</group>
     <values>
       <value>0.</value>
     </values>
@@ -1508,8 +1508,8 @@ Sub-elements of each entry include:
 
   <entry id="eigenconstant">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_calving</category>
+    <group>calving</group>
     <values>
       <value>5.e5</value>
     </values>
@@ -1522,8 +1522,8 @@ Sub-elements of each entry include:
 
   <entry id="calving_timescale">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_calving</category>
+    <group>calving</group>
     <values>
       <value icesheet="gris">0.</value>
       <value icesheet="ais">0.</value>
@@ -1538,8 +1538,8 @@ Sub-elements of each entry include:
 
   <entry id="stress_threshold">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_calving</category>
+    <group>calving</group>
     <values>
       <value>7.5e4</value>
     </values>
@@ -1552,8 +1552,8 @@ Sub-elements of each entry include:
 
   <entry id="tau_eigenconstant1">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_calving</category>
+    <group>calving</group>
     <values>
       <value>0.3</value>
     </values>
@@ -1566,8 +1566,8 @@ Sub-elements of each entry include:
 
   <entry id="tau_eigenconstant2">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_calving</category>
+    <group>calving</group>
     <values>
       <value>1.</value>
     </values>
@@ -2869,10 +2869,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="which_ho_calving_front">
+  <entry id="subgrid_calving_front">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_calving</category>
+    <group>calving</group>
     <valid_values>0,1,2</valid_values>
     <values>
       <value>0</value>

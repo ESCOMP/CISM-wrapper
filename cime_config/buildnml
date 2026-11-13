@@ -42,7 +42,7 @@ _CISM_IN_GROUPS = ["cism_params", "time_manager_nml", "glc_override_nml"]
 
 # namelist groups in the cism.icesheet.config file
 _CISM_CONFIG_GROUPS = ["grid", "glad_climate", "esm_output", "options", "sigma", "time", "parameters",
-                       "grid_ocn", "ho_options", "gthf", "isostasy", "derived"]
+                       "grid_ocn", "ho_options", "calving", "gthf", "isostasy", "derived"]
 
 # namelist groups that are not written to any file, but are used to write the
 # cism.icesheet.config file (e.g., esm_history_vars, which buildnml splits into the h0i and
@@ -489,6 +489,7 @@ def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid,
     _update_cism_config(nmlgen, output_file, mode="a", header="time", group="time")
     _update_cism_config(nmlgen, output_file, mode="a", header="parameters", group="parameters")
     _update_cism_config(nmlgen, output_file, mode="a", header="ho_options", group="ho_options")
+    _update_cism_config(nmlgen, output_file, mode="a", header="calving", group="calving")
     _add_conditional_section_to_cism_config(nmlgen, output_file, group="gthf",
                                             control_var="gthf",
                                             value_for_addition=_GTHF_CALCULATE)
