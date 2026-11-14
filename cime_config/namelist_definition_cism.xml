@@ -574,7 +574,7 @@ Sub-elements of each entry include:
   <!-- group: cism.icesheet.config: sigma                             -->
   <!-- =============================================================  -->
 
-  <!-- This group is only relevant if sigma = 2 -->
+  <!-- This group is only relevant if sigma_method = 2 -->
 
   <entry id="sigma_levels" >
     <type>real(20)</type>
@@ -587,7 +587,7 @@ Sub-elements of each entry include:
     <desc>
       List of sigma levels, in ascending order, separated by spaces
       These run between 0.0 (at top surface) and 1.0 (at lower surface)
-      Only relevant if sigma = 2
+      Only relevant if sigma_method = 2
       Default: 0.00 0.15 0.30 0.45 0.60 0.75 0.83 0.90 0.95 0.98 1.00
     </desc>
   </entry>
@@ -1004,8 +1004,8 @@ Sub-elements of each entry include:
 <!--KTC TODO: AIS false after new input files (07/2025)-->
   <entry id="adjust_input_thickness">
     <type>logical</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_initialization</category>
+    <group>initialization</group>
     <values>
       <value icesheet="gris">.false.</value>
       <value icesheet="ais" >.true.</value>
@@ -1019,8 +1019,8 @@ Sub-elements of each entry include:
 <!--KTC TODO: Both to .true. after new input files (07/2025)-->
   <entry id="read_lat_lon">
     <type>logical</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_grid</category>
+    <group>grid</group>
     <values>
       <value>.false.</value>
     </values>
@@ -1108,10 +1108,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="sigma">
+  <entry id="sigma_method">
     <type>integer</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_grid</category>
+    <group>grid</group>
     <valid_values>0,2,3,4</valid_values>
     <values>
       <value>0</value>
@@ -1130,8 +1130,8 @@ Sub-elements of each entry include:
 
   <entry id="diag_minthck" skip_default_entry="true">
     <type>integer</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_diagnostics</category>
+    <group>diagnostics</group>
     <valid_values>0,1</valid_values>
     <desc>
       How to determine minimum thickness for diagnostic
@@ -1144,8 +1144,8 @@ Sub-elements of each entry include:
 
   <entry id="dm_dt_diag">
     <type>integer</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_diagnostics</category>
+    <group>diagnostics</group>
     <valid_values>0,1</valid_values>
     <values>
       <value>1</value>
@@ -1344,8 +1344,8 @@ Sub-elements of each entry include:
 
   <entry id="log_level">
     <type>integer</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_options</category>
+    <group>options</group>
     <valid_values>0,1,2,3,4,5,6</valid_values>
     <values>
       <value>1</value>
@@ -1361,8 +1361,8 @@ Sub-elements of each entry include:
 
   <entry id="ice_limit">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_numerics</category>
+    <group>numerics</group>
     <values>
       <value>1.</value>
     </values>
@@ -1375,8 +1375,8 @@ Sub-elements of each entry include:
 
   <entry id="thck_gradient_ramp">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_numerics</category>
+    <group>numerics</group>
     <values>
       <value icesheet="gris">50.</value>
       <value icesheet="ais" >50.</value>
@@ -1636,8 +1636,8 @@ Sub-elements of each entry include:
 
   <entry id="periodic_offset_ew" skip_default_entry="true">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_numerics</category>
+    <group>numerics</group>
     <desc>
       Optional periodic offset for ismip-hom and similar tests
       May be needed to ensure continuous ice geometry at the edges of the global domain
@@ -1647,8 +1647,8 @@ Sub-elements of each entry include:
 
   <entry id="periodic_offset_ns" skip_default_entry="true">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_numerics</category>
+    <group>numerics</group>
     <desc>
       Optional periodic offset for ismip-hom and similar tests
       May be needed to ensure continuous ice geometry at the edges of the
@@ -2586,8 +2586,8 @@ Sub-elements of each entry include:
 
   <entry id="compute_blocks">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_numerics</category>
+    <group>numerics</group>
     <valid_values>0,1,2</valid_values>
     <values>
       <value>0</value>
@@ -3004,8 +3004,8 @@ Sub-elements of each entry include:
 
     <entry id="reproducible_sums">
     <type>logical</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_numerics</category>
+    <group>numerics</group>
     <values>
       <value>.true.</value>
     </values>
@@ -3919,84 +3919,6 @@ Sub-elements of each entry include:
   <!--      For standalone test cases, different values may need to be set in the user_nml file -->
   <!--      The default values listed below are the CESM defaults, not necessarily the CISM standalone defaults -->
   <!-- TODO: Change CISM standalone defaults to the CESM defaults? -->
-
-  <entry id="rhoi">
-    <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
-    <values>
-      <value>917.0</value>
-    </values>
-    <desc>
-      Density of ice (kg/m^3)
-      Default: 917.0
-    </desc>
-  </entry>
-
-  <entry id="rhoo">
-    <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
-    <values>
-      <value>1026.0</value>
-    </values>
-    <desc>
-      Density of the ocean (kg/m^3)
-      Default: 1026.0
-    </desc>
-  </entry>
-
-  <entry id="grav">
-    <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
-    <values>
-      <value>9.80616</value>
-    </values>
-    <desc>
-      Gravitational acceleration (m/s^2)
-      Default: 9.80616
-    </desc>
-  </entry>
-
-  <entry id="shci">
-    <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
-    <values>
-      <value>2117.27</value>
-    </values>
-    <desc>
-      Specific heat capacity of ice (J/kg/K)
-      Default: 2117.27
-    </desc>
-  </entry>
-
-  <entry id="lhci">
-    <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
-    <values>
-      <value>333700.</value>
-    </values>
-    <desc>
-      Latent heat capacity of ice (J/kg)
-      Default: 333700.
-    </desc>
-  </entry>
-
-  <entry id="trpt">
-    <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
-    <values>
-      <value>273.16</value>
-    </values>
-    <desc>
-      Triple point of water (K)
-      Default: 273.16.
-    </desc>
-  </entry>
 
   <entry id="n_glen">
     <type>real</type>

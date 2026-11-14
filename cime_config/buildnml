@@ -41,11 +41,12 @@ logger = logging.getLogger(__name__)
 _CISM_IN_GROUPS = ["cism_params", "time_manager_nml", "glc_override_nml"]
 
 # namelist groups in the cism.icesheet.config file
-_CISM_CONFIG_GROUPS = ["grid", "glad_climate", "esm_output", "options", "sigma", "time", "parameters",
+_CISM_CONFIG_GROUPS = ["grid", "glad_climate", "esm_output", "options", "sigma", "time",
                        "grid_ocn", "ho_options", "isostasy", "derived",
                        "calving", "removal", "climate", "basal_physics", "basal_hydro", "grounding_line",
                        "basal_melt", "ocean_data", "velocity", "velocity_solver",
-                       "advection", "flow_law", "temperature", "inversion", "geothermal"]
+                       "advection", "flow_law", "temperature", "inversion", "geothermal",
+                       "numerics", "initialization", "diagnostics"]
 
 # namelist groups that are not written to any file, but are used to write the
 # cism.icesheet.config file (e.g., esm_history_vars, which buildnml splits into the h0i and
@@ -69,7 +70,7 @@ _CISM_CONFIG_HELPER_GROUPS = ["cism_history"]
 _ICESHEET_OPTIONS = OrderedDict([('ais', 'ANTARCTICA'),
                                  ('gris', 'GREENLAND')])
 
-# value of 'sigma' that signifies that values are read from a sigma section
+# value of 'sigma_method' that signifies that values are read from a sigma section
 _SIGMA_IN_CONFIG_FILE = 2
 
 # value of 'isostasy' signifying that isostasy is enabled, and thus we
@@ -482,10 +483,12 @@ def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid,
     _update_cism_config(nmlgen, output_file, mode="a", header="esm_output", group="esm_output")
     _update_cism_config(nmlgen, output_file, mode="a", header="options", group="options")
     _add_conditional_section_to_cism_config(nmlgen, output_file, group="sigma",
-                                            control_var="sigma",
+                                            control_var="sigma_method",
                                             value_for_addition=_SIGMA_IN_CONFIG_FILE)
     _update_cism_config(nmlgen, output_file, mode="a", header="time", group="time")
-    _update_cism_config(nmlgen, output_file, mode="a", header="parameters", group="parameters")
+    _update_cism_config(nmlgen, output_file, mode="a", header="numerics", group="numerics")
+    _update_cism_config(nmlgen, output_file, mode="a", header="initialization", group="initialization")
+    _update_cism_config(nmlgen, output_file, mode="a", header="diagnostics", group="diagnostics")
     _update_cism_config(nmlgen, output_file, mode="a", header="ho_options", group="ho_options")
     _update_cism_config(nmlgen, output_file, mode="a", header="velocity", group="velocity")
     _update_cism_config(nmlgen, output_file, mode="a", header="velocity_solver", group="velocity_solver")
