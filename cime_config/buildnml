@@ -43,7 +43,8 @@ _CISM_IN_GROUPS = ["cism_params", "time_manager_nml", "glc_override_nml"]
 # namelist groups in the cism.icesheet.config file
 _CISM_CONFIG_GROUPS = ["grid", "glad_climate", "esm_output", "options", "sigma", "time", "parameters",
                        "grid_ocn", "ho_options", "gthf", "isostasy", "derived",
-                       "calving", "removal", "climate", "basal_physics", "basal_hydro", "grounding_line"]
+                       "calving", "removal", "climate", "basal_physics", "basal_hydro", "grounding_line",
+                       "basal_melt", "ocean_data"]
 
 # namelist groups that are not written to any file, but are used to write the
 # cism.icesheet.config file (e.g., esm_history_vars, which buildnml splits into the h0i and
@@ -493,6 +494,8 @@ def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid,
     _update_cism_config(nmlgen, output_file, mode="a", header="basal_physics", group="basal_physics")
     _update_cism_config(nmlgen, output_file, mode="a", header="basal_hydro", group="basal_hydro")
     _update_cism_config(nmlgen, output_file, mode="a", header="grounding_line", group="grounding_line")
+    _update_cism_config(nmlgen, output_file, mode="a", header="basal_melt", group="basal_melt")
+    _update_cism_config(nmlgen, output_file, mode="a", header="ocean_data", group="ocean_data")
     _update_cism_config(nmlgen, output_file, mode="a", header="climate", group="climate")
     _update_cism_config(nmlgen, output_file, mode="a", header="calving", group="calving")
     _update_cism_config(nmlgen, output_file, mode="a", header="removal", group="removal")
