@@ -2992,8 +2992,8 @@ Sub-elements of each entry include:
 
   <entry id="block_inception">
     <type>logical</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_climate</category>
+    <group>climate</group>
     <values>
       <value icesheet="gris">.true.</value>
       <value icesheet="ais" >.false</value>
@@ -3455,8 +3455,8 @@ Sub-elements of each entry include:
 
   <entry id="enable_acab_dthck_dt_correction">
     <type>logical</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_climate</category>
+    <group>climate</group>
     <values>
       <value>.false.</value>
     </values>
@@ -3468,8 +3468,8 @@ Sub-elements of each entry include:
 
  <entry id="enable_smb_anomaly">
     <type>logical</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_climate</category>
+    <group>climate</group>
     <values>
       <value>.false.</value>
     </values>
@@ -3481,8 +3481,8 @@ Sub-elements of each entry include:
 
   <entry id="enable_artm_anomaly">
     <type>logical</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_climate</category>
+    <group>climate</group>
     <values>
       <value>.false.</value>
     </values>
@@ -3494,8 +3494,8 @@ Sub-elements of each entry include:
 
 <entry id="enable_snow_anomaly">
     <type>logical</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_climate</category>
+    <group>climate</group>
     <values>
       <value>.false.</value>
     </values>
@@ -3507,8 +3507,8 @@ Sub-elements of each entry include:
 
   <entry id="enable_precip_anomaly">
     <type>logical</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_climate</category>
+    <group>climate</group>
     <values>
       <value>.false.</value>
     </values>
@@ -3553,8 +3553,8 @@ Sub-elements of each entry include:
 
   <entry id="artm_anomaly_tstart">
     <type>real</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_climate</category>
+    <group>climate</group>
     <values>
       <value>0.0</value>
     </values>
@@ -3566,8 +3566,8 @@ Sub-elements of each entry include:
 
   <entry id="artm_anomaly_timescale">
     <type>real</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_climate</category>
+    <group>climate</group>
     <values>
       <value>0.0</value>
     </values>
@@ -3579,8 +3579,8 @@ Sub-elements of each entry include:
 
   <entry id="smb_input">
     <type>integer</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_climate</category>
+    <group>climate</group>
     <valid_values>0</valid_values>
     <values>
       <value>0</value>
@@ -3597,8 +3597,8 @@ Sub-elements of each entry include:
 
   <entry id="smb_input_function">
     <type>integer</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_climate</category>
+    <group>climate</group>
     <valid_values>0,1,2,3</valid_values>
     <values>
       <value>0</value>
@@ -3615,8 +3615,8 @@ Sub-elements of each entry include:
 
   <entry id="artm_input_function">
     <type>integer</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_climate</category>
+    <group>climate</group>
     <valid_values>0,1,2,3</valid_values>
     <values>
       <value>0</value>
@@ -3633,8 +3633,8 @@ Sub-elements of each entry include:
 
   <entry id="smb_factor">
     <type>real</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_climate</category>
+    <group>climate</group>
     <values>
       <value>1.0</value>
     </values>
@@ -3646,8 +3646,8 @@ Sub-elements of each entry include:
 
   <entry id="smb_anomaly_tstart">
     <type>real</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_climate</category>
+    <group>climate</group>
     <values>
       <value>0.0</value>
     </values>
@@ -3659,8 +3659,8 @@ Sub-elements of each entry include:
 
   <entry id="smb_anomaly_timescale">
     <type>real</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_climate</category>
+    <group>climate</group>
     <values>
       <value>0.0</value>
     </values>
@@ -3672,8 +3672,8 @@ Sub-elements of each entry include:
 
   <entry id="degree_factor">
     <type>real</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_climate</category>
+    <group>climate</group>
     <values>
       <value>1000.0</value>
     </values>
@@ -4138,8 +4138,8 @@ Sub-elements of each entry include:
 
   <entry id="t_lapse">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_climate</category>
+    <group>climate</group>
     <values>
       <value>0.006</value>
     </values>
