@@ -1633,10 +1633,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="basal_tract_const">
+  <entry id="btrc_const">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <values>
       <value>1.e-4</value>
     </values>
@@ -1673,12 +1673,12 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="ho_beta_const" skip_default_entry="true">
+  <entry id="beta_const" skip_default_entry="true">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <desc>
-      Only relevant for which_ho_babc = 0
+      Only relevant for sliding_law = 0
       Spatially uniform beta for higher-order dycores (Pa yr m-1)
       Default: (use hard-coded default - currently 1000.)
     </desc>
@@ -1700,15 +1700,15 @@ Sub-elements of each entry include:
 
   <entry id="pseudo_plastic_q">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <values>
       <value>0.5</value>
     </values>
     <desc>
       Parameter for pseudo-plastic sliding law:
       Exponent for pseudo-plastic law (unitless)
-      pseudo_plastic_q and pseudo_plastic_u0 apply to which_ho_babc = 2 or 3 only
+      pseudo_plastic_q and pseudo_plastic_u0 apply to sliding_law = 2 or 3 only
       0 &lt;= q &lt;= 1
       q = 1: linear sliding law
       q = 0: plastic
@@ -1719,8 +1719,8 @@ Sub-elements of each entry include:
 
   <entry id="pseudo_plastic_u0">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <values>
       <value>100.</value>
     </values>
@@ -1728,14 +1728,14 @@ Sub-elements of each entry include:
       Parameter for pseudo-plastic sliding law:
       Threshold velocity for pseudo-plastic law (m yr-1)
       Default: 100.
-      pseudo_plastic_q and pseudo_plastic_u0 apply to which_ho_babc = 2 or 3 only
+      pseudo_plastic_q and pseudo_plastic_u0 apply to sliding_law = 2 or 3 only
     </desc>
   </entry>
 
   <entry id="beta_grounded_min">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <values>
       <value icesheet="gris">100.</value>
       <value icesheet="ais" >1.</value>
@@ -1952,8 +1952,8 @@ Sub-elements of each entry include:
 
   <entry id="powerlaw_c_const">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <values>
       <value icesheet="gris">2.0e+4</value>
       <value icesheet="ais" >2.0e+4</value>
@@ -1967,8 +1967,8 @@ Sub-elements of each entry include:
 
   <entry id="powerlaw_m">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <values>
       <value>3.0</value>
     </values>
@@ -1981,8 +1981,8 @@ Sub-elements of each entry include:
 
   <entry id="powerlaw_c_max">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <values>
       <value>1.0e+5</value>
     </values>
@@ -1996,8 +1996,8 @@ Sub-elements of each entry include:
 
   <entry id="powerlaw_c_min">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <values>
       <value icesheet="gris">100.</value>
       <value icesheet="ais" >100.</value>
@@ -2013,8 +2013,8 @@ Sub-elements of each entry include:
 
   <entry id="coulomb_c_const">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <values>
       <value icesheet="gris">0.42</value>
       <value icesheet="ais" >0.42</value>
@@ -2029,8 +2029,8 @@ Sub-elements of each entry include:
 
   <entry id="coulomb_c_hi">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <values>
       <value>0.5</value>
     </values>
@@ -2044,8 +2044,8 @@ Sub-elements of each entry include:
 
   <entry id="coulomb_c_lo">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <values>
       <value>0.05</value>
     </values>
@@ -2059,8 +2059,8 @@ Sub-elements of each entry include:
 
   <entry id="coulomb_c_min">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <values>
       <value>0.001</value>
     </values>
@@ -2074,8 +2074,8 @@ Sub-elements of each entry include:
 
   <entry id="coulomb_c_max">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <values>
       <value>1.0</value>
     </values>
@@ -2087,8 +2087,8 @@ Sub-elements of each entry include:
 
   <entry id="coulomb_c_bed_hi">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <values>
       <value>0.</value>
     </values>
@@ -2100,8 +2100,8 @@ Sub-elements of each entry include:
 
   <entry id="coulomb_c_bed_lo">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <values>
       <value>-500.</value>
     </values>
@@ -2115,8 +2115,8 @@ Sub-elements of each entry include:
 
   <entry id="zoet_iverson_ut">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <values>
       <value>200.</value>
     </values>
@@ -2128,8 +2128,8 @@ Sub-elements of each entry include:
 
   <entry id="zoet_iverson_nmax">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <values>
       <value>1.e8</value>
     </values>
@@ -2180,8 +2180,8 @@ Sub-elements of each entry include:
 
    <entry id="p_ocean_penetration">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <values>
       <value>0.0</value>
     </values>
@@ -2304,13 +2304,13 @@ Sub-elements of each entry include:
 
   <entry id="schoof_n">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <values>
       <value>3.0</value>
     </values>
     <desc>
-      Exponent n in the Schoof basal friction law (which_ho_babc = 11); modulates
+      Exponent n in the Schoof basal friction law (sliding_law = 11); modulates
       the transition between power-law and Coulomb behavior.
       Typically the same value as powerlaw_m, but this is not required.
       Default: 3.0
@@ -2319,14 +2319,14 @@ Sub-elements of each entry include:
 
   <entry id="schoof_gamma">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <values>
       <value>1.0e5</value>
     </values>
     <desc>
       Parameter gamma in the relation Cp = gamma * Cc^p, used to derive powerlaw_c
-      from coulomb_c when which_ho_powerlaw_c = 4 (HO_POWERLAW_C_FUNCTION_COULOMB_C),
+      from coulomb_c when powerlaw_c_method = 4 (HO_POWERLAW_C_FUNCTION_COULOMB_C),
       for use with the Schoof or Tsai basal friction laws.
       Default: 1.0e5
     </desc>
@@ -2334,14 +2334,14 @@ Sub-elements of each entry include:
 
   <entry id="schoof_p">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <values>
       <value>0.7</value>
     </values>
     <desc>
       Exponent p in the relation Cp = gamma * Cc^p, used to derive powerlaw_c
-      from coulomb_c when which_ho_powerlaw_c = 4 (HO_POWERLAW_C_FUNCTION_COULOMB_C),
+      from coulomb_c when powerlaw_c_method = 4 (HO_POWERLAW_C_FUNCTION_COULOMB_C),
       for use with the Schoof or Tsai basal friction laws.
       Default: 0.7
     </desc>
@@ -2349,8 +2349,8 @@ Sub-elements of each entry include:
 
   <entry id="beta_powerlaw_umax">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <values>
       <value icesheet="gris">0.0</value>
       <value icesheet="ais" >5000.</value>
@@ -2417,10 +2417,10 @@ Sub-elements of each entry include:
 
   <!---KTC WHL TODO: Might change the GrIS default to option 9 or 11, with inversion for C_p -->
   <!-- KTC TODO: attempted ais->7 but test failures made me revert to previous of 9 -->
-  <entry id="which_ho_babc">
+  <entry id="sliding_law">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <valid_values>0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15</valid_values>
     <values>
       <value icesheet="gris">3</value>
@@ -2447,10 +2447,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="which_ho_beta_limit">
+  <entry id="beta_limit_method">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <valid_values>0,1</valid_values>
     <values>
       <value icesheet="gris">0</value>
@@ -2464,10 +2464,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-<entry id="which_ho_powerlaw_c">
+<entry id="powerlaw_c_method">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <valid_values>0,1,2,3,4</valid_values>
     <values>
       <value icesheet="gris">0</value>
@@ -2475,21 +2475,21 @@ Sub-elements of each entry include:
     </values>
     <desc>
       Flag for basal inversion options: invert for Cp = powerlaw_c
-      Note: Cp inversion is currently supported for which_ho_babc = 9, 11 and 12 only
+      Note: Cp inversion is currently supported for sliding_law = 9, 11 and 12 only
       0: powerlaw_c = spatially uniform constant
       1: invert for 2D powerlaw_c
       2: read 2D powerlaw_c from external file
       3: invert for basin-scale powerlaw_c
       4: powerlaw_c is a function of coulomb_c (Cp = schoof_gamma * Cc^schoof_p);
-         requires which_ho_coulomb_c = 1 or 3 (2D or basin-scale Cc inversion)
+         requires coulomb_c_method = 1 or 3 (2D or basin-scale Cc inversion)
       Default: 0 for Greenland, 0 for Antarctica
     </desc>
   </entry>
 
-  <entry id="which_ho_coulomb_c">
+  <entry id="coulomb_c_method">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <valid_values>0,1,2,3</valid_values>
     <values>
       <value icesheet="gris">0</value>
@@ -2497,7 +2497,7 @@ Sub-elements of each entry include:
     </values>
     <desc>
       Flag for basal inversion options: invert for Cc = coulomb_c
-      Note: Cc inversion is currently supported for which_ho_babc = 7 (ZI law),
+      Note: Cc inversion is currently supported for sliding_law = 7 (ZI law),
       the pseudo-plastic law, and the Schoof and Tsai laws
       0: coulomb_c = spatially uniform constant
       1: invert for 2D coulomb_c
@@ -2512,8 +2512,8 @@ Sub-elements of each entry include:
 
   <entry id="elevation_based_coulomb_c">
     <type>logical</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <values>
       <value>.false.</value>
     </values>
@@ -2577,10 +2577,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="which_ho_effecpress">
+  <entry id="effecpress_method">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
     <valid_values>0,1,2,3,4</valid_values>
     <values>
       <value icesheet="gris">4</value>
@@ -2589,7 +2589,7 @@ Sub-elements of each entry include:
     <desc>
       Flag that describes effective pressure calculation for higher order dynamical core
       Note: This is independent of setting p_ocean_penetration.
-            Setting p > 0 reduces N near grounding line, even when which_ho_effecpress = 0
+            Setting p > 0 reduces N near grounding line, even when effecpress_method = 0
       0: N = overburden pressure, rhoi*grav*thck
       1: N is reduced where the bed is at or near the pressure melting point
       2: N is reduced based on basal water thickness
@@ -3226,7 +3226,7 @@ Sub-elements of each entry include:
     <desc>
       Parameter for reducing the effective pressure where the bed is warm, saturated or connected to the ocean:
       Temperature range over which N ramps from a small value to full overburden (deg C)
-      Only applies for which_ho_effecpress = 1.
+      Only applies for effecpress_method = 1.
       Previously named effecpress_bpmp_threshold.
       Default: (use hard-coded default - currently 0.1)
     </desc>

@@ -2,10 +2,10 @@
 ! power-law sliding with the basal friction coefficient powerlaw_c from an inversion,
 ! read from the CISM restart file of run b.e30_alpha11b.B1850C_MTso.ne30_t233_wgx3.416 (year 21).
 cisminputfile = '$DIN_LOC_ROOT/cesm2_init/b.e30_alpha11b.B1850C_MTso.ne30_t233_wgx3.416/0021-01-01/b.e30_alpha11b.B1850C_MTso.ne30_t233_wgx3.416.cism.gris.r.0021-01-01-00000.nc'
-which_ho_babc = 9
-which_ho_powerlaw_c = 2
+sliding_law = 9
+powerlaw_c_method = 2
 which_ho_bwat = 0
-which_ho_effecpress = 0
+effecpress_method = 0
 glissade_maxiter = 100
 block_inception = .false.
 remove_ice_caps = .false.
