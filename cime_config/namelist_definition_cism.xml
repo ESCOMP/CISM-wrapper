@@ -2558,10 +2558,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="which_ho_bwat">
+  <entry id="bwat_method">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_basal_hydro</category>
+    <group>basal_hydro</group>
     <valid_values>0,1,2,3</valid_values>
     <values>
       <value icesheet="gris">2</value>
@@ -2907,10 +2907,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="which_ho_ground">
+  <entry id="grounding_line_param">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_grounding_line</category>
+    <group>grounding_line</group>
     <valid_values>0,1,2</valid_values>
     <values>
       <value>2</value>
@@ -2925,10 +2925,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="which_ho_ground_bmlt">
+  <entry id="grounding_line_bmlt">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_grounding_line</category>
+    <group>grounding_line</group>
     <valid_values>0,1,2</valid_values>
     <values>
       <value>1</value>
@@ -2942,10 +2942,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="which_ho_flotation_function">
+  <entry id="flotation_function">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_grounding_line</category>
+    <group>grounding_line</group>
     <valid_values>0,1,2</valid_values>
     <values>
       <value>2</value>
@@ -2953,7 +2953,7 @@ Sub-elements of each entry include:
     <desc>
       Flag that indicates how to compute the flotation function at and near vertices in the Glissade dycore
       Not valid for other dycores
-      Only applicable for which_ho_ground=1
+      Only applicable for grounding_line_param=1
       0: f_flotation = (-rhow*b/rhoi*H) = f_pattyn; &lt;=1 for grounded, &gt; 1 for floating
       1: f_flotation = (rhoi*H)/(-rhow*b) = 1/f_pattyn; &gt;=1 for grounded, &lt; 1 for floating
       2: f_flotation = -rhow*b - rhoi*H = ocean cavity thickness; &lt;=0 for grounded, &gt; 0 for floating
@@ -3112,9 +3112,9 @@ Sub-elements of each entry include:
   <!-- group: cism.icesheet.config: basal_hydro                       -->
   <!-- =============================================================  -->
 
-  <entry id="ho_flux_routing_scheme">
+  <entry id="flux_routing_method">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
+    <category>cism_config_basal_hydro</category>
     <group>basal_hydro</group>
     <valid_values>0,1,2</valid_values>
     <values>
@@ -3122,7 +3122,7 @@ Sub-elements of each entry include:
       <value icesheet="ais" >0</value>
     </values>
     <desc>
-      Flux-routing scheme for basal water; applies only if which_ho_bwat = 3
+      Flux-routing scheme for basal water; applies only if bwat_method = 3
       0: D8; send flux to lowest-elevation neighbor
       1: Dinf; divide flux between two lower-elevation neighbors
       2: FD8; divide flux among all lower-elevation neighbors
@@ -3132,7 +3132,7 @@ Sub-elements of each entry include:
 
   <entry id="cavity_open_slide">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
+    <category>cism_config_basal_hydro</category>
     <group>basal_hydro</group>
     <valid_values>0,1,2</valid_values>
     <values>
@@ -3149,7 +3149,7 @@ Sub-elements of each entry include:
 
   <entry id="cavity_open_melt">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
+    <category>cism_config_basal_hydro</category>
     <group>basal_hydro</group>
     <valid_values>0,1,2,3</valid_values>
     <values>
@@ -3167,7 +3167,7 @@ Sub-elements of each entry include:
 
     <entry id="btemp_scale">
     <type>real</type>
-    <category>cism_config_ho_options</category>
+    <category>cism_config_basal_hydro</category>
     <group>basal_hydro</group>
     <values>
       <value>0.0</value>
@@ -3180,7 +3180,7 @@ Sub-elements of each entry include:
 
   <entry id="bwat_threshold">
     <type>real</type>
-    <category>cism_config_ho_options</category>
+    <category>cism_config_basal_hydro</category>
     <group>basal_hydro</group>
     <values>
       <value>1.0d-3</value>
@@ -3193,21 +3193,21 @@ Sub-elements of each entry include:
 
   <entry id="const_bwat">
     <type>real</type>
-    <category>cism_config_ho_options</category>
+    <category>cism_config_basal_hydro</category>
     <group>basal_hydro</group>
     <values>
       <value>10.</value>
     </values>
     <desc>
       Uniform fixed basal water depth (m)
-      Relevant only for which_ho_bwat = 1
+      Relevant only for bwat_method = 1
       Default: 10.0
     </desc>
   </entry>
 
   <entry id="effecpress_delta">
     <type>real</type>
-    <category>cism_config_ho_options</category>
+    <category>cism_config_basal_hydro</category>
     <group>basal_hydro</group>
     <values>
       <value>0.02</value>
@@ -3221,7 +3221,7 @@ Sub-elements of each entry include:
 
   <entry id="bpmp_threshold" skip_default_entry="true">
     <type>real</type>
-    <category>cism_config_ho_options</category>
+    <category>cism_config_basal_hydro</category>
     <group>basal_hydro</group>
     <desc>
       Parameter for reducing the effective pressure where the bed is warm, saturated or connected to the ocean:
@@ -3234,7 +3234,7 @@ Sub-elements of each entry include:
 
   <entry id="haf_threshold" skip_default_entry="true">
     <type>real</type>
-    <category>cism_config_ho_options</category>
+    <category>cism_config_basal_hydro</category>
     <group>basal_hydro</group>
     <desc>
       Thickness above flotation (m) at which the effective-pressure contribution
@@ -3246,28 +3246,28 @@ Sub-elements of each entry include:
 
   <entry id="bwat_till_max">
     <type>real</type>
-    <category>cism_config_ho_options</category>
+    <category>cism_config_basal_hydro</category>
     <group>basal_hydro</group>
     <values>
       <value>2.</value>
     </values>
     <desc>
       Parameter for local till model: Maximum water depth in till (m)
-      Relevant only for which_ho_bwat = 2
+      Relevant only for bwat_method = 2
       Default: 2.0
     </desc>
   </entry>
 
   <entry id="c_drainage">
     <type>real</type>
-    <category>cism_config_ho_options</category>
+    <category>cism_config_basal_hydro</category>
     <group>basal_hydro</group>
     <values>
       <value>1.e-3</value>
     </values>
     <desc>
       Parameter for local till model: Uniform drainage rate (m/yr)
-      Relevant only for which_ho_bwat = 2
+      Relevant only for bwat_method = 2
       Default: 1.e-3
     </desc>
   </entry>
