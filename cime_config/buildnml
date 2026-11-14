@@ -42,10 +42,10 @@ _CISM_IN_GROUPS = ["cism_params", "time_manager_nml", "glc_override_nml"]
 
 # namelist groups in the cism.icesheet.config file
 _CISM_CONFIG_GROUPS = ["grid", "glad_climate", "esm_output", "options", "sigma", "time", "parameters",
-                       "grid_ocn", "ho_options", "gthf", "isostasy", "derived",
+                       "grid_ocn", "ho_options", "isostasy", "derived",
                        "calving", "removal", "climate", "basal_physics", "basal_hydro", "grounding_line",
                        "basal_melt", "ocean_data", "velocity", "velocity_solver",
-                       "advection", "flow_law", "temperature"]
+                       "advection", "flow_law", "temperature", "inversion", "geothermal"]
 
 # namelist groups that are not written to any file, but are used to write the
 # cism.icesheet.config file (e.g., esm_history_vars, which buildnml splits into the h0i and
@@ -71,10 +71,6 @@ _ICESHEET_OPTIONS = OrderedDict([('ais', 'ANTARCTICA'),
 
 # value of 'sigma' that signifies that values are read from a sigma section
 _SIGMA_IN_CONFIG_FILE = 2
-
-# value of 'gthf' signifying that we should calculate gthf, and thus
-# we should have a 'gthf' section
-_GTHF_CALCULATE = 2
 
 # value of 'isostasy' signifying that isostasy is enabled, and thus we
 # should have an 'isostasy' section
@@ -464,8 +460,7 @@ def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid,
     # cism.icesheet.config file, we can avoid doing the work of adding the defaults for
     # the cism_in groups.
     nmlgen.init_defaults([infile_this_icesheet, infile_overall], config,
-                         skip_default_for_groups=_CISM_IN_GROUPS+["gthf",
-                                                                  "isostasy",
+                         skip_default_for_groups=_CISM_IN_GROUPS+["isostasy",
                                                                   "sigma"])
 
     _set_restart_options(nmlgen, case,
@@ -505,9 +500,8 @@ def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid,
     _update_cism_config(nmlgen, output_file, mode="a", header="climate", group="climate")
     _update_cism_config(nmlgen, output_file, mode="a", header="calving", group="calving")
     _update_cism_config(nmlgen, output_file, mode="a", header="removal", group="removal")
-    _add_conditional_section_to_cism_config(nmlgen, output_file, group="gthf",
-                                            control_var="gthf",
-                                            value_for_addition=_GTHF_CALCULATE)
+    _update_cism_config(nmlgen, output_file, mode="a", header="inversion", group="inversion")
+    _update_cism_config(nmlgen, output_file, mode="a", header="geothermal", group="geothermal")
     _add_conditional_section_to_cism_config(nmlgen, output_file, group="isostasy",
                                             control_var="isostasy",
                                             value_for_addition=_ISOSTASY_ON)
