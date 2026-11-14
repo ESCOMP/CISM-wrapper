@@ -1095,8 +1095,8 @@ Sub-elements of each entry include:
 
   <entry id="isostasy">
     <type>integer</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_isostasy</category>
+    <group>isostasy</group>
     <valid_values>0,1</valid_values>
     <values>
       <value>0</value>
@@ -2872,10 +2872,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="which_lateral_melt">
+  <entry id="lateral_melt_method">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_lateral_melt</category>
+    <group>lateral_melt</group>
     <valid_values>0,1,2</valid_values>
     <values>
       <value>0</value>
@@ -3020,7 +3020,7 @@ Sub-elements of each entry include:
   <!-- group: cism.icesheet.config: lateral_melt                      -->
   <!-- =============================================================  -->
 
-  <!-- This group is only relevant if which_lateral_melt /= 0 -->
+  <!-- This group is only relevant if lateral_melt_method /= 0 -->
 
   <entry id="melt_rate_const" skip_default_entry="true">
     <type>real</type>
@@ -3028,7 +3028,7 @@ Sub-elements of each entry include:
     <group>lateral_melt</group>
     <desc>
       Prescribed constant lateral melt rate (m/s) applied at the subgrid calving
-      front. Only relevant if which_lateral_melt = 1.
+      front. Only relevant if lateral_melt_method = 1.
       Default: (use hard-coded default)
     </desc>
   </entry>
@@ -3039,7 +3039,7 @@ Sub-elements of each entry include:
     <group>lateral_melt</group>
     <desc>
       Tuning factor (unitless) multiplying the ISMIP6/Rignot-et-al.-type lateral
-      melt parameterization. Only relevant if which_lateral_melt = 2.
+      melt parameterization. Only relevant if lateral_melt_method = 2.
       Default: (use hard-coded default)
     </desc>
   </entry>
@@ -3051,7 +3051,7 @@ Sub-elements of each entry include:
     <desc>
       If true, diagnose subglacial discharge from the surface ablation rate
       rather than from an externally supplied runoff field.
-      Only relevant if which_lateral_melt = 2.
+      Only relevant if lateral_melt_method = 2.
       Default: (use hard-coded default)
     </desc>
   </entry>
@@ -3063,7 +3063,7 @@ Sub-elements of each entry include:
     <desc>
       If true, average the 3D ocean thermal forcing field over the depth range
       [zbot_tfavg, ztop_tfavg] to produce the 2D thermal forcing used by the
-      lateral melt parameterization. Only relevant if which_lateral_melt = 2.
+      lateral melt parameterization. Only relevant if lateral_melt_method = 2.
       Default: (use hard-coded default)
     </desc>
   </entry>
@@ -3075,7 +3075,7 @@ Sub-elements of each entry include:
     <desc>
       Upper depth (m, negative below sea level) of the range used to average
       3D ocean thermal forcing down to 2D for the lateral melt parameterization.
-      Only relevant if which_lateral_melt = 2 and thermal_forcing_avg_3d_to_2d = .true.
+      Only relevant if lateral_melt_method = 2 and thermal_forcing_avg_3d_to_2d = .true.
       Default: (use hard-coded default)
     </desc>
   </entry>
@@ -3087,7 +3087,7 @@ Sub-elements of each entry include:
     <desc>
       Lower depth (m, negative below sea level) of the range used to average
       3D ocean thermal forcing down to 2D for the lateral melt parameterization.
-      Only relevant if which_lateral_melt = 2 and thermal_forcing_avg_3d_to_2d = .true.
+      Only relevant if lateral_melt_method = 2 and thermal_forcing_avg_3d_to_2d = .true.
       Default: (use hard-coded default)
     </desc>
   </entry>
@@ -3263,7 +3263,7 @@ Sub-elements of each entry include:
 
   <!-- This group is only relevant if isostasy = 1 -->
 
-  <entry id="which_relaxed" skip_default_entry="true">
+  <entry id="input_topg_method" skip_default_entry="true">
     <type>integer</type>
     <category>cism_config_isostasy</category>
     <group>isostasy</group>
@@ -3277,7 +3277,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="lithosphere" skip_default_entry="true">
+  <entry id="lithosphere_method" skip_default_entry="true">
     <type>integer</type>
     <category>cism_config_isostasy</category>
     <group>isostasy</group>
@@ -3290,7 +3290,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="asthenosphere" skip_default_entry="true">
+  <entry id="asthenosphere_method" skip_default_entry="true">
     <type>integer</type>
     <category>cism_config_isostasy</category>
     <group>isostasy</group>
@@ -3312,7 +3312,7 @@ Sub-elements of each entry include:
     <group>isostasy</group>
     <desc>
       Characteristic time constant of relaxing mantle (years)
-      Only relevant if isostasy = 1 and asthenosphere = 1 (constant relaxation timescale)
+      Only relevant if isostasy = 1 and asthenosphere_method = 1 (constant relaxation timescale)
       Renamed from relaxed_tau; default also changed from 4000. to 3000.
       Default: (use hard-coded default - currently 3000.)
     </desc>
@@ -3336,7 +3336,7 @@ Sub-elements of each entry include:
     <group>isostasy</group>
     <desc>
       Flexural rigidity of the lithosphere
-      Only relevant if 'lithosphere' is set to 1
+      Only relevant if lithosphere_method is set to 1
       Default: (use hard-coded default - currently 0.24e25)
     </desc>
   </entry>
@@ -3558,21 +3558,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="snow_threshold_min">
-    <type>real</type>
-    <category>cism_config_options</category>
-    <group>options</group>
-    <values>
-      <value>0.0</value>
-    </values>
-    <desc>
-      Air temperature (deg C) below which all precip falls as snow
-      Applied if snow_calc = 1
-      Default: 0.0
-    </desc>
-  </entry>
-
-  <entry id="snow_threshold_max">
+  <entry id="glacier_snow_threshold_min">
     <type>real</type>
     <category>cism_config_glaciers</category>
     <group>glaciers</group>
@@ -3580,9 +3566,23 @@ Sub-elements of each entry include:
       <value>0.0</value>
     </values>
     <desc>
-      Air temperature (deg C) above which all precip falls as rain
-      Applied if snow_calc = 1
+      Air temperature (deg C) below which all precip falls as snow
+      Applied if snow_method = 1
       Default: 0.0
+    </desc>
+  </entry>
+
+  <entry id="glacier_snow_threshold_max">
+    <type>real</type>
+    <category>cism_config_glaciers</category>
+    <group>glaciers</group>
+    <values>
+      <value>2.0</value>
+    </values>
+    <desc>
+      Air temperature (deg C) above which all precip falls as rain
+      Applied if snow_method = 1
+      Default: 2.0
     </desc>
   </entry>
 
@@ -3596,8 +3596,8 @@ Sub-elements of each entry include:
 
   <entry id="enable_glaciers">
     <type>logical</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_glaciers</category>
+    <group>glaciers</group>
     <values>
       <value>.false.</value>
     </values>
@@ -3608,13 +3608,13 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="set_mu_star">
+  <entry id="mu_star_method">
     <type>integer</type>
     <category>cism_config_glaciers</category>
     <group>glaciers</group>
     <valid_values>0,1,2</valid_values>
     <values>
-      <value>1</value>
+      <value>0</value>
     </values>
     <desc>
       0: apply spatially uniform mu_star
@@ -3625,13 +3625,13 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="set_alpha_snow">
+  <entry id="alpha_snow_method">
     <type>integer</type>
     <category>cism_config_glaciers</category>
     <group>glaciers</group>
     <valid_values>0,1,2</valid_values>
     <values>
-      <value>1</value>
+      <value>0</value>
     </values>
     <desc>
       0: apply spatially uniform alpha_snow
@@ -3642,13 +3642,13 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="set_powerlaw_c">
+  <entry id="glacier_powerlaw_c_method">
     <type>integer</type>
     <category>cism_config_glaciers</category>
     <group>glaciers</group>
     <valid_values>0,1,2</valid_values>
     <values>
-      <value>1</value>
+      <value>0</value>
     </values>
     <desc>
       0: apply spatially uniform powerlaw_c
@@ -3659,7 +3659,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="snow_calc">
+  <entry id="snow_method">
     <type>integer</type>
     <category>cism_config_glaciers</category>
     <group>glaciers</group>
@@ -3715,7 +3715,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="tmlt">
+  <entry id="glacier_tmlt">
     <type>real</type>
     <category>cism_config_glaciers</category>
     <group>glaciers</group>
