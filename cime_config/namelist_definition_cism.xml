@@ -1390,8 +1390,8 @@ Sub-elements of each entry include:
 
   <entry id="effstrain_min">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_velocity</category>
+    <group>velocity</group>
     <values>
       <value>1.0e-8</value>
     </values>
@@ -1419,8 +1419,8 @@ Sub-elements of each entry include:
   <!--Previous default 0.1, trying 0.5 here-->
   <entry id="max_slope">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_velocity</category>
+    <group>velocity</group>
     <values>
       <value>0.5</value>
     </values>
@@ -2532,8 +2532,8 @@ Sub-elements of each entry include:
 
   <entry id="diva_slope_correction">
     <type>logical</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_velocity</category>
+    <group>velocity</group>
     <values>
       <value>.true.</value>
     </values>
@@ -2602,10 +2602,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="which_ho_efvs">
+  <entry id="efvs_method">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_velocity</category>
+    <group>velocity</group>
     <valid_values>0,1,2</valid_values>
     <values>
       <value>2</value>
@@ -2636,10 +2636,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="which_ho_resid">
+  <entry id="nonlinear_residual">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_velocity_solver</category>
+    <group>velocity_solver</group>
     <valid_values>0,1,2,3,4</valid_values>
     <values>
       <value>4</value>
@@ -2672,10 +2672,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="which_ho_sparse" >
+  <entry id="linear_solver" >
     <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_velocity_solver</category>
+    <group>velocity_solver</group>
     <valid_values>-1,0,1,2,3</valid_values>
     <values>
       <value>3</value>
@@ -2691,10 +2691,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="which_ho_nonlinear">
+  <entry id="nonlinear_method">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_velocity_solver</category>
+    <group>velocity_solver</group>
     <valid_values>0,1</valid_values>
     <values>
       <value>1</value>
@@ -2708,10 +2708,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="which_ho_gradient">
+  <entry id="surface_gradient_method">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_velocity</category>
+    <group>velocity</group>
     <valid_values>0,1,2</valid_values>
     <values>
       <value>0</value>
@@ -2726,10 +2726,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="which_ho_gradient_margin">
+  <entry id="surface_gradient_margin_method">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_velocity</category>
+    <group>velocity</group>
     <valid_values>0,1,2</valid_values>
     <values>
       <value>1</value>
@@ -2747,10 +2747,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="which_ho_approx">
+  <entry id="stokes_approx">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_velocity</category>
+    <group>velocity</group>
     <valid_values>-1,0,1,2,3,4</valid_values>
     <values>
       <value>4</value>
@@ -2768,10 +2768,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="which_ho_precond">
+  <entry id="preconditioner">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_velocity_solver</category>
+    <group>velocity_solver</group>
     <valid_values>0,1,2,3,4</valid_values>
     <values>
       <value icesheet="gris">1</value>
@@ -2789,10 +2789,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="which_ho_assemble_beta">
+  <entry id="assemble_beta">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_velocity_solver</category>
+    <group>velocity_solver</group>
     <valid_values>0,1</valid_values>
     <values>
       <value>1</value>
@@ -2805,10 +2805,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="which_ho_assemble_taud">
+  <entry id="assemble_taud">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_velocity_solver</category>
+    <group>velocity_solver</group>
     <valid_values>0,1</valid_values>
     <values>
       <value>1</value>
@@ -2822,10 +2822,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="which_ho_assemble_bfric">
+  <entry id="assemble_bfric">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_velocity_solver</category>
+    <group>velocity_solver</group>
     <valid_values>0,1</valid_values>
     <values>
       <value>1</value>
@@ -2839,10 +2839,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="which_ho_assemble_lateral">
+  <entry id="assemble_lateral">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_velocity_solver</category>
+    <group>velocity_solver</group>
     <valid_values>0,1</valid_values>
     <values>
       <value>1</value>
@@ -2948,10 +2948,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="glissade_maxiter">
+  <entry id="nonlinear_maxiters">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_velocity_solver</category>
+    <group>velocity_solver</group>
     <values>
       <value>50</value>
     </values>
@@ -2963,8 +2963,8 @@ Sub-elements of each entry include:
 
   <entry id="linear_solve_ncheck">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_velocity_solver</category>
+    <group>velocity_solver</group>
     <values>
       <value icesheet="gris">10</value>
       <value icesheet="ais" >10</value>
