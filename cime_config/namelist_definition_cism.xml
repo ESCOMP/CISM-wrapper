@@ -739,10 +739,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="temperature">
+  <entry id="temperature_method">
     <type>integer</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_temperature</category>
+    <group>temperature</group>
     <valid_values>0,1,2,3</valid_values>
     <values>
       <value>1</value>
@@ -759,8 +759,8 @@ Sub-elements of each entry include:
 
   <entry id="temp_init">
     <type>integer</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_temperature</category>
+    <group>temperature</group>
     <valid_values>0,1,2,3,4</valid_values>
     <values>
       <!-- temp_init = 3 can only generate an advective-diffusive-balance profile if acab
@@ -783,8 +783,8 @@ Sub-elements of each entry include:
 
   <entry id="flow_law">
     <type>integer</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_flow_law</category>
+    <group>flow_law</group>
     <valid_values>0,1,2,3</valid_values>
     <values>
       <value>2</value>
@@ -1045,10 +1045,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="evolution">
+  <entry id="advection_method">
     <type>integer</type>
-    <category>cism_config_options</category>
-    <group>options</group>
+    <category>cism_config_advection</category>
+    <group>advection</group>
     <valid_values>3,4,5</valid_values>
     <values>
       <value>3</value>
@@ -1580,8 +1580,8 @@ Sub-elements of each entry include:
 
   <entry id="flow_factor_ground">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_flow_law</category>
+    <group>flow_law</group>
     <values>
       <value>1.</value>
     </values>
@@ -1594,8 +1594,8 @@ Sub-elements of each entry include:
 
   <entry id="flow_factor_float">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_flow_law</category>
+    <group>flow_law</group>
     <values>
       <value icesheet="gris">1.</value>
       <value icesheet="ais" >0.40</value>
@@ -1610,10 +1610,10 @@ Sub-elements of each entry include:
 
   <entry id="default_flwa" skip_default_entry="true">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_flow_law</category>
+    <group>flow_law</group>
     <desc>
-      Glen's A (Pa^-n yr^-1) to use in isothermal case, i.e, when temperature = 0
+      Glen's A (Pa^-n yr^-1) to use in isothermal case, i.e, when temperature_method = 0
       Default: (use hard-coded default - currently 1.e-16)
     </desc>
   </entry>
@@ -1671,8 +1671,8 @@ Sub-elements of each entry include:
 
   <entry id="pmp_offset">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_temperature</category>
+    <group>temperature</group>
     <values>
       <value icesheet="gris">5.</value>
       <value icesheet="ais" >1.</value>
@@ -2619,10 +2619,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="which_ho_thermal_timestep">
+  <entry id="thermal_timestep">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_temperature</category>
+    <group>temperature</group>
     <valid_values>0,1,2</valid_values>
     <values>
       <value icesheet="gris">0</value>
@@ -2655,10 +2655,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="which_ho_disp">
+  <entry id="dissipation_method">
     <type>integer</type>
-    <category>cism_config_ho_options</category>
-    <group>ho_options</group>
+    <category>cism_config_temperature</category>
+    <group>temperature</group>
     <valid_values>-1,0,1</valid_values>
     <values>
       <value>1</value>
@@ -4097,8 +4097,8 @@ Sub-elements of each entry include:
 
   <entry id="n_glen">
     <type>real</type>
-    <category>cism_config_parameters</category>
-    <group>parameters</group>
+    <category>cism_config_flow_law</category>
+    <group>flow_law</group>
     <values>
       <value>3.0</value>
     </values>

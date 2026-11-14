@@ -44,7 +44,8 @@ _CISM_IN_GROUPS = ["cism_params", "time_manager_nml", "glc_override_nml"]
 _CISM_CONFIG_GROUPS = ["grid", "glad_climate", "esm_output", "options", "sigma", "time", "parameters",
                        "grid_ocn", "ho_options", "gthf", "isostasy", "derived",
                        "calving", "removal", "climate", "basal_physics", "basal_hydro", "grounding_line",
-                       "basal_melt", "ocean_data", "velocity", "velocity_solver"]
+                       "basal_melt", "ocean_data", "velocity", "velocity_solver",
+                       "advection", "flow_law", "temperature"]
 
 # namelist groups that are not written to any file, but are used to write the
 # cism.icesheet.config file (e.g., esm_history_vars, which buildnml splits into the h0i and
@@ -493,6 +494,9 @@ def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid,
     _update_cism_config(nmlgen, output_file, mode="a", header="ho_options", group="ho_options")
     _update_cism_config(nmlgen, output_file, mode="a", header="velocity", group="velocity")
     _update_cism_config(nmlgen, output_file, mode="a", header="velocity_solver", group="velocity_solver")
+    _update_cism_config(nmlgen, output_file, mode="a", header="advection", group="advection")
+    _update_cism_config(nmlgen, output_file, mode="a", header="flow_law", group="flow_law")
+    _update_cism_config(nmlgen, output_file, mode="a", header="temperature", group="temperature")
     _update_cism_config(nmlgen, output_file, mode="a", header="basal_physics", group="basal_physics")
     _update_cism_config(nmlgen, output_file, mode="a", header="basal_hydro", group="basal_hydro")
     _update_cism_config(nmlgen, output_file, mode="a", header="grounding_line", group="grounding_line")
