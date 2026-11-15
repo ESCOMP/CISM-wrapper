@@ -3149,7 +3149,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-    <entry id="btemp_scale">
+    <entry id="btemp_flow_scale">
     <type>real</type>
     <category>cism_config_basal_hydro</category>
     <group>basal_hydro</group>
@@ -3157,7 +3157,25 @@ Sub-elements of each entry include:
       <value>0.0</value>
     </values>
     <desc>
-      Temperature scale (degC) for transition between thawed and frozen bed
+      Temperature scale (degC) for the transition between thawed and frozen bed,
+      used by flux routing (bwat_method = 3) to route water away from cells with a
+      frozen bed. 0 = flow does not depend on the basal temperature.
+      Default: 0.0
+    </desc>
+  </entry>
+
+  <entry id="btemp_freeze_scale">
+    <type>real</type>
+    <category>cism_config_basal_hydro</category>
+    <group>basal_hydro</group>
+    <values>
+      <value>0.0</value>
+    </values>
+    <desc>
+      Temperature scale (degC) for the transition between thawed and frozen bed,
+      used by flux routing (bwat_method = 3) to refreeze water beneath cells with a
+      frozen bed. 0 = no refreezing. Values > 0 are not supported with
+      reproducible_sums = .true.
       Default: 0.0
     </desc>
   </entry>
