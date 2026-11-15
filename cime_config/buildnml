@@ -41,8 +41,12 @@ logger = logging.getLogger(__name__)
 _CISM_IN_GROUPS = ["cism_params", "time_manager_nml", "glc_override_nml"]
 
 # namelist groups in the cism.icesheet.config file
-_CISM_CONFIG_GROUPS = ["grid", "glad_climate", "esm_output", "options", "sigma", "time", "parameters",
-                       "grid_ocn", "ho_options", "gthf", "isostasy", "derived"]
+_CISM_CONFIG_GROUPS = ["grid", "glad_climate", "esm_output", "options", "sigma", "time",
+                       "grid_ocn", "isostasy", "lateral_melt", "glaciers", "derived",
+                       "calving", "removal", "climate", "basal_physics", "basal_hydro", "grounding_line",
+                       "basal_melt", "ocean_data", "velocity", "velocity_solver",
+                       "advection", "flow_law", "temperature", "inversion", "geothermal",
+                       "numerics", "initialization", "diagnostics"]
 
 # namelist groups that are not written to any file, but are used to write the
 # cism.icesheet.config file (e.g., esm_history_vars, which buildnml splits into the h0i and
@@ -66,12 +70,8 @@ _CISM_CONFIG_HELPER_GROUPS = ["cism_history"]
 _ICESHEET_OPTIONS = OrderedDict([('ais', 'ANTARCTICA'),
                                  ('gris', 'GREENLAND')])
 
-# value of 'sigma' that signifies that values are read from a sigma section
+# value of 'sigma_method' that signifies that values are read from a sigma section
 _SIGMA_IN_CONFIG_FILE = 2
-
-# value of 'gthf' signifying that we should calculate gthf, and thus
-# we should have a 'gthf' section
-_GTHF_CALCULATE = 2
 
 # value of 'isostasy' signifying that isostasy is enabled, and thus we
 # should have an 'isostasy' section
@@ -461,8 +461,9 @@ def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid,
     # cism.icesheet.config file, we can avoid doing the work of adding the defaults for
     # the cism_in groups.
     nmlgen.init_defaults([infile_this_icesheet, infile_overall], config,
-                         skip_default_for_groups=_CISM_IN_GROUPS+["gthf",
-                                                                  "isostasy",
+                         skip_default_for_groups=_CISM_IN_GROUPS+["isostasy",
+                                                                  "lateral_melt",
+                                                                  "glaciers",
                                                                   "sigma"])
 
     _set_restart_options(nmlgen, case,
@@ -484,17 +485,37 @@ def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid,
     _update_cism_config(nmlgen, output_file, mode="a", header="esm_output", group="esm_output")
     _update_cism_config(nmlgen, output_file, mode="a", header="options", group="options")
     _add_conditional_section_to_cism_config(nmlgen, output_file, group="sigma",
-                                            control_var="sigma",
+                                            control_var="sigma_method",
                                             value_for_addition=_SIGMA_IN_CONFIG_FILE)
     _update_cism_config(nmlgen, output_file, mode="a", header="time", group="time")
-    _update_cism_config(nmlgen, output_file, mode="a", header="parameters", group="parameters")
-    _update_cism_config(nmlgen, output_file, mode="a", header="ho_options", group="ho_options")
-    _add_conditional_section_to_cism_config(nmlgen, output_file, group="gthf",
-                                            control_var="gthf",
-                                            value_for_addition=_GTHF_CALCULATE)
-    _add_conditional_section_to_cism_config(nmlgen, output_file, group="isostasy",
-                                            control_var="isostasy",
-                                            value_for_addition=_ISOSTASY_ON)
+    _update_cism_config(nmlgen, output_file, mode="a", header="numerics", group="numerics")
+    _update_cism_config(nmlgen, output_file, mode="a", header="initialization", group="initialization")
+    _update_cism_config(nmlgen, output_file, mode="a", header="diagnostics", group="diagnostics")
+    _update_cism_config(nmlgen, output_file, mode="a", header="velocity", group="velocity")
+    _update_cism_config(nmlgen, output_file, mode="a", header="velocity_solver", group="velocity_solver")
+    _update_cism_config(nmlgen, output_file, mode="a", header="advection", group="advection")
+    _update_cism_config(nmlgen, output_file, mode="a", header="flow_law", group="flow_law")
+    _update_cism_config(nmlgen, output_file, mode="a", header="temperature", group="temperature")
+    _update_cism_config(nmlgen, output_file, mode="a", header="basal_physics", group="basal_physics")
+    _update_cism_config(nmlgen, output_file, mode="a", header="basal_hydro", group="basal_hydro")
+    _update_cism_config(nmlgen, output_file, mode="a", header="grounding_line", group="grounding_line")
+    _update_cism_config(nmlgen, output_file, mode="a", header="basal_melt", group="basal_melt")
+    _update_cism_config(nmlgen, output_file, mode="a", header="ocean_data", group="ocean_data")
+    _update_cism_config(nmlgen, output_file, mode="a", header="climate", group="climate")
+    _update_cism_config(nmlgen, output_file, mode="a", header="calving", group="calving")
+    _update_cism_config(nmlgen, output_file, mode="a", header="removal", group="removal")
+    _update_cism_config(nmlgen, output_file, mode="a", header="inversion", group="inversion")
+    _update_cism_config(nmlgen, output_file, mode="a", header="geothermal", group="geothermal")
+    _add_feature_section_to_cism_config(nmlgen, output_file, group="isostasy", switch="isostasy",
+                                        is_on=lambda v: int(v) == _ISOSTASY_ON,
+                                        description="isostasy = {}".format(_ISOSTASY_ON))
+    _add_feature_section_to_cism_config(nmlgen, output_file, group="lateral_melt",
+                                        switch="lateral_melt_method",
+                                        is_on=lambda v: int(v) > 0,
+                                        description="lateral_melt_method > 0")
+    _add_feature_section_to_cism_config(nmlgen, output_file, group="glaciers", switch="enable_glaciers",
+                                        is_on=lambda v: v == ".true.",
+                                        description="enable_glaciers = .true.")
     _update_cism_config(nmlgen, output_file, mode="a", header="grid_ocn", group="grid_ocn")
 
     final_text = _final_template.format(filename=nmlgen.get_value('cisminputfile'))
@@ -752,6 +773,35 @@ def _add_conditional_section_to_cism_config(nmlgen, output_file, group,
         errmsg = "items in {} section can only be set if {} is set to {}".format(
             group, control_var, value_for_addition)
         nmlgen.confirm_group_is_empty(group, errmsg)
+
+###############################################################################
+def _add_feature_section_to_cism_config(nmlgen, output_file, group, switch, is_on, description):
+###############################################################################
+    """Add the section for an optional feature whose switch is part of that section
+
+    The section is written only when the feature is on, and then includes the switch.
+    When the feature is off, the section is left out, so that CISM uses its default
+    (feature off); setting any other variable of the group is then an error.
+
+    Args:
+    nmlgen: the nmlgen object
+    output_file: path to output file
+    group: name of the group (and of the section header)
+    switch: name of the variable in the group that turns the feature on
+    is_on: function of the switch value (as returned by nmlgen.get_value) that
+           returns True if the feature is on
+    description: text for the error message, e.g. "enable_glaciers = .true."
+    """
+    if nmlgen.get_value(switch) is None:
+        nmlgen.add_default(switch)
+    if is_on(nmlgen.get_value(switch)):
+        nmlgen.add_defaults_for_group(group)
+        _update_cism_config(nmlgen, output_file, mode="a", header=group, group=group)
+    else:
+        others = [name for name in nmlgen.get_group_variables(group) if name != switch]
+        expect(not others,
+               "items in the {} section can only be set if {}\nOffending variables: {}".format(
+                   group, description, others))
 
 ###############################################################################
 def _cism_config_final_consistency_checks(nmlgen, icesheet):

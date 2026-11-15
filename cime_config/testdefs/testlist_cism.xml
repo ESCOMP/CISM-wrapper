@@ -475,7 +475,7 @@
       <machine name="izumi" compiler="nag" category="aux_glc">
         <options>
           <option name="wallclock">1:59</option>
-          <option name="comment">short nag debug test of CISM2 at production resolution, to test options specific to the production resolution (currently, which_ho_babc differs at the production resolution)</option>
+          <option name="comment">short nag debug test of CISM2 at production resolution, to test options specific to the production resolution (currently, sliding_law differs at the production resolution)</option>
         </options>
       </machine>
 
