@@ -1198,8 +1198,8 @@ Sub-elements of each entry include:
 
   <entry id="dt_diag">
     <type>real</type>
-    <category>cism_config_time</category>
-    <group>time</group>
+    <category>cism_config_diagnostics</category>
+    <group>diagnostics</group>
     <values>
       <!-- Set dt_diag same as dt in order to get diagnostics every time step -->
       <value icesheet="gris" glc_grid="gris20">0.5</value>
@@ -1288,8 +1288,8 @@ Sub-elements of each entry include:
 
   <entry id="ndiag">
     <type>integer</type>
-    <category>cism_config_time</category>
-    <group>time</group>
+    <category>cism_config_diagnostics</category>
+    <group>diagnostics</group>
     <values>
       <value icesheet="gris" glc_grid="gris20">1</value>
       <value icesheet="gris" glc_grid="gris4" >1</value>
@@ -1307,8 +1307,8 @@ Sub-elements of each entry include:
 
   <entry id="idiag">
     <type>integer</type>
-    <category>cism_config_time</category>
-    <group>time</group>
+    <category>cism_config_diagnostics</category>
+    <group>diagnostics</group>
     <values>
       <!-- GrIS values chosen to be in the trunk of Jakobshavn -->
       <value icesheet="gris" glc_grid="gris20" >17</value>
@@ -1324,8 +1324,8 @@ Sub-elements of each entry include:
 
   <entry id="jdiag">
     <type>integer</type>
-    <category>cism_config_time</category>
-    <group>time</group>
+    <category>cism_config_diagnostics</category>
+    <group>diagnostics</group>
     <values>
       <!-- See comments for idiag, above -->
       <value icesheet="gris" glc_grid="gris20" >57</value>
