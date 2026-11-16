@@ -41,12 +41,11 @@ logger = logging.getLogger(__name__)
 _CISM_IN_GROUPS = ["cism_params", "time_manager_nml", "glc_override_nml"]
 
 # namelist groups in the cism.icesheet.config file
-_CISM_CONFIG_GROUPS = ["grid", "glad_climate", "esm_output", "options", "sigma", "time",
-                       "grid_ocn", "isostasy", "lateral_melt", "glaciers", "derived",
-                       "calving", "removal", "climate", "basal_physics", "basal_hydro", "grounding_line",
-                       "basal_melt", "ocean_data", "velocity", "velocity_solver",
-                       "advection", "flow_law", "temperature", "inversion", "geothermal",
-                       "numerics", "initialization", "diagnostics"]
+_CISM_CONFIG_GROUPS = ["grid", "sigma", "time", "diagnostics", "options", "numerics", "initialization",
+                       "velocity", "velocity_solver", "advection", "temperature", "flow_law",
+                       "basal_physics", "basal_hydro", "grounding_line", "basal_melt", "calving",
+                       "lateral_melt", "removal", "climate", "grid_ocn", "ocean_data", "geothermal",
+                       "isostasy", "inversion", "glaciers", "glad_climate", "esm_output", "derived"]
 
 # namelist groups that are not written to any file, but are used to write the
 # cism.icesheet.config file (e.g., esm_history_vars, which buildnml splits into the h0i and
@@ -480,43 +479,45 @@ def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid,
     # "groups=[]"). However, it still performs two functions: (1) validation; (2) writing
     # to the input data list file.
     nmlgen.write_output_file(output_file, data_list_path, groups=[])
+    # Sections are written in the order in which CISM writes them to its log (glissade_printconfig),
+    # followed by the sections read by Glad ([GLAD climate], [esm_output]) and the I/O sections.
     _update_cism_config(nmlgen, output_file, mode="w", header="grid", group="grid")
-    _update_cism_config(nmlgen, output_file, mode="a", header="GLAD climate", group="glad_climate")
-    _update_cism_config(nmlgen, output_file, mode="a", header="esm_output", group="esm_output")
-    _update_cism_config(nmlgen, output_file, mode="a", header="options", group="options")
     _add_conditional_section_to_cism_config(nmlgen, output_file, group="sigma",
                                             control_var="sigma_method",
                                             value_for_addition=_SIGMA_IN_CONFIG_FILE)
     _update_cism_config(nmlgen, output_file, mode="a", header="time", group="time")
+    _update_cism_config(nmlgen, output_file, mode="a", header="diagnostics", group="diagnostics")
+    _update_cism_config(nmlgen, output_file, mode="a", header="options", group="options")
     _update_cism_config(nmlgen, output_file, mode="a", header="numerics", group="numerics")
     _update_cism_config(nmlgen, output_file, mode="a", header="initialization", group="initialization")
-    _update_cism_config(nmlgen, output_file, mode="a", header="diagnostics", group="diagnostics")
     _update_cism_config(nmlgen, output_file, mode="a", header="velocity", group="velocity")
     _update_cism_config(nmlgen, output_file, mode="a", header="velocity_solver", group="velocity_solver")
     _update_cism_config(nmlgen, output_file, mode="a", header="advection", group="advection")
-    _update_cism_config(nmlgen, output_file, mode="a", header="flow_law", group="flow_law")
     _update_cism_config(nmlgen, output_file, mode="a", header="temperature", group="temperature")
+    _update_cism_config(nmlgen, output_file, mode="a", header="flow_law", group="flow_law")
     _update_cism_config(nmlgen, output_file, mode="a", header="basal_physics", group="basal_physics")
     _update_cism_config(nmlgen, output_file, mode="a", header="basal_hydro", group="basal_hydro")
     _update_cism_config(nmlgen, output_file, mode="a", header="grounding_line", group="grounding_line")
     _update_cism_config(nmlgen, output_file, mode="a", header="basal_melt", group="basal_melt")
-    _update_cism_config(nmlgen, output_file, mode="a", header="ocean_data", group="ocean_data")
-    _update_cism_config(nmlgen, output_file, mode="a", header="climate", group="climate")
     _update_cism_config(nmlgen, output_file, mode="a", header="calving", group="calving")
-    _update_cism_config(nmlgen, output_file, mode="a", header="removal", group="removal")
-    _update_cism_config(nmlgen, output_file, mode="a", header="inversion", group="inversion")
-    _update_cism_config(nmlgen, output_file, mode="a", header="geothermal", group="geothermal")
-    _add_feature_section_to_cism_config(nmlgen, output_file, group="isostasy", switch="isostasy",
-                                        is_on=lambda v: int(v) == _ISOSTASY_ON,
-                                        description="isostasy = {}".format(_ISOSTASY_ON))
     _add_feature_section_to_cism_config(nmlgen, output_file, group="lateral_melt",
                                         switch="lateral_melt_method",
                                         is_on=lambda v: int(v) > 0,
                                         description="lateral_melt_method > 0")
+    _update_cism_config(nmlgen, output_file, mode="a", header="removal", group="removal")
+    _update_cism_config(nmlgen, output_file, mode="a", header="climate", group="climate")
+    _update_cism_config(nmlgen, output_file, mode="a", header="grid_ocn", group="grid_ocn")
+    _update_cism_config(nmlgen, output_file, mode="a", header="ocean_data", group="ocean_data")
+    _update_cism_config(nmlgen, output_file, mode="a", header="geothermal", group="geothermal")
+    _add_feature_section_to_cism_config(nmlgen, output_file, group="isostasy", switch="isostasy",
+                                        is_on=lambda v: int(v) == _ISOSTASY_ON,
+                                        description="isostasy = {}".format(_ISOSTASY_ON))
+    _update_cism_config(nmlgen, output_file, mode="a", header="inversion", group="inversion")
     _add_feature_section_to_cism_config(nmlgen, output_file, group="glaciers", switch="enable_glaciers",
                                         is_on=lambda v: v == ".true.",
                                         description="enable_glaciers = .true.")
-    _update_cism_config(nmlgen, output_file, mode="a", header="grid_ocn", group="grid_ocn")
+    _update_cism_config(nmlgen, output_file, mode="a", header="GLAD climate", group="glad_climate")
+    _update_cism_config(nmlgen, output_file, mode="a", header="esm_output", group="esm_output")
 
     final_text = _final_template.format(filename=nmlgen.get_value('cisminputfile'))
     with open(output_file, "a") as file_obj:
