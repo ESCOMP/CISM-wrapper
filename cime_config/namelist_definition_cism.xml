@@ -2598,22 +2598,6 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="thermal_timestep">
-    <type>integer</type>
-    <category>cism_config_temperature</category>
-    <group>temperature</group>
-    <valid_values>0,1,2</valid_values>
-    <values>
-      <value icesheet="gris">0</value>
-      <value icesheet="ais" >0</value>
-    </values>
-    <desc>
-      0: vertical thermal solve before transport solve
-      1: vertical thermal solve after transport solve
-      2: vertical thermal solve split; both before and after transport solve
-      Default: 0 for Greenland, 0 for Antarctica
-    </desc>
-  </entry>
 
   <entry id="nonlinear_residual">
     <type>integer</type>
