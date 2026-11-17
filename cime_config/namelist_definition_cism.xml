@@ -1176,7 +1176,7 @@ Sub-elements of each entry include:
   <!-- group: cism.icesheet.config: time                              -->
   <!-- =============================================================  -->
 
-  <entry id="dt">
+  <entry id="dt" skip_default_entry="true">
     <type>real</type>
     <category>cism_config_time</category>
     <group>time</group>
@@ -1213,26 +1213,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="ntem" skip_default_entry="true">
-    <type>integer</type>
-    <category>cism_config_time</category>
-    <group>time</group>
-    <desc>
-      Multiplier of ice sheet timestep, dt
-      (in theory, can be real-valued, but values less than 1 are not handled properly, so restricted to being an integer)
-      Default: (use hard-coded default: 1)
-    </desc>
-  </entry>
 
-  <entry id="subcyc" skip_default_entry="true">
-    <type>integer</type>
-    <category>cism_config_time</category>
-    <group>time</group>
-    <desc>
-      Subcycling for Glissade
-      Default: (use hard-coded default: 1)
-    </desc>
-  </entry>
 
   <entry id="adaptive_cfl_threshold">
     <type>real</type>
@@ -1261,17 +1242,16 @@ Sub-elements of each entry include:
       <value>1</value>
     </values>
     <desc>
-      Set dt_option to specify whether the dynamic timestep (model%numerics%tinc)
-      is based on dt (the timestep in years) or nsteps_per_year in the config file.
-      The default (dt_option = 0) is to read dt directly,
-      but the nsteps_per_year option allows more flexibility.
+      Whether the time step is given by dt (in years) or by nsteps_per_year.
+      Only the selected key is written to the config file; setting the other
+      one is an error.
       [0] Input dt in years
       [1] Input dt in steps per year
       Default: 1 (DT_STEPS_PER_YEAR)
     </desc>
   </entry>
 
-  <entry id="nsteps_per_year">
+  <entry id="nsteps_per_year" skip_default_entry="true">
     <type>integer</type>
     <category>cism_config_time</category>
     <group>time</group>

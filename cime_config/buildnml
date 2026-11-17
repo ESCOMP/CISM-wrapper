@@ -76,6 +76,10 @@ _SIGMA_IN_CONFIG_FILE = 2
 # should have an 'isostasy' section
 _ISOSTASY_ON = 1
 
+# value of 'dt_input_option' signifying that the time step is given by nsteps_per_year
+# (otherwise it is given by dt, in years)
+_DT_STEPS_PER_YEAR = 1
+
 ###############################################################################
 def get_user_nl_list(case):
 ###############################################################################
@@ -471,6 +475,8 @@ def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid,
                          cism_observed_ic=cism_observed_ic,
                          inst_string=inst_string)
 
+    _set_time_step(nmlgen, icesheet)
+
     #----------------------------------------------------
     # Set values for sections that are added conditionally and write file
     #----------------------------------------------------
@@ -805,10 +811,33 @@ def _add_feature_section_to_cism_config(nmlgen, output_file, group, switch, is_o
                    group, description, others))
 
 ###############################################################################
+def _set_time_step(nmlgen, icesheet):
+###############################################################################
+    """Add dt or nsteps_per_year, whichever dt_input_option selects
+
+    CISM aborts if the config file sets the other one, so only the selected key is
+    written (both entries have skip_default_entry), and setting the other one in
+    user_nl_cism is an error.
+    """
+    if int(nmlgen.get_value("dt_input_option")) == _DT_STEPS_PER_YEAR:
+        used, unused = "nsteps_per_year", "dt"
+    else:
+        used, unused = "dt", "nsteps_per_year"
+    expect(nmlgen.get_value(unused) is None,
+           "ERROR for ice sheet {}: {} cannot be set with dt_input_option = {}; set {} instead "
+           "(or change dt_input_option)".format(icesheet, unused,
+                                                nmlgen.get_value("dt_input_option"), used))
+    nmlgen.add_default(used)
+
+###############################################################################
 def _cism_config_final_consistency_checks(nmlgen, icesheet):
 ###############################################################################
     num_errors = 0
-    num_errors += _check_cism_dt(float(nmlgen.get_value("dt")), icesheet)
+    if int(nmlgen.get_value("dt_input_option")) == _DT_STEPS_PER_YEAR:
+        dt = 1.0 / int(nmlgen.get_value("nsteps_per_year"))
+    else:
+        dt = float(nmlgen.get_value("dt"))
+    num_errors += _check_cism_dt(dt, icesheet)
 
     if int(nmlgen.get_value("evolve_ice")) == 0:
         if _value_is_false(nmlgen.get_value("zero_gcm_fluxes")):
@@ -829,6 +858,8 @@ of icemask_coupled_fluxes used by CTSM).""".format(icesheet)
 def _check_cism_dt(dt, icesheet):
 ###############################################################################
     """Checks CISM's dt value: i.e., the dt variable in the time section of cism.icesheet.config
+
+    dt is either the dt variable or 1/nsteps_per_year, depending on dt_input_option.
 
     Returns 0 if okay, > 0 if errors found (i.e., if dt is an inappropriate value). Also,
     if any errors are found, an error message is printed.
