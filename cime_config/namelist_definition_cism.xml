@@ -1071,33 +1071,31 @@ Sub-elements of each entry include:
   </entry>
 
   <entry id="geothermal_method">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_geothermal</category>
     <group>geothermal</group>
-    <valid_values>0,1</valid_values>
+    <valid_values>uniform,file</valid_values>
     <values>
-      <value>1</value>
+      <value>file</value>
     </values>
     <desc>
-      0: prescribed uniform geothermal heat flux
-      1: read 2D geothermal flux field from input file, if present
+      uniform: prescribed uniform geothermal heat flux
+      file: read 2D geothermal flux field from input file, if present
          (if absent, fall back to prescribed uniform geothermal heat flux)
-      Default: 1
+      Default: file
     </desc>
   </entry>
 
-  <entry id="isostasy">
-    <type>integer</type>
+  <entry id="compute_isostasy">
+    <type>logical</type>
     <category>cism_config_isostasy</category>
     <group>isostasy</group>
-    <valid_values>0,1</valid_values>
     <values>
-      <value>0</value>
+      <value>.false.</value>
     </values>
     <desc>
-      0: no isostasy
-      1: compute isostasy
-      Default: 0
+      If .true., compute isostatic adjustment of the bed (the [isostasy] section is written)
+      Default: .false.
     </desc>
   </entry>
 
@@ -3227,48 +3225,48 @@ Sub-elements of each entry include:
   <!-- group: cism.icesheet.config: isostasy                          -->
   <!-- =============================================================  -->
 
-  <!-- This group is only relevant if isostasy = 1 -->
+  <!-- This group is only relevant if compute_isostasy = .true. -->
 
   <entry id="input_topg_method" skip_default_entry="true">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_isostasy</category>
     <group>isostasy</group>
-    <valid_values>0,1,2</valid_values>
+    <valid_values>separate_relx,relx_from_topg,relx_from_load</valid_values>
     <desc>
       Renamed from whichrelaxed.
-      0: relaxed topography is read from a separate variable
-      1: first time slice of input topography is assumed to be relaxed
-      2: first time slice of input topography is assumed to be in isostatic equilibrium with ice thickness
-      Default: (use hard-coded default - currently 0)
+      separate_relx: relaxed topography is read from a separate variable
+      relx_from_topg: first time slice of input topography is assumed to be relaxed
+      relx_from_load: first time slice of input topography is assumed to be in isostatic equilibrium with ice thickness
+      Default: (use hard-coded default - currently separate_relx)
     </desc>
   </entry>
 
   <entry id="lithosphere_method" skip_default_entry="true">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_isostasy</category>
     <group>isostasy</group>
-    <valid_values>0,1</valid_values>
+    <valid_values>local,elastic</valid_values>
     <desc>
-      0: local lithosphere, equilibrium bedrock depression is found using Archimedes' principle
-      1: elastic lithosphere, flexural rigidity is taken into account
-      Only relevant if isostasy = 1
-      Default: (use hard-coded default - currently 1)
+      local: local lithosphere, equilibrium bedrock depression is found using Archimedes' principle
+      elastic: elastic lithosphere, flexural rigidity is taken into account
+      Only relevant if compute_isostasy = .true.
+      Default: (use hard-coded default - currently elastic)
     </desc>
   </entry>
 
   <entry id="asthenosphere_method" skip_default_entry="true">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_isostasy</category>
     <group>isostasy</group>
-    <valid_values>0,1,2</valid_values>
+    <valid_values>fluid,relaxing,relaxing_latvar</valid_values>
     <desc>
-      0: fluid mantle, isostatic adjustment happens instantaneously
-      1: relaxing mantle, mantle is approximated by a half-space, constant relaxation
+      fluid: fluid mantle, isostatic adjustment happens instantaneously
+      relaxing: relaxing mantle, mantle is approximated by a half-space, constant relaxation
          timescale (tau_relax_const)
-      2: relaxing mantle, as in option 1 but with a laterally varying relaxation
+      relaxing_latvar: relaxing mantle, as in option 1 but with a laterally varying relaxation
          timescale (read in as the 2D field tau_relax)
-      Only relevant if isostasy = 1
-      Default: (use hard-coded default - currently 1)
+      Only relevant if compute_isostasy = .true.
+      Default: (use hard-coded default - currently relaxing)
     </desc>
   </entry>
 
@@ -3278,7 +3276,7 @@ Sub-elements of each entry include:
     <group>isostasy</group>
     <desc>
       Characteristic time constant of relaxing mantle (years)
-      Only relevant if isostasy = 1 and asthenosphere_method = 1 (constant relaxation timescale)
+      Only relevant if compute_isostasy = .true. and asthenosphere_method = relaxing (constant relaxation timescale)
       Renamed from relaxed_tau; default also changed from 4000. to 3000.
       Default: (use hard-coded default - currently 3000.)
     </desc>
@@ -3290,7 +3288,7 @@ Sub-elements of each entry include:
     <group>isostasy</group>
     <desc>
       Update interval for the isostatic load (years)
-      Only relevant if isostasy = 1
+      Only relevant if compute_isostasy = .true.
       Renamed from lithosphere_period; default also changed from 100. to 10.
       Default: (use hard-coded default - currently 10.)
     </desc>
@@ -3419,56 +3417,56 @@ Sub-elements of each entry include:
   </entry>
 
   <entry id="smb_input_units">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_climate</category>
     <group>climate</group>
-    <valid_values>0</valid_values>
+    <valid_values>m_ice_per_yr</valid_values>
     <values>
-      <value>0</value>
+      <value>m_ice_per_yr</value>
     </values>
     <desc>
       Input units for the surface mass balance
-      0: SMB input in units of m/yr ice (same as acab)
-      [removed] 1: SMB input in units of mm/yr water equivalent
+      m_ice_per_yr: SMB input in units of m/yr ice (same as acab)
+      [removed] mm_we_per_yr: SMB input in units of mm/yr water equivalent
       CISM standalone supports different units for smb_input_units, but this can
       cause unintended side-effects in CESM. See cism_wrapper issue #130
-      Default: 0
+      Default: m_ice_per_yr
     </desc>
   </entry>
 
   <entry id="smb_input_function">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_climate</category>
     <group>climate</group>
-    <valid_values>0,1,2,3</valid_values>
+    <valid_values>xy,xy_gradz,xyz,pdd</valid_values>
     <values>
-      <value>0</value>
+      <value>xy</value>
     </values>
     <desc>
       Input method for the surface mass balance
-      0: SMB(x,y); input as a function of horizontal location only
-      1: SMB(x,y) + dSMB/dz(x,y) * dz; input SMB and its vertical gradient
-      2: SMB(x,y,z); input SMB at multiple elevations
-      3: SMB computed with a positive-degree scheme
-      Default: 0
+      xy: SMB(x,y); input as a function of horizontal location only
+      xy_gradz: SMB(x,y) + dSMB/dz(x,y) * dz; input SMB and its vertical gradient
+      xyz: SMB(x,y,z); input SMB at multiple elevations
+      pdd: SMB computed with a positive-degree scheme
+      Default: xy
     </desc>
   </entry>
 
   <entry id="artm_input_function">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_climate</category>
     <group>climate</group>
-    <valid_values>0,1,2,3</valid_values>
+    <valid_values>xy,xy_gradz,xyz,xy_lapse</valid_values>
     <values>
-      <value>0</value>
+      <value>xy</value>
     </values>
     <desc>
       Input method for the surface air temperature
-      0: artm(x,y); input as a function of horizontal location only
-      1: artm(x,y) + dartm/dz(x,y) * dz; input artm and its vertical gradient
-      2: artm(x,y,z); input artm at multiple elevations
-      3: artm(x,y) + tlapse * dz; input artm and uniform lapse rate
-      Default: 0
+      xy: artm(x,y); input as a function of horizontal location only
+      xy_gradz: artm(x,y) + dartm/dz(x,y) * dz; input artm and its vertical gradient
+      xyz: artm(x,y,z); input artm at multiple elevations
+      xy_lapse: artm(x,y) + tlapse * dz; input artm and uniform lapse rate
+      Default: xy
     </desc>
   </entry>
 
@@ -3521,7 +3519,7 @@ Sub-elements of each entry include:
     </values>
     <desc>
       Air temperature (deg C) below which all precip falls as snow
-      Applied if snow_method = 1
+      Applied if snow_method = precip_artm
       Default: 0.0
     </desc>
   </entry>
@@ -3535,7 +3533,7 @@ Sub-elements of each entry include:
     </values>
     <desc>
       Air temperature (deg C) above which all precip falls as rain
-      Applied if snow_method = 1
+      Applied if snow_method = precip_artm
       Default: 2.0
     </desc>
   </entry>
@@ -3563,68 +3561,68 @@ Sub-elements of each entry include:
   </entry>
 
   <entry id="mu_star_method">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_glaciers</category>
     <group>glaciers</group>
-    <valid_values>0,1,2</valid_values>
+    <valid_values>constant,inversion,file</valid_values>
     <values>
-      <value>0</value>
+      <value>constant</value>
     </values>
     <desc>
-      0: apply spatially uniform mu_star
-      1: invert for glacier-specific mu_star
-      2: read glacier-specific mu_star from external file
-      Default: 0
+      constant: apply spatially uniform mu_star
+      inversion: invert for glacier-specific mu_star
+      file: read glacier-specific mu_star from external file
+      Default: constant
       A value of 1 is appropriate for glacier spin-up, and a value of 2 for forward runs.
     </desc>
   </entry>
 
   <entry id="alpha_snow_method">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_glaciers</category>
     <group>glaciers</group>
-    <valid_values>0,1,2</valid_values>
+    <valid_values>constant,inversion,file</valid_values>
     <values>
-      <value>0</value>
+      <value>constant</value>
     </values>
     <desc>
-      0: apply spatially uniform alpha_snow
-      1: invert for glacier-specific alpha_snow
-      2: read glacier-specific alpha_snow from external file
-      Default: 0
+      constant: apply spatially uniform alpha_snow
+      inversion: invert for glacier-specific alpha_snow
+      file: read glacier-specific alpha_snow from external file
+      Default: constant
       A value of 1 is appropriate for glacier spin-up, and a value of 2 for forward runs.
     </desc>
   </entry>
 
   <entry id="glacier_powerlaw_c_method">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_glaciers</category>
     <group>glaciers</group>
-    <valid_values>0,1,2</valid_values>
+    <valid_values>constant,inversion,file</valid_values>
     <values>
-      <value>0</value>
+      <value>constant</value>
     </values>
     <desc>
-      0: apply spatially uniform powerlaw_c
-      1: invert for 2D powerlaw_c
-      2: read 2D powerlaw_c from external file
-      Default: 0
+      constant: apply spatially uniform powerlaw_c
+      inversion: invert for 2D powerlaw_c
+      file: read 2D powerlaw_c from external file
+      Default: constant
       A value of 1 is appropriate for glacier spin-up, and a value of 2 for forward runs.
     </desc>
   </entry>
 
   <entry id="snow_method">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_glaciers</category>
     <group>glaciers</group>
-    <valid_values>0,1</valid_values>
+    <valid_values>snow,precip_artm</valid_values>
     <values>
-      <value>1</value>
+      <value>precip_artm</value>
     </values>
     <desc>
-      0: read the snowfall rate directly
-      1: compute the snowfall rate from precip and downscaled artm
-      Default: 1
+      snow: read the snowfall rate directly
+      precip_artm: compute the snowfall rate from precip and downscaled artm
+      Default: precip_artm
     </desc>
   </entry>
 

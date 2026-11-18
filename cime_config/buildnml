@@ -72,10 +72,6 @@ _ICESHEET_OPTIONS = OrderedDict([('ais', 'ANTARCTICA'),
 # value of 'sigma_method' that signifies that values are read from a sigma section
 _SIGMA_IN_CONFIG_FILE = 'config'
 
-# value of 'isostasy' signifying that isostasy is enabled, and thus we
-# should have an 'isostasy' section
-_ISOSTASY_ON = 1
-
 # value of 'dt_input_option' signifying that the time step is given by nsteps_per_year
 # (otherwise it is given by dt, in years)
 _DT_STEPS_PER_YEAR = 'nsteps_per_year'
@@ -515,9 +511,9 @@ def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid,
     _update_cism_config(nmlgen, output_file, mode="a", header="grid_ocn", group="grid_ocn")
     _update_cism_config(nmlgen, output_file, mode="a", header="ocean_data", group="ocean_data")
     _update_cism_config(nmlgen, output_file, mode="a", header="geothermal", group="geothermal")
-    _add_feature_section_to_cism_config(nmlgen, output_file, group="isostasy", switch="isostasy",
-                                        is_on=lambda v: int(v) == _ISOSTASY_ON,
-                                        description="isostasy = {}".format(_ISOSTASY_ON))
+    _add_feature_section_to_cism_config(nmlgen, output_file, group="isostasy", switch="compute_isostasy",
+                                        is_on=_value_is_true,
+                                        description="compute_isostasy = .true.")
     _update_cism_config(nmlgen, output_file, mode="a", header="inversion", group="inversion")
     _add_feature_section_to_cism_config(nmlgen, output_file, group="glaciers", switch="enable_glaciers",
                                         is_on=lambda v: v == ".true.",
