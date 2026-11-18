@@ -890,7 +890,7 @@ Sub-elements of each entry include:
     <type>integer</type>
     <category>cism_config_calving</category>
     <group>calving</group>
-    <valid_values>0,1,2,3,4,5,6,7,8,9</valid_values>
+    <valid_values>0,1,3,4,5,6,7,8,9,10,11</valid_values>
     <values>
       <value icesheet="gris">1</value>
       <value icesheet="ais" >5</value>
@@ -899,15 +899,16 @@ Sub-elements of each entry include:
       Calving
       0: No calving
       1: Set thickness to zero if floating
-      2: Lose a fraction of floating ice at marine margin
+      (2: removed; use 1 with calving_timescale)
       3: Set thickness to zero if relaxed bedrock is more than a certain water depth (marine_limit)
       4: Set thickness to zero if present bedrock topography lies below a certain water depth (marine_limit)
       5: Set thickness to zero based on grid location (field 'calving_mask')
       6: Prescribed advance/retreat rate as in CalvingMIP
-      7: Calve ice whose thickness is below a given threshold
-      8: Calving rate based on stress threshold criterion
-      9: Calving rate based on strain rate (eigencalving) [NOT SUPPORTED]
-      10: Stochastic stress-based calving  [NOT SUPPORTED]
+      7: Calve ice whose thickness is below a given threshold (calving_minthck)
+      8: Deterministic stress-based calving
+      9: Stochastic stress-based calving
+      10: Damage-based calving
+      11: Strain-rate-based calving (eigencalving)
       Default: 1 for Greenland, 5 for Antarctica
     </desc>
   </entry>
@@ -1421,15 +1422,6 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="calving_fraction" skip_default_entry="true">
-    <type>real</type>
-    <category>cism_config_calving</category>
-    <group>calving</group>
-    <desc>
-      Fraction of ice lost to calving (marine_margin = 2 only)
-      Default: (use hard-coded default - currently 0.2)
-    </desc>
-  </entry>
 
   <entry id="calving_minthck">
     <type>real</type>
