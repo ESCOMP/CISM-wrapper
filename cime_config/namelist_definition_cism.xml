@@ -532,7 +532,7 @@ Sub-elements of each entry include:
     </values>
     <desc>
       User-specified block sizes, one task per block; optionally, tasks not assigned to inactive blocks
-      Would need to be nonzero if running with compute_blocks = 1
+      Would need to be nonzero if running with compute_blocks = active_only
       Default: 0
     </desc>
   </entry>
@@ -546,7 +546,7 @@ Sub-elements of each entry include:
     </values>
     <desc>
       User-specified block sizes, one task per block; optionally, tasks not assigned to inactive blocks
-      Would need to be nonzero if running with compute_blocks = 1
+      Would need to be nonzero if running with compute_blocks = active_only
       Default: 0
     </desc>
   </entry>
@@ -609,7 +609,7 @@ Sub-elements of each entry include:
   <!-- group: cism.icesheet.config: sigma                             -->
   <!-- =============================================================  -->
 
-  <!-- This group is only relevant if sigma_method = 2 -->
+  <!-- This group is only relevant if sigma_method = config -->
 
   <entry id="sigma_levels" >
     <type>real(20)</type>
@@ -622,7 +622,7 @@ Sub-elements of each entry include:
     <desc>
       List of sigma levels, in ascending order, separated by spaces
       These run between 0.0 (at top surface) and 1.0 (at lower surface)
-      Only relevant if sigma_method = 2
+      Only relevant if sigma_method = config
       Default: 0.00 0.15 0.30 0.45 0.60 0.75 0.83 0.90 0.95 0.98 1.00
     </desc>
   </entry>
@@ -709,7 +709,7 @@ Sub-elements of each entry include:
       <value icesheet="ais"  glc_grid="ais8"  >10</value>
     </values>
     <desc>
-      Number of time steps per year (for dt_input_option=1 (STEPS_PER_YEAR))
+      Number of time steps per year (for dt_input_option = nsteps_per_year)
       Default: Depends on resolution and physics option
     </desc>
   </entry>
@@ -1344,10 +1344,10 @@ Sub-elements of each entry include:
     <group>temperature</group>
     <valid_values>zero_celsius,artm,linear,advective_diffusive,file</valid_values>
     <values>
-      <!-- temperature_init = 3 can only generate an advective-diffusive-balance profile if acab
+      <!-- temperature_init = advective_diffusive can only generate an advective-diffusive-balance profile if acab
            or smb are present in the input file (which is currently only the case for some
            input files). But it defaults to a linear profile (temperature_init 2) if neither of
-           these fields are present. So to keep things simple, we specify temperature_init = 3
+           these fields are present. So to keep things simple, we specify temperature_init = advective_diffusive
            for all input files, rather than making this dependent on glc_grid. -->
       <value>advective_diffusive</value>
     </values>
@@ -1466,7 +1466,7 @@ Sub-elements of each entry include:
     <category>cism_config_flow_law</category>
     <group>flow_law</group>
     <desc>
-      Glen's A (Pa^-n yr^-1) to use in isothermal case, i.e, when temperature_method = 0
+      Glen's A (Pa^-n yr^-1) used when flow_law = constant
       Default: (use hard-coded default - currently 1.e-16)
     </desc>
   </entry>
@@ -2343,7 +2343,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-<!--KTC TODO: Code to make this dependant on whichbmlt_float=3-->
+<!--KTC TODO: Code to make this dependant on bmlt_float_method = depth-->
   <entry id="bmlt_float_depth_meltmax">
     <type>real</type>
     <category>cism_config_basal_melt</category>
@@ -2729,7 +2729,7 @@ Sub-elements of each entry include:
   <!-- group: cism.icesheet.config: lateral_melt                      -->
   <!-- =============================================================  -->
 
-  <!-- This group is only relevant if lateral_melt_method /= 0 -->
+  <!-- This group is only relevant if lateral_melt_method /= none -->
 
   <entry id="lateral_melt_method">
     <type>char</type>
