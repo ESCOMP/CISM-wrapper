@@ -1631,7 +1631,7 @@ Sub-elements of each entry include:
     <category>cism_config_basal_physics</category>
     <group>basal_physics</group>
     <desc>
-      Only relevant for sliding_law = 0
+      Only relevant for sliding_law = beta_constant
       Spatially uniform beta for higher-order dycores (Pa yr m-1)
       Default: (use hard-coded default - currently 1000.)
     </desc>
@@ -1661,7 +1661,7 @@ Sub-elements of each entry include:
     <desc>
       Parameter for pseudo-plastic sliding law:
       Exponent for pseudo-plastic law (unitless)
-      pseudo_plastic_q and pseudo_plastic_u0 apply to sliding_law = 2 or 3 only
+      pseudo_plastic_q and pseudo_plastic_u0 apply to sliding_law = pseudo_plastic or pseudo_plastic_old only
       0 &lt;= q &lt;= 1
       q = 1: linear sliding law
       q = 0: plastic
@@ -1681,7 +1681,7 @@ Sub-elements of each entry include:
       Parameter for pseudo-plastic sliding law:
       Threshold velocity for pseudo-plastic law (m yr-1)
       Default: 100.
-      pseudo_plastic_q and pseudo_plastic_u0 apply to sliding_law = 2 or 3 only
+      pseudo_plastic_q and pseudo_plastic_u0 apply to sliding_law = pseudo_plastic or pseudo_plastic_old only
     </desc>
   </entry>
 
@@ -1926,7 +1926,7 @@ Sub-elements of each entry include:
       <value>3.0</value>
     </values>
     <desc>
-      Parameters for power law, taub_b = C * u_b^(1/m); used for HO_BABC_COULOMB_POWERLAW_TSAI/SCHOOF
+      Parameters for power law, taub_b = C * u_b^(1/m); used for sliding_law = tsai and schoof
       Exponent in power law (unitless)
       Default: 3.0
     </desc>
@@ -1940,7 +1940,7 @@ Sub-elements of each entry include:
       <value>1.0e+5</value>
     </values>
     <desc>
-      Parameters for power law, taub_b = C * u_b^(1/m); used for HO_BABC_COULOMB_POWERLAW_TSAI/SCHOOF
+      Parameters for power law, taub_b = C * u_b^(1/m); used for sliding_law = tsai and schoof
       Note: These values work well for MISMIP+, but may not be optimal for whole ice sheets.
       Max value of powerlaw_c, Pa (m/yr)^(-1/3)
       Default: 1.0e+5
@@ -2263,7 +2263,7 @@ Sub-elements of each entry include:
       <value>3.0</value>
     </values>
     <desc>
-      Exponent n in the Schoof basal friction law (sliding_law = 11); modulates
+      Exponent n in the Schoof basal friction law (sliding_law = schoof); modulates
       the transition between power-law and Coulomb behavior.
       Typically the same value as powerlaw_m, but this is not required.
       Default: 3.0
@@ -2279,7 +2279,7 @@ Sub-elements of each entry include:
     </values>
     <desc>
       Parameter gamma in the relation Cp = gamma * Cc^p, used to derive powerlaw_c
-      from coulomb_c when powerlaw_c_method = 4 (HO_POWERLAW_C_FUNCTION_COULOMB_C),
+      from coulomb_c when powerlaw_c_method = from_coulomb_c,
       for use with the Schoof or Tsai basal friction laws.
       Default: 1.0e5
     </desc>
@@ -2294,7 +2294,7 @@ Sub-elements of each entry include:
     </values>
     <desc>
       Exponent p in the relation Cp = gamma * Cc^p, used to derive powerlaw_c
-      from coulomb_c when powerlaw_c_method = 4 (HO_POWERLAW_C_FUNCTION_COULOMB_C),
+      from coulomb_c when powerlaw_c_method = from_coulomb_c,
       for use with the Schoof or Tsai basal friction laws.
       Default: 0.7
     </desc>
@@ -2371,95 +2371,95 @@ Sub-elements of each entry include:
   <!---KTC WHL TODO: Might change the GrIS default to option 9 or 11, with inversion for C_p -->
   <!-- KTC TODO: attempted ais->7 but test failures made me revert to previous of 9 -->
   <entry id="sliding_law">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_basal_physics</category>
     <group>basal_physics</group>
-    <valid_values>0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15</valid_values>
+    <valid_values>beta_constant,beta_bpmp,pseudo_plastic,pseudo_plastic_old,no_slip,beta_file,no_slip_dirichlet,zoet_iverson,ismip_hom_c,powerlaw,coulomb,schoof,tsai,powerlaw_effecpress,yield_picard</valid_values>
     <values>
-      <value icesheet="gris">3</value>
-      <value icesheet="ais" >9</value>
+      <value icesheet="gris">pseudo_plastic_old</value>
+      <value icesheet="ais" >powerlaw</value>
     </values>
     <desc>
       Basal boundary condition for higher order dynamical core
-      0: spatially uniform value (low value of 10 Pa yr-1 by default)
-      1: large value for frozen bed, lower value for bed at pressure melting point
-      2: pseudo-plastic basal sliding law; new version with coulomb_c options
-      3: pseudo-plastic basal sliding law; old version with tan(phi)
-      4: very large value for beta to enforce no slip everywhere
-      5: beta field passed in from .nc input file as part of standard i/o
-      6: no slip everywhere (using Dirichlet BC rather than large beta)
-      7: Zoet-Iverson law combining Coulomb and powerlaw behavior
-      8: beta field as prescribed for ISMIP-HOM test C (serial only)
-      9: HO_BABC_POWERLAW power law
-      10: HO_BABC_COULOMB_FRICTION Coulomb friction law using effective pressure, with flwa from lowest ice layer
-      11: HO_BABC_SCHOOF Schoof law that blends powerlaw and Coulomb behavior
-      12: HO_BABC_TSAI Tsai Coulomb law where basal stress is the minimum of Coulomb and power-law values, as in Tsai et al. (2015)
-      13: HO_BABC_POWERLAW_EFFECPRESS power law using effective pressure
-      14: HO_BABC_YIELD_PICARD treat beta value as a till yield stress (in Pa) using Picard iteration
-      Default: 3 for Greenland, 7 for Antarctica
+      beta_constant: spatially uniform value (low value of 10 Pa yr-1 by default)
+      beta_bpmp: large value for frozen bed, lower value for bed at pressure melting point
+      pseudo_plastic: pseudo-plastic basal sliding law; new version with coulomb_c options
+      pseudo_plastic_old: pseudo-plastic basal sliding law; old version with tan(phi)
+      no_slip: very large value for beta to enforce no slip everywhere
+      beta_file: beta field passed in from .nc input file as part of standard i/o
+      no_slip_dirichlet: no slip everywhere (using Dirichlet BC rather than large beta)
+      zoet_iverson: Zoet-Iverson law combining Coulomb and powerlaw behavior
+      ismip_hom_c: beta field as prescribed for ISMIP-HOM test C (serial only)
+      powerlaw: power law
+      coulomb: Coulomb friction law using effective pressure, with a constant basal flow factor (flwa_basal_const)
+      schoof: Schoof law that blends powerlaw and Coulomb behavior
+      tsai: Tsai Coulomb law where basal stress is the minimum of Coulomb and power-law values, as in Tsai et al. (2015)
+      powerlaw_effecpress: power law using effective pressure
+      yield_picard: treat beta value as a till yield stress (in Pa) using Picard iteration
+      Default: pseudo_plastic_old for Greenland, zoet_iverson for Antarctica
     </desc>
   </entry>
 
   <entry id="beta_limit_method">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_basal_physics</category>
     <group>basal_physics</group>
-    <valid_values>0,1</valid_values>
+    <valid_values>absolute,fground_scaled</valid_values>
     <values>
-      <value icesheet="gris">0</value>
-      <value icesheet="ais" >1</value>
+      <value icesheet="gris">absolute</value>
+      <value icesheet="ais" >fground_scaled</value>
     </values>
     <desc>
       Flag for setting minimum beta beneath grounded ice.
-      0: Absolute limit given by beta_grounded_min
-      1: Limited using beta_grounded_min, then multiplied by f_ground
-      Default: 0 for Greenland, 1 for Antarctica
+      absolute: Absolute limit given by beta_grounded_min
+      fground_scaled: Limited using beta_grounded_min, then multiplied by f_ground
+      Default: absolute for Greenland, fground_scaled for Antarctica
     </desc>
   </entry>
 
 <entry id="powerlaw_c_method">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_basal_physics</category>
     <group>basal_physics</group>
-    <valid_values>0,1,2,3,4</valid_values>
+    <valid_values>constant,inversion,file,inversion_basin,from_coulomb_c</valid_values>
     <values>
-      <value icesheet="gris">0</value>
-      <value icesheet="ais" >0</value>
+      <value icesheet="gris">constant</value>
+      <value icesheet="ais" >constant</value>
     </values>
     <desc>
       Flag for basal inversion options: invert for Cp = powerlaw_c
-      Note: Cp inversion is currently supported for sliding_law = 9, 11 and 12 only
-      0: powerlaw_c = spatially uniform constant
-      1: invert for 2D powerlaw_c
-      2: read 2D powerlaw_c from external file
-      3: invert for basin-scale powerlaw_c
-      4: powerlaw_c is a function of coulomb_c (Cp = schoof_gamma * Cc^schoof_p);
-         requires coulomb_c_method = 1 or 3 (2D or basin-scale Cc inversion)
-      Default: 0 for Greenland, 0 for Antarctica
+      Note: Cp inversion is currently supported for sliding_law = powerlaw, schoof and tsai only
+      constant: powerlaw_c = spatially uniform constant
+      inversion: invert for 2D powerlaw_c
+      file: read 2D powerlaw_c from external file
+      inversion_basin: invert for basin-scale powerlaw_c
+      from_coulomb_c: powerlaw_c is a function of coulomb_c (Cp = schoof_gamma * Cc^schoof_p);
+         requires coulomb_c_method = inversion or inversion_basin (2D or basin-scale Cc inversion)
+      Default: constant for Greenland, constant for Antarctica
     </desc>
   </entry>
 
   <entry id="coulomb_c_method">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_basal_physics</category>
     <group>basal_physics</group>
-    <valid_values>0,1,2,3</valid_values>
+    <valid_values>constant,inversion,file,inversion_basin</valid_values>
     <values>
-      <value icesheet="gris">0</value>
-      <value icesheet="ais" >0</value>
+      <value icesheet="gris">constant</value>
+      <value icesheet="ais" >constant</value>
     </values>
     <desc>
       Flag for basal inversion options: invert for Cc = coulomb_c
-      Note: Cc inversion is currently supported for sliding_law = 7 (ZI law),
+      Note: Cc inversion is currently supported for sliding_law = zoet_iverson (ZI law),
       the pseudo-plastic law, and the Schoof and Tsai laws
-      0: coulomb_c = spatially uniform constant
-      1: invert for 2D coulomb_c
-      2: read 2D coulomb_c from external file
-      3: invert for basin-scale coulomb_c
+      constant: coulomb_c = spatially uniform constant
+      inversion: invert for 2D coulomb_c
+      file: read 2D coulomb_c from external file
+      inversion_basin: invert for basin-scale coulomb_c
       Note: Option 4 (read basin-scale coulomb_c_lo/hi from external file) has been
       removed; coulomb_c_lo/coulomb_c_hi are now scalar constants used only when
       elevation_based_coulomb_c = .true., not spatially varying basin-scale fields.
-      Default: 0 for Greenland, 0 for Antarctica
+      Default: constant for Greenland, constant for Antarctica
     </desc>
   </entry>
 
@@ -2512,44 +2512,44 @@ Sub-elements of each entry include:
   </entry>
 
   <entry id="bwat_method">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_basal_hydro</category>
     <group>basal_hydro</group>
-    <valid_values>0,1,2,3</valid_values>
+    <valid_values>none,constant,local_till,flux_routing</valid_values>
     <values>
-      <value icesheet="gris">2</value>
-      <value icesheet="ais" >0</value>
+      <value icesheet="gris">local_till</value>
+      <value icesheet="ais" >none</value>
     </values>
     <desc>
       Basal water depth
-      0: Set to zero everywhere
-      1: Set to constant everywhere, to force T = Tpmp
-      2: Local basal till model with constant drainage
-      3: Steady-state water routing with flux calculation
-      Default: 2 for Greenland, 0 for Antarctica
+      none: Set to zero everywhere
+      constant: Set to constant everywhere, to force T = Tpmp
+      local_till: Local basal till model with constant drainage
+      flux_routing: Steady-state water routing with flux calculation
+      Default: local_till for Greenland, none for Antarctica
     </desc>
   </entry>
 
   <entry id="effecpress_method">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_basal_physics</category>
     <group>basal_physics</group>
-    <valid_values>0,1,2,3,4</valid_values>
+    <valid_values>overburden,bpmp,bwat,cavity_sheet,bwat_bvp</valid_values>
     <values>
-      <value icesheet="gris">4</value>
-      <value icesheet="ais" >0</value>
+      <value icesheet="gris">bwat_bvp</value>
+      <value icesheet="ais" >overburden</value>
     </values>
     <desc>
       Flag that describes effective pressure calculation for higher order dynamical core
       Note: This is independent of setting p_ocean_penetration.
-            Setting p > 0 reduces N near grounding line, even when effecpress_method = 0
-      0: N = overburden pressure, rhoi*grav*thck
-      1: N is reduced where the bed is at or near the pressure melting point
-      2: N is reduced based on basal water thickness
-      3: N depends on cavity opening and closing
-      4: N is reduced based on basal water thickness, following Bueler/van Pelt,
+            Setting p > 0 reduces N near grounding line, even when effecpress_method = overburden
+      overburden: N = overburden pressure, rhoi*grav*thck
+      bpmp: N is reduced where the bed is at or near the pressure melting point
+      bwat: N is reduced based on basal water thickness
+      cavity_sheet: N depends on cavity opening and closing
+      bwat_bvp: N is reduced based on basal water thickness, following Bueler/van Pelt,
       used in CESM2 when using the old pseudoplastic sliding law
-      Default: 0 for Greenland, 0 for Antarctica
+      Default: overburden for Greenland, overburden for Antarctica
     </desc>
   </entry>
 
@@ -2845,58 +2845,58 @@ Sub-elements of each entry include:
   </entry>
 
   <entry id="grounding_line_param">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_grounding_line</category>
     <group>grounding_line</group>
-    <valid_values>0,1,2</valid_values>
+    <valid_values>none,vertices,deluxe</valid_values>
     <values>
-      <value>2</value>
+      <value>deluxe</value>
     </values>
     <desc>
       Flag that indicates how the grounded ice fraction is computed in the Glissade dycore
       Not valid for other dycores
-      0: f_ground = 0 in floating cells (based on flotation condition), else f_ground = 1
-      1: basal friction GLP with 0 .lte. f_ground .lte. 1 at vertices
-      2: "deluxe" GLP with f_ground at both cells and vertices; includes both friction and melting
-      Default: 0
+      none: f_ground = 0 in floating cells (based on flotation condition), else f_ground = 1
+      vertices: basal friction GLP with 0 .lte. f_ground .lte. 1 at vertices
+      deluxe: "deluxe" GLP with f_ground at both cells and vertices; includes both friction and melting
+      Default: none
     </desc>
   </entry>
 
   <entry id="grounding_line_bmlt">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_grounding_line</category>
     <group>grounding_line</group>
-    <valid_values>0,1,2</valid_values>
+    <valid_values>none,floating_fraction,zero_grounded</valid_values>
     <values>
-      <value>1</value>
+      <value>floating_fraction</value>
     </values>
     <desc>
       Flag that indicates how to compute bmlt_float in partly grounded cells
-      0: Apply bmlt_float in all floating cells, based on floating_mask
-      1: Do not apply bmlt_float in partly grounded cells
-      2: Set bmlt_float = 0 in partly grounded cells (f_ground > 0)
-      Default: 0
+      none: Apply bmlt_float in all floating cells, based on floating_mask
+      floating_fraction: Do not apply bmlt_float in partly grounded cells
+      zero_grounded: Set bmlt_float = 0 in partly grounded cells (f_ground > 0)
+      Default: none
     </desc>
   </entry>
 
   <entry id="flotation_function">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_grounding_line</category>
     <group>grounding_line</group>
-    <valid_values>0,1,2</valid_values>
+    <valid_values>pattyn,inverse_pattyn,linear</valid_values>
     <values>
-      <value>2</value>
+      <value>linear</value>
     </values>
     <desc>
       Flag that indicates how to compute the flotation function at and near vertices in the Glissade dycore
       Not valid for other dycores
-      Only applicable for grounding_line_param=1
-      0: f_flotation = (-rhow*b/rhoi*H) = f_pattyn; &lt;=1 for grounded, &gt; 1 for floating
-      1: f_flotation = (rhoi*H)/(-rhow*b) = 1/f_pattyn; &gt;=1 for grounded, &lt; 1 for floating
-      2: f_flotation = -rhow*b - rhoi*H = ocean cavity thickness; &lt;=0 for grounded, &gt; 0 for floating
+      Only applicable for grounding_line_param=vertices
+      pattyn: f_flotation = (-rhow*b/rhoi*H) = f_pattyn; &lt;=1 for grounded, &gt; 1 for floating
+      inverse_pattyn: f_flotation = (rhoi*H)/(-rhow*b) = 1/f_pattyn; &gt;=1 for grounded, &lt; 1 for floating
+      linear: f_flotation = -rhow*b - rhoi*H = ocean cavity thickness; &lt;=0 for grounded, &gt; 0 for floating
       Note: Option 3 ("Like (2), but with a correction for topg", using topg_raised)
       has been removed.
-      Default: 2
+      Default: linear
     </desc>
   </entry>
 
@@ -3050,55 +3050,55 @@ Sub-elements of each entry include:
   <!-- =============================================================  -->
 
   <entry id="flux_routing_method">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_basal_hydro</category>
     <group>basal_hydro</group>
-    <valid_values>0,1,2</valid_values>
+    <valid_values>d8,dinf,fd8</valid_values>
     <values>
-      <value>0</value>
-      <value icesheet="ais" >0</value>
+      <value>d8</value>
+      <value icesheet="ais" >d8</value>
     </values>
     <desc>
-      Flux-routing scheme for basal water; applies only if bwat_method = 3
-      0: D8; send flux to lowest-elevation neighbor
-      1: Dinf; divide flux between two lower-elevation neighbors
-      2: FD8; divide flux among all lower-elevation neighbors
-      Default: 0
+      Flux-routing scheme for basal water; applies only if bwat_method = flux_routing
+      d8: D8; send flux to lowest-elevation neighbor
+      dinf: Dinf; divide flux between two lower-elevation neighbors
+      fd8: FD8; divide flux among all lower-elevation neighbors
+      Default: d8
     </desc>
   </entry>
 
   <entry id="cavity_open_slide">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_basal_hydro</category>
     <group>basal_hydro</group>
-    <valid_values>0,1,2</valid_values>
+    <valid_values>none,fixed_ub,dynamic_ub</valid_values>
     <values>
-      <value>0</value>
+      <value>none</value>
     </values>
     <desc>
       Treatment of opening by sliding in cavity-sheet equations
-      0: no opening by sliding
-      1: opening by sliding with fixed u_b
-      2: opening by sliding with dynamic u_b
-      Default: 0
+      none: no opening by sliding
+      fixed_ub: opening by sliding with fixed u_b
+      dynamic_ub: opening by sliding with dynamic u_b
+      Default: none
     </desc>
   </entry>
 
   <entry id="cavity_open_melt">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_basal_hydro</category>
     <group>basal_hydro</group>
-    <valid_values>0,1,2,3</valid_values>
+    <valid_values>none,bmlt,dissipation,bmlt_dissipation</valid_values>
     <values>
-      <value>0</value>
+      <value>none</value>
     </values>
     <desc>
       Treatment of opening by melting in cavity-sheet equations
-      0: no opening by melting
-      1: opening by melting based on bmlt_ground
-      2: opening by melting based on dissipation in cavities
-      3: opening by melting based on bmlt_ground plus dissipation
-      Default: 0
+      none: no opening by melting
+      bmlt: opening by melting based on bmlt_ground
+      dissipation: opening by melting based on dissipation in cavities
+      bmlt_dissipation: opening by melting based on bmlt_ground plus dissipation
+      Default: none
     </desc>
   </entry>
 
@@ -3111,7 +3111,7 @@ Sub-elements of each entry include:
     </values>
     <desc>
       Temperature scale (degC) for the transition between thawed and frozen bed,
-      used by flux routing (bwat_method = 3) to route water away from cells with a
+      used by flux routing (bwat_method = flux_routing) to route water away from cells with a
       frozen bed. 0 = flow does not depend on the basal temperature.
       Default: 0.0
     </desc>
@@ -3126,7 +3126,7 @@ Sub-elements of each entry include:
     </values>
     <desc>
       Temperature scale (degC) for the transition between thawed and frozen bed,
-      used by flux routing (bwat_method = 3) to refreeze water beneath cells with a
+      used by flux routing (bwat_method = flux_routing) to refreeze water beneath cells with a
       frozen bed. 0 = no refreezing. Values > 0 are not supported with
       reproducible_sums = .true.
       Default: 0.0
@@ -3155,7 +3155,7 @@ Sub-elements of each entry include:
     </values>
     <desc>
       Uniform fixed basal water depth (m)
-      Relevant only for bwat_method = 1
+      Relevant only for bwat_method = constant
       Default: 10.0
     </desc>
   </entry>
@@ -3208,7 +3208,7 @@ Sub-elements of each entry include:
     </values>
     <desc>
       Parameter for local till model: Maximum water depth in till (m)
-      Relevant only for bwat_method = 2
+      Relevant only for bwat_method = local_till
       Default: 2.0
     </desc>
   </entry>
@@ -3222,7 +3222,7 @@ Sub-elements of each entry include:
     </values>
     <desc>
       Parameter for local till model: Uniform drainage rate (m/yr)
-      Relevant only for bwat_method = 2
+      Relevant only for bwat_method = local_till
       Default: 1.e-3
     </desc>
   </entry>
