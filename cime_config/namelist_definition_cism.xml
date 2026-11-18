@@ -1044,18 +1044,18 @@ Sub-elements of each entry include:
   </entry>
 
   <entry id="advection_method">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_advection</category>
     <group>advection</group>
-    <valid_values>3,4,5</valid_values>
+    <valid_values>remap,upwind,fixed_thickness</valid_values>
     <values>
-      <value>3</value>
+      <value>remap</value>
     </values>
     <desc>
-      3: remap thickness
-      4: 1st order upwind
-      5: no thickness evolution
-      Default: 3
+      remap: remap thickness
+      upwind: 1st order upwind
+      fixed_thickness: no thickness evolution
+      Default: remap
     </desc>
   </entry>
 
@@ -2572,39 +2572,39 @@ Sub-elements of each entry include:
   </entry>
 
   <entry id="efvs_method">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_velocity</category>
     <group>velocity</group>
-    <valid_values>0,1,2</valid_values>
+    <valid_values>constant,flow_factor,nonlinear</valid_values>
     <values>
-      <value>2</value>
+      <value>nonlinear</value>
     </values>
     <desc>
       How effective viscosity is computed for higher-order dynamical core
-      0: constant value
-      1: multiple of flow factor
-      2: compute from effective strain rate
-      Default: 2
+      constant: constant value
+      flow_factor: multiple of flow factor
+      nonlinear: compute from effective strain rate
+      Default: nonlinear
     </desc>
   </entry>
 
 
   <entry id="nonlinear_residual">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_velocity_solver</category>
     <group>velocity_solver</group>
-    <valid_values>0,1,2,3,4</valid_values>
+    <valid_values>max,max_no_ubas,mean,l2norm,relative_l2norm</valid_values>
     <values>
-      <value>4</value>
+      <value>relative_l2norm</value>
     </values>
     <desc>
       Method for computing velocity solver residual
-      0: maxval
-      1: maxval ignoring basal velocity
-      2: mean value
-      3: L2 norm of system residual, Ax-b=resid
-      4: L2 norm of system residual relative to rhs, |Ax-b|/|b|
-      Default: 4
+      max: maxval
+      max_no_ubas: maxval ignoring basal velocity
+      mean: mean value
+      l2norm: L2 norm of system residual, Ax-b=resid
+      relative_l2norm: L2 norm of system residual relative to rhs, |Ax-b|/|b|
+      Default: relative_l2norm
     </desc>
   </entry>
 
@@ -2626,66 +2626,66 @@ Sub-elements of each entry include:
   </entry>
 
   <entry id="linear_solver" >
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_velocity_solver</category>
     <group>velocity_solver</group>
-    <valid_values>-1,0,1,2,3</valid_values>
+    <valid_values>slap_pcg,slap_bicg,slap_gmres,pcg,pcg_chrongear</valid_values>
     <values>
-      <value>3</value>
+      <value>pcg_chrongear</value>
     </values>
     <desc>
       Method for solving the sparse linear system that arises from the higher-order solver
-      -1: SLAP (serial) Preconditioned conjugate gradient, incomplete Cholesky preconditioner
-      0: SLAP (serial) Biconjugate gradient, incomplete LU preconditioner
-      1: SLAP (serial) GMRES, incomplete LU preconditioner
-      2: Native PCG, parallel-enabled, standard solver
-      3: Native PCG, parallel-enabled, Chronopoulos-Gear solver
-      Default: 3
+      slap_pcg: SLAP (serial) Preconditioned conjugate gradient, incomplete Cholesky preconditioner
+      slap_bicg: SLAP (serial) Biconjugate gradient, incomplete LU preconditioner
+      slap_gmres: SLAP (serial) GMRES, incomplete LU preconditioner
+      pcg: Native PCG, parallel-enabled, standard solver
+      pcg_chrongear: Native PCG, parallel-enabled, Chronopoulos-Gear solver
+      Default: pcg_chrongear
     </desc>
   </entry>
 
   <entry id="nonlinear_method">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_velocity_solver</category>
     <group>velocity_solver</group>
-    <valid_values>0,1</valid_values>
+    <valid_values>picard,accelerated_picard</valid_values>
     <values>
-      <value>1</value>
+      <value>accelerated_picard</value>
     </values>
     <desc>
       Flag that indicates method for solving the nonlinear iteration when solving the first-
       order momentum balance
-      0: Use the standard Picard iteration
-      1: Do Picard iteration with acceleration
-      Default: 1
+      picard: Use the standard Picard iteration
+      accelerated_picard: Do Picard iteration with acceleration
+      Default: accelerated_picard
     </desc>
   </entry>
 
   <entry id="surface_gradient_method">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_velocity</category>
     <group>velocity</group>
-    <valid_values>0,1,2</valid_values>
+    <valid_values>centered,upstream1,upstream2</valid_values>
     <values>
-      <value>0</value>
+      <value>centered</value>
     </values>
     <desc>
       Which gradient operator to use in the Glissade dycore.
       Not valid in other dycores.
       NOTE: Upstream may be better for ice evolution because it damps checkerboard noise.
-      0: Centered gradient
-      1: First-order accurate upstream gradient
-      2: Second-order accurate upstream gradient
+      centered: Centered gradient
+      upstream1: First-order accurate upstream gradient
+      upstream2: Second-order accurate upstream gradient
     </desc>
   </entry>
 
   <entry id="surface_gradient_margin_method">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_velocity</category>
     <group>velocity</group>
-    <valid_values>0,1,2</valid_values>
+    <valid_values>land,hybrid,marine</valid_values>
     <values>
-      <value>1</value>
+      <value>hybrid</value>
     </values>
     <desc>
       How to compute the gradient at the ice margin in the Glissade dycore.
@@ -2693,118 +2693,118 @@ Sub-elements of each entry include:
       Note: Gradients are always computed at edges with ice on both sides.
       The methods differ in whether gradients are computed when an ice-covered cell
       lies above an ice-free cell (land or ocean).
-      0: Compute edge gradient when either cell is ice-covered
-      1: Compute edge gradient for ice-covered cell above ice-free land (not ocean)
-      2: Compute edge gradient only when both cells have ice
-      Default: 1
+      land: Compute edge gradient when either cell is ice-covered
+      hybrid: Compute edge gradient for ice-covered cell above ice-free land (not ocean)
+      marine: Compute edge gradient only when both cells have ice
+      Default: hybrid
     </desc>
   </entry>
 
   <entry id="stokes_approx">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_velocity</category>
     <group>velocity</group>
-    <valid_values>-1,0,1,2,3,4</valid_values>
+    <valid_values>local_sia,sia,ssa,blatter_pattyn,l1l2,diva</valid_values>
     <values>
-      <value>4</value>
+      <value>diva</value>
     </values>
     <desc>
       Flag that indicates which Stokes approximation to use with the Glissade dycore.
       Not valid for other dycores.
-      -1: Shallow-ice approximation, Glide-type calculation (uses glissade_velo_sia)
-      0: Shallow-ice approximation, vertical-shear stresses only (uses glissade_velo_higher)
-      1: Shallow-shelf approximation, horizontal-plane stresses only (uses glissade_velo_higher)
-      2: Blatter-Pattyn approximation with both vertical-shear and horizontal-plane stresses (uses glissade_velo_higher)
-      3: Vertically integrated 'L1L2' approximation with vertical-shear and horizontal-plane stresses (uses glissade_velo_higher)
-      4: Depth-integrated viscosity approximation (DIVA) based on Goldberg (2011) (uses glissade_velo_higher)
-      Default: 4
+      local_sia: Shallow-ice approximation, Glide-type calculation (uses glissade_velo_sia)
+      sia: Shallow-ice approximation, vertical-shear stresses only (uses glissade_velo_higher)
+      ssa: Shallow-shelf approximation, horizontal-plane stresses only (uses glissade_velo_higher)
+      blatter_pattyn: Blatter-Pattyn approximation with both vertical-shear and horizontal-plane stresses (uses glissade_velo_higher)
+      l1l2: Vertically integrated 'L1L2' approximation with vertical-shear and horizontal-plane stresses (uses glissade_velo_higher)
+      diva: Depth-integrated viscosity approximation (DIVA) based on Goldberg (2011) (uses glissade_velo_higher)
+      Default: diva
     </desc>
   </entry>
 
   <entry id="preconditioner">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_velocity_solver</category>
     <group>velocity_solver</group>
-    <valid_values>0,1,2,3,4</valid_values>
+    <valid_values>none,diagonal,sia,tridiag_local,tridiag_global</valid_values>
     <values>
-      <value icesheet="gris">1</value>
-      <value icesheet="ais" >1</value>
+      <value icesheet="gris">diagonal</value>
+      <value icesheet="ais" >diagonal</value>
     </values>
     <desc>
       Flag that indicates which Stokes preconditioner to use in the Glissade dycore.
       Not valid for other dycores.
-      0: No preconditioner
-      1: Diagonal preconditioner
-      2: Physics-based shallow-ice preconditioner
-      3: Local tridiagonal preconditioner (one solve per task)
-      4: Global tridiagonal preconditioner (global solve)
-      Default: 1 for Greenland, 1 for Antarctica
+      none: No preconditioner
+      diagonal: Diagonal preconditioner
+      sia: Physics-based shallow-ice preconditioner
+      tridiag_local: Local tridiagonal preconditioner (one solve per task)
+      tridiag_global: Global tridiagonal preconditioner (global solve)
+      Default: diagonal for Greenland and Antarctica
     </desc>
   </entry>
 
   <entry id="assemble_beta">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_velocity_solver</category>
     <group>velocity_solver</group>
-    <valid_values>0,1</valid_values>
+    <valid_values>standard,local</valid_values>
     <values>
-      <value>1</value>
+      <value>local</value>
     </values>
     <desc>
       Flag that describes how beta terms are assembled in the Glissade finite-element calculation
-      0: Standard finite-element calculation (which effectively smooths beta)
-      1: Apply local value of beta at each vertex
-      Default: 1
+      standard: Standard finite-element calculation (which effectively smooths beta)
+      local: Apply local value of beta at each vertex
+      Default: local
     </desc>
   </entry>
 
   <entry id="assemble_taud">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_velocity_solver</category>
     <group>velocity_solver</group>
-    <valid_values>0,1</valid_values>
+    <valid_values>standard,local</valid_values>
     <values>
-      <value>1</value>
+      <value>local</value>
     </values>
     <desc>
       Flag that describes how driving-stress terms are assembled in the Glissade finite-element calculation
       Not valid for other dycores
-      0: Standard finite-element calculation (which effectively smooths the driving stress)
-      1: Apply local value of driving stress at each vertex
-      Default: 1
+      standard: Standard finite-element calculation (which effectively smooths the driving stress)
+      local: Apply local value of driving stress at each vertex
+      Default: local
     </desc>
   </entry>
 
   <entry id="assemble_bfric">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_velocity_solver</category>
     <group>velocity_solver</group>
-    <valid_values>0,1</valid_values>
+    <valid_values>standard,local</valid_values>
     <values>
-      <value>1</value>
+      <value>local</value>
     </values>
     <desc>
       Flag that describes how the basal friction heat flux is computed in the Glissade finite-element calculation
       Not valid for other dycores
-      0: Standard finite-element calculation summing over quadrature points
-      1: Apply local value of beta*(u^2 + v^2) at each vertex
-      Default: 1
+      standard: Standard finite-element calculation summing over quadrature points
+      local: Apply local value of beta*(u^2 + v^2) at each vertex
+      Default: local
     </desc>
   </entry>
 
   <entry id="assemble_lateral">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_velocity_solver</category>
     <group>velocity_solver</group>
-    <valid_values>0,1</valid_values>
+    <valid_values>standard,local</valid_values>
     <values>
-      <value>1</value>
+      <value>local</value>
     </values>
     <desc>
       Flag that describes how lateral stress terms are assembled in the glissade finite-element calculation
-      0: Standard finite-element calculation of thck and usrf at quadrature points
-      1: Apply local cell-center value of thck and usrf on each face
-      Default: 1
+      standard: Standard finite-element calculation of thck and usrf at quadrature points
+      local: Apply local cell-center value of thck and usrf on each face
+      Default: local
     </desc>
   </entry>
 
