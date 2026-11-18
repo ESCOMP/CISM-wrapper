@@ -757,16 +757,16 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="temp_init">
+  <entry id="temperature_init">
     <type>integer</type>
     <category>cism_config_temperature</category>
     <group>temperature</group>
     <valid_values>0,1,2,3,4</valid_values>
     <values>
-      <!-- temp_init = 3 can only generate an advective-diffusive-balance profile if acab
+      <!-- temperature_init = 3 can only generate an advective-diffusive-balance profile if acab
            or smb are present in the input file (which is currently only the case for some
-           input files). But it defaults to a linear profile (temp_init 2) if neither of
-           these fields are present. So to keep things simple, we specify temp_init = 3
+           input files). But it defaults to a linear profile (temperature_init 2) if neither of
+           these fields are present. So to keep things simple, we specify temperature_init = 3
            for all input files, rather than making this dependent on glc_grid. -->
       <value>3</value>
     </values>
@@ -790,7 +790,7 @@ Sub-elements of each entry include:
       <value>2</value>
     </values>
     <desc>
-      0: Constant value, taken from default_flwa
+      0: Constant value, taken from flwa_const
       1: Uniform value equal to the Paterson-Budd value at -10 deg C
       2: Paterson-Budd temperature-dependent relationship
       3: Read flwa/flwastag from file
@@ -904,7 +904,7 @@ Sub-elements of each entry include:
       4: Set thickness to zero if present bedrock topography lies below a certain water depth (marine_limit)
       5: Set thickness to zero based on grid location (field 'calving_mask')
       6: Prescribed advance/retreat rate as in CalvingMIP
-      7: Calve ice whose thickness is below a given threshold (calving_minthck)
+      7: Calve ice whose thickness is below a given threshold (calving_thck_threshold)
       8: Deterministic stress-based calving
       9: Stochastic stress-based calving
       10: Damage-based calving
@@ -1129,7 +1129,7 @@ Sub-elements of each entry include:
   </entry>
 
 
-  <entry id="diag_minthck" skip_default_entry="true">
+  <entry id="diag_ice_threshold" skip_default_entry="true">
     <type>integer</type>
     <category>cism_config_diagnostics</category>
     <group>diagnostics</group>
@@ -1340,7 +1340,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="ice_limit">
+  <entry id="thcklim">
     <type>real</type>
     <category>cism_config_numerics</category>
     <group>numerics</group>
@@ -1381,10 +1381,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="gamma0">
+  <entry id="bmlt_float_gamma0">
     <type>real</type>
-    <category>cism_config_ocean_data</category>
-    <group>ocean_data</group>
+    <category>cism_config_basal_melt</category>
+    <group>basal_melt</group>
     <values>
       <value icesheet="gris">0.</value>
       <value icesheet="ais" >25000.</value>
@@ -1423,7 +1423,7 @@ Sub-elements of each entry include:
   </entry>
 
 
-  <entry id="calving_minthck">
+  <entry id="calving_thck_threshold">
     <type>real</type>
     <category>cism_config_calving</category>
     <group>calving</group>
@@ -1463,7 +1463,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="eigenconstant">
+  <entry id="eigencalving_const">
     <type>real</type>
     <category>cism_config_calving</category>
     <group>calving</group>
@@ -1579,7 +1579,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="default_flwa" skip_default_entry="true">
+  <entry id="flwa_const" skip_default_entry="true">
     <type>real</type>
     <category>cism_config_flow_law</category>
     <group>flow_law</group>
@@ -3149,7 +3149,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="const_bwat">
+  <entry id="bwat_const">
     <type>real</type>
     <category>cism_config_basal_hydro</category>
     <group>basal_hydro</group>
@@ -3216,7 +3216,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="c_drainage">
+  <entry id="till_drainage_rate">
     <type>real</type>
     <category>cism_config_basal_hydro</category>
     <group>basal_hydro</group>
@@ -3426,7 +3426,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="smb_input">
+  <entry id="smb_input_units">
     <type>integer</type>
     <category>cism_config_climate</category>
     <group>climate</group>
@@ -3438,7 +3438,7 @@ Sub-elements of each entry include:
       Input units for the surface mass balance
       0: SMB input in units of m/yr ice (same as acab)
       [removed] 1: SMB input in units of mm/yr water equivalent
-      CISM standalone supports different units for smb_input, but this can
+      CISM standalone supports different units for smb_input_units, but this can
       cause unintended side-effects in CESM. See cism_wrapper issue #130
       Default: 0
     </desc>
@@ -3663,7 +3663,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="diagnostic_minthck">
+  <entry id="glacier_diag_thck_min">
     <type>real</type>
     <category>cism_config_glaciers</category>
     <group>glaciers</group>
