@@ -757,16 +757,16 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="temp_init">
+  <entry id="temperature_init">
     <type>integer</type>
     <category>cism_config_temperature</category>
     <group>temperature</group>
     <valid_values>0,1,2,3,4</valid_values>
     <values>
-      <!-- temp_init = 3 can only generate an advective-diffusive-balance profile if acab
+      <!-- temperature_init = 3 can only generate an advective-diffusive-balance profile if acab
            or smb are present in the input file (which is currently only the case for some
-           input files). But it defaults to a linear profile (temp_init 2) if neither of
-           these fields are present. So to keep things simple, we specify temp_init = 3
+           input files). But it defaults to a linear profile (temperature_init 2) if neither of
+           these fields are present. So to keep things simple, we specify temperature_init = 3
            for all input files, rather than making this dependent on glc_grid. -->
       <value>3</value>
     </values>
@@ -790,7 +790,7 @@ Sub-elements of each entry include:
       <value>2</value>
     </values>
     <desc>
-      0: Constant value, taken from default_flwa
+      0: Constant value, taken from flwa_const
       1: Uniform value equal to the Paterson-Budd value at -10 deg C
       2: Paterson-Budd temperature-dependent relationship
       3: Read flwa/flwastag from file
@@ -890,7 +890,7 @@ Sub-elements of each entry include:
     <type>integer</type>
     <category>cism_config_calving</category>
     <group>calving</group>
-    <valid_values>0,1,2,3,4,5,6,7,8,9</valid_values>
+    <valid_values>0,1,3,4,5,6,7,8,9,10,11</valid_values>
     <values>
       <value icesheet="gris">1</value>
       <value icesheet="ais" >5</value>
@@ -899,15 +899,16 @@ Sub-elements of each entry include:
       Calving
       0: No calving
       1: Set thickness to zero if floating
-      2: Lose a fraction of floating ice at marine margin
+      (2: removed; use 1 with calving_timescale)
       3: Set thickness to zero if relaxed bedrock is more than a certain water depth (marine_limit)
       4: Set thickness to zero if present bedrock topography lies below a certain water depth (marine_limit)
       5: Set thickness to zero based on grid location (field 'calving_mask')
       6: Prescribed advance/retreat rate as in CalvingMIP
-      7: Calve ice whose thickness is below a given threshold
-      8: Calving rate based on stress threshold criterion
-      9: Calving rate based on strain rate (eigencalving) [NOT SUPPORTED]
-      10: Stochastic stress-based calving  [NOT SUPPORTED]
+      7: Calve ice whose thickness is below a given threshold (calving_thck_threshold)
+      8: Deterministic stress-based calving
+      9: Stochastic stress-based calving
+      10: Damage-based calving
+      11: Strain-rate-based calving (eigencalving)
       Default: 1 for Greenland, 5 for Antarctica
     </desc>
   </entry>
@@ -1128,7 +1129,7 @@ Sub-elements of each entry include:
   </entry>
 
 
-  <entry id="diag_minthck" skip_default_entry="true">
+  <entry id="diag_ice_threshold" skip_default_entry="true">
     <type>integer</type>
     <category>cism_config_diagnostics</category>
     <group>diagnostics</group>
@@ -1176,7 +1177,7 @@ Sub-elements of each entry include:
   <!-- group: cism.icesheet.config: time                              -->
   <!-- =============================================================  -->
 
-  <entry id="dt">
+  <entry id="dt" skip_default_entry="true">
     <type>real</type>
     <category>cism_config_time</category>
     <group>time</group>
@@ -1198,8 +1199,8 @@ Sub-elements of each entry include:
 
   <entry id="dt_diag">
     <type>real</type>
-    <category>cism_config_time</category>
-    <group>time</group>
+    <category>cism_config_diagnostics</category>
+    <group>diagnostics</group>
     <values>
       <!-- Set dt_diag same as dt in order to get diagnostics every time step -->
       <value icesheet="gris" glc_grid="gris20">0.5</value>
@@ -1213,26 +1214,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="ntem" skip_default_entry="true">
-    <type>integer</type>
-    <category>cism_config_time</category>
-    <group>time</group>
-    <desc>
-      Multiplier of ice sheet timestep, dt
-      (in theory, can be real-valued, but values less than 1 are not handled properly, so restricted to being an integer)
-      Default: (use hard-coded default: 1)
-    </desc>
-  </entry>
 
-  <entry id="subcyc" skip_default_entry="true">
-    <type>integer</type>
-    <category>cism_config_time</category>
-    <group>time</group>
-    <desc>
-      Subcycling for Glissade
-      Default: (use hard-coded default: 1)
-    </desc>
-  </entry>
 
   <entry id="adaptive_cfl_threshold">
     <type>real</type>
@@ -1261,17 +1243,16 @@ Sub-elements of each entry include:
       <value>1</value>
     </values>
     <desc>
-      Set dt_option to specify whether the dynamic timestep (model%numerics%tinc)
-      is based on dt (the timestep in years) or nsteps_per_year in the config file.
-      The default (dt_option = 0) is to read dt directly,
-      but the nsteps_per_year option allows more flexibility.
+      Whether the time step is given by dt (in years) or by nsteps_per_year.
+      Only the selected key is written to the config file; setting the other
+      one is an error.
       [0] Input dt in years
       [1] Input dt in steps per year
       Default: 1 (DT_STEPS_PER_YEAR)
     </desc>
   </entry>
 
-  <entry id="nsteps_per_year">
+  <entry id="nsteps_per_year" skip_default_entry="true">
     <type>integer</type>
     <category>cism_config_time</category>
     <group>time</group>
@@ -1288,8 +1269,8 @@ Sub-elements of each entry include:
 
   <entry id="ndiag">
     <type>integer</type>
-    <category>cism_config_time</category>
-    <group>time</group>
+    <category>cism_config_diagnostics</category>
+    <group>diagnostics</group>
     <values>
       <value icesheet="gris" glc_grid="gris20">1</value>
       <value icesheet="gris" glc_grid="gris4" >1</value>
@@ -1307,8 +1288,8 @@ Sub-elements of each entry include:
 
   <entry id="idiag">
     <type>integer</type>
-    <category>cism_config_time</category>
-    <group>time</group>
+    <category>cism_config_diagnostics</category>
+    <group>diagnostics</group>
     <values>
       <!-- GrIS values chosen to be in the trunk of Jakobshavn -->
       <value icesheet="gris" glc_grid="gris20" >17</value>
@@ -1324,8 +1305,8 @@ Sub-elements of each entry include:
 
   <entry id="jdiag">
     <type>integer</type>
-    <category>cism_config_time</category>
-    <group>time</group>
+    <category>cism_config_diagnostics</category>
+    <group>diagnostics</group>
     <values>
       <!-- See comments for idiag, above -->
       <value icesheet="gris" glc_grid="gris20" >57</value>
@@ -1359,7 +1340,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="ice_limit">
+  <entry id="thcklim">
     <type>real</type>
     <category>cism_config_numerics</category>
     <group>numerics</group>
@@ -1400,10 +1381,10 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="gamma0">
+  <entry id="bmlt_float_gamma0">
     <type>real</type>
-    <category>cism_config_ocean_data</category>
-    <group>ocean_data</group>
+    <category>cism_config_basal_melt</category>
+    <group>basal_melt</group>
     <values>
       <value icesheet="gris">0.</value>
       <value icesheet="ais" >25000.</value>
@@ -1441,17 +1422,8 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="calving_fraction" skip_default_entry="true">
-    <type>real</type>
-    <category>cism_config_calving</category>
-    <group>calving</group>
-    <desc>
-      Fraction of ice lost to calving (marine_margin = 2 only)
-      Default: (use hard-coded default - currently 0.2)
-    </desc>
-  </entry>
 
-  <entry id="calving_minthck">
+  <entry id="calving_thck_threshold">
     <type>real</type>
     <category>cism_config_calving</category>
     <group>calving</group>
@@ -1491,7 +1463,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="eigenconstant">
+  <entry id="eigencalving_const">
     <type>real</type>
     <category>cism_config_calving</category>
     <group>calving</group>
@@ -1607,7 +1579,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="default_flwa" skip_default_entry="true">
+  <entry id="flwa_const" skip_default_entry="true">
     <type>real</type>
     <category>cism_config_flow_law</category>
     <group>flow_law</group>
@@ -2618,22 +2590,6 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="thermal_timestep">
-    <type>integer</type>
-    <category>cism_config_temperature</category>
-    <group>temperature</group>
-    <valid_values>0,1,2</valid_values>
-    <values>
-      <value icesheet="gris">0</value>
-      <value icesheet="ais" >0</value>
-    </values>
-    <desc>
-      0: vertical thermal solve before transport solve
-      1: vertical thermal solve after transport solve
-      2: vertical thermal solve split; both before and after transport solve
-      Default: 0 for Greenland, 0 for Antarctica
-    </desc>
-  </entry>
 
   <entry id="nonlinear_residual">
     <type>integer</type>
@@ -3193,7 +3149,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="const_bwat">
+  <entry id="bwat_const">
     <type>real</type>
     <category>cism_config_basal_hydro</category>
     <group>basal_hydro</group>
@@ -3260,7 +3216,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="c_drainage">
+  <entry id="till_drainage_rate">
     <type>real</type>
     <category>cism_config_basal_hydro</category>
     <group>basal_hydro</group>
@@ -3470,7 +3426,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="smb_input">
+  <entry id="smb_input_units">
     <type>integer</type>
     <category>cism_config_climate</category>
     <group>climate</group>
@@ -3482,7 +3438,7 @@ Sub-elements of each entry include:
       Input units for the surface mass balance
       0: SMB input in units of m/yr ice (same as acab)
       [removed] 1: SMB input in units of mm/yr water equivalent
-      CISM standalone supports different units for smb_input, but this can
+      CISM standalone supports different units for smb_input_units, but this can
       cause unintended side-effects in CESM. See cism_wrapper issue #130
       Default: 0
     </desc>
@@ -3524,18 +3480,6 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="smb_factor">
-    <type>real</type>
-    <category>cism_config_climate</category>
-    <group>climate</group>
-    <values>
-      <value>1.0</value>
-    </values>
-    <desc>
-      Multiplicative factor for external smb field (unitless)
-      Default: 1.0
-    </desc>
-  </entry>
 
   <entry id="smb_anomaly_tstart">
     <type>real</type>
@@ -3719,7 +3663,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="diagnostic_minthck">
+  <entry id="glacier_diag_thck_min">
     <type>real</type>
     <category>cism_config_glaciers</category>
     <group>glaciers</group>
