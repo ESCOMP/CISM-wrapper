@@ -551,22 +551,22 @@ Sub-elements of each entry include:
   </entry>
 
   <entry id="global_bc" >
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_grid</category>
     <group>grid</group>
-    <valid_values>0,1,2,3</valid_values>
+    <valid_values>periodic,outflow,no_penetration,no_ice</valid_values>
     <values>
-      <value icesheet="gris">1</value>
-      <value icesheet="ais" >1</value>
+      <value icesheet="gris">outflow</value>
+      <value icesheet="ais" >outflow</value>
     </values>
     <desc>
       Global boundary conditions
-      0: Doubly periodic
-      1: Free outflow; scalars in global halo set to zero
-      2: No penetration; outflow set to zero at global boundaries (only supported for Glissade dycore)
-      3: No ice at global boundary; scalars set to zero adjacent to boundary
-      If running with compute_blocks = 1, only option 3 is supported
-      Default: 1 for Greenland, 1 for Antarctica
+      periodic: Doubly periodic
+      outflow: Free outflow; scalars in global halo set to zero
+      no_penetration: No penetration; outflow set to zero at global boundaries
+      no_ice: No ice at global boundary; scalars set to zero adjacent to boundary
+      If running with compute_blocks = active_only, only no_ice is supported
+      Default: outflow for Greenland and Antarctica
     </desc>
   </entry>
 
@@ -721,21 +721,18 @@ Sub-elements of each entry include:
   <!-- =============================================================  -->
 
   <entry id="dycore">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_options</category>
     <group>options</group>
-    <valid_values>2</valid_values>
+    <valid_values>glissade</valid_values>
     <values>
-      <value>2</value>
+      <value>glissade</value>
     </values>
     <desc>
       Which dycore to use
-      0: NOT SUPPORTED: Glide dycore (SIA, serial only)
-         Note that this option is no longer supported in CESM
-      1: NOT SUPPORTED: glam dycore (HO, FDM, serial or parallel)
-         Note that this option is not allowed within CESM, because it is buggy
-      2: Glissade dycore (HO, FEM, serial or parallel)
-      Default: 2
+      glissade: Glissade dycore (higher-order, finite-element, parallel)
+      (The Glide dycore is not supported in CESM.)
+      Default: glissade
     </desc>
   </entry>
 
@@ -1110,66 +1107,67 @@ Sub-elements of each entry include:
   </entry>
 
   <entry id="sigma_method">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_grid</category>
     <group>grid</group>
-    <valid_values>0,2,3,4</valid_values>
+    <valid_values>glide,config,uniform,pattyn</valid_values>
     <values>
-      <value>0</value>
+      <value>glide</value>
     </values>
     <desc>
       How to determine sigma values
-      0: compute standard Glimmer sigma coordinates
-      1: sigma coordinates are given in external file [NOT ALLOWED WHEN RUNNING CISM IN CESM]
-      2: read sigma coordinates from config file (from sigma_levels)
-      3: evenly spaced levels, as required for glam dycore
-      4: compute Pattyn sigma coordinates
-      Default: 0
+      glide: compute standard Glimmer sigma coordinates
+      file: sigma coordinates are given in an external file [NOT ALLOWED WHEN RUNNING CISM IN CESM]
+      config: read sigma coordinates from the config file (from sigma_levels)
+      uniform: evenly spaced levels
+      pattyn: compute Pattyn sigma coordinates
+      Default: glide
     </desc>
   </entry>
 
 
   <entry id="diag_ice_threshold" skip_default_entry="true">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_diagnostics</category>
     <group>diagnostics</group>
-    <valid_values>0,1</valid_values>
+    <valid_values>zero,thcklim</valid_values>
     <desc>
       How to determine minimum thickness for diagnostic
-      0: global diagnostics include all cell with H > 0
-      1: global diagnostics include all cells with H > thklim
+      zero: global diagnostics include all cells with H > 0
+      thcklim: global diagnostics include all cells with H > thcklim
       This change only affects log files, not output .nc files
-      Default: (use hard-coded default - currently 1)
+      Default: (use hard-coded default - currently thcklim)
     </desc>
   </entry>
 
   <entry id="dm_dt_diag">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_diagnostics</category>
     <group>diagnostics</group>
-    <valid_values>0,1</valid_values>
+    <valid_values>kg_per_s,gt_per_yr</valid_values>
     <values>
-      <value>1</value>
+      <value>gt_per_yr</value>
     </values>
     <desc>
       Switch units from kg/s to Gt/yr in the log file
-      0: use kg/s unit in log file
-      1: use Gt/yr unit in log file
+      kg_per_s: use kg/s unit in log file
+      gt_per_yr: use Gt/yr unit in log file
       This change only affects log files, not output .nc files
-      Default: 1
+      Default: gt_per_yr
     </desc>
   </entry>
 
   <entry id="restart" skip_default_entry="true">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_options</category>
     <group>options</group>
-    <valid_values>0,1,2</valid_values>
+    <valid_values>none,standard,hybrid</valid_values>
     <desc>
-      Restart the model if set to 1.
-      If set to 2, restart the model with a reset model time.
+      none: not a restart
+      standard: restart the model
+      hybrid: restart the model with a reset model time
       This allows for exact restarts from previous initial conditions
-      Default: 0 for startup or hybrid with CISM_OBSERVED_IC=TRUE, 1 for hybrid/branch with CISM_OBSERVED_IC=FALSE
+      Default: none for startup or hybrid with CISM_OBSERVED_IC=TRUE, standard for hybrid/branch with CISM_OBSERVED_IC=FALSE
     </desc>
   </entry>
 
@@ -1235,20 +1233,20 @@ Sub-elements of each entry include:
   </entry>
 
   <entry id="dt_input_option">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_time</category>
     <group>time</group>
-    <valid_values>0,1</valid_values>
+    <valid_values>dt,nsteps_per_year</valid_values>
     <values>
-      <value>1</value>
+      <value>nsteps_per_year</value>
     </values>
     <desc>
       Whether the time step is given by dt (in years) or by nsteps_per_year.
       Only the selected key is written to the config file; setting the other
       one is an error.
-      [0] Input dt in years
-      [1] Input dt in steps per year
-      Default: 1 (DT_STEPS_PER_YEAR)
+      dt: Input dt in years
+      nsteps_per_year: Input dt in steps per year
+      Default: nsteps_per_year
     </desc>
   </entry>
 
@@ -2557,19 +2555,19 @@ Sub-elements of each entry include:
   </entry>
 
   <entry id="compute_blocks">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_numerics</category>
     <group>numerics</group>
-    <valid_values>0,1,2</valid_values>
+    <valid_values>all,active_only,inquire</valid_values>
     <values>
-      <value>0</value>
+      <value>all</value>
     </values>
     <desc>
-      0: Compute on all blocks in the global domain; one task per block
-      1: Compute on active blocks only; one task per active block, no task for some or all inactive blocks
-      2: Inquire how many active blocks there are, in prep for resubmitting with option 1
-      Option 1 can give big computational savings for long spin-ups
-      Default: 0
+      all: Compute on all blocks in the global domain; one task per block
+      active_only: Compute on active blocks only; one task per active block, no task for some or all inactive blocks
+      inquire: Inquire how many active blocks there are, in prep for resubmitting with active_only
+      active_only can give big computational savings for long spin-ups
+      Default: all
     </desc>
   </entry>
 
