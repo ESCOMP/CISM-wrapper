@@ -508,8 +508,8 @@ def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid,
     _update_cism_config(nmlgen, output_file, mode="a", header="calving", group="calving")
     _add_feature_section_to_cism_config(nmlgen, output_file, group="lateral_melt",
                                         switch="lateral_melt_method",
-                                        is_on=lambda v: int(v) > 0,
-                                        description="lateral_melt_method > 0")
+                                        is_on=lambda v: v != "none",
+                                        description="lateral_melt_method /= none")
     _update_cism_config(nmlgen, output_file, mode="a", header="removal", group="removal")
     _update_cism_config(nmlgen, output_file, mode="a", header="climate", group="climate")
     _update_cism_config(nmlgen, output_file, mode="a", header="grid_ocn", group="grid_ocn")

@@ -795,42 +795,41 @@ Sub-elements of each entry include:
   </entry>
 
   <entry id="bmlt_float_method">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_basal_melt</category>
     <group>basal_melt</group>
-    <valid_values>0,1,2,3,4,6</valid_values>
+    <valid_values>none,mismip,constant,depth,file,thermal_forcing</valid_values>
     <values>
-      <value icesheet="gris">0</value>
-      <value icesheet="ais" >6</value>
+      <value icesheet="gris">none</value>
+      <value icesheet="ais" >thermal_forcing</value>
     </values>
     <desc>
       Basal melt rate for floating ice
-      0: Basal melt rate = 0 for floating ice
-      1: Depth-dependent basal melt rate for floating ice as prescribed for MISMIP+
-      2: Basal melt rate = constant for floating ice (with option to selectively mask out melting)
-      3: Depth-dependent basal melt rate for floating ice
-      4: External basal melt rate field (from input file or coupler)
-      5: [NOT SUPPORTED] Basal melt rate for floating ice from MISOMIP ocean forcing with plume model
-      6: Basal melt rate for floating ice derived from ocean thermal forcing
-      Default: 0 for Greenland, 6 for Antarctica
+      none: Basal melt rate = 0 for floating ice
+      mismip: Depth-dependent basal melt rate for floating ice as prescribed for MISMIP+
+      constant: Basal melt rate = constant for floating ice (with option to selectively mask out melting)
+      depth: Depth-dependent basal melt rate for floating ice
+      file: External basal melt rate field (from input file or coupler)
+      thermal_forcing: Basal melt rate for floating ice derived from ocean thermal forcing
+      Default: none for Greenland, thermal_forcing for Antarctica
     </desc>
   </entry>
 
   <entry id="bmlt_float_thermal_forcing_param">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_basal_melt</category>
     <group>basal_melt</group>
-    <valid_values>0,1,2,3</valid_values>
+    <valid_values>quadratic,ismip6_local,ismip6_nonlocal,ismip6_nonlocal_slope</valid_values>
     <values>
-      <value icesheet="gris">0</value>
-      <value icesheet="ais"> 2</value>
+      <value icesheet="gris">quadratic</value>
+      <value icesheet="ais">ismip6_nonlocal</value>
     </values>
     <desc>
-      0: Quadratic parameterization to compute basal melting from thermal forcing
-      1: ISMIP6 local quadratic parameterization to compute basal melting from thermal forcing
-      2: ISMIP6 nonlocal quadratic parameterization to compute basal melting from thermal forcing
-      3: ISMIP6 nonlocal quadratic parameterization with slope dependence
-      Default: 0 for Greenland, 2 for Antarctica
+      quadratic: Quadratic parameterization to compute basal melting from thermal forcing
+      ismip6_local: ISMIP6 local quadratic parameterization to compute basal melting from thermal forcing
+      ismip6_nonlocal: ISMIP6 nonlocal quadratic parameterization to compute basal melting from thermal forcing
+      ismip6_nonlocal_slope: ISMIP6 nonlocal quadratic parameterization with slope dependence
+      Default: quadratic for Greenland, ismip6_nonlocal for Antarctica
     </desc>
   </entry>
 
@@ -851,76 +850,75 @@ Sub-elements of each entry include:
   </entry>
 
   <entry id="ocean_data_domain">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_ocean_data</category>
     <group>ocean_data</group>
-    <valid_values>0,1,2</valid_values>
+    <valid_values>internal,file,coupler</valid_values>
     <values>
-      <value icesheet="gris">0</value>
-      <value icesheet="ais" >1</value>
+      <value icesheet="gris">internal</value>
+      <value icesheet="ais" >file</value>
     </values>
     <desc>
-      0: ocean data set internally by CISM
-      1: ocean data read from external file
-      2: ocean data received from coupler via Glad
-      Default: 0 for Greenland, 1 for Antarctica
+      internal: ocean data set internally by CISM
+      file: ocean data read from external file
+      coupler: ocean data received from coupler via Glad
+      Default: internal for Greenland, file for Antarctica
     </desc>
   </entry>
 
-  <entry id="ocean_data_extrapolate">
-    <type>integer</type>
+  <entry id="extrapolate_ocean_data">
+    <type>logical</type>
     <category>cism_config_ocean_data</category>
     <group>ocean_data</group>
-    <valid_values>0,1</valid_values>
     <values>
-      <value>0</value>
+      <value>.false.</value>
     </values>
     <desc>
-      0: CISM will not extrapolate ocean data into cavities
-      1: CISM will extrapolate off-shelf ocean data into shelf cavities
-      Default: 0
+      .true.: CISM extrapolates off-shelf ocean data into shelf cavities at run time
+      .false.: CISM does not extrapolate ocean data into cavities
+      Default: .false.
     </desc>
   </entry>
 
   <entry id="calving_law">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_calving</category>
     <group>calving</group>
-    <valid_values>0,1,3,4,5,6,7,8,9,10,11</valid_values>
+    <valid_values>none,float_zero,relx_threshold,topg_threshold,grid_mask,advance_retreat_rate,thck_threshold,stress,stress_stochastic,damage,eigencalving</valid_values>
     <values>
-      <value icesheet="gris">1</value>
-      <value icesheet="ais" >5</value>
+      <value icesheet="gris">float_zero</value>
+      <value icesheet="ais" >grid_mask</value>
     </values>
     <desc>
       Calving
-      0: No calving
-      1: Set thickness to zero if floating
-      (2: removed; use 1 with calving_timescale)
-      3: Set thickness to zero if relaxed bedrock is more than a certain water depth (marine_limit)
-      4: Set thickness to zero if present bedrock topography lies below a certain water depth (marine_limit)
-      5: Set thickness to zero based on grid location (field 'calving_mask')
-      6: Prescribed advance/retreat rate as in CalvingMIP
-      7: Calve ice whose thickness is below a given threshold (calving_thck_threshold)
-      8: Deterministic stress-based calving
-      9: Stochastic stress-based calving
-      10: Damage-based calving
-      11: Strain-rate-based calving (eigencalving)
-      Default: 1 for Greenland, 5 for Antarctica
+      none: No calving
+      float_zero: Set thickness to zero if floating
+      (the old value 2 was removed; use float_zero with calving_timescale)
+      relx_threshold: Set thickness to zero if relaxed bedrock is more than a certain water depth (marine_limit)
+      topg_threshold: Set thickness to zero if present bedrock topography lies below a certain water depth (marine_limit)
+      grid_mask: Set thickness to zero based on grid location (field 'calving_mask')
+      advance_retreat_rate: Prescribed advance/retreat rate as in CalvingMIP
+      thck_threshold: Calve ice whose thickness is below a given threshold (calving_thck_threshold)
+      stress: Deterministic stress-based calving
+      stress_stochastic: Stochastic stress-based calving
+      damage: Damage-based calving
+      eigencalving: Strain-rate-based calving (eigencalving)
+      Default: float_zero for Greenland, grid_mask for Antarctica
     </desc>
   </entry>
 
   <entry id="calving_domain">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_calving</category>
     <group>calving</group>
-    <valid_values>0,1</valid_values>
+    <valid_values>ocean_edge,everywhere</valid_values>
     <values>
-      <value>1</value>
+      <value>everywhere</value>
     </values>
     <desc>
-      0: Calve only at ocean edge
-      1: Calve wherever the calving criterion is met
-      Default: 1
+      ocean_edge: Calve only at ocean edge
+      everywhere: Calve wherever the calving criterion is met
+      Default: everywhere
     </desc>
   </entry>
 
@@ -970,18 +968,18 @@ Sub-elements of each entry include:
   </entry>
 
   <entry id="force_retreat">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_removal</category>
     <group>removal</group>
     <values>
-      <value icesheet="gris">0</value>
-      <value icesheet="ais" >0</value>
+      <value icesheet="gris">none</value>
+      <value icesheet="ais" >none</value>
     </values>
     <desc>
       Option to force ice retreat where indicated by the retreat_mask field
       0=no force retreat, 1=force retreat where indicated by retreat_mask,
       2=force retreat for floating ice where indicated by retreat mask
-      Default: 0 for Greenland, 0 for Antarctica
+      Default: none for Greenland, none for Antarctica
     </desc>
   </entry>
 
@@ -1027,18 +1025,17 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="calving_init">
-    <type>integer</type>
+  <entry id="calve_at_startup">
+    <type>logical</type>
     <category>cism_config_calving</category>
     <group>calving</group>
-    <valid_values>0,1</valid_values>
     <values>
-      <value>1</value>
+      <value>.true.</value>
     </values>
     <desc>
-      0: Do not calve at initialization
-      1: Calve at initialization
-      Default: 1
+      .true.: calve at initialization
+      .false.: do not calve at initialization
+      Default: .true.
     </desc>
   </entry>
 
@@ -1059,18 +1056,17 @@ Sub-elements of each entry include:
   </entry>
 
 
-  <entry id="basal_mass_balance">
-    <type>integer</type>
+  <entry id="basal_mbal_in_continuity">
+    <type>logical</type>
     <category>cism_config_basal_melt</category>
     <group>basal_melt</group>
-    <valid_values>0,1</valid_values>
     <values>
-      <value>1</value>
+      <value>.true.</value>
     </values>
     <desc>
-      0: not in continuity equation
-      1: in continuity equation
-      Default: 1
+      .true.: the basal mass balance is applied in the continuity equation
+      .false.: it is not
+      Default: .true.
     </desc>
   </entry>
 
@@ -1413,7 +1409,7 @@ Sub-elements of each entry include:
     <category>cism_config_calving</category>
     <group>calving</group>
     <desc>
-      All ice is assumed lost once water depths reach this value (for marine_margin=3 or 4) (m)
+      All ice is assumed lost once water depths reach this value (for calving_law = relx_threshold or topg_threshold) (m)
       Note that water depth is negative
       Default: (use hard-coded default - currently -200.)
     </desc>
@@ -1470,7 +1466,7 @@ Sub-elements of each entry include:
     <desc>
       Lateral calving rate (m/yr) per unit strain rate (1/yr), in units of m
       [NOT SUPPORTED]
-      Used only with marine_margin = 9
+      Used only with calving_law = eigencalving
     </desc>
   </entry>
 
@@ -1499,7 +1495,7 @@ Sub-elements of each entry include:
     </values>
     <desc>
       Effective stress threshold for calving (Pa) (Glissade only)
-      Used for marine_margin = 8
+      Used for calving_law = stress and stress_stochastic
       Default: 7.5e4
     </desc>
   </entry>
@@ -1513,7 +1509,7 @@ Sub-elements of each entry include:
     </values>
     <desc>
       Scalar multiplier for stress eigenvalue 1 (Glissade only)
-      Used for marine_margin = 8
+      Used for calving_law = stress, stress_stochastic and damage
       Default: 0.3
     </desc>
   </entry>
@@ -1527,7 +1523,7 @@ Sub-elements of each entry include:
     </values>
     <desc>
       Scalar multiplier for stress eigenvalue 2 (Glissade only)
-      Used for marine_margin = 8
+      Used for calving_law = stress, stress_stochastic and damage
       Default: 1.0
     </desc>
   </entry>
@@ -1723,7 +1719,7 @@ Sub-elements of each entry include:
       <value>10.</value>
     </values>
     <desc>
-      Parameter for bmlt_float_method=3 (depth-dependent basal melt rate for floating ice)
+      Parameter for bmlt_float_method=depth (depth-dependent basal melt rate for floating ice)
       Max melt rate at depth (m/yr).
       (Ignored for other bmlt_float_method options.)
       Default: 10.
@@ -1738,7 +1734,7 @@ Sub-elements of each entry include:
       <value>0.</value>
     </values>
     <desc>
-      Parameter for bmlt_float_method=3 (depth-dependent basal melt rate for floating ice):
+      Parameter for bmlt_float_method=depth (depth-dependent basal melt rate for floating ice):
       Max freezing rate near surface (m/yr).
       (Ignored for other bmlt_float_method options.)
       Default: 0.
@@ -1753,7 +1749,7 @@ Sub-elements of each entry include:
       <value>-500.</value>
     </values>
     <desc>
-      Parameter for bmlt_float_method=3 (depth-dependent basal melt rate for floating ice):
+      Parameter for bmlt_float_method=depth (depth-dependent basal melt rate for floating ice):
       Depth (m) below which bmlt_float = meltmax.
       (Ignored for other bmlt_float_method options.)
       Default: -500.
@@ -1768,7 +1764,7 @@ Sub-elements of each entry include:
       <value>-200.</value>
     </values>
     <desc>
-      Parameter for bmlt_float_method=3 (depth-dependent basal melt rate for floating ice):
+      Parameter for bmlt_float_method=depth (depth-dependent basal melt rate for floating ice):
       Depth (m) where bmlt_float = 0.
       (Ignored for other bmlt_float_method options.)
       Default: -200.
@@ -1783,7 +1779,7 @@ Sub-elements of each entry include:
       <value>-100.</value>
     </values>
     <desc>
-      Parameter for bmlt_float_method=3 (depth-dependent basal melt rate for floating ice):
+      Parameter for bmlt_float_method=depth (depth-dependent basal melt rate for floating ice):
       Depth (m) above which bmlt_float = -frzmax.
       (Ignored for other bmlt_float_method options.)
       Default: -100.
@@ -1798,7 +1794,7 @@ Sub-elements of each entry include:
       <value>0.</value>
     </values>
     <desc>
-      Parameter for bmlt_float_method=3 (depth-dependent basal melt rate for floating ice):
+      Parameter for bmlt_float_method=depth (depth-dependent basal melt rate for floating ice):
       Minimum melt rate in warm ocean (m/yr).
       Relies on having a warm_ocean_mask field on the input file.
       (Ignored for other bmlt_float_method options.)
@@ -1814,7 +1810,7 @@ Sub-elements of each entry include:
       <value>0.</value>
     </values>
     <desc>
-      Parameter for bmlt_float_method=3 (depth-dependent basal melt rate for floating ice):
+      Parameter for bmlt_float_method=depth (depth-dependent basal melt rate for floating ice):
       Depth (m) above which bmlt_float = meltmin.
       Relies on having a warm_ocean_mask field on the input file.
       (Ignored for other bmlt_float_method options.)
@@ -2478,23 +2474,23 @@ Sub-elements of each entry include:
   </entry>
 
   <entry id="deltaT_ocn_method">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_basal_melt</category>
     <group>basal_melt</group>
-    <valid_values>0,1,2,3,4,5</valid_values>
+    <valid_values>none,inversion,file,inversion_basin,calibrate_basin,dthck_dt</valid_values>
     <values>
-      <value icesheet="gris">0</value>
-      <value icesheet="ais" >1</value>
+      <value icesheet="gris">none</value>
+      <value icesheet="ais" >inversion</value>
     </values>
     <desc>
       Flag for ocean temperature corrections
-      0: deltaT_ocn = 0 (no corrections)
-      1: invert for 2D deltaT_ocn to match thickness target
-      2: read deltaT_ocn from external file
-      3: invert for basin-scale deltaT_ocn
-      4: calibrate basin-scale deltaT_ocn to match a basal melt target
-      5: set deltaT_ocn to match dH/dt target (was option 4 before this option was added)
-      Default: 0 for Greenland, 1 for Antarctica
+      none: deltaT_ocn = 0 (no corrections)
+      inversion: invert for 2D deltaT_ocn to match thickness target
+      file: read deltaT_ocn from external file
+      inversion_basin: invert for basin-scale deltaT_ocn
+      calibrate_basin: calibrate basin-scale deltaT_ocn to match a basal melt target
+      dthck_dt: set deltaT_ocn to match dH/dt target (was option 4 before this option was added)
+      Default: none for Greenland, inversion for Antarctica
     </desc>
   </entry>
 
@@ -2808,39 +2804,38 @@ Sub-elements of each entry include:
   </entry>
 
   <entry id="subgrid_calving_front">
-    <type>integer</type>
+    <type>logical</type>
     <category>cism_config_calving</category>
     <group>calving</group>
-    <valid_values>0,1,2</valid_values>
     <values>
-      <value>0</value>
+      <value>.false.</value>
     </values>
     <desc>
       Flag that indicates whether to use a subgrid calving front parameterization
-      0: No subgrid calving front parameterization
-      1: Subgrid calving front parameterization, floating ice only
-      2: Subgrid calving front parameterization, floating and marine-grounded ice
-      Default: 0
-      Option 1 or 2 is required for marine_margin >= 6 (i.e., the subgrid calving laws)
+      .true.: subgrid calving front parameterization
+      .false.: no subgrid calving front parameterization
+      Default: .false.
+      .true. is required for the subgrid calving laws (calving_law = advance_retreat_rate,
+      thck_threshold, stress, stress_stochastic, damage, eigencalving)
     </desc>
   </entry>
 
   <entry id="lateral_melt_method">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_lateral_melt</category>
     <group>lateral_melt</group>
-    <valid_values>0,1,2</valid_values>
+    <valid_values>none,constant,ismip</valid_values>
     <values>
-      <value>0</value>
+      <value>none</value>
     </values>
     <desc>
       Flag for the lateral (undercutting) melt parameterization applied at the
       subgrid calving front.
-      0: No lateral melt
-      1: Constant lateral melt rate (melt_rate_const)
-      2: ISMIP6/Rignot-et-al.-type lateral melt parameterization based on
+      none: No lateral melt
+      constant: Constant lateral melt rate (melt_rate_const)
+      ismip: ISMIP6/Rignot-et-al.-type lateral melt parameterization based on
          subglacial discharge and thermal forcing (see the lateral_melt group)
-      Default: 0
+      Default: none
     </desc>
   </entry>
 
@@ -2981,7 +2976,7 @@ Sub-elements of each entry include:
     <group>lateral_melt</group>
     <desc>
       Prescribed constant lateral melt rate (m/s) applied at the subgrid calving
-      front. Only relevant if lateral_melt_method = 1.
+      front. Only relevant if lateral_melt_method = constant.
       Default: (use hard-coded default)
     </desc>
   </entry>
@@ -2992,7 +2987,7 @@ Sub-elements of each entry include:
     <group>lateral_melt</group>
     <desc>
       Tuning factor (unitless) multiplying the ISMIP6/Rignot-et-al.-type lateral
-      melt parameterization. Only relevant if lateral_melt_method = 2.
+      melt parameterization. Only relevant if lateral_melt_method = ismip.
       Default: (use hard-coded default)
     </desc>
   </entry>
@@ -3004,7 +2999,7 @@ Sub-elements of each entry include:
     <desc>
       If true, diagnose subglacial discharge from the surface ablation rate
       rather than from an externally supplied runoff field.
-      Only relevant if lateral_melt_method = 2.
+      Only relevant if lateral_melt_method = ismip.
       Default: (use hard-coded default)
     </desc>
   </entry>
@@ -3016,7 +3011,7 @@ Sub-elements of each entry include:
     <desc>
       If true, average the 3D ocean thermal forcing field over the depth range
       [zbot_tfavg, ztop_tfavg] to produce the 2D thermal forcing used by the
-      lateral melt parameterization. Only relevant if lateral_melt_method = 2.
+      lateral melt parameterization. Only relevant if lateral_melt_method = ismip.
       Default: (use hard-coded default)
     </desc>
   </entry>
@@ -3028,7 +3023,7 @@ Sub-elements of each entry include:
     <desc>
       Upper depth (m, negative below sea level) of the range used to average
       3D ocean thermal forcing down to 2D for the lateral melt parameterization.
-      Only relevant if lateral_melt_method = 2 and thermal_forcing_avg_3d_to_2d = .true.
+      Only relevant if lateral_melt_method = ismip and thermal_forcing_avg_3d_to_2d = .true.
       Default: (use hard-coded default)
     </desc>
   </entry>
@@ -3040,7 +3035,7 @@ Sub-elements of each entry include:
     <desc>
       Lower depth (m, negative below sea level) of the range used to average
       3D ocean thermal forcing down to 2D for the lateral melt parameterization.
-      Only relevant if lateral_melt_method = 2 and thermal_forcing_avg_3d_to_2d = .true.
+      Only relevant if lateral_melt_method = ismip and thermal_forcing_avg_3d_to_2d = .true.
       Default: (use hard-coded default)
     </desc>
   </entry>
