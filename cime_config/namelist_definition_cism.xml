@@ -737,61 +737,60 @@ Sub-elements of each entry include:
   </entry>
 
   <entry id="temperature_method">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_temperature</category>
     <group>temperature</group>
-    <valid_values>0,1,2,3</valid_values>
+    <valid_values>isothermal_artm,prognostic,fixed,enthalpy</valid_values>
     <values>
-      <value>1</value>
+      <value>prognostic</value>
     </values>
     <desc>
       Determines the temperature solution method
-      0: isothermal: set column to surface air temperature
-      1: prognostic temperature solution
-      2: do NOTHING: hold temperatures steady at initial value
-      3: prognostic enthalpy solution
-      Default: 1
+      isothermal_artm: isothermal: set column to surface air temperature
+      prognostic: prognostic temperature solution
+      fixed: do NOTHING: hold temperatures steady at initial value
+      enthalpy: prognostic enthalpy solution
+      Default: prognostic
     </desc>
   </entry>
 
   <entry id="temperature_init">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_temperature</category>
     <group>temperature</group>
-    <valid_values>0,1,2,3,4</valid_values>
+    <valid_values>zero_celsius,artm,linear,advective_diffusive,file</valid_values>
     <values>
       <!-- temperature_init = 3 can only generate an advective-diffusive-balance profile if acab
            or smb are present in the input file (which is currently only the case for some
            input files). But it defaults to a linear profile (temperature_init 2) if neither of
            these fields are present. So to keep things simple, we specify temperature_init = 3
            for all input files, rather than making this dependent on glc_grid. -->
-      <value>3</value>
+      <value>advective_diffusive</value>
     </values>
     <desc>
       Temperature initialization method
-      0: Initialize temperature to 0 C
-      1: Initialize temperature to surface air temperature
-      2: Initialize temperature with a linear profile in each column
-      3: Initialize temperature with an advective-diffusive balance in each column
-      4: Initialize temperature from external file
-      Default: 3
+      zero_celsius: Initialize temperature to 0 C
+      artm: Initialize temperature to surface air temperature
+      linear: Initialize temperature with a linear profile in each column
+      advective_diffusive: Initialize temperature with an advective-diffusive balance in each column
+      file: Initialize temperature from external file
+      Default: advective_diffusive
     </desc>
   </entry>
 
   <entry id="flow_law">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_flow_law</category>
     <group>flow_law</group>
-    <valid_values>0,1,2,3</valid_values>
+    <valid_values>constant,paterson_budd_minus5c,paterson_budd</valid_values>
     <values>
-      <value>2</value>
+      <value>paterson_budd</value>
     </values>
     <desc>
-      0: Constant value, taken from flwa_const
-      1: Uniform value equal to the Paterson-Budd value at -10 deg C
-      2: Paterson-Budd temperature-dependent relationship
-      3: Read flwa/flwastag from file
-      Default: 2
+      constant: Constant value, taken from flwa_const
+      paterson_budd_minus5c: Uniform value equal to the Paterson-Budd value at -5 deg C
+      paterson_budd: Paterson-Budd temperature-dependent relationship
+      Default: paterson_budd
     </desc>
   </entry>
 
@@ -2609,19 +2608,19 @@ Sub-elements of each entry include:
   </entry>
 
   <entry id="dissipation_method">
-    <type>integer</type>
+    <type>char</type>
     <category>cism_config_temperature</category>
     <group>temperature</group>
-    <valid_values>-1,0,1</valid_values>
+    <valid_values>none,sia,first_order</valid_values>
     <values>
-      <value>1</value>
+      <value>first_order</value>
     </values>
     <desc>
       Method for computing the dissipation during the temperature calculation
-      -1: no dissipation
-      0: 0-order SIA approx.
-      1: 1st order solution (e.g., Blatter-Pattyn)
-      Default: 1
+      none: no dissipation
+      sia: 0-order SIA approx.
+      first_order: 1st order solution (e.g., Blatter-Pattyn)
+      Default: first_order
     </desc>
   </entry>
 
