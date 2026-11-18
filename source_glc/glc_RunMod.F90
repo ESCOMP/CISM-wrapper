@@ -244,7 +244,7 @@
      real(r8) :: tinc ! ice sheet time step (yrs)
      !-----------------------------------------------------------------------
      
-     tinc = ice_sheet_instance%model%numerics%tinc
+     tinc = ice_sheet_instance%model%time%tinc
 
      ! This multiplication by tinc (ice sheet time step) is basically saying: let's
      ! assume that the given flux appeared in one time step of the year, with the other
