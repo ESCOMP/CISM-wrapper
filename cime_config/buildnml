@@ -70,15 +70,11 @@ _ICESHEET_OPTIONS = OrderedDict([('ais', 'ANTARCTICA'),
                                  ('gris', 'GREENLAND')])
 
 # value of 'sigma_method' that signifies that values are read from a sigma section
-_SIGMA_IN_CONFIG_FILE = 2
-
-# value of 'isostasy' signifying that isostasy is enabled, and thus we
-# should have an 'isostasy' section
-_ISOSTASY_ON = 1
+_SIGMA_IN_CONFIG_FILE = 'config'
 
 # value of 'dt_input_option' signifying that the time step is given by nsteps_per_year
 # (otherwise it is given by dt, in years)
-_DT_STEPS_PER_YEAR = 1
+_DT_STEPS_PER_YEAR = 'nsteps_per_year'
 
 ###############################################################################
 def get_user_nl_list(case):
@@ -508,16 +504,16 @@ def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid,
     _update_cism_config(nmlgen, output_file, mode="a", header="calving", group="calving")
     _add_feature_section_to_cism_config(nmlgen, output_file, group="lateral_melt",
                                         switch="lateral_melt_method",
-                                        is_on=lambda v: int(v) > 0,
-                                        description="lateral_melt_method > 0")
+                                        is_on=lambda v: v != "none",
+                                        description="lateral_melt_method /= none")
     _update_cism_config(nmlgen, output_file, mode="a", header="removal", group="removal")
     _update_cism_config(nmlgen, output_file, mode="a", header="climate", group="climate")
     _update_cism_config(nmlgen, output_file, mode="a", header="grid_ocn", group="grid_ocn")
     _update_cism_config(nmlgen, output_file, mode="a", header="ocean_data", group="ocean_data")
     _update_cism_config(nmlgen, output_file, mode="a", header="geothermal", group="geothermal")
-    _add_feature_section_to_cism_config(nmlgen, output_file, group="isostasy", switch="isostasy",
-                                        is_on=lambda v: int(v) == _ISOSTASY_ON,
-                                        description="isostasy = {}".format(_ISOSTASY_ON))
+    _add_feature_section_to_cism_config(nmlgen, output_file, group="isostasy", switch="compute_isostasy",
+                                        is_on=_value_is_true,
+                                        description="compute_isostasy = .true.")
     _update_cism_config(nmlgen, output_file, mode="a", header="inversion", group="inversion")
     _add_feature_section_to_cism_config(nmlgen, output_file, group="glaciers", switch="enable_glaciers",
                                         is_on=lambda v: v == ".true.",
@@ -593,12 +589,12 @@ def _set_restart_options(nmlgen, case, icesheet, run_type, cism_observed_ic,
     - inst_string: string
     """
     if run_type == 'startup':
-        restart = 0
+        restart = 'none'
     elif _value_is_true(cism_observed_ic):
         if run_type == 'branch':
             expect(False,"CISM_OBSERVED_IC=TRUE not allowed for branch runs - only for hybrid runs")
         else:
-            restart = 0
+            restart = 'none'
     elif run_type == 'hybrid' and not case.get_value('CISM_EVOLVE'):
         # We could use the hybrid refcase's CISM restart file in this case. However, we
         # often run into problems where a change in CISM makes it incompatible with old
@@ -623,7 +619,7 @@ def _set_restart_options(nmlgen, case, icesheet, run_type, cism_observed_ic,
         # "startup" if CISM_EVOLVE is FALSE (in _get_effective_run_type). But we're
         # keeping this redundancy for the sake of MCT runs and in case the NUOPC-specific
         # logic is ever changed.
-        restart = 0
+        restart = 'none'
     elif run_type == 'branch' or run_type == 'hybrid':
         run_refcase = case.get_value('RUN_REFCASE')
         run_refdate = case.get_value('RUN_REFDATE')
@@ -640,12 +636,12 @@ def _set_restart_options(nmlgen, case, icesheet, run_type, cism_observed_ic,
                 icesheet=icesheet, refdate=run_refdate)
 
         nmlgen.add_default('cisminputfile', filename, ignore_abs_path=True)
-        restart = 1
+        restart = 'standard'
     else:
         expect(False, "Unknown RUN_TYPE: {} ".format(run_type))
 
     nmlgen.add_default('restart', value=restart)
-    if restart == 0:
+    if restart == 'none':
         nmlgen.add_default('cisminputfile')
 
 ###############################################################################
@@ -771,9 +767,9 @@ def _add_conditional_section_to_cism_config(nmlgen, output_file, group,
     group: name of group to add conditionally; assumed to be the same as the header for
            the section
     control_var: name of variable in nmlgen that controls whether to add this section
-    value_for_addition: int - add the section if control_var is equal to this value
+    value_for_addition: str - add the section if control_var is equal to this value
     """
-    if int(nmlgen.get_value(control_var)) == value_for_addition:
+    if nmlgen.get_value(control_var) == value_for_addition:
         nmlgen.add_defaults_for_group(group)
         _update_cism_config(nmlgen, output_file, mode="a", header=group, group=group)
     else:
@@ -819,7 +815,7 @@ def _set_time_step(nmlgen, icesheet):
     written (both entries have skip_default_entry), and setting the other one in
     user_nl_cism is an error.
     """
-    if int(nmlgen.get_value("dt_input_option")) == _DT_STEPS_PER_YEAR:
+    if nmlgen.get_value("dt_input_option") == _DT_STEPS_PER_YEAR:
         used, unused = "nsteps_per_year", "dt"
     else:
         used, unused = "dt", "nsteps_per_year"
@@ -833,7 +829,7 @@ def _set_time_step(nmlgen, icesheet):
 def _cism_config_final_consistency_checks(nmlgen, icesheet):
 ###############################################################################
     num_errors = 0
-    if int(nmlgen.get_value("dt_input_option")) == _DT_STEPS_PER_YEAR:
+    if nmlgen.get_value("dt_input_option") == _DT_STEPS_PER_YEAR:
         dt = 1.0 / int(nmlgen.get_value("nsteps_per_year"))
     else:
         dt = float(nmlgen.get_value("dt"))

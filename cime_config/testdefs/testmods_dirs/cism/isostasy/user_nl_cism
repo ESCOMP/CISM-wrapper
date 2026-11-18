@@ -1,1 +1,1 @@
-isostasy = 1
+compute_isostasy = .true.
