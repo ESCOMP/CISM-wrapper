@@ -3488,18 +3488,6 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="smb_factor">
-    <type>real</type>
-    <category>cism_config_climate</category>
-    <group>climate</group>
-    <values>
-      <value>1.0</value>
-    </values>
-    <desc>
-      Multiplicative factor for external smb field (unitless)
-      Default: 1.0
-    </desc>
-  </entry>
 
   <entry id="smb_anomaly_tstart">
     <type>real</type>
