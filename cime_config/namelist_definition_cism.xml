@@ -2936,7 +2936,7 @@ Sub-elements of each entry include:
     <group>climate</group>
     <values>
       <value icesheet="gris">.true.</value>
-      <value icesheet="ais" >.false</value>
+      <value icesheet="ais" >.false.</value>
     </values>
     <desc>
       Flag that indicates whether ice inception away from the main ice sheet is blocked
