@@ -247,7 +247,7 @@
 
     ! Write the time variables (and time bounds, for time-average files), then the fields
     call glimmer_nc_write_timeslice(oc, instance%model%funits, instance%glissade_time, &
-         glc_io_days_since_ref(CurrentTime), instance%model%numerics%tstep_count)
+         glc_io_days_since_ref(CurrentTime), instance%model%time%tstep_count)
     call glissade_io_write(oc, instance%model)
     call glad_io_write(oc, instance)
 
@@ -487,8 +487,8 @@
 
     call glissade_nc_filldvars(oc, instance%model)
     call glimmer_nc_checkwrite(oc, instance%model%funits, forcewrite=.true., &
-         time=instance%glissade_time, tinc=instance%model%numerics%tinc, &
-         tstep_count=instance%model%numerics%tstep_count, &
+         time=instance%glissade_time, tinc=instance%model%time%tinc, &
+         tstep_count=instance%model%time%tstep_count, &
          external_time = glc_io_days_since_ref(CurrentTime))
     call glissade_io_write(oc, instance%model)
     call glad_io_write(oc, instance)

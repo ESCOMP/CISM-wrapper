@@ -3079,55 +3079,6 @@ Sub-elements of each entry include:
 
 
   <!-- =============================================================  -->
-  <!-- group: cism.icesheet.config: grid_ocn                          -->
-  <!-- =============================================================  -->
-
-  <entry id="nzocn">
-    <type>integer</type>
-    <category>cism_config_grid_ocn</category>
-    <group>grid_ocn</group>
-    <values>
-      <value icesheet="gris">1</value>
-      <value icesheet="ais" >30</value>
-    </values>
-    <desc>
-      Number of ocean levels fields for ISMIP6-style ocean data input
-      Must be a positive integer
-      Default: 1 for Greenland, 30 for Antarctica
-    </desc>
-  </entry>
-
-  <entry id="dzocn">
-    <type>real</type>
-    <category>cism_config_grid_ocn</category>
-    <group>grid_ocn</group>
-    <values>
-      <value icesheet="gris">0.0</value>
-      <value icesheet="ais" >60.</value>
-    </values>
-    <desc>
-      Thickness of ocean levels (ISMIP6-style ocean data input);
-      nonzero value set in config file
-      Default: 0.0 for Greenland, 60. for Antarctica
-    </desc>
-  </entry>
-
-  <entry id="nbasin">
-    <type>integer</type>
-    <category>cism_config_grid_ocn</category>
-    <group>grid_ocn</group>
-    <values>
-      <value icesheet="gris">1</value>
-      <value icesheet="ais" >16</value>
-    </values>
-    <desc>
-      Number of basins (= 16 for IMBIE2) for ISMIP6-style ocean data input
-      Default: 1 for Greenland, 16 for Antarctica
-    </desc>
-  </entry>
-
-
-  <!-- =============================================================  -->
   <!-- group: cism.icesheet.config: ocean_data                        -->
   <!-- =============================================================  -->
 
@@ -3159,6 +3110,50 @@ Sub-elements of each entry include:
       .true.: CISM extrapolates off-shelf ocean data into shelf cavities at run time
       .false.: CISM does not extrapolate ocean data into cavities
       Default: .false.
+    </desc>
+  </entry>
+
+  <entry id="nzocn">
+    <type>integer</type>
+    <category>cism_config_ocean_data</category>
+    <group>ocean_data</group>
+    <values>
+      <value icesheet="gris">1</value>
+      <value icesheet="ais" >30</value>
+    </values>
+    <desc>
+      Number of ocean levels fields for ISMIP6-style ocean data input
+      Must be a positive integer
+      Default: 1 for Greenland, 30 for Antarctica
+    </desc>
+  </entry>
+
+  <entry id="dzocn">
+    <type>real</type>
+    <category>cism_config_ocean_data</category>
+    <group>ocean_data</group>
+    <values>
+      <value icesheet="gris">0.0</value>
+      <value icesheet="ais" >60.</value>
+    </values>
+    <desc>
+      Thickness of ocean levels (ISMIP6-style ocean data input);
+      nonzero value set in config file
+      Default: 0.0 for Greenland, 60. for Antarctica
+    </desc>
+  </entry>
+
+  <entry id="nbasin">
+    <type>integer</type>
+    <category>cism_config_ocean_data</category>
+    <group>ocean_data</group>
+    <values>
+      <value icesheet="gris">1</value>
+      <value icesheet="ais" >16</value>
+    </values>
+    <desc>
+      Number of basins (= 16 for IMBIE2) for ISMIP6-style ocean data input
+      Default: 1 for Greenland, 16 for Antarctica
     </desc>
   </entry>
 
