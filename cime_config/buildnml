@@ -472,6 +472,7 @@ def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid,
                          inst_string=inst_string)
 
     _set_time_step(nmlgen, icesheet)
+    _set_diag_interval(nmlgen, icesheet)
 
     #----------------------------------------------------
     # Set values for sections that are added conditionally and write file
@@ -823,6 +824,21 @@ def _set_time_step(nmlgen, icesheet):
            "(or change dt_input_option)".format(icesheet, unused,
                                                 nmlgen.get_value("dt_input_option"), used))
     nmlgen.add_default(used)
+
+###############################################################################
+def _set_diag_interval(nmlgen, icesheet):
+###############################################################################
+    """Add dt_diag, unless ndiag is set in user_nl_cism
+
+    CISM aborts if the config file sets both dt_diag and ndiag, so only one is written
+    (both entries have skip_default_entry). By default the wrapper writes dt_diag;
+    a user who sets ndiag gets ndiag instead, and setting both is an error.
+    """
+    if nmlgen.get_value("ndiag") is not None:
+        expect(nmlgen.get_value("dt_diag") is None,
+               "ERROR for ice sheet {}: dt_diag and ndiag cannot both be set; set only one of them".format(icesheet))
+    else:
+        nmlgen.add_default("dt_diag")
 
 ###############################################################################
 def _cism_config_final_consistency_checks(nmlgen, icesheet):

@@ -770,7 +770,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="dt_diag">
+  <entry id="dt_diag" skip_default_entry="true">
     <type>real</type>
     <category>cism_config_diagnostics</category>
     <group>diagnostics</group>
@@ -783,26 +783,24 @@ Sub-elements of each entry include:
     <desc>
       Diagnostic frequency (years)
       Set to 0 for no diagnostic output; set to dt for diagnostic output every time step
+      Written unless ndiag is set in user_nl_cism (CISM stops if both are set).
       Default: Same as dt
     </desc>
   </entry>
 
-  <entry id="ndiag">
+  <entry id="ndiag" skip_default_entry="true">
     <type>integer</type>
     <category>cism_config_diagnostics</category>
     <group>diagnostics</group>
-    <values>
-      <value icesheet="gris" glc_grid="gris20">1</value>
-      <value icesheet="gris" glc_grid="gris4" >1</value>
-      <value icesheet="ais"  glc_grid="ais8"  >1</value>
-    </values>
     <desc>
-      Frequency of writing diagnostic log output, for example:
+      Frequency of writing diagnostic log output, in dynamic time steps, for example:
       0 = never write diagnostic log output
       1 = write after each dynamic time step
       ...
       10 = write every tenth dynamic time step (similarly for other values > 1)
-      Default: 0
+      Give either ndiag or dt_diag, not both: if ndiag is set in user_nl_cism,
+      dt_diag is not written (and setting both is an error).
+      No default: by default the wrapper writes dt_diag.
     </desc>
   </entry>
 
