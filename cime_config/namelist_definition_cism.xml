@@ -2837,6 +2837,83 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="bmlt_float_factor" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_melt</category>
+    <group>basal_melt</group>
+    <desc>
+      Factor that multiplies the input bmlt_float field
+      Only relevant if bmlt_float_method = file
+      Default: (use hard-coded default - currently 1.)
+    </desc>
+  </entry>
+
+  <entry id="bmlt_float_const" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_melt</category>
+    <group>basal_melt</group>
+    <desc>
+      Constant basal melt rate (m/yr) for floating ice
+      Only relevant if bmlt_float_method = constant
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="bmlt_float_xlim" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_melt</category>
+    <group>basal_melt</group>
+    <desc>
+      Floating ice melts only where abs(x) &gt; bmlt_float_xlim (m)
+      Only relevant if bmlt_float_method = constant
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="bmlt_float_omega" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_melt</category>
+    <group>basal_melt</group>
+    <desc>
+      Time scale (yr^-1) for basal melting in the MISMIP+ melt parameterization
+      Only relevant if bmlt_float_method = mismip
+      Default: (use hard-coded default - currently 0.2)
+    </desc>
+  </entry>
+
+  <entry id="bmlt_float_z0" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_melt</category>
+    <group>basal_melt</group>
+    <desc>
+      Ice-draft scale (m, relative to sea level) in the MISMIP+ melt parameterization
+      Only relevant if bmlt_float_method = mismip
+      Default: (use hard-coded default - currently -100.)
+    </desc>
+  </entry>
+
+  <entry id="bmlt_anomaly_tstart" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_melt</category>
+    <group>basal_melt</group>
+    <desc>
+      Time (yr) at which the bmlt_float anomaly starts to be applied
+      Only relevant if enable_bmlt_anomaly = .true.
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="bmlt_anomaly_timescale" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_melt</category>
+    <group>basal_melt</group>
+    <desc>
+      Number of years over which the bmlt_float anomaly is phased in linearly
+      Only relevant if enable_bmlt_anomaly = .true.
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
 
   <!-- =============================================================  -->
   <!-- group: cism.icesheet.config: calving                           -->
@@ -2973,6 +3050,23 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="calvingmip_domain">
+    <type>char</type>
+    <category>cism_config_calving</category>
+    <group>calving</group>
+    <valid_values>none,circular,thule</valid_values>
+    <values>
+      <value>none</value>
+    </values>
+    <desc>
+      Domain of a calvingMIP experiment
+      none: not a calvingMIP domain
+      circular: calvingMIP circular domain
+      thule: calvingMIP Thule domain
+      Default: none
+    </desc>
+  </entry>
+
   <entry id="marine_limit" skip_default_entry="true">
     <type>real</type>
     <category>cism_config_calving</category>
@@ -3096,6 +3190,138 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="dthck_dx_cf" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_calving</category>
+    <group>calving</group>
+    <desc>
+      Assumed maximum |dH/dx| (m/m) at the calving front for full (not partial) cells
+      Only relevant if subgrid_calving_front = .true.
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="thck_effective_min" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_calving</category>
+    <group>calving</group>
+    <desc>
+      Minimum effective thickness (m) of calving-front cells
+      Only relevant if subgrid_calving_front = .true.
+      Default: (use hard-coded default - currently 50.)
+    </desc>
+  </entry>
+
+  <entry id="lateral_rate_min" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_calving</category>
+    <group>calving</group>
+    <desc>
+      Minimum lateral retreat rate (m/yr) at the calving front
+      Only relevant if calving_law = stress
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="effec_stress_min" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_calving</category>
+    <group>calving</group>
+    <desc>
+      Minimum effective stress (Pa) for calving at the calving front
+      Only relevant if calving_law = stress_stochastic
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="calving_length_scale" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_calving</category>
+    <group>calving</group>
+    <desc>
+      Length scale (m) of calving events
+      Only relevant if calving_law = stress_stochastic
+      Default: (use hard-coded default - currently 4000.)
+    </desc>
+  </entry>
+
+  <entry id="damage_const" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_calving</category>
+    <group>calving</group>
+    <desc>
+      Damage scaling term (Pa yr)
+      Only relevant if calving_law = damage
+      Default: (use hard-coded default - currently 1.e5)
+    </desc>
+  </entry>
+
+  <entry id="cf_advance_retreat_amplitude" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_calving</category>
+    <group>calving</group>
+    <desc>
+      Prescribed amplitude (m/yr) of calving-front advance or retreat
+      Only relevant if calving_law = advance_retreat_rate
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="cf_advance_retreat_period" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_calving</category>
+    <group>calving</group>
+    <desc>
+      Period (yr) of an advance/retreat cycle
+      Only relevant if calving_law = advance_retreat_rate
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="calving_front_x" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_calving</category>
+    <group>calving</group>
+    <desc>
+      Calve ice wherever abs(x) &gt; calving_front_x (m); 0 = not used
+      Only relevant if calving_law = grid_mask
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="calving_front_y" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_calving</category>
+    <group>calving</group>
+    <desc>
+      Calve ice wherever abs(y) &gt; calving_front_y (m); 0 = not used
+      Only relevant if calving_law = grid_mask
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="calving_front_radius" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_calving</category>
+    <group>calving</group>
+    <desc>
+      Calve ice wherever the distance from the origin &gt; calving_front_radius (m); 0 = not used
+      Only relevant if calving_law = grid_mask
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="f_ground_threshold" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_calving</category>
+    <group>calving</group>
+    <desc>
+      Threshold grounded fraction for grounded cells in the iceberg removal algorithm
+      Only relevant if remove_icebergs or remove_isthmuses = .true.
+      Default: (use hard-coded default - currently 0.1)
+    </desc>
+  </entry>
+
 
   <!-- =============================================================  -->
   <!-- group: cism.icesheet.config: lateral_melt                      -->
@@ -3180,15 +3406,15 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="subglacial_discharge_from_ablation" skip_default_entry="true">
+  <entry id="runoff_from_ablation" skip_default_entry="true">
     <type>logical</type>
-    <category>cism_config_parameters</category>
+    <category>cism_config_lateral_melt</category>
     <group>lateral_melt</group>
     <desc>
-      If true, diagnose subglacial discharge from the surface ablation rate
-      rather than from an externally supplied runoff field.
-      Only relevant if lateral_melt_method = ismip.
-      Default: (use hard-coded default)
+      If true, compute the runoff (used for subglacial discharge) from the surface ablation rate;
+      if false, read it from an input file
+      Only relevant if lateral_melt_method = ismip
+      Default: (use hard-coded default - currently .false.)
     </desc>
   </entry>
 
