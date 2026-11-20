@@ -18,7 +18,7 @@ from CIME.buildnml import create_namelist_infile, parse_input
 from CIME.case import Case
 from CIME.utils import expect, safe_copy
 from CIME.nmlgen import NamelistGenerator
-from CIME.namelist import parse
+from CIME.namelist import parse, convert_bool
 from CIME.XML.grids import GRID_SEP
 
 _final_template = """########################################
@@ -332,6 +332,89 @@ for _key in ("inversion_basin_flotation_threshold", "inversion_deltaT_basin_rela
              "inversion_basin_number_mass_correction", "inversion_basin_mass_correction"):
     _RELEVANCE[_key] = (lambda v: v.opt("deltaT_ocn_method") == "inversion_basin",
                         "deltaT_ocn_method = inversion_basin")
+
+# Order of the keys in each section of cism.icesheet.config: the order in which CISM logs them
+# (glissade_setup.F90, print_<section>), so that a config reads like the log. Keys not listed
+# here (none at present) are written after these, alphabetically.
+_KEY_ORDER = {
+    "grid": ["ewn", "nsn", "upn", "dew", "dns", "nx_block", "ny_block", "global_bc", "sigma_method",
+        "read_lat_lon"],
+    "sigma": ["sigma_levels"],
+    "time": ["tstart", "tend", "dt_input_option", "nsteps_per_year", "dt", "adaptive_cfl_threshold"],
+    "diagnostics": ["idiag", "jdiag", "dt_diag", "ndiag", "dm_dt_diag", "diag_ice_threshold"],
+    "options": ["dycore", "restart", "restart_extend_velo", "forcewrite_final", "log_level"],
+    "numerics": ["compute_blocks", "reproducible_sums", "thcklim", "thcklim_temp", "thck_gradient_ramp",
+        "periodic_offset_ew", "periodic_offset_ns"],
+    "initialization": ["adjust_input_thickness", "smooth_input_usrf"],
+    "velocity": ["stokes_approx", "diva_slope_correction", "efvs_method", "efvs_const", "effstrain_min",
+        "surface_gradient_method", "surface_gradient_margin_method", "max_slope"],
+    "velocity_solver": ["nonlinear_method", "nonlinear_residual", "nonlinear_maxiters", "linear_solver",
+        "preconditioner", "linear_solve_ncheck", "linear_maxiters", "linear_tolerance", "assemble_beta",
+        "assemble_taud", "assemble_bfric", "assemble_lateral"],
+    "advection": ["advection_method", "vertical_remap_order", "compute_ice_age"],
+    "temperature": ["temperature_method", "temperature_init", "dissipation_method", "pmp_threshold", "pmp_offset"],
+    "flow_law": ["flow_law", "flwa_const", "n_glen", "flow_factor_ground", "flow_factor_float",
+        "damage_flwa_feedback"],
+    "basal_physics": ["sliding_law", "btrc_method", "beta_limit_method", "powerlaw_c_method", "coulomb_c_method",
+        "use_c_space_factor", "elevation_based_coulomb_c", "effecpress_method", "btrc_const",
+        "beta_const", "beta_large", "beta_small", "pseudo_plastic_q", "pseudo_plastic_u0",
+        "pseudo_plastic_phimin", "pseudo_plastic_phimax", "pseudo_plastic_bedmin",
+        "pseudo_plastic_bedmax", "coulomb_c_const", "coulomb_c_max", "coulomb_c_min", "powerlaw_m",
+        "zoet_iverson_ut", "zoet_iverson_nmax", "powerlaw_c_const", "powerlaw_c_max", "powerlaw_c_min",
+        "coulomb_bump_max_slope", "coulomb_bump_wavelength", "flwa_basal_const", "schoof_gamma",
+        "schoof_p", "schoof_n", "friction_powerlaw_k", "coulomb_c_hi", "coulomb_c_lo",
+        "coulomb_c_bed_hi", "coulomb_c_bed_lo", "beta_powerlaw_umax", "beta_grounded_min",
+        "p_ocean_penetration"],
+    "basal_hydro": ["bwat_method", "bwat_const", "bwat_till_max", "till_drainage_rate", "effecpress_delta",
+        "flux_routing_method", "bwat_source_const", "btemp_flow_scale", "btemp_freeze_scale",
+        "bwat_threshold", "cavity_open_slide", "cavity_open_melt", "bump_height", "bump_wavelength",
+        "sliding_speed_fixed", "flwa_basal", "cavity_closing_const", "bpmp_threshold", "haf_threshold"],
+    "grounding_line": ["grounding_line_param", "fground_no_glp", "grounding_line_bmlt", "flotation_function"],
+    "basal_melt": ["bmlt_float_method", "bmlt_float_thermal_forcing_param", "bmlt_float_gamma0", "bmlt_float_init",
+        "basal_mbal_in_continuity", "deltaT_ocn_method", "enable_bmlt_anomaly", "bmlt_anomaly_tstart",
+        "bmlt_anomaly_timescale", "bmlt_cavity_h0", "bmlt_float_factor", "bmlt_float_const",
+        "bmlt_float_xlim", "bmlt_float_omega", "bmlt_float_h0", "bmlt_float_z0",
+        "bmlt_float_depth_meltmax", "bmlt_float_depth_frzmax", "bmlt_float_depth_zmeltmax",
+        "bmlt_float_depth_zmelt0", "bmlt_float_depth_zfrzmax", "bmlt_float_depth_meltmin",
+        "bmlt_float_depth_zmeltmin"],
+    "calving": ["calving_law", "calve_at_startup", "calving_domain", "marine_limit", "eigencalving_const",
+        "tau_eigenconstant1", "tau_eigenconstant2", "stress_threshold", "lateral_rate_min",
+        "effec_stress_min", "calving_length_scale", "damage_const", "cf_advance_retreat_amplitude",
+        "cf_advance_retreat_period", "calving_front_x", "calving_front_y", "calving_front_radius",
+        "calving_timescale", "calving_thck_threshold", "subgrid_calving_front", "dthck_dx_cf",
+        "thck_effective_min", "calvingmip_domain", "apply_calving_mask", "remove_icebergs",
+        "remove_isthmuses", "f_ground_threshold", "limit_marine_cliffs", "taumax_cliff",
+        "cliff_timescale"],
+    "lateral_melt": ["lateral_melt_method", "melt_rate_const", "melt_factor", "runoff_from_ablation",
+        "thermal_forcing_avg_3d_to_2d", "ztop_tfavg", "zbot_tfavg"],
+    "removal": ["remove_ice_caps", "force_retreat"],
+    "climate": ["smb_input_units", "smb_input_function", "degree_factor", "tmlt", "snow_threshold_min",
+        "snow_threshold_max", "artm_input_function", "t_lapse", "enable_smb_anomaly",
+        "smb_anomaly_tstart", "smb_anomaly_timescale", "enable_artm_anomaly", "artm_anomaly_const",
+        "artm_anomaly_tstart", "artm_anomaly_timescale", "enable_snow_anomaly", "enable_precip_anomaly",
+        "overwrite_acab", "overwrite_acab_value", "overwrite_acab_thck_min",
+        "enable_acab_dthck_dt_correction", "block_inception", "nzatm", "zatm"],
+    "ocean_data": ["nzocn", "dzocn", "zocn", "nbasin", "ocean_data_domain", "extrapolate_ocean_data",
+        "thermal_forcing_basin_min", "thermal_forcing_basin_max", "thermal_forcing_anomaly",
+        "thermal_forcing_anomaly_tstart", "thermal_forcing_anomaly_timescale",
+        "thermal_forcing_anomaly_basin"],
+    "geothermal": ["geothermal_method", "geothermal_flux"],
+    "isostasy": ["compute_isostasy", "lithosphere_method", "flexural_rigidity", "load_update_interval",
+        "asthenosphere_method", "tau_relax_const", "input_topg_method"],
+    "inversion": ["inversion_thck_flotation_buffer", "inversion_thck_threshold", "inversion_damping_factor",
+        "inversion_babc_thck_scale", "inversion_babc_timescale", "inversion_babc_length_scale",
+        "inversion_babc_relax_factor", "inversion_deltaT_ocn_thck_scale",
+        "inversion_deltaT_ocn_timescale", "inversion_deltaT_ocn_temp_scale",
+        "inversion_basin_flotation_threshold", "inversion_deltaT_basin_relax",
+        "inversion_basin_number_mass_correction", "inversion_basin_mass_correction",
+        "inversion_deltaT_ocn_length_scale"],
+    "glaciers": ["enable_glaciers", "mu_star_method", "alpha_snow_method", "glacier_powerlaw_c_method",
+        "snow_method", "glacier_snow_threshold_min", "glacier_snow_threshold_max", "glacier_tmlt",
+        "scale_area", "length_scale_factor", "glacier_diag_thck_min", "redistribute_advanced_ice",
+        "thinning_rate_advanced_ice", "smb_weight_advanced_ice", "mu_star_const", "mu_star_min",
+        "mu_star_max", "alpha_snow_const", "alpha_snow_min", "alpha_snow_max", "beta_artm_max",
+        "beta_artm_increment", "baseline_date", "rgi_date", "recent_date"],
+}
 
 # CISM's defaults for keys used in the conditions that may be absent from nmlgen (keys of
 # the optional feature sections, which are added only when the feature is on)
@@ -1073,11 +1156,49 @@ def _write_history_section(output_file, icesheet, stream, variables, extra_setti
 ###############################################################################
 def _update_cism_config(nmlgen, output_file, mode, header, group):
 ###############################################################################
-    """Append an entry to the cism.icesheet.config file"""
+    """Append a section to the cism.icesheet.config file
+
+    For the Glissade sections (those in _KEY_ORDER), the keys that are not relevant are
+    left out (see _RELEVANCE), the others are written in the order in which CISM logs them,
+    and a section with no keys is left out. Other sections are written as nmlgen writes
+    them (keys in alphabetical order).
+    """
+    if group not in _KEY_ORDER:
+        with open(output_file, mode) as file_obj:
+            file_obj.write("[{}]\n".format(header))
+        nmlgen.add_nmlcontents(output_file, group=group, sorted_groups=False)
+        return
+    _drop_irrelevant_keys(nmlgen, group)
+    lines = _section_lines(nmlgen, group)
+    if not lines:
+        return
     with open(output_file, mode) as file_obj:
         file_obj.write("[{}]\n".format(header))
-    _drop_irrelevant_keys(nmlgen, group)
-    nmlgen.add_nmlcontents(output_file, group=group, sorted_groups=False)
+        file_obj.write("".join(lines) + "\n")
+
+###############################################################################
+def _section_lines(nmlgen, group):
+###############################################################################
+    """Return the lines of a group's keys, in the order of _KEY_ORDER
+
+    The format is that of nmlgen.add_nmlcontents (CIME's Namelist.write, format
+    "nmlcontents"): logicals as .true./.false., list values separated by commas; but a list
+    is kept on one line, since CISM's config reader has no continuation lines (a line may
+    hold up to 4096 characters).
+    """
+    try:
+        names = list(nmlgen.get_group_variables(group))
+    except KeyError:
+        return []
+    known = [name for name in _KEY_ORDER[group] if name in names]
+    ordered = known + sorted(name for name in names if name not in known)
+    lines = []
+    for name in ordered:
+        values = list(nmlgen._namelist.get_variable_value(group, name))
+        values = [convert_bool(value) if isinstance(value, bool) or value.lower() in ("true", "false")
+                  else value for value in values]
+        lines.append("  {} = {}\n".format(name, ", ".join(values)))
+    return lines
 
 ###############################################################################
 def _add_conditional_section_to_cism_config(nmlgen, output_file, group,
