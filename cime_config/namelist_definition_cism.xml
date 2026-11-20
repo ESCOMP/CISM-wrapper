@@ -590,17 +590,6 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="sigma_file" skip_default_entry="true">
-    <type>char</type>
-    <category>cism_config_grid</category>
-    <group>grid</group>
-    <desc>
-      Name of a file with the sigma levels
-      Only relevant if sigma_method = file
-      Default: (use hard-coded default - currently none)
-    </desc>
-  </entry>
-
 <!--KTC TODO: Both to .true. after new input files (07/2025)-->
   <entry id="read_lat_lon">
     <type>logical</type>
