@@ -12,5 +12,5 @@ remove_ice_caps = .false.
 thck_gradient_ramp = 100.
 pmp_offset = 10.
 beta_powerlaw_umax = 5000.
-pseudo_plastic_q = 0.25
+! (pseudo_plastic_q = 0.25 from those runs is left out: it has no effect with sliding_law = powerlaw)
 p_ocean_penetration = 0.5

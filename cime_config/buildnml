@@ -18,6 +18,7 @@ from CIME.buildnml import create_namelist_infile, parse_input
 from CIME.case import Case
 from CIME.utils import expect, safe_copy
 from CIME.nmlgen import NamelistGenerator
+from CIME.namelist import parse, convert_bool
 from CIME.XML.grids import GRID_SEP
 
 _final_template = """########################################
@@ -75,6 +76,403 @@ _SIGMA_IN_CONFIG_FILE = 'config'
 # value of 'dt_input_option' signifying that the time step is given by nsteps_per_year
 # (otherwise it is given by dt, in years)
 _DT_STEPS_PER_YEAR = 'nsteps_per_year'
+
+
+#----------------------------------------------------
+# Keys that are relevant only for some settings of other keys
+#----------------------------------------------------
+# A key listed here is written to cism.icesheet.config only if its condition holds (or if
+# the user sets it in user_nl_cism; then buildnml warns that it has no effect). Keys not
+# listed here are always written. The conditions follow the config log of CISM
+# (glissade_setup.F90, print_<section>), which lists only the relevant keys; CISM's
+# utils/config_reorg/check_config_relevance.py compares a run's configs with its log.
+# Each condition is a function of a value accessor v (see _ValueAccessor).
+
+_TF = lambda v: v.opt("bmlt_float_method") == "thermal_forcing"
+_BABC_INVERSION = lambda v: (v.opt("powerlaw_c_method") in ("inversion", "inversion_basin") or
+                             v.opt("coulomb_c_method") in ("inversion", "inversion_basin"))
+_DELTAT_INVERSION = lambda v: v.opt("deltaT_ocn_method") in ("inversion", "inversion_basin")
+_GLACIER_INVERSION = lambda v: (v.flag("enable_glaciers") and
+                                v.opt("glacier_powerlaw_c_method") == "inversion")
+_CAVITY_SHEET = lambda v: (v.opt("bwat_method") == "flux_routing" and
+                           v.opt("effecpress_method") == "cavity_sheet")
+_CP_LAWS = ("powerlaw", "schoof", "tsai")
+
+_RELEVANCE = {
+    # [grid], [numerics], [options]
+    "nx_block": (lambda v: v.opt("compute_blocks") in ("active_only", "inquire"),
+                 "compute_blocks = active_only or inquire"),
+    "ny_block": (lambda v: v.opt("compute_blocks") in ("active_only", "inquire"),
+                 "compute_blocks = active_only or inquire"),
+    "periodic_offset_ew": (lambda v: v.opt("global_bc") == "periodic", "global_bc = periodic"),
+    "periodic_offset_ns": (lambda v: v.opt("global_bc") == "periodic", "global_bc = periodic"),
+    "restart_extend_velo": (lambda v: v.opt("restart") != "none", "restart is not none"),
+    # [velocity], [velocity_solver], [flow_law]
+    "diva_slope_correction": (lambda v: v.opt("stokes_approx") == "diva", "stokes_approx = diva"),
+    "efvs_const": (lambda v: v.opt("efvs_method") == "constant", "efvs_method = constant"),
+    "effstrain_min": (lambda v: v.opt("efvs_method") == "nonlinear", "efvs_method = nonlinear"),
+    "preconditioner": (lambda v: v.opt("linear_solver") in ("pcg", "pcg_chrongear"),
+                       "linear_solver = pcg or pcg_chrongear"),
+    "flwa_const": (lambda v: v.opt("flow_law") == "constant", "flow_law = constant"),
+    # [basal_physics]
+    "btrc_method": (lambda v: v.opt("stokes_approx") == "local_sia", "stokes_approx = local_sia"),
+    "btrc_const": (lambda v: v.opt("stokes_approx") == "local_sia" and
+                   v.opt("btrc_method") in ("constant", "constant_bwat", "constant_bpmp"),
+                   "stokes_approx = local_sia and btrc_method = constant, constant_bwat or constant_bpmp"),
+    "beta_const": (lambda v: v.opt("sliding_law") == "beta_constant", "sliding_law = beta_constant"),
+    "beta_large": (lambda v: v.opt("sliding_law") in ("no_slip", "beta_bpmp"),
+                   "sliding_law = no_slip or beta_bpmp"),
+    "beta_small": (lambda v: v.opt("sliding_law") == "beta_bpmp", "sliding_law = beta_bpmp"),
+    "pseudo_plastic_q": (lambda v: v.opt("sliding_law") in ("pseudo_plastic", "pseudo_plastic_old"),
+                         "sliding_law = pseudo_plastic or pseudo_plastic_old"),
+    "pseudo_plastic_u0": (lambda v: v.opt("sliding_law") in ("pseudo_plastic", "pseudo_plastic_old"),
+                          "sliding_law = pseudo_plastic or pseudo_plastic_old"),
+    "pseudo_plastic_phimin": (lambda v: v.opt("sliding_law") == "pseudo_plastic_old",
+                              "sliding_law = pseudo_plastic_old"),
+    "pseudo_plastic_phimax": (lambda v: v.opt("sliding_law") == "pseudo_plastic_old",
+                              "sliding_law = pseudo_plastic_old"),
+    "pseudo_plastic_bedmin": (lambda v: v.opt("sliding_law") == "pseudo_plastic_old",
+                              "sliding_law = pseudo_plastic_old"),
+    "pseudo_plastic_bedmax": (lambda v: v.opt("sliding_law") == "pseudo_plastic_old",
+                              "sliding_law = pseudo_plastic_old"),
+    "coulomb_c_const": (lambda v: v.opt("sliding_law") in ("zoet_iverson", "coulomb", "schoof", "tsai"),
+                        "sliding_law = zoet_iverson, coulomb, schoof or tsai"),
+    "coulomb_c_max": (lambda v: v.opt("sliding_law") == "zoet_iverson" or
+                      (v.opt("sliding_law") in ("schoof", "tsai") and
+                       v.opt("coulomb_c_method") in ("inversion", "inversion_basin")),
+                      "sliding_law = zoet_iverson, or schoof or tsai with a coulomb_c inversion"),
+    "coulomb_c_min": (lambda v: v.opt("sliding_law") == "zoet_iverson" or
+                      (v.opt("sliding_law") in ("schoof", "tsai") and
+                       v.opt("coulomb_c_method") in ("inversion", "inversion_basin")),
+                      "sliding_law = zoet_iverson, or schoof or tsai with a coulomb_c inversion"),
+    "powerlaw_m": (lambda v: v.opt("sliding_law") in ("zoet_iverson",) + _CP_LAWS,
+                   "sliding_law = zoet_iverson, powerlaw, schoof or tsai"),
+    "zoet_iverson_ut": (lambda v: v.opt("sliding_law") == "zoet_iverson", "sliding_law = zoet_iverson"),
+    "zoet_iverson_nmax": (lambda v: v.opt("sliding_law") == "zoet_iverson", "sliding_law = zoet_iverson"),
+    # powerlaw_c_const also sets the powerlaw_c field for the other laws (see CISM's log)
+    "powerlaw_c_const": (lambda v: v.opt("sliding_law") == "powerlaw" or
+                         (v.opt("sliding_law") in ("schoof", "tsai") and
+                          v.opt("powerlaw_c_method") != "from_coulomb_c") or
+                         (v.opt("sliding_law") not in _CP_LAWS and
+                          v.opt("powerlaw_c_method") in ("constant", "inversion", "inversion_basin")),
+                         "sliding_law = powerlaw, schoof or tsai (unless powerlaw_c_method = from_coulomb_c), "
+                         "or powerlaw_c_method = constant or an inversion method"),
+    "powerlaw_c_max": (lambda v: v.opt("sliding_law") == "powerlaw" or
+                       (v.opt("sliding_law") in ("schoof", "tsai") and
+                        v.opt("powerlaw_c_method") in ("inversion", "inversion_basin")),
+                       "sliding_law = powerlaw, or schoof or tsai with a powerlaw_c inversion"),
+    "powerlaw_c_min": (lambda v: v.opt("sliding_law") == "powerlaw" or
+                       (v.opt("sliding_law") in ("schoof", "tsai") and
+                        v.opt("powerlaw_c_method") in ("inversion", "inversion_basin")),
+                       "sliding_law = powerlaw, or schoof or tsai with a powerlaw_c inversion"),
+    "coulomb_bump_max_slope": (lambda v: v.opt("sliding_law") == "coulomb", "sliding_law = coulomb"),
+    "coulomb_bump_wavelength": (lambda v: v.opt("sliding_law") == "coulomb", "sliding_law = coulomb"),
+    "flwa_basal_const": (lambda v: v.opt("sliding_law") == "coulomb", "sliding_law = coulomb"),
+    "schoof_gamma": (lambda v: v.opt("sliding_law") in ("schoof", "tsai") and
+                     v.opt("powerlaw_c_method") == "from_coulomb_c",
+                     "sliding_law = schoof or tsai and powerlaw_c_method = from_coulomb_c"),
+    "schoof_p": (lambda v: v.opt("sliding_law") in ("schoof", "tsai") and
+                 v.opt("powerlaw_c_method") == "from_coulomb_c",
+                 "sliding_law = schoof or tsai and powerlaw_c_method = from_coulomb_c"),
+    "schoof_n": (lambda v: v.opt("sliding_law") == "schoof", "sliding_law = schoof"),
+    "friction_powerlaw_k": (lambda v: v.opt("sliding_law") == "powerlaw_effecpress",
+                            "sliding_law = powerlaw_effecpress"),
+    "coulomb_c_hi": (lambda v: v.flag("elevation_based_coulomb_c"), "elevation_based_coulomb_c = .true."),
+    "coulomb_c_lo": (lambda v: v.flag("elevation_based_coulomb_c"), "elevation_based_coulomb_c = .true."),
+    "coulomb_c_bed_hi": (lambda v: v.flag("elevation_based_coulomb_c"), "elevation_based_coulomb_c = .true."),
+    "coulomb_c_bed_lo": (lambda v: v.flag("elevation_based_coulomb_c"), "elevation_based_coulomb_c = .true."),
+    "beta_grounded_min": (lambda v: v.opt("beta_limit_method") == "absolute", "beta_limit_method = absolute"),
+    # [basal_hydro]
+    "bwat_const": (lambda v: v.opt("bwat_method") == "constant", "bwat_method = constant"),
+    "bwat_till_max": (lambda v: v.opt("bwat_method") == "local_till", "bwat_method = local_till"),
+    "till_drainage_rate": (lambda v: v.opt("bwat_method") == "local_till", "bwat_method = local_till"),
+    "effecpress_delta": (lambda v: v.opt("bwat_method") == "local_till" or
+                         (v.opt("bwat_method") == "flux_routing" and v.opt("effecpress_method") == "bwat") or
+                         v.opt("effecpress_method") == "bpmp",
+                         "bwat_method = local_till, flux_routing with effecpress_method = bwat, "
+                         "or effecpress_method = bpmp"),
+    "flux_routing_method": (lambda v: v.opt("bwat_method") == "flux_routing", "bwat_method = flux_routing"),
+    "bwat_source_const": (lambda v: v.opt("bwat_method") == "flux_routing", "bwat_method = flux_routing"),
+    "btemp_flow_scale": (lambda v: v.opt("bwat_method") == "flux_routing", "bwat_method = flux_routing"),
+    "btemp_freeze_scale": (lambda v: v.opt("bwat_method") == "flux_routing", "bwat_method = flux_routing"),
+    "bwat_threshold": (lambda v: v.opt("bwat_method") == "flux_routing" and v.opt("effecpress_method") == "bwat",
+                       "bwat_method = flux_routing and effecpress_method = bwat"),
+    "cavity_open_slide": (_CAVITY_SHEET, "bwat_method = flux_routing and effecpress_method = cavity_sheet"),
+    "cavity_open_melt": (_CAVITY_SHEET, "bwat_method = flux_routing and effecpress_method = cavity_sheet"),
+    "flwa_basal": (_CAVITY_SHEET, "bwat_method = flux_routing and effecpress_method = cavity_sheet"),
+    "cavity_closing_const": (_CAVITY_SHEET, "bwat_method = flux_routing and effecpress_method = cavity_sheet"),
+    "bump_height": (lambda v: _CAVITY_SHEET(v) and v.opt("cavity_open_slide") != "none",
+                    "effecpress_method = cavity_sheet and cavity_open_slide is not none"),
+    "bump_wavelength": (lambda v: _CAVITY_SHEET(v) and v.opt("cavity_open_slide") != "none",
+                        "effecpress_method = cavity_sheet and cavity_open_slide is not none"),
+    "sliding_speed_fixed": (lambda v: _CAVITY_SHEET(v) and v.opt("cavity_open_slide") == "fixed_ub",
+                            "effecpress_method = cavity_sheet and cavity_open_slide = fixed_ub"),
+    "bpmp_threshold": (lambda v: v.opt("effecpress_method") == "bpmp", "effecpress_method = bpmp"),
+    "haf_threshold": (lambda v: v.num("p_ocean_penetration") > 0., "p_ocean_penetration > 0"),
+    # [grounding_line]
+    "fground_no_glp": (lambda v: v.opt("grounding_line_param") == "none", "grounding_line_param = none"),
+    # [basal_melt]
+    "bmlt_float_thermal_forcing_param": (_TF, "bmlt_float_method = thermal_forcing"),
+    "bmlt_float_gamma0": (_TF, "bmlt_float_method = thermal_forcing"),
+    "bmlt_float_init": (_TF, "bmlt_float_method = thermal_forcing"),
+    "deltaT_ocn_method": (_TF, "bmlt_float_method = thermal_forcing"),
+    "bmlt_anomaly_tstart": (lambda v: v.flag("enable_bmlt_anomaly"), "enable_bmlt_anomaly = .true."),
+    "bmlt_anomaly_timescale": (lambda v: v.flag("enable_bmlt_anomaly"), "enable_bmlt_anomaly = .true."),
+    "bmlt_cavity_h0": (lambda v: v.opt("bmlt_float_method") not in ("none", "mismip"),
+                       "bmlt_float_method is not none or mismip"),
+    "bmlt_float_factor": (lambda v: v.opt("bmlt_float_method") == "file", "bmlt_float_method = file"),
+    "bmlt_float_const": (lambda v: v.opt("bmlt_float_method") == "constant", "bmlt_float_method = constant"),
+    "bmlt_float_xlim": (lambda v: v.opt("bmlt_float_method") == "constant", "bmlt_float_method = constant"),
+    "bmlt_float_omega": (lambda v: v.opt("bmlt_float_method") == "mismip", "bmlt_float_method = mismip"),
+    "bmlt_float_h0": (lambda v: v.opt("bmlt_float_method") == "mismip", "bmlt_float_method = mismip"),
+    "bmlt_float_z0": (lambda v: v.opt("bmlt_float_method") == "mismip", "bmlt_float_method = mismip"),
+}
+for _key in ("meltmax", "frzmax", "zmeltmax", "zmelt0", "zfrzmax", "meltmin", "zmeltmin"):
+    _RELEVANCE["bmlt_float_depth_" + _key] = (lambda v: v.opt("bmlt_float_method") == "depth",
+                                              "bmlt_float_method = depth")
+_RELEVANCE.update({
+    # [calving]
+    "marine_limit": (lambda v: v.opt("calving_law") in ("relx_threshold", "topg_threshold"),
+                     "calving_law = relx_threshold or topg_threshold"),
+    "eigencalving_const": (lambda v: v.opt("calving_law") == "eigencalving", "calving_law = eigencalving"),
+    "tau_eigenconstant1": (lambda v: v.opt("calving_law") in ("stress", "stress_stochastic", "damage"),
+                           "calving_law = stress, stress_stochastic or damage"),
+    "tau_eigenconstant2": (lambda v: v.opt("calving_law") in ("stress", "stress_stochastic", "damage"),
+                           "calving_law = stress, stress_stochastic or damage"),
+    "stress_threshold": (lambda v: v.opt("calving_law") in ("stress", "stress_stochastic"),
+                         "calving_law = stress or stress_stochastic"),
+    "lateral_rate_min": (lambda v: v.opt("calving_law") == "stress", "calving_law = stress"),
+    "effec_stress_min": (lambda v: v.opt("calving_law") == "stress_stochastic",
+                         "calving_law = stress_stochastic"),
+    "calving_length_scale": (lambda v: v.opt("calving_law") == "stress_stochastic",
+                             "calving_law = stress_stochastic"),
+    "damage_const": (lambda v: v.opt("calving_law") == "damage", "calving_law = damage"),
+    "cf_advance_retreat_amplitude": (lambda v: v.opt("calving_law") == "advance_retreat_rate",
+                                     "calving_law = advance_retreat_rate"),
+    "cf_advance_retreat_period": (lambda v: v.opt("calving_law") == "advance_retreat_rate",
+                                  "calving_law = advance_retreat_rate"),
+    "calving_front_x": (lambda v: v.opt("calving_law") == "grid_mask", "calving_law = grid_mask"),
+    "calving_front_y": (lambda v: v.opt("calving_law") == "grid_mask", "calving_law = grid_mask"),
+    "calving_front_radius": (lambda v: v.opt("calving_law") == "grid_mask", "calving_law = grid_mask"),
+    "calving_timescale": (lambda v: v.opt("calving_law") != "none", "calving_law is not none"),
+    "calving_thck_threshold": (lambda v: v.opt("calving_law") in ("thck_threshold", "stress") or
+                               ((v.opt("calving_law") == "grid_mask" or v.flag("apply_calving_mask")) and
+                                not v.flag("subgrid_calving_front") and v.num("calving_timescale") > 1.),
+                               "calving_law = thck_threshold or stress, or a calving mask without a "
+                               "subgrid calving front and with calving_timescale > 1"),
+    "dthck_dx_cf": (lambda v: v.flag("subgrid_calving_front"), "subgrid_calving_front = .true."),
+    "thck_effective_min": (lambda v: v.flag("subgrid_calving_front"), "subgrid_calving_front = .true."),
+    "calvingmip_domain": (lambda v: v.opt("calvingmip_domain") != "none", "calvingmip_domain is not none"),
+    "f_ground_threshold": (lambda v: v.flag("remove_icebergs") or v.flag("remove_isthmuses"),
+                           "remove_icebergs or remove_isthmuses = .true."),
+    "taumax_cliff": (lambda v: v.flag("limit_marine_cliffs"), "limit_marine_cliffs = .true."),
+    "cliff_timescale": (lambda v: v.flag("limit_marine_cliffs"), "limit_marine_cliffs = .true."),
+    # [lateral_melt] (written only when lateral_melt_method is not none)
+    "melt_rate_const": (lambda v: v.opt("lateral_melt_method") == "constant", "lateral_melt_method = constant"),
+    "melt_factor": (lambda v: v.opt("lateral_melt_method") == "ismip", "lateral_melt_method = ismip"),
+    "runoff_from_ablation": (lambda v: v.opt("lateral_melt_method") == "ismip", "lateral_melt_method = ismip"),
+    "thermal_forcing_avg_3d_to_2d": (lambda v: v.opt("lateral_melt_method") == "ismip",
+                                     "lateral_melt_method = ismip"),
+    "ztop_tfavg": (lambda v: v.opt("lateral_melt_method") == "ismip" and v.flag("thermal_forcing_avg_3d_to_2d"),
+                   "lateral_melt_method = ismip and thermal_forcing_avg_3d_to_2d = .true."),
+    "zbot_tfavg": (lambda v: v.opt("lateral_melt_method") == "ismip" and v.flag("thermal_forcing_avg_3d_to_2d"),
+                   "lateral_melt_method = ismip and thermal_forcing_avg_3d_to_2d = .true."),
+    # [climate]
+    "degree_factor": (lambda v: v.opt("smb_input_function") == "pdd", "smb_input_function = pdd"),
+    "tmlt": (lambda v: v.opt("smb_input_function") == "pdd", "smb_input_function = pdd"),
+    "snow_threshold_min": (lambda v: v.opt("smb_input_function") == "pdd", "smb_input_function = pdd"),
+    "snow_threshold_max": (lambda v: v.opt("smb_input_function") == "pdd", "smb_input_function = pdd"),
+    "t_lapse": (lambda v: v.opt("artm_input_function") == "xy_lapse" or v.flag("enable_glaciers"),
+                "artm_input_function = xy_lapse or enable_glaciers = .true."),
+    "smb_anomaly_tstart": (lambda v: v.flag("enable_smb_anomaly"), "enable_smb_anomaly = .true."),
+    "smb_anomaly_timescale": (lambda v: v.flag("enable_smb_anomaly"), "enable_smb_anomaly = .true."),
+    "artm_anomaly_const": (lambda v: v.flag("enable_artm_anomaly"), "enable_artm_anomaly = .true."),
+    "artm_anomaly_tstart": (lambda v: v.flag("enable_artm_anomaly"), "enable_artm_anomaly = .true."),
+    "artm_anomaly_timescale": (lambda v: v.flag("enable_artm_anomaly"), "enable_artm_anomaly = .true."),
+    "overwrite_acab_value": (lambda v: v.opt("overwrite_acab") != "none", "overwrite_acab is not none"),
+    "overwrite_acab_thck_min": (lambda v: v.opt("overwrite_acab") == "thck_min", "overwrite_acab = thck_min"),
+    # [ocean_data] (nzocn and nbasin are always written: GLAD uses them for the coupled thermal forcing)
+    "dzocn": (lambda v: v.num("dzocn") > 0., "dzocn > 0 (0 means the levels are given by zocn)"),
+    "ocean_data_domain": (_TF, "bmlt_float_method = thermal_forcing"),
+    "extrapolate_ocean_data": (_TF, "bmlt_float_method = thermal_forcing"),
+    "thermal_forcing_anomaly": (_TF, "bmlt_float_method = thermal_forcing"),
+    "thermal_forcing_basin_min": (lambda v: _TF(v) and v.opt("bmlt_float_thermal_forcing_param") in
+                                  ("ismip6_nonlocal", "ismip6_nonlocal_slope"),
+                                  "bmlt_float_method = thermal_forcing with an ISMIP6 nonlocal scheme"),
+    "thermal_forcing_basin_max": (lambda v: _TF(v) and v.opt("bmlt_float_thermal_forcing_param") in
+                                  ("ismip6_nonlocal", "ismip6_nonlocal_slope"),
+                                  "bmlt_float_method = thermal_forcing with an ISMIP6 nonlocal scheme"),
+    "thermal_forcing_anomaly_tstart": (lambda v: _TF(v) and v.num("thermal_forcing_anomaly") != 0.,
+                                       "thermal_forcing_anomaly is nonzero"),
+    "thermal_forcing_anomaly_timescale": (lambda v: _TF(v) and v.num("thermal_forcing_anomaly") != 0.,
+                                          "thermal_forcing_anomaly is nonzero"),
+    "thermal_forcing_anomaly_basin": (lambda v: _TF(v) and v.num("thermal_forcing_anomaly") != 0.,
+                                      "thermal_forcing_anomaly is nonzero"),
+    # [isostasy] (written only when compute_isostasy = .true.)
+    "flexural_rigidity": (lambda v: v.opt("lithosphere_method") == "elastic", "lithosphere_method = elastic"),
+    "load_update_interval": (lambda v: v.opt("lithosphere_method") == "elastic", "lithosphere_method = elastic"),
+    "tau_relax_const": (lambda v: v.opt("asthenosphere_method") == "relaxing", "asthenosphere_method = relaxing"),
+    # [inversion]
+    "inversion_thck_flotation_buffer": (lambda v: _BABC_INVERSION(v) or _DELTAT_INVERSION(v),
+                                        "a powerlaw_c, coulomb_c or deltaT_ocn inversion"),
+    "inversion_thck_threshold": (lambda v: _BABC_INVERSION(v) or _DELTAT_INVERSION(v),
+                                 "a powerlaw_c, coulomb_c or deltaT_ocn inversion"),
+    "inversion_damping_factor": (lambda v: _BABC_INVERSION(v) or _DELTAT_INVERSION(v),
+                                 "a powerlaw_c, coulomb_c or deltaT_ocn inversion"),
+    "inversion_deltaT_ocn_thck_scale": (_DELTAT_INVERSION, "a deltaT_ocn inversion"),
+    "inversion_deltaT_ocn_timescale": (_DELTAT_INVERSION, "a deltaT_ocn inversion"),
+    "inversion_deltaT_ocn_temp_scale": (_DELTAT_INVERSION, "a deltaT_ocn inversion"),
+    "inversion_deltaT_ocn_length_scale": (lambda v: v.opt("deltaT_ocn_method") == "inversion",
+                                          "deltaT_ocn_method = inversion"),
+})
+for _key in ("thck_scale", "timescale", "length_scale", "relax_factor"):
+    _RELEVANCE["inversion_babc_" + _key] = (lambda v: _BABC_INVERSION(v) or _GLACIER_INVERSION(v),
+                                            "a powerlaw_c or coulomb_c inversion (or a glacier Cp inversion)")
+for _key in ("inversion_basin_flotation_threshold", "inversion_deltaT_basin_relax",
+             "inversion_basin_number_mass_correction", "inversion_basin_mass_correction"):
+    _RELEVANCE[_key] = (lambda v: v.opt("deltaT_ocn_method") == "inversion_basin",
+                        "deltaT_ocn_method = inversion_basin")
+
+# Order of the keys in each section of cism.icesheet.config: the order in which CISM logs them
+# (glissade_setup.F90, print_<section>), so that a config reads like the log. Keys not listed
+# here (none at present) are written after these, alphabetically.
+_KEY_ORDER = {
+    "grid": ["ewn", "nsn", "upn", "dew", "dns", "nx_block", "ny_block", "global_bc", "sigma_method",
+        "read_lat_lon"],
+    "sigma": ["sigma_levels"],
+    "time": ["tstart", "tend", "dt_input_option", "nsteps_per_year", "dt", "adaptive_cfl_threshold"],
+    "diagnostics": ["idiag", "jdiag", "dt_diag", "ndiag", "dm_dt_diag", "diag_ice_threshold"],
+    "options": ["dycore", "restart", "restart_extend_velo", "forcewrite_final", "log_level"],
+    "numerics": ["compute_blocks", "reproducible_sums", "thcklim", "thcklim_temp", "thck_gradient_ramp",
+        "periodic_offset_ew", "periodic_offset_ns"],
+    "initialization": ["adjust_input_thickness", "smooth_input_usrf"],
+    "velocity": ["stokes_approx", "diva_slope_correction", "efvs_method", "efvs_const", "effstrain_min",
+        "surface_gradient_method", "surface_gradient_margin_method", "max_slope"],
+    "velocity_solver": ["nonlinear_method", "nonlinear_residual", "nonlinear_maxiters", "linear_solver",
+        "preconditioner", "linear_solve_ncheck", "linear_maxiters", "linear_tolerance", "assemble_beta",
+        "assemble_taud", "assemble_bfric", "assemble_lateral"],
+    "advection": ["advection_method", "vertical_remap_order", "compute_ice_age"],
+    "temperature": ["temperature_method", "temperature_init", "dissipation_method", "pmp_threshold", "pmp_offset"],
+    "flow_law": ["flow_law", "flwa_const", "n_glen", "flow_factor_ground", "flow_factor_float",
+        "damage_flwa_feedback"],
+    "basal_physics": ["sliding_law", "btrc_method", "beta_limit_method", "powerlaw_c_method", "coulomb_c_method",
+        "use_c_space_factor", "elevation_based_coulomb_c", "effecpress_method", "btrc_const",
+        "beta_const", "beta_large", "beta_small", "pseudo_plastic_q", "pseudo_plastic_u0",
+        "pseudo_plastic_phimin", "pseudo_plastic_phimax", "pseudo_plastic_bedmin",
+        "pseudo_plastic_bedmax", "coulomb_c_const", "coulomb_c_max", "coulomb_c_min", "powerlaw_m",
+        "zoet_iverson_ut", "zoet_iverson_nmax", "powerlaw_c_const", "powerlaw_c_max", "powerlaw_c_min",
+        "coulomb_bump_max_slope", "coulomb_bump_wavelength", "flwa_basal_const", "schoof_gamma",
+        "schoof_p", "schoof_n", "friction_powerlaw_k", "coulomb_c_hi", "coulomb_c_lo",
+        "coulomb_c_bed_hi", "coulomb_c_bed_lo", "beta_powerlaw_umax", "beta_grounded_min",
+        "p_ocean_penetration"],
+    "basal_hydro": ["bwat_method", "bwat_const", "bwat_till_max", "till_drainage_rate", "effecpress_delta",
+        "flux_routing_method", "bwat_source_const", "btemp_flow_scale", "btemp_freeze_scale",
+        "bwat_threshold", "cavity_open_slide", "cavity_open_melt", "bump_height", "bump_wavelength",
+        "sliding_speed_fixed", "flwa_basal", "cavity_closing_const", "bpmp_threshold", "haf_threshold"],
+    "grounding_line": ["grounding_line_param", "fground_no_glp", "grounding_line_bmlt", "flotation_function"],
+    "basal_melt": ["bmlt_float_method", "bmlt_float_thermal_forcing_param", "bmlt_float_gamma0", "bmlt_float_init",
+        "basal_mbal_in_continuity", "deltaT_ocn_method", "enable_bmlt_anomaly", "bmlt_anomaly_tstart",
+        "bmlt_anomaly_timescale", "bmlt_cavity_h0", "bmlt_float_factor", "bmlt_float_const",
+        "bmlt_float_xlim", "bmlt_float_omega", "bmlt_float_h0", "bmlt_float_z0",
+        "bmlt_float_depth_meltmax", "bmlt_float_depth_frzmax", "bmlt_float_depth_zmeltmax",
+        "bmlt_float_depth_zmelt0", "bmlt_float_depth_zfrzmax", "bmlt_float_depth_meltmin",
+        "bmlt_float_depth_zmeltmin"],
+    "calving": ["calving_law", "calve_at_startup", "calving_domain", "marine_limit", "eigencalving_const",
+        "tau_eigenconstant1", "tau_eigenconstant2", "stress_threshold", "lateral_rate_min",
+        "effec_stress_min", "calving_length_scale", "damage_const", "cf_advance_retreat_amplitude",
+        "cf_advance_retreat_period", "calving_front_x", "calving_front_y", "calving_front_radius",
+        "calving_timescale", "calving_thck_threshold", "subgrid_calving_front", "dthck_dx_cf",
+        "thck_effective_min", "calvingmip_domain", "apply_calving_mask", "remove_icebergs",
+        "remove_isthmuses", "f_ground_threshold", "limit_marine_cliffs", "taumax_cliff",
+        "cliff_timescale"],
+    "lateral_melt": ["lateral_melt_method", "melt_rate_const", "melt_factor", "runoff_from_ablation",
+        "thermal_forcing_avg_3d_to_2d", "ztop_tfavg", "zbot_tfavg"],
+    "removal": ["remove_ice_caps", "force_retreat"],
+    "climate": ["smb_input_units", "smb_input_function", "degree_factor", "tmlt", "snow_threshold_min",
+        "snow_threshold_max", "artm_input_function", "t_lapse", "enable_smb_anomaly",
+        "smb_anomaly_tstart", "smb_anomaly_timescale", "enable_artm_anomaly", "artm_anomaly_const",
+        "artm_anomaly_tstart", "artm_anomaly_timescale", "enable_snow_anomaly", "enable_precip_anomaly",
+        "overwrite_acab", "overwrite_acab_value", "overwrite_acab_thck_min",
+        "enable_acab_dthck_dt_correction", "block_inception", "nzatm", "zatm"],
+    "ocean_data": ["nzocn", "dzocn", "zocn", "nbasin", "ocean_data_domain", "extrapolate_ocean_data",
+        "thermal_forcing_basin_min", "thermal_forcing_basin_max", "thermal_forcing_anomaly",
+        "thermal_forcing_anomaly_tstart", "thermal_forcing_anomaly_timescale",
+        "thermal_forcing_anomaly_basin"],
+    "geothermal": ["geothermal_method", "geothermal_flux"],
+    "isostasy": ["compute_isostasy", "lithosphere_method", "flexural_rigidity", "load_update_interval",
+        "asthenosphere_method", "tau_relax_const", "input_topg_method"],
+    "inversion": ["inversion_thck_flotation_buffer", "inversion_thck_threshold", "inversion_damping_factor",
+        "inversion_babc_thck_scale", "inversion_babc_timescale", "inversion_babc_length_scale",
+        "inversion_babc_relax_factor", "inversion_deltaT_ocn_thck_scale",
+        "inversion_deltaT_ocn_timescale", "inversion_deltaT_ocn_temp_scale",
+        "inversion_basin_flotation_threshold", "inversion_deltaT_basin_relax",
+        "inversion_basin_number_mass_correction", "inversion_basin_mass_correction",
+        "inversion_deltaT_ocn_length_scale"],
+    "glaciers": ["enable_glaciers", "mu_star_method", "alpha_snow_method", "glacier_powerlaw_c_method",
+        "snow_method", "glacier_snow_threshold_min", "glacier_snow_threshold_max", "glacier_tmlt",
+        "scale_area", "length_scale_factor", "glacier_diag_thck_min", "redistribute_advanced_ice",
+        "thinning_rate_advanced_ice", "smb_weight_advanced_ice", "mu_star_const", "mu_star_min",
+        "mu_star_max", "alpha_snow_const", "alpha_snow_min", "alpha_snow_max", "beta_artm_max",
+        "beta_artm_increment", "baseline_date", "rgi_date", "recent_date"],
+}
+
+# CISM's defaults for keys used in the conditions that may be absent from nmlgen (keys of
+# the optional feature sections, which are added only when the feature is on)
+_CONDITION_DEFAULTS = {"enable_glaciers": ".false.", "glacier_powerlaw_c_method": "constant",
+                       "lateral_melt_method": "none", "thermal_forcing_avg_3d_to_2d": ".false.",
+                       "lithosphere_method": "elastic", "asthenosphere_method": "relaxing"}
+
+class _ValueAccessor(object):
+    """Values of other keys, for the conditions in _RELEVANCE"""
+
+    def __init__(self, nmlgen):
+        self._nmlgen = nmlgen
+
+    def _raw(self, name):
+        value = self._nmlgen.get_value(name)
+        if value is None or value == "":
+            value = _CONDITION_DEFAULTS.get(name, "")
+        return str(value).strip().strip("'\"")
+
+    def opt(self, name):
+        """option value, in lower case"""
+        return self._raw(name).lower()
+
+    def flag(self, name):
+        """logical value (false if absent)"""
+        return self._raw(name).lower() in (".true.", "true", "t", ".t.")
+
+    def num(self, name):
+        """real value (0 if absent)"""
+        value = self._raw(name).lower().replace("d", "e")
+        return float(value) if value else 0.
+
+# Set for each ice sheet in _create_cism_config: the keys set in user_nl_cism, and the ice sheet
+_RELEVANCE_CONTEXT = {"user_keys": set(), "icesheet": ""}
+
+def _drop_irrelevant_keys(nmlgen, group):
+    """Remove the keys of a group that are not relevant for the selected options
+
+    A key that the user set is kept, with a warning that it has no effect.
+    """
+    try:
+        names = list(nmlgen.get_group_variables(group))
+    except KeyError:
+        return
+    values = _ValueAccessor(nmlgen)
+    for name in names:
+        if name not in _RELEVANCE:
+            continue
+        condition, description = _RELEVANCE[name]
+        if condition(values):
+            continue
+        if name.lower() in _RELEVANCE_CONTEXT["user_keys"]:
+            logger.warning("WARNING for ice sheet {}: {} is set in user_nl_cism, but it is used only "
+                           "with {}; it has no effect".format(_RELEVANCE_CONTEXT["icesheet"], name,
+                                                              description))
+        else:
+            # nmlgen has no method to remove a variable; use its namelist
+            nmlgen._namelist.delete_variable(group, name)
 
 ###############################################################################
 def get_user_nl_list(case):
@@ -472,6 +870,15 @@ def _create_cism_config(case, confdir, inst_string, icesheet, glc_grid,
                          inst_string=inst_string)
 
     _set_time_step(nmlgen, icesheet)
+    _set_diag_interval(nmlgen, icesheet)
+
+    # keys set in user_nl_cism are written even when they are not relevant (with a warning)
+    user_keys = set()
+    for infile in (infile_this_icesheet, infile_overall):
+        if os.path.isfile(infile):
+            user_keys.update(name.lower() for name in parse(in_file=infile, groupless=True))
+    _RELEVANCE_CONTEXT["user_keys"] = user_keys
+    _RELEVANCE_CONTEXT["icesheet"] = icesheet
 
     #----------------------------------------------------
     # Set values for sections that are added conditionally and write file
@@ -749,10 +1156,49 @@ def _write_history_section(output_file, icesheet, stream, variables, extra_setti
 ###############################################################################
 def _update_cism_config(nmlgen, output_file, mode, header, group):
 ###############################################################################
-    """Append an entry to the cism.icesheet.config file"""
+    """Append a section to the cism.icesheet.config file
+
+    For the Glissade sections (those in _KEY_ORDER), the keys that are not relevant are
+    left out (see _RELEVANCE), the others are written in the order in which CISM logs them,
+    and a section with no keys is left out. Other sections are written as nmlgen writes
+    them (keys in alphabetical order).
+    """
+    if group not in _KEY_ORDER:
+        with open(output_file, mode) as file_obj:
+            file_obj.write("[{}]\n".format(header))
+        nmlgen.add_nmlcontents(output_file, group=group, sorted_groups=False)
+        return
+    _drop_irrelevant_keys(nmlgen, group)
+    lines = _section_lines(nmlgen, group)
+    if not lines:
+        return
     with open(output_file, mode) as file_obj:
         file_obj.write("[{}]\n".format(header))
-    nmlgen.add_nmlcontents(output_file, group=group, sorted_groups=False)
+        file_obj.write("".join(lines) + "\n")
+
+###############################################################################
+def _section_lines(nmlgen, group):
+###############################################################################
+    """Return the lines of a group's keys, in the order of _KEY_ORDER
+
+    The format is that of nmlgen.add_nmlcontents (CIME's Namelist.write, format
+    "nmlcontents"): logicals as .true./.false., list values separated by commas; but a list
+    is kept on one line, since CISM's config reader has no continuation lines (a line may
+    hold up to 4096 characters).
+    """
+    try:
+        names = list(nmlgen.get_group_variables(group))
+    except KeyError:
+        return []
+    known = [name for name in _KEY_ORDER[group] if name in names]
+    ordered = known + sorted(name for name in names if name not in known)
+    lines = []
+    for name in ordered:
+        values = list(nmlgen._namelist.get_variable_value(group, name))
+        values = [convert_bool(value) if isinstance(value, bool) or value.lower() in ("true", "false")
+                  else value for value in values]
+        lines.append("  {} = {}\n".format(name, ", ".join(values)))
+    return lines
 
 ###############################################################################
 def _add_conditional_section_to_cism_config(nmlgen, output_file, group,
@@ -823,6 +1269,21 @@ def _set_time_step(nmlgen, icesheet):
            "(or change dt_input_option)".format(icesheet, unused,
                                                 nmlgen.get_value("dt_input_option"), used))
     nmlgen.add_default(used)
+
+###############################################################################
+def _set_diag_interval(nmlgen, icesheet):
+###############################################################################
+    """Add dt_diag, unless ndiag is set in user_nl_cism
+
+    CISM aborts if the config file sets both dt_diag and ndiag, so only one is written
+    (both entries have skip_default_entry). By default the wrapper writes dt_diag;
+    a user who sets ndiag gets ndiag instead, and setting both is an error.
+    """
+    if nmlgen.get_value("ndiag") is not None:
+        expect(nmlgen.get_value("dt_diag") is None,
+               "ERROR for ice sheet {}: dt_diag and ndiag cannot both be set; set only one of them".format(icesheet))
+    else:
+        nmlgen.add_default("dt_diag")
 
 ###############################################################################
 def _cism_config_final_consistency_checks(nmlgen, icesheet):

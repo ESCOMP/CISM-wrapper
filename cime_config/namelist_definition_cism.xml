@@ -770,7 +770,7 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="dt_diag">
+  <entry id="dt_diag" skip_default_entry="true">
     <type>real</type>
     <category>cism_config_diagnostics</category>
     <group>diagnostics</group>
@@ -783,26 +783,24 @@ Sub-elements of each entry include:
     <desc>
       Diagnostic frequency (years)
       Set to 0 for no diagnostic output; set to dt for diagnostic output every time step
+      Written unless ndiag is set in user_nl_cism (CISM stops if both are set).
       Default: Same as dt
     </desc>
   </entry>
 
-  <entry id="ndiag">
+  <entry id="ndiag" skip_default_entry="true">
     <type>integer</type>
     <category>cism_config_diagnostics</category>
     <group>diagnostics</group>
-    <values>
-      <value icesheet="gris" glc_grid="gris20">1</value>
-      <value icesheet="gris" glc_grid="gris4" >1</value>
-      <value icesheet="ais"  glc_grid="ais8"  >1</value>
-    </values>
     <desc>
-      Frequency of writing diagnostic log output, for example:
+      Frequency of writing diagnostic log output, in dynamic time steps, for example:
       0 = never write diagnostic log output
       1 = write after each dynamic time step
       ...
       10 = write every tenth dynamic time step (similarly for other values > 1)
-      Default: 0
+      Give either ndiag or dt_diag, not both: if ndiag is set in user_nl_cism,
+      dt_diag is not written (and setting both is an error).
+      No default: by default the wrapper writes dt_diag.
     </desc>
   </entry>
 
@@ -889,6 +887,34 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="restart_extend_velo">
+    <type>logical</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>
+      If true, write uvel_extend and vvel_extend to the restart file on the extended staggered mesh
+      (required if restart velocities are nonzero on global boundaries)
+      Only relevant for restarts
+      Default: .false.
+    </desc>
+  </entry>
+
+  <entry id="forcewrite_final">
+    <type>logical</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>
+      If true, force a write to the output files when CISM finishes
+      Default: .false.
+    </desc>
+  </entry>
+
 
   <!-- =============================================================  -->
   <!-- group: cism.icesheet.config: numerics                          -->
@@ -936,6 +962,16 @@ Sub-elements of each entry include:
       Thickness below which ice dynamics is ignored (m)
       Below this limit, ice is only accumulated
       Default: 1
+    </desc>
+  </entry>
+
+  <entry id="thcklim_temp" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_numerics</category>
+    <group>numerics</group>
+    <desc>
+      Minimum ice thickness (m) for computing the vertical temperature profile
+      Default: (use hard-coded default - currently 1.)
     </desc>
   </entry>
 
@@ -996,6 +1032,20 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="smooth_input_usrf">
+    <type>logical</type>
+    <category>cism_config_initialization</category>
+    <group>initialization</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>
+      If true, apply Laplacian smoothing to the input upper surface (usrf) at initialization
+      Not applied on restart
+      Default: .false.
+    </desc>
+  </entry>
+
 
   <!-- =============================================================  -->
   <!-- group: cism.icesheet.config: velocity                          -->
@@ -1005,7 +1055,7 @@ Sub-elements of each entry include:
     <type>char</type>
     <category>cism_config_velocity</category>
     <group>velocity</group>
-    <valid_values>local_sia,sia,ssa,blatter_pattyn,l1l2,diva</valid_values>
+    <valid_values>local_sia,sia,ssa,blatter_pattyn,l1l2,diva,hybrid</valid_values>
     <values>
       <value>diva</value>
     </values>
@@ -1018,6 +1068,7 @@ Sub-elements of each entry include:
       blatter_pattyn: Blatter-Pattyn approximation with both vertical-shear and horizontal-plane stresses (uses glissade_velo_higher)
       l1l2: Vertically integrated 'L1L2' approximation with vertical-shear and horizontal-plane stresses (uses glissade_velo_higher)
       diva: Depth-integrated viscosity approximation (DIVA) based on Goldberg (2011) (uses glissade_velo_higher)
+      hybrid: SIA velocity without sliding (glissade_velo_sia) plus an SSA solve (glissade_velo_higher)
       Default: diva
     </desc>
   </entry>
@@ -1049,6 +1100,17 @@ Sub-elements of each entry include:
       flow_factor: multiple of flow factor
       nonlinear: compute from effective strain rate
       Default: nonlinear
+    </desc>
+  </entry>
+
+  <entry id="efvs_const" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_velocity</category>
+    <group>velocity</group>
+    <desc>
+      Effective viscosity (Pa yr) for efvs_method = constant
+      Only relevant if efvs_method = constant
+      Default: (use hard-coded default - currently 2336041.)
     </desc>
   </entry>
 
@@ -1228,6 +1290,26 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="linear_maxiters" skip_default_entry="true">
+    <type>integer</type>
+    <category>cism_config_velocity_solver</category>
+    <group>velocity_solver</group>
+    <desc>
+      Maximum number of iterations of the linear solver
+      Default: (use hard-coded default - currently 200)
+    </desc>
+  </entry>
+
+  <entry id="linear_tolerance" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_velocity_solver</category>
+    <group>velocity_solver</group>
+    <desc>
+      Error tolerance of the linear solver
+      Default: (use hard-coded default - currently 1.e-8)
+    </desc>
+  </entry>
+
   <entry id="assemble_beta">
     <type>char</type>
     <category>cism_config_velocity_solver</category>
@@ -1315,6 +1397,35 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="vertical_remap_order">
+    <type>char</type>
+    <category>cism_config_advection</category>
+    <group>advection</group>
+    <valid_values>first,second</valid_values>
+    <values>
+      <value>first</value>
+    </values>
+    <desc>
+      Order of accuracy of the vertical remapping of tracers
+      first: first-order accurate
+      second: second-order accurate
+      Default: first
+    </desc>
+  </entry>
+
+  <entry id="compute_ice_age">
+    <type>logical</type>
+    <category>cism_config_advection</category>
+    <group>advection</group>
+    <values>
+      <value>.true.</value>
+    </values>
+    <desc>
+      If true, compute the ice age as a tracer
+      Default: .true.
+    </desc>
+  </entry>
+
 
   <!-- =============================================================  -->
   <!-- group: cism.icesheet.config: temperature                       -->
@@ -1393,6 +1504,17 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="pmp_threshold" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_temperature</category>
+    <group>temperature</group>
+    <desc>
+      The bed is assumed thawed where the basal temperature is within pmp_threshold (deg C)
+      of the pressure melting point
+      Default: (use hard-coded default - currently 1.e-3)
+    </desc>
+  </entry>
+
 
   <!-- =============================================================  -->
   <!-- group: cism.icesheet.config: flow_law                          -->
@@ -1458,6 +1580,20 @@ Sub-elements of each entry include:
       Default is 1.0, but for marine simulations a smaller value
       may be needed to match observed shelf speeds.
       Default: 1.0 for Greenland, 0.40 for Antarctica
+    </desc>
+  </entry>
+
+  <entry id="damage_flwa_feedback">
+    <type>logical</type>
+    <category>cism_config_flow_law</category>
+    <group>flow_law</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>
+      If true, the flow factor (flwa) increases as damage increases
+      (can be a strong positive feedback on damage)
+      Default: .false.
     </desc>
   </entry>
 
@@ -1608,6 +1744,39 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="btrc_method">
+    <type>char</type>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
+    <valid_values>none,constant,constant_bwat,constant_bpmp</valid_values>
+    <values>
+      <value>none</value>
+    </values>
+    <desc>
+      Basal traction for the local SIA solver
+      Only relevant if stokes_approx = local_sia
+      none: no basal sliding
+      constant: constant basal traction (btrc_const)
+      constant_bwat: constant where bwat > 0
+      constant_bpmp: constant where the bed is at the pressure melting point
+      Default: none
+    </desc>
+  </entry>
+
+  <entry id="use_c_space_factor">
+    <type>logical</type>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>
+      If true, multiply beta by the 2D input field C_space_factor
+      Supported only for sliding_law = coulomb, schoof or tsai
+      Default: .false.
+    </desc>
+  </entry>
+
   <entry id="btrc_const">
     <type>real</type>
     <category>cism_config_basal_physics</category>
@@ -1645,6 +1814,28 @@ Sub-elements of each entry include:
       Only relevant for sliding_law = beta_constant
       Spatially uniform beta for higher-order dycores (Pa yr m-1)
       Default: (use hard-coded default - currently 1000.)
+    </desc>
+  </entry>
+
+  <entry id="beta_small" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
+    <desc>
+      Small beta (Pa yr/m) for sliding over a thawed bed
+      Only relevant if sliding_law = beta_bpmp
+      Default: (use hard-coded default - currently 1000.)
+    </desc>
+  </entry>
+
+  <entry id="beta_large" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
+    <desc>
+      Large beta (Pa yr/m) to enforce (virtually) no slip
+      Only relevant if sliding_law = no_slip or beta_bpmp
+      Default: (use hard-coded default - currently 1.e10)
     </desc>
   </entry>
 
@@ -1808,6 +1999,39 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="coulomb_bump_max_slope" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
+    <desc>
+      Maximum bed bump slope at the subgrid scale (no dimension), for the Coulomb friction law
+      Only relevant if sliding_law = coulomb
+      Default: (use hard-coded default - currently 0.5)
+    </desc>
+  </entry>
+
+  <entry id="coulomb_bump_wavelength" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
+    <desc>
+      Bed bump wavelength (m) at the subgrid scale, for the Coulomb friction law
+      Only relevant if sliding_law = coulomb
+      Default: (use hard-coded default - currently 2.)
+    </desc>
+  </entry>
+
+  <entry id="flwa_basal_const" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
+    <desc>
+      Flow factor at the bed (Pa^-3 yr^-1), for the Coulomb friction law
+      Only relevant if sliding_law = coulomb
+      Default: (use hard-coded default - currently 1.e-16)
+    </desc>
+  </entry>
+
   <entry id="schoof_n">
     <type>real</type>
     <category>cism_config_basal_physics</category>
@@ -1943,6 +2167,61 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="pseudo_plastic_phimin" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
+    <desc>
+      Minimum till friction angle phi (degrees) in the old pseudo-plastic law, used where topg &lt;= pseudo_plastic_bedmin
+      Only relevant if sliding_law = pseudo_plastic_old
+      Default: (use hard-coded default - currently 5.)
+    </desc>
+  </entry>
+
+  <entry id="pseudo_plastic_phimax" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
+    <desc>
+      Maximum till friction angle phi (degrees) in the old pseudo-plastic law, used where topg &gt;= pseudo_plastic_bedmax
+      Only relevant if sliding_law = pseudo_plastic_old
+      Default: (use hard-coded default - currently 40.)
+    </desc>
+  </entry>
+
+  <entry id="pseudo_plastic_bedmin" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
+    <desc>
+      Bed elevation (m) below which phi = pseudo_plastic_phimin
+      Only relevant if sliding_law = pseudo_plastic_old
+      Default: (use hard-coded default - currently -300.)
+    </desc>
+  </entry>
+
+  <entry id="pseudo_plastic_bedmax" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
+    <desc>
+      Bed elevation (m) above which phi = pseudo_plastic_phimax
+      Only relevant if sliding_law = pseudo_plastic_old
+      Default: (use hard-coded default - currently 700.)
+    </desc>
+  </entry>
+
+  <entry id="friction_powerlaw_k" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
+    <desc>
+      Coefficient (m yr^-1 Pa^-2) of the power-law friction law based on effective pressure
+      Only relevant if sliding_law = powerlaw_effecpress
+      Default: (use hard-coded default - currently 8.4e-9)
+    </desc>
+  </entry>
+
 
   <!-- =============================================================  -->
   <!-- group: cism.icesheet.config: basal_hydro                       -->
@@ -1992,6 +2271,17 @@ Sub-elements of each entry include:
       Parameter for local till model: Maximum water depth in till (m)
       Relevant only for bwat_method = local_till
       Default: 2.0
+    </desc>
+  </entry>
+
+  <entry id="bwat_source_const" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_hydro</category>
+    <group>basal_hydro</group>
+    <desc>
+      Constant melt source at the bed (m/yr), added to the computed basal melt
+      Only relevant if bwat_method = flux_routing
+      Default: (use hard-coded default - currently 0.)
     </desc>
   </entry>
 
@@ -2145,6 +2435,61 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="bump_height" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_hydro</category>
+    <group>basal_hydro</group>
+    <desc>
+      Height scale (m) of bed bumps, for cavity opening by sliding
+      Only relevant if effecpress_method = cavity_sheet and cavity_open_slide is not none
+      Default: (use hard-coded default - currently 0.1)
+    </desc>
+  </entry>
+
+  <entry id="bump_wavelength" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_hydro</category>
+    <group>basal_hydro</group>
+    <desc>
+      Length scale (m) of bed bumps, for cavity opening by sliding
+      Only relevant if effecpress_method = cavity_sheet and cavity_open_slide is not none
+      Default: (use hard-coded default - currently 2.)
+    </desc>
+  </entry>
+
+  <entry id="sliding_speed_fixed" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_hydro</category>
+    <group>basal_hydro</group>
+    <desc>
+      Fixed sliding speed (m/yr) for cavity opening by sliding
+      Only relevant if effecpress_method = cavity_sheet and cavity_open_slide = fixed_ub
+      Default: (use hard-coded default - currently 31.5)
+    </desc>
+  </entry>
+
+  <entry id="flwa_basal" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_hydro</category>
+    <group>basal_hydro</group>
+    <desc>
+      Flow factor at the bed (Pa^-3 yr^-1) for cavity closing by creep
+      Only relevant if effecpress_method = cavity_sheet
+      Default: (use hard-coded default - currently 1.064e-16)
+    </desc>
+  </entry>
+
+  <entry id="cavity_closing_const" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_hydro</category>
+    <group>basal_hydro</group>
+    <desc>
+      Constant in the cavity closing rate, v_close = cavity_closing_const * A * bwat * N^n
+      Only relevant if effecpress_method = cavity_sheet
+      Default: (use hard-coded default - currently 0.074)
+    </desc>
+  </entry>
+
 
   <!-- =============================================================  -->
   <!-- group: cism.icesheet.config: grounding_line                    -->
@@ -2165,6 +2510,23 @@ Sub-elements of each entry include:
       vertices: basal friction GLP with 0 .lte. f_ground .lte. 1 at vertices
       deluxe: "deluxe" GLP with f_ground at both cells and vertices; includes both friction and melting
       Default: none
+    </desc>
+  </entry>
+
+  <entry id="fground_no_glp">
+    <type>char</type>
+    <category>cism_config_grounding_line</category>
+    <group>grounding_line</group>
+    <valid_values>grounded_neighbor,flotation_function</valid_values>
+    <values>
+      <value>grounded_neighbor</value>
+    </values>
+    <desc>
+      How grounded and floating vertices are identified without a grounding-line parameterization
+      Only relevant if grounding_line_param = none
+      grounded_neighbor: f_ground = 1 at a vertex if any neighbor cell is grounded
+      flotation_function: f_ground = 0 or 1 at a vertex based on the staggered flotation function
+      Default: grounded_neighbor
     </desc>
   </entry>
 
@@ -2465,6 +2827,83 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="bmlt_float_factor" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_melt</category>
+    <group>basal_melt</group>
+    <desc>
+      Factor that multiplies the input bmlt_float field
+      Only relevant if bmlt_float_method = file
+      Default: (use hard-coded default - currently 1.)
+    </desc>
+  </entry>
+
+  <entry id="bmlt_float_const" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_melt</category>
+    <group>basal_melt</group>
+    <desc>
+      Constant basal melt rate (m/yr) for floating ice
+      Only relevant if bmlt_float_method = constant
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="bmlt_float_xlim" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_melt</category>
+    <group>basal_melt</group>
+    <desc>
+      Floating ice melts only where abs(x) &gt; bmlt_float_xlim (m)
+      Only relevant if bmlt_float_method = constant
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="bmlt_float_omega" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_melt</category>
+    <group>basal_melt</group>
+    <desc>
+      Time scale (yr^-1) for basal melting in the MISMIP+ melt parameterization
+      Only relevant if bmlt_float_method = mismip
+      Default: (use hard-coded default - currently 0.2)
+    </desc>
+  </entry>
+
+  <entry id="bmlt_float_z0" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_melt</category>
+    <group>basal_melt</group>
+    <desc>
+      Ice-draft scale (m, relative to sea level) in the MISMIP+ melt parameterization
+      Only relevant if bmlt_float_method = mismip
+      Default: (use hard-coded default - currently -100.)
+    </desc>
+  </entry>
+
+  <entry id="bmlt_anomaly_tstart" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_melt</category>
+    <group>basal_melt</group>
+    <desc>
+      Time (yr) at which the bmlt_float anomaly starts to be applied
+      Only relevant if enable_bmlt_anomaly = .true.
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="bmlt_anomaly_timescale" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_melt</category>
+    <group>basal_melt</group>
+    <desc>
+      Number of years over which the bmlt_float anomaly is phased in linearly
+      Only relevant if enable_bmlt_anomaly = .true.
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
 
   <!-- =============================================================  -->
   <!-- group: cism.icesheet.config: calving                           -->
@@ -2601,6 +3040,23 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="calvingmip_domain">
+    <type>char</type>
+    <category>cism_config_calving</category>
+    <group>calving</group>
+    <valid_values>none,circular,thule</valid_values>
+    <values>
+      <value>none</value>
+    </values>
+    <desc>
+      Domain of a calvingMIP experiment
+      none: not a calvingMIP domain
+      circular: calvingMIP circular domain
+      thule: calvingMIP Thule domain
+      Default: none
+    </desc>
+  </entry>
+
   <entry id="marine_limit" skip_default_entry="true">
     <type>real</type>
     <category>cism_config_calving</category>
@@ -2724,6 +3180,138 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="dthck_dx_cf" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_calving</category>
+    <group>calving</group>
+    <desc>
+      Assumed maximum |dH/dx| (m/m) at the calving front for full (not partial) cells
+      Only relevant if subgrid_calving_front = .true.
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="thck_effective_min" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_calving</category>
+    <group>calving</group>
+    <desc>
+      Minimum effective thickness (m) of calving-front cells
+      Only relevant if subgrid_calving_front = .true.
+      Default: (use hard-coded default - currently 50.)
+    </desc>
+  </entry>
+
+  <entry id="lateral_rate_min" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_calving</category>
+    <group>calving</group>
+    <desc>
+      Minimum lateral retreat rate (m/yr) at the calving front
+      Only relevant if calving_law = stress
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="effec_stress_min" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_calving</category>
+    <group>calving</group>
+    <desc>
+      Minimum effective stress (Pa) for calving at the calving front
+      Only relevant if calving_law = stress_stochastic
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="calving_length_scale" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_calving</category>
+    <group>calving</group>
+    <desc>
+      Length scale (m) of calving events
+      Only relevant if calving_law = stress_stochastic
+      Default: (use hard-coded default - currently 4000.)
+    </desc>
+  </entry>
+
+  <entry id="damage_const" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_calving</category>
+    <group>calving</group>
+    <desc>
+      Damage scaling term (Pa yr)
+      Only relevant if calving_law = damage
+      Default: (use hard-coded default - currently 1.e5)
+    </desc>
+  </entry>
+
+  <entry id="cf_advance_retreat_amplitude" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_calving</category>
+    <group>calving</group>
+    <desc>
+      Prescribed amplitude (m/yr) of calving-front advance or retreat
+      Only relevant if calving_law = advance_retreat_rate
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="cf_advance_retreat_period" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_calving</category>
+    <group>calving</group>
+    <desc>
+      Period (yr) of an advance/retreat cycle
+      Only relevant if calving_law = advance_retreat_rate
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="calving_front_x" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_calving</category>
+    <group>calving</group>
+    <desc>
+      Calve ice wherever abs(x) &gt; calving_front_x (m); 0 = not used
+      Only relevant if calving_law = grid_mask
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="calving_front_y" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_calving</category>
+    <group>calving</group>
+    <desc>
+      Calve ice wherever abs(y) &gt; calving_front_y (m); 0 = not used
+      Only relevant if calving_law = grid_mask
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="calving_front_radius" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_calving</category>
+    <group>calving</group>
+    <desc>
+      Calve ice wherever the distance from the origin &gt; calving_front_radius (m); 0 = not used
+      Only relevant if calving_law = grid_mask
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="f_ground_threshold" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_calving</category>
+    <group>calving</group>
+    <desc>
+      Threshold grounded fraction for grounded cells in the iceberg removal algorithm
+      Only relevant if remove_icebergs or remove_isthmuses = .true.
+      Default: (use hard-coded default - currently 0.1)
+    </desc>
+  </entry>
+
 
   <!-- =============================================================  -->
   <!-- group: cism.icesheet.config: lateral_melt                      -->
@@ -2752,7 +3340,7 @@ Sub-elements of each entry include:
 
   <entry id="melt_rate_const" skip_default_entry="true">
     <type>real</type>
-    <category>cism_config_parameters</category>
+    <category>cism_config_lateral_melt</category>
     <group>lateral_melt</group>
     <desc>
       Prescribed constant lateral melt rate (m/s) applied at the subgrid calving
@@ -2763,7 +3351,7 @@ Sub-elements of each entry include:
 
   <entry id="melt_factor" skip_default_entry="true">
     <type>real</type>
-    <category>cism_config_parameters</category>
+    <category>cism_config_lateral_melt</category>
     <group>lateral_melt</group>
     <desc>
       Tuning factor (unitless) multiplying the ISMIP6/Rignot-et-al.-type lateral
@@ -2774,7 +3362,7 @@ Sub-elements of each entry include:
 
   <entry id="thermal_forcing_avg_3d_to_2d" skip_default_entry="true">
     <type>logical</type>
-    <category>cism_config_parameters</category>
+    <category>cism_config_lateral_melt</category>
     <group>lateral_melt</group>
     <desc>
       If true, average the 3D ocean thermal forcing field over the depth range
@@ -2786,7 +3374,7 @@ Sub-elements of each entry include:
 
   <entry id="ztop_tfavg" skip_default_entry="true">
     <type>real</type>
-    <category>cism_config_parameters</category>
+    <category>cism_config_lateral_melt</category>
     <group>lateral_melt</group>
     <desc>
       Upper depth (m, negative below sea level) of the range used to average
@@ -2798,7 +3386,7 @@ Sub-elements of each entry include:
 
   <entry id="zbot_tfavg" skip_default_entry="true">
     <type>real</type>
-    <category>cism_config_parameters</category>
+    <category>cism_config_lateral_melt</category>
     <group>lateral_melt</group>
     <desc>
       Lower depth (m, negative below sea level) of the range used to average
@@ -2808,15 +3396,15 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
-  <entry id="subglacial_discharge_from_ablation" skip_default_entry="true">
+  <entry id="runoff_from_ablation" skip_default_entry="true">
     <type>logical</type>
-    <category>cism_config_parameters</category>
+    <category>cism_config_lateral_melt</category>
     <group>lateral_melt</group>
     <desc>
-      If true, diagnose subglacial discharge from the surface ablation rate
-      rather than from an externally supplied runoff field.
-      Only relevant if lateral_melt_method = ismip.
-      Default: (use hard-coded default)
+      If true, compute the runoff (used for subglacial discharge) from the surface ablation rate;
+      if false, read it from an input file
+      Only relevant if lateral_melt_method = ismip
+      Default: (use hard-coded default - currently .false.)
     </desc>
   </entry>
 
@@ -2843,14 +3431,16 @@ Sub-elements of each entry include:
     <type>char</type>
     <category>cism_config_removal</category>
     <group>removal</group>
+    <valid_values>none,all_ice,floating_ice</valid_values>
     <values>
       <value icesheet="gris">none</value>
       <value icesheet="ais" >none</value>
     </values>
     <desc>
       Option to force ice retreat where indicated by the retreat_mask field
-      0=no force retreat, 1=force retreat where indicated by retreat_mask,
-      2=force retreat for floating ice where indicated by retreat mask
+      none: no forced retreat
+      all_ice: force retreat of all ice where indicated by retreat_mask
+      floating_ice: force retreat of floating ice where indicated by retreat_mask
       Default: none for Greenland, none for Antarctica
     </desc>
   </entry>
@@ -2993,6 +3583,24 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="overwrite_acab">
+    <type>char</type>
+    <category>cism_config_climate</category>
+    <group>climate</group>
+    <valid_values>none,acab_zero,thck_min,mask</valid_values>
+    <values>
+      <value>none</value>
+    </values>
+    <desc>
+      Where to overwrite the surface mass balance (acab) with overwrite_acab_value
+      none: do not overwrite acab anywhere
+      acab_zero: overwrite acab where the input acab = 0
+      thck_min: overwrite acab where the input thck &lt;= overwrite_acab_thck_min
+      mask: overwrite acab based on an input mask
+      Default: none
+    </desc>
+  </entry>
+
   <entry id="t_lapse">
     <type>real</type>
     <category>cism_config_climate</category>
@@ -3077,6 +3685,98 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="tmlt" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_climate</category>
+    <group>climate</group>
+    <desc>
+      Spatially uniform temperature threshold (deg C) for melting in the PDD scheme
+      (not the glacier key glacier_tmlt)
+      Only relevant if smb_input_function = pdd
+      Default: (use hard-coded default - currently -1.)
+    </desc>
+  </entry>
+
+  <entry id="snow_threshold_min" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_climate</category>
+    <group>climate</group>
+    <desc>
+      Air temperature (deg C) below which all precipitation falls as snow, in the PDD scheme
+      (not the glacier key glacier_snow_threshold_min)
+      Only relevant if smb_input_function = pdd
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="snow_threshold_max" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_climate</category>
+    <group>climate</group>
+    <desc>
+      Air temperature (deg C) above which all precipitation falls as rain, in the PDD scheme
+      (not the glacier key glacier_snow_threshold_max)
+      Only relevant if smb_input_function = pdd
+      Default: (use hard-coded default - currently 2.)
+    </desc>
+  </entry>
+
+  <entry id="artm_anomaly_const" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_climate</category>
+    <group>climate</group>
+    <desc>
+      Spatially uniform air temperature anomaly (deg C)
+      Only relevant if enable_artm_anomaly = .true.
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="overwrite_acab_value" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_climate</category>
+    <group>climate</group>
+    <desc>
+      Value of acab (m/yr) applied where acab is overwritten
+      Only relevant if overwrite_acab is not none
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="overwrite_acab_thck_min" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_climate</category>
+    <group>climate</group>
+    <desc>
+      acab is overwritten where the input thickness &lt;= overwrite_acab_thck_min (m)
+      Only relevant if overwrite_acab = thck_min
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="nzatm" skip_default_entry="true">
+    <type>integer</type>
+    <category>cism_config_climate</category>
+    <group>climate</group>
+    <desc>
+      Number of atmosphere levels at which the SMB and other fields are provided
+      If neither nzatm nor zatm is set, CISM uses the standard CESM elevation classes
+      when smb_input_function or artm_input_function = xyz
+      If set, zatm must also be set
+      Default: (use hard-coded default - currently 1)
+    </desc>
+  </entry>
+
+  <entry id="zatm" skip_default_entry="true">
+    <type>real(100)</type>
+    <category>cism_config_climate</category>
+    <group>climate</group>
+    <desc>
+      List of nzatm atmosphere levels (m), in increasing order, separated by spaces
+      Default: (use hard-coded default - currently none)
+    </desc>
+  </entry>
+
 
   <!-- =============================================================  -->
   <!-- group: cism.icesheet.config: ocean_data                        -->
@@ -3143,6 +3843,17 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="zocn" skip_default_entry="true">
+    <type>real(100)</type>
+    <category>cism_config_ocean_data</category>
+    <group>ocean_data</group>
+    <desc>
+      List of nzocn ocean levels (m, negative below sea level), separated by spaces
+      Used only if dzocn = 0; otherwise the levels are computed from dzocn
+      Default: (use hard-coded default - currently none)
+    </desc>
+  </entry>
+
   <entry id="nbasin">
     <type>integer</type>
     <category>cism_config_ocean_data</category>
@@ -3168,6 +3879,62 @@ Sub-elements of each entry include:
       Min value of thermal_forcing_basin (deg C) applied to nonlocal and
       nonlocal-slope schemes
       Default: 0.0
+    </desc>
+  </entry>
+
+  <entry id="thermal_forcing_basin_max" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_ocean_data</category>
+    <group>ocean_data</group>
+    <desc>
+      Maximum basin-scale thermal forcing (deg C); 0 = no limit
+      Only relevant if bmlt_float_method = thermal_forcing and
+      bmlt_float_thermal_forcing_param = ismip6_nonlocal or ismip6_nonlocal_slope
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="thermal_forcing_anomaly" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_ocean_data</category>
+    <group>ocean_data</group>
+    <desc>
+      Thermal forcing anomaly (deg C), applied everywhere or in one basin; 0 = no anomaly
+      Only relevant if bmlt_float_method = thermal_forcing
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="thermal_forcing_anomaly_tstart" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_ocean_data</category>
+    <group>ocean_data</group>
+    <desc>
+      Time (yr) at which the thermal forcing anomaly starts to be applied or phased in
+      Only relevant if thermal_forcing_anomaly is nonzero
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="thermal_forcing_anomaly_timescale" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_ocean_data</category>
+    <group>ocean_data</group>
+    <desc>
+      Number of years over which the thermal forcing anomaly is phased in linearly
+      Only relevant if thermal_forcing_anomaly is nonzero
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="thermal_forcing_anomaly_basin" skip_default_entry="true">
+    <type>integer</type>
+    <category>cism_config_ocean_data</category>
+    <group>ocean_data</group>
+    <desc>
+      Basin where the thermal forcing anomaly is applied; 0 = all basins
+      Only relevant if thermal_forcing_anomaly is nonzero
+      Default: (use hard-coded default - currently 0)
     </desc>
   </entry>
 
