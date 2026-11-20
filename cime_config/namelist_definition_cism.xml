@@ -590,6 +590,17 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="sigma_file" skip_default_entry="true">
+    <type>char</type>
+    <category>cism_config_grid</category>
+    <group>grid</group>
+    <desc>
+      Name of a file with the sigma levels
+      Only relevant if sigma_method = file
+      Default: (use hard-coded default - currently none)
+    </desc>
+  </entry>
+
 <!--KTC TODO: Both to .true. after new input files (07/2025)-->
   <entry id="read_lat_lon">
     <type>logical</type>
@@ -887,6 +898,34 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="restart_extend_velo">
+    <type>logical</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>
+      If true, write uvel_extend and vvel_extend to the restart file on the extended staggered mesh
+      (required if restart velocities are nonzero on global boundaries)
+      Only relevant for restarts
+      Default: .false.
+    </desc>
+  </entry>
+
+  <entry id="forcewrite_final">
+    <type>logical</type>
+    <category>cism_config_options</category>
+    <group>options</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>
+      If true, force a write to the output files when CISM finishes
+      Default: .false.
+    </desc>
+  </entry>
+
 
   <!-- =============================================================  -->
   <!-- group: cism.icesheet.config: numerics                          -->
@@ -934,6 +973,16 @@ Sub-elements of each entry include:
       Thickness below which ice dynamics is ignored (m)
       Below this limit, ice is only accumulated
       Default: 1
+    </desc>
+  </entry>
+
+  <entry id="thcklim_temp" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_numerics</category>
+    <group>numerics</group>
+    <desc>
+      Minimum ice thickness (m) for computing the vertical temperature profile
+      Default: (use hard-coded default - currently 1.)
     </desc>
   </entry>
 
@@ -994,6 +1043,20 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="smooth_input_usrf">
+    <type>logical</type>
+    <category>cism_config_initialization</category>
+    <group>initialization</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>
+      If true, apply Laplacian smoothing to the input upper surface (usrf) at initialization
+      Not applied on restart
+      Default: .false.
+    </desc>
+  </entry>
+
 
   <!-- =============================================================  -->
   <!-- group: cism.icesheet.config: velocity                          -->
@@ -1047,6 +1110,17 @@ Sub-elements of each entry include:
       flow_factor: multiple of flow factor
       nonlinear: compute from effective strain rate
       Default: nonlinear
+    </desc>
+  </entry>
+
+  <entry id="efvs_const" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_velocity</category>
+    <group>velocity</group>
+    <desc>
+      Effective viscosity (Pa yr) for efvs_method = constant
+      Only relevant if efvs_method = constant
+      Default: (use hard-coded default - currently 2336041.)
     </desc>
   </entry>
 
@@ -1226,6 +1300,26 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="linear_maxiters" skip_default_entry="true">
+    <type>integer</type>
+    <category>cism_config_velocity_solver</category>
+    <group>velocity_solver</group>
+    <desc>
+      Maximum number of iterations of the linear solver
+      Default: (use hard-coded default - currently 200)
+    </desc>
+  </entry>
+
+  <entry id="linear_tolerance" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_velocity_solver</category>
+    <group>velocity_solver</group>
+    <desc>
+      Error tolerance of the linear solver
+      Default: (use hard-coded default - currently 1.e-8)
+    </desc>
+  </entry>
+
   <entry id="assemble_beta">
     <type>char</type>
     <category>cism_config_velocity_solver</category>
@@ -1313,6 +1407,35 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="vertical_remap_order">
+    <type>char</type>
+    <category>cism_config_advection</category>
+    <group>advection</group>
+    <valid_values>first,second</valid_values>
+    <values>
+      <value>first</value>
+    </values>
+    <desc>
+      Order of accuracy of the vertical remapping of tracers
+      first: first-order accurate
+      second: second-order accurate
+      Default: first
+    </desc>
+  </entry>
+
+  <entry id="compute_ice_age">
+    <type>logical</type>
+    <category>cism_config_advection</category>
+    <group>advection</group>
+    <values>
+      <value>.true.</value>
+    </values>
+    <desc>
+      If true, compute the ice age as a tracer
+      Default: .true.
+    </desc>
+  </entry>
+
 
   <!-- =============================================================  -->
   <!-- group: cism.icesheet.config: temperature                       -->
@@ -1391,6 +1514,17 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="pmp_threshold" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_temperature</category>
+    <group>temperature</group>
+    <desc>
+      The bed is assumed thawed where the basal temperature is within pmp_threshold (deg C)
+      of the pressure melting point
+      Default: (use hard-coded default - currently 1.e-3)
+    </desc>
+  </entry>
+
 
   <!-- =============================================================  -->
   <!-- group: cism.icesheet.config: flow_law                          -->
@@ -1456,6 +1590,20 @@ Sub-elements of each entry include:
       Default is 1.0, but for marine simulations a smaller value
       may be needed to match observed shelf speeds.
       Default: 1.0 for Greenland, 0.40 for Antarctica
+    </desc>
+  </entry>
+
+  <entry id="damage_flwa_feedback">
+    <type>logical</type>
+    <category>cism_config_flow_law</category>
+    <group>flow_law</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>
+      If true, the flow factor (flwa) increases as damage increases
+      (can be a strong positive feedback on damage)
+      Default: .false.
     </desc>
   </entry>
 
