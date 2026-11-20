@@ -3591,6 +3591,24 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="overwrite_acab">
+    <type>char</type>
+    <category>cism_config_climate</category>
+    <group>climate</group>
+    <valid_values>none,acab_zero,thck_min,mask</valid_values>
+    <values>
+      <value>none</value>
+    </values>
+    <desc>
+      Where to overwrite the surface mass balance (acab) with overwrite_acab_value
+      none: do not overwrite acab anywhere
+      acab_zero: overwrite acab where the input acab = 0
+      thck_min: overwrite acab where the input thck &lt;= overwrite_acab_thck_min
+      mask: overwrite acab based on an input mask
+      Default: none
+    </desc>
+  </entry>
+
   <entry id="t_lapse">
     <type>real</type>
     <category>cism_config_climate</category>
@@ -3675,6 +3693,98 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="tmlt" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_climate</category>
+    <group>climate</group>
+    <desc>
+      Spatially uniform temperature threshold (deg C) for melting in the PDD scheme
+      (not the glacier key glacier_tmlt)
+      Only relevant if smb_input_function = pdd
+      Default: (use hard-coded default - currently -1.)
+    </desc>
+  </entry>
+
+  <entry id="snow_threshold_min" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_climate</category>
+    <group>climate</group>
+    <desc>
+      Air temperature (deg C) below which all precipitation falls as snow, in the PDD scheme
+      (not the glacier key glacier_snow_threshold_min)
+      Only relevant if smb_input_function = pdd
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="snow_threshold_max" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_climate</category>
+    <group>climate</group>
+    <desc>
+      Air temperature (deg C) above which all precipitation falls as rain, in the PDD scheme
+      (not the glacier key glacier_snow_threshold_max)
+      Only relevant if smb_input_function = pdd
+      Default: (use hard-coded default - currently 2.)
+    </desc>
+  </entry>
+
+  <entry id="artm_anomaly_const" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_climate</category>
+    <group>climate</group>
+    <desc>
+      Spatially uniform air temperature anomaly (deg C)
+      Only relevant if enable_artm_anomaly = .true.
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="overwrite_acab_value" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_climate</category>
+    <group>climate</group>
+    <desc>
+      Value of acab (m/yr) applied where acab is overwritten
+      Only relevant if overwrite_acab is not none
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="overwrite_acab_thck_min" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_climate</category>
+    <group>climate</group>
+    <desc>
+      acab is overwritten where the input thickness &lt;= overwrite_acab_thck_min (m)
+      Only relevant if overwrite_acab = thck_min
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="nzatm" skip_default_entry="true">
+    <type>integer</type>
+    <category>cism_config_climate</category>
+    <group>climate</group>
+    <desc>
+      Number of atmosphere levels at which the SMB and other fields are provided
+      If neither nzatm nor zatm is set, CISM uses the standard CESM elevation classes
+      when smb_input_function or artm_input_function = xyz
+      If set, zatm must also be set
+      Default: (use hard-coded default - currently 1)
+    </desc>
+  </entry>
+
+  <entry id="zatm" skip_default_entry="true">
+    <type>real(100)</type>
+    <category>cism_config_climate</category>
+    <group>climate</group>
+    <desc>
+      List of nzatm atmosphere levels (m), in increasing order, separated by spaces
+      Default: (use hard-coded default - currently none)
+    </desc>
+  </entry>
+
 
   <!-- =============================================================  -->
   <!-- group: cism.icesheet.config: ocean_data                        -->
@@ -3741,6 +3851,17 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="zocn" skip_default_entry="true">
+    <type>real(100)</type>
+    <category>cism_config_ocean_data</category>
+    <group>ocean_data</group>
+    <desc>
+      List of nzocn ocean levels (m, negative below sea level), separated by spaces
+      Used only if dzocn = 0; otherwise the levels are computed from dzocn
+      Default: (use hard-coded default - currently none)
+    </desc>
+  </entry>
+
   <entry id="nbasin">
     <type>integer</type>
     <category>cism_config_ocean_data</category>
@@ -3766,6 +3887,62 @@ Sub-elements of each entry include:
       Min value of thermal_forcing_basin (deg C) applied to nonlocal and
       nonlocal-slope schemes
       Default: 0.0
+    </desc>
+  </entry>
+
+  <entry id="thermal_forcing_basin_max" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_ocean_data</category>
+    <group>ocean_data</group>
+    <desc>
+      Maximum basin-scale thermal forcing (deg C); 0 = no limit
+      Only relevant if bmlt_float_method = thermal_forcing and
+      bmlt_float_thermal_forcing_param = ismip6_nonlocal or ismip6_nonlocal_slope
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="thermal_forcing_anomaly" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_ocean_data</category>
+    <group>ocean_data</group>
+    <desc>
+      Thermal forcing anomaly (deg C), applied everywhere or in one basin; 0 = no anomaly
+      Only relevant if bmlt_float_method = thermal_forcing
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="thermal_forcing_anomaly_tstart" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_ocean_data</category>
+    <group>ocean_data</group>
+    <desc>
+      Time (yr) at which the thermal forcing anomaly starts to be applied or phased in
+      Only relevant if thermal_forcing_anomaly is nonzero
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="thermal_forcing_anomaly_timescale" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_ocean_data</category>
+    <group>ocean_data</group>
+    <desc>
+      Number of years over which the thermal forcing anomaly is phased in linearly
+      Only relevant if thermal_forcing_anomaly is nonzero
+      Default: (use hard-coded default - currently 0.)
+    </desc>
+  </entry>
+
+  <entry id="thermal_forcing_anomaly_basin" skip_default_entry="true">
+    <type>integer</type>
+    <category>cism_config_ocean_data</category>
+    <group>ocean_data</group>
+    <desc>
+      Basin where the thermal forcing anomaly is applied; 0 = all basins
+      Only relevant if thermal_forcing_anomaly is nonzero
+      Default: (use hard-coded default - currently 0)
     </desc>
   </entry>
 
