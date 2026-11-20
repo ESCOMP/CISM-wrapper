@@ -1754,6 +1754,39 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="btrc_method">
+    <type>char</type>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
+    <valid_values>none,constant,constant_bwat,constant_bpmp</valid_values>
+    <values>
+      <value>none</value>
+    </values>
+    <desc>
+      Basal traction for the local SIA solver
+      Only relevant if stokes_approx = local_sia
+      none: no basal sliding
+      constant: constant basal traction (btrc_const)
+      constant_bwat: constant where bwat > 0
+      constant_bpmp: constant where the bed is at the pressure melting point
+      Default: none
+    </desc>
+  </entry>
+
+  <entry id="use_c_space_factor">
+    <type>logical</type>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>
+      If true, multiply beta by the 2D input field C_space_factor
+      Supported only for sliding_law = coulomb, schoof or tsai
+      Default: .false.
+    </desc>
+  </entry>
+
   <entry id="btrc_const">
     <type>real</type>
     <category>cism_config_basal_physics</category>
@@ -1791,6 +1824,28 @@ Sub-elements of each entry include:
       Only relevant for sliding_law = beta_constant
       Spatially uniform beta for higher-order dycores (Pa yr m-1)
       Default: (use hard-coded default - currently 1000.)
+    </desc>
+  </entry>
+
+  <entry id="beta_small" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
+    <desc>
+      Small beta (Pa yr/m) for sliding over a thawed bed
+      Only relevant if sliding_law = beta_bpmp
+      Default: (use hard-coded default - currently 1000.)
+    </desc>
+  </entry>
+
+  <entry id="beta_large" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
+    <desc>
+      Large beta (Pa yr/m) to enforce (virtually) no slip
+      Only relevant if sliding_law = no_slip or beta_bpmp
+      Default: (use hard-coded default - currently 1.e10)
     </desc>
   </entry>
 
@@ -1954,6 +2009,39 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="coulomb_bump_max_slope" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
+    <desc>
+      Maximum bed bump slope at the subgrid scale (no dimension), for the Coulomb friction law
+      Only relevant if sliding_law = coulomb
+      Default: (use hard-coded default - currently 0.5)
+    </desc>
+  </entry>
+
+  <entry id="coulomb_bump_wavelength" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
+    <desc>
+      Bed bump wavelength (m) at the subgrid scale, for the Coulomb friction law
+      Only relevant if sliding_law = coulomb
+      Default: (use hard-coded default - currently 2.)
+    </desc>
+  </entry>
+
+  <entry id="flwa_basal_const" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
+    <desc>
+      Flow factor at the bed (Pa^-3 yr^-1), for the Coulomb friction law
+      Only relevant if sliding_law = coulomb
+      Default: (use hard-coded default - currently 1.e-16)
+    </desc>
+  </entry>
+
   <entry id="schoof_n">
     <type>real</type>
     <category>cism_config_basal_physics</category>
@@ -2089,6 +2177,61 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="pseudo_plastic_phimin" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
+    <desc>
+      Minimum till friction angle phi (degrees) in the old pseudo-plastic law, used where topg &lt;= pseudo_plastic_bedmin
+      Only relevant if sliding_law = pseudo_plastic_old
+      Default: (use hard-coded default - currently 5.)
+    </desc>
+  </entry>
+
+  <entry id="pseudo_plastic_phimax" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
+    <desc>
+      Maximum till friction angle phi (degrees) in the old pseudo-plastic law, used where topg &gt;= pseudo_plastic_bedmax
+      Only relevant if sliding_law = pseudo_plastic_old
+      Default: (use hard-coded default - currently 40.)
+    </desc>
+  </entry>
+
+  <entry id="pseudo_plastic_bedmin" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
+    <desc>
+      Bed elevation (m) below which phi = pseudo_plastic_phimin
+      Only relevant if sliding_law = pseudo_plastic_old
+      Default: (use hard-coded default - currently -300.)
+    </desc>
+  </entry>
+
+  <entry id="pseudo_plastic_bedmax" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
+    <desc>
+      Bed elevation (m) above which phi = pseudo_plastic_phimax
+      Only relevant if sliding_law = pseudo_plastic_old
+      Default: (use hard-coded default - currently 700.)
+    </desc>
+  </entry>
+
+  <entry id="friction_powerlaw_k" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_physics</category>
+    <group>basal_physics</group>
+    <desc>
+      Coefficient (m yr^-1 Pa^-2) of the power-law friction law based on effective pressure
+      Only relevant if sliding_law = powerlaw_effecpress
+      Default: (use hard-coded default - currently 8.4e-9)
+    </desc>
+  </entry>
+
 
   <!-- =============================================================  -->
   <!-- group: cism.icesheet.config: basal_hydro                       -->
@@ -2138,6 +2281,17 @@ Sub-elements of each entry include:
       Parameter for local till model: Maximum water depth in till (m)
       Relevant only for bwat_method = local_till
       Default: 2.0
+    </desc>
+  </entry>
+
+  <entry id="bwat_source_const" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_hydro</category>
+    <group>basal_hydro</group>
+    <desc>
+      Constant melt source at the bed (m/yr), added to the computed basal melt
+      Only relevant if bwat_method = flux_routing
+      Default: (use hard-coded default - currently 0.)
     </desc>
   </entry>
 
@@ -2291,6 +2445,61 @@ Sub-elements of each entry include:
     </desc>
   </entry>
 
+  <entry id="bump_height" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_hydro</category>
+    <group>basal_hydro</group>
+    <desc>
+      Height scale (m) of bed bumps, for cavity opening by sliding
+      Only relevant if effecpress_method = cavity_sheet and cavity_open_slide is not none
+      Default: (use hard-coded default - currently 0.1)
+    </desc>
+  </entry>
+
+  <entry id="bump_wavelength" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_hydro</category>
+    <group>basal_hydro</group>
+    <desc>
+      Length scale (m) of bed bumps, for cavity opening by sliding
+      Only relevant if effecpress_method = cavity_sheet and cavity_open_slide is not none
+      Default: (use hard-coded default - currently 2.)
+    </desc>
+  </entry>
+
+  <entry id="sliding_speed_fixed" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_hydro</category>
+    <group>basal_hydro</group>
+    <desc>
+      Fixed sliding speed (m/yr) for cavity opening by sliding
+      Only relevant if effecpress_method = cavity_sheet and cavity_open_slide = fixed_ub
+      Default: (use hard-coded default - currently 31.5)
+    </desc>
+  </entry>
+
+  <entry id="flwa_basal" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_hydro</category>
+    <group>basal_hydro</group>
+    <desc>
+      Flow factor at the bed (Pa^-3 yr^-1) for cavity closing by creep
+      Only relevant if effecpress_method = cavity_sheet
+      Default: (use hard-coded default - currently 1.064e-16)
+    </desc>
+  </entry>
+
+  <entry id="cavity_closing_const" skip_default_entry="true">
+    <type>real</type>
+    <category>cism_config_basal_hydro</category>
+    <group>basal_hydro</group>
+    <desc>
+      Constant in the cavity closing rate, v_close = cavity_closing_const * A * bwat * N^n
+      Only relevant if effecpress_method = cavity_sheet
+      Default: (use hard-coded default - currently 0.074)
+    </desc>
+  </entry>
+
 
   <!-- =============================================================  -->
   <!-- group: cism.icesheet.config: grounding_line                    -->
@@ -2311,6 +2520,23 @@ Sub-elements of each entry include:
       vertices: basal friction GLP with 0 .lte. f_ground .lte. 1 at vertices
       deluxe: "deluxe" GLP with f_ground at both cells and vertices; includes both friction and melting
       Default: none
+    </desc>
+  </entry>
+
+  <entry id="fground_no_glp">
+    <type>char</type>
+    <category>cism_config_grounding_line</category>
+    <group>grounding_line</group>
+    <valid_values>grounded_neighbor,flotation_function</valid_values>
+    <values>
+      <value>grounded_neighbor</value>
+    </values>
+    <desc>
+      How grounded and floating vertices are identified without a grounding-line parameterization
+      Only relevant if grounding_line_param = none
+      grounded_neighbor: f_ground = 1 at a vertex if any neighbor cell is grounded
+      flotation_function: f_ground = 0 or 1 at a vertex based on the staggered flotation function
+      Default: grounded_neighbor
     </desc>
   </entry>
 
