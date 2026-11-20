@@ -1066,7 +1066,7 @@ Sub-elements of each entry include:
     <type>char</type>
     <category>cism_config_velocity</category>
     <group>velocity</group>
-    <valid_values>local_sia,sia,ssa,blatter_pattyn,l1l2,diva</valid_values>
+    <valid_values>local_sia,sia,ssa,blatter_pattyn,l1l2,diva,hybrid</valid_values>
     <values>
       <value>diva</value>
     </values>
@@ -1079,6 +1079,7 @@ Sub-elements of each entry include:
       blatter_pattyn: Blatter-Pattyn approximation with both vertical-shear and horizontal-plane stresses (uses glissade_velo_higher)
       l1l2: Vertically integrated 'L1L2' approximation with vertical-shear and horizontal-plane stresses (uses glissade_velo_higher)
       diva: Depth-integrated viscosity approximation (DIVA) based on Goldberg (2011) (uses glissade_velo_higher)
+      hybrid: SIA velocity without sliding (glissade_velo_sia) plus an SSA solve (glissade_velo_higher)
       Default: diva
     </desc>
   </entry>
@@ -3350,7 +3351,7 @@ Sub-elements of each entry include:
 
   <entry id="melt_rate_const" skip_default_entry="true">
     <type>real</type>
-    <category>cism_config_parameters</category>
+    <category>cism_config_lateral_melt</category>
     <group>lateral_melt</group>
     <desc>
       Prescribed constant lateral melt rate (m/s) applied at the subgrid calving
@@ -3361,7 +3362,7 @@ Sub-elements of each entry include:
 
   <entry id="melt_factor" skip_default_entry="true">
     <type>real</type>
-    <category>cism_config_parameters</category>
+    <category>cism_config_lateral_melt</category>
     <group>lateral_melt</group>
     <desc>
       Tuning factor (unitless) multiplying the ISMIP6/Rignot-et-al.-type lateral
@@ -3372,7 +3373,7 @@ Sub-elements of each entry include:
 
   <entry id="thermal_forcing_avg_3d_to_2d" skip_default_entry="true">
     <type>logical</type>
-    <category>cism_config_parameters</category>
+    <category>cism_config_lateral_melt</category>
     <group>lateral_melt</group>
     <desc>
       If true, average the 3D ocean thermal forcing field over the depth range
@@ -3384,7 +3385,7 @@ Sub-elements of each entry include:
 
   <entry id="ztop_tfavg" skip_default_entry="true">
     <type>real</type>
-    <category>cism_config_parameters</category>
+    <category>cism_config_lateral_melt</category>
     <group>lateral_melt</group>
     <desc>
       Upper depth (m, negative below sea level) of the range used to average
@@ -3396,7 +3397,7 @@ Sub-elements of each entry include:
 
   <entry id="zbot_tfavg" skip_default_entry="true">
     <type>real</type>
-    <category>cism_config_parameters</category>
+    <category>cism_config_lateral_melt</category>
     <group>lateral_melt</group>
     <desc>
       Lower depth (m, negative below sea level) of the range used to average
@@ -3441,14 +3442,16 @@ Sub-elements of each entry include:
     <type>char</type>
     <category>cism_config_removal</category>
     <group>removal</group>
+    <valid_values>none,all_ice,floating_ice</valid_values>
     <values>
       <value icesheet="gris">none</value>
       <value icesheet="ais" >none</value>
     </values>
     <desc>
       Option to force ice retreat where indicated by the retreat_mask field
-      0=no force retreat, 1=force retreat where indicated by retreat_mask,
-      2=force retreat for floating ice where indicated by retreat mask
+      none: no forced retreat
+      all_ice: force retreat of all ice where indicated by retreat_mask
+      floating_ice: force retreat of floating ice where indicated by retreat_mask
       Default: none for Greenland, none for Antarctica
     </desc>
   </entry>
