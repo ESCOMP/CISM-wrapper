@@ -3,5 +3,5 @@
 ../../../test/unit/unit_test_replacements
 ../../../serial
 ../../../source_glc
-../../../source_cism/libglimmer
+../../../source_cism/cism_shared
 ../../../cime/src/share/util
